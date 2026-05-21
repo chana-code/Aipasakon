@@ -1,0 +1,262 @@
+/* ──────────────────────────────────────────────────────────────
+   AI ภาษาคน — Design Tokens
+   Textbook-style reading interface · Thai-first
+   ────────────────────────────────────────────────────────────── */
+
+/* ── FONTS ─────────────────────────────────────────────────────
+   IBM Plex Sans Thai      — Thai body + display
+   Inter                   — Latin pair, English technical terms
+   IBM Plex Mono           — code blocks, inline code, file paths
+   All three are CDN-loaded from Google Fonts. If offline copies
+   are needed, drop .woff2 files into fonts/ and override @font-face.
+   ────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+
+  /* ── COLOR · BRAND ──────────────────────────────────────────
+     Sampled from the circular logo. Navy is the textbook ink;
+     teal is the single accent (links, level markers, the
+     Surface/Deeper/Formal toggle). Use teal sparingly — calm
+     credibility is the point.
+     ────────────────────────────────────────────────────────── */
+  --navy-900:  #00143C;   /* primary ink — body text, headings */
+  --navy-800:  #0A2150;   /* slightly lifted ink */
+  --navy-700:  #1E3463;   /* secondary text on light bg */
+  --navy-600:  #3E5482;   /* tertiary text, captions */
+  --navy-500:  #6376A0;   /* muted/disabled */
+
+  --teal-700:  #006B7A;   /* link hover, pressed state */
+  --teal-600:  #00958F;   /* link, active state */
+  --teal-500:  #14B5AB;   /* primary accent — buttons, level markers */
+  --teal-400:  #4BC9C0;   /* accent on dark, decorative */
+  --teal-100:  #D6F3F0;   /* tinted callout backgrounds */
+  --teal-50:   #EAF8F6;   /* subtle wash, hover background */
+
+  /* ── COLOR · NEUTRAL (warm gray, for reading) ───────────────
+     Page bg is a warm off-white — easier on the eye for long
+     prose than pure #FFF. Card bg is true white so reading
+     surfaces "lift" slightly off the page.
+     ────────────────────────────────────────────────────────── */
+  --paper:     #FBF9F4;   /* page background — warm off-white */
+  --paper-2:   #F4F1E9;   /* sunken / sidebar */
+  --card:      #FFFFFF;   /* card / reading surface */
+  --line:      #E8E2D4;   /* hairline borders */
+  --line-2:    #D6CFBE;   /* stronger borders, dividers */
+  --line-ink:  #00143C18; /* navy hairline at 9% — fine rules */
+
+  /* ── COLOR · LEVEL TAGS ─────────────────────────────────────
+     Each curriculum level has a subtle color so a reader always
+     knows where they are. Used as a 3px left-edge or a chip
+     tint — never as a full background.
+     ────────────────────────────────────────────────────────── */
+  --level-1:   #14B5AB;   /* Foundations  — teal */
+  --level-2:   #2D7CD6;   /* Using AI     — blue */
+  --level-3:   #B45A1A;   /* Building     — burnt orange */
+  --level-4:   #7A3FA0;   /* Advanced     — plum */
+
+  /* ── COLOR · STATUS BADGES ──────────────────────────────────
+     Note maturity: stub → drafting → reviewed → stable.
+     Honesty about maturity is on-brand.
+     ────────────────────────────────────────────────────────── */
+  --status-stub:      #94896E;   /* dust */
+  --status-drafting:  #C18A2E;   /* amber */
+  --status-reviewed:  #14B5AB;   /* brand teal */
+  --status-stable:    #2A7A3F;   /* forest */
+
+  /* ── COLOR · SEMANTIC ───────────────────────────────────────
+     Everyday tokens. Prefer these over raw scale values in
+     component code.
+     ────────────────────────────────────────────────────────── */
+  --fg-1:      var(--navy-900);  /* primary text */
+  --fg-2:      var(--navy-700);  /* secondary text */
+  --fg-3:      var(--navy-600);  /* meta, captions */
+  --fg-muted:  var(--navy-500);  /* disabled, placeholders */
+  --fg-link:   var(--teal-600);
+  --fg-link-hover: var(--teal-700);
+  --fg-on-accent: #FFFFFF;
+
+  --bg-page:   var(--paper);
+  --bg-sunk:   var(--paper-2);
+  --bg-card:   var(--card);
+  --bg-tint:   var(--teal-50);
+
+  --border:    var(--line);
+  --border-strong: var(--line-2);
+  --accent:    var(--teal-500);
+  --accent-ink:var(--teal-700);
+
+  /* ── TYPOGRAPHY · FAMILIES ──────────────────────────────────
+     Thai stack first so Thai glyphs render in Plex Sans Thai
+     even when mixed with Latin. Inter handles English well.
+     ────────────────────────────────────────────────────────── */
+  --font-thai:    "IBM Plex Sans Thai", "Noto Sans Thai", system-ui, sans-serif;
+  --font-latin:   "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-display: "IBM Plex Sans Thai", "Inter", system-ui, sans-serif;
+  --font-mono:    "IBM Plex Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+
+  /* ── TYPOGRAPHY · SCALE ─────────────────────────────────────
+     Conservative scale. Body is 17px (Thai needs a touch more
+     than English defaults). Line-height ~1.75 on prose for
+     Thai readability — non-negotiable.
+     ────────────────────────────────────────────────────────── */
+  --t-display: 56px;  --lh-display: 1.15;
+  --t-h1:      40px;  --lh-h1:      1.2;
+  --t-h2:      28px;  --lh-h2:      1.3;
+  --t-h3:      21px;  --lh-h3:      1.4;
+  --t-h4:      17px;  --lh-h4:      1.5;
+  --t-body:    17px;  --lh-body:    1.75;   /* prose */
+  --t-ui:      15px;  --lh-ui:      1.5;    /* UI labels, nav, buttons */
+  --t-small:   13px;  --lh-small:   1.5;    /* meta, captions */
+  --t-mono:    14.5px; --lh-mono:   1.7;
+  --t-mono-inline: 0.92em;
+
+  /* Letter spacing — kept neutral. Thai gets none; tight
+     headings only for Latin display sizes. */
+  --tracking-display: -0.01em;
+  --tracking-h1:      -0.005em;
+  --tracking-overline: 0.08em;
+
+  /* ── SPACE & RHYTHM ─────────────────────────────────────────
+     4px base. Reading column is 680px — keep it.
+     ────────────────────────────────────────────────────────── */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+
+  --col-prose:  680px;     /* single reading column */
+  --col-wide:   960px;     /* with right rail */
+  --col-page:   1200px;    /* page max */
+
+  /* ── RADIUS ─────────────────────────────────────────────────
+     Restrained. Textbook chrome doesn't bubble. Pills only for
+     status badges and chips.
+     ────────────────────────────────────────────────────────── */
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-3: 10px;
+  --r-pill: 999px;
+
+  /* ── SHADOW ─────────────────────────────────────────────────
+     One quiet shadow for popovers (glossary hover, ToC fly-out).
+     Cards use border, not shadow.
+     ────────────────────────────────────────────────────────── */
+  --shadow-pop:  0 1px 2px rgba(0,20,60,0.04), 0 8px 24px rgba(0,20,60,0.08);
+  --shadow-focus:0 0 0 3px rgba(20,181,171,0.32);
+
+  /* ── MOTION ─────────────────────────────────────────────────
+     Calm. No bounces. ~140ms for most state changes.
+     ────────────────────────────────────────────────────────── */
+  --ease:      cubic-bezier(.2,.6,.2,1);
+  --dur-fast:  120ms;
+  --dur:       180ms;
+}
+
+/* ── BASE ──────────────────────────────────────────────────── */
+html, body {
+  background: var(--bg-page);
+  color: var(--fg-1);
+  font-family: var(--font-thai);
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── SEMANTIC TYPE ─────────────────────────────────────────── */
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--t-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--tracking-h1);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--t-h2);
+  line-height: var(--lh-h2);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+h3, .h3 {
+  font-size: var(--t-h3);
+  line-height: var(--lh-h3);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+h4, .h4 {
+  font-size: var(--t-h4);
+  line-height: var(--lh-h4);
+  font-weight: 600;
+  color: var(--fg-1);
+}
+p {
+  font-size: var(--t-body);
+  line-height: var(--lh-body);
+  color: var(--fg-1);
+  text-wrap: pretty;
+}
+.display {
+  font-family: var(--font-display);
+  font-size: var(--t-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-display);
+  font-weight: 600;
+}
+.meta, .small {
+  font-size: var(--t-small);
+  line-height: var(--lh-small);
+  color: var(--fg-3);
+}
+.overline {
+  font-size: var(--t-small);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--fg-3);
+  font-weight: 500;
+}
+a {
+  color: var(--fg-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--fg-link) 40%, transparent);
+  transition: color var(--dur-fast) var(--ease), text-decoration-color var(--dur-fast) var(--ease);
+}
+a:hover {
+  color: var(--fg-link-hover);
+  text-decoration-color: currentColor;
+}
+code, kbd, samp, .mono {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono-inline);
+}
+code:not(pre code) {
+  background: var(--bg-sunk);
+  border: 1px solid var(--border);
+  padding: 0.05em 0.4em;
+  border-radius: var(--r-1);
+  color: var(--fg-1);
+}
+pre {
+  font-family: var(--font-mono);
+  font-size: var(--t-mono);
+  line-height: var(--lh-mono);
+  background: var(--bg-sunk);
+  border: 1px solid var(--border);
+  border-radius: var(--r-3);
+  padding: var(--s-4) var(--s-5);
+  overflow-x: auto;
+}
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: var(--s-6) 0;
+}
