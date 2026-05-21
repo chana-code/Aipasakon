@@ -107,7 +107,7 @@ Before answering, list the steps you'll take, then work through them, then give 
 > "ร้านขายขนม 3 ร้าน ร้าน A ขายชิ้นละ 12 บาท ลด 10% ร้าน B ขายชิ้นละ 11 บาท ไม่ลด ร้าน C ขายชิ้นละ 15 บาท ลด 30% ถ้าซื้อ 20 ชิ้น ร้านไหนถูกที่สุด? Let's think step by step."
 
 **จุดที่หยุดช่วย:**
-- โมเดลขนาดเล็ก (<10B parameter) CoT ช่วยน้อย หรือบางทีแย่ลง — เพราะ "การคิด" ที่ generate ออกมา ก็ผิดอยู่ดี
+- โมเดลขนาดเล็ก (&lt;10B parameter) CoT ช่วยน้อย หรือบางทีแย่ลง — เพราะ "การคิด" ที่ generate ออกมา ก็ผิดอยู่ดี
 - โมเดลรุ่นใหม่ที่มี **built-in reasoning mode** (เช่น o-series, Claude Extended Thinking) — การพิมพ์ "think step by step" อาจซ้ำซ้อนกับ internal reasoning ที่ทำอยู่แล้ว
 - งานที่ไม่ใช่ reasoning (เช่น สรุปบทความ) CoT มักเปลือง token โดยไม่ได้ผลดีขึ้น
 - **สำคัญ:** "การคิด" ที่ generate ออกมา **ไม่ใช่** กระบวนการคิดจริงของโมเดล — มันคือ generated text ที่ดูเหมือนการคิด งานวิจัย interpretability แสดงว่า reasoning chain บางครั้งไม่ตรงกับ internal computation จริง
@@ -237,7 +237,7 @@ Step 3 prompt (input = output of step 2): Write a 100-word summary using only cl
 ```
 
 **จุดที่หยุดช่วย:**
-- Prompt สั้นมาก (<3 บรรทัด) — delimiter เปลือง token เปล่า
+- Prompt สั้นมาก (&lt;3 บรรทัด) — delimiter เปลือง token เปล่า
 - Delimiter ที่ collide กับ user content (เช่น user paste markdown ที่มี triple backtick แล้วคุณก็ใช้ triple backtick) — แก้โดยเลือก delimiter ที่ไม่น่าปรากฏใน input (XML tag แปลก ๆ หรือ unique string)
 - Delimiter อย่างเดียวไม่ใช่ defense ต่อ prompt injection — ดู [prompt-injection](/building-with-ai/prompt-injection)
 
@@ -263,7 +263,7 @@ Now write [target task] in that same voice.
 **ตัวอย่าง:** ให้โมเดลเขียน blog intro ในสไตล์ตัวเอง — paste 2 intro เก่าที่ชอบ แล้วบอกให้เขียนเรื่องใหม่.
 
 **จุดที่หยุดช่วย:**
-- Sample สั้นเกินไป (<50 word) — โมเดลจับ style ไม่ทัน
+- Sample สั้นเกินไป (&lt;50 word) — โมเดลจับ style ไม่ทัน
 - Sample เยอะเกินไป (>5 ชิ้น) — โมเดลเริ่ม mix style ไม่ consistent
 - Style ที่ขัดกับ training (เช่นโมเดลที่ trained มาให้สุภาพมาก จะดื้อ ๆ เมื่อให้เขียน edgy/snarky)
 - โมเดล chat-tuned บางตัว revert ไป default voice หลังหลาย turn — ต้อง re-anchor

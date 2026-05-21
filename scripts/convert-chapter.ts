@@ -357,7 +357,64 @@ export function convertBody(rawBody: string, level: string): string {
   // 7. Convert wikilinks
   result = replaceWikilinks(result, level);
 
+  // 8. Escape bare angle brackets that break MDX parsing
+  result = escapeMdxAngleBrackets(result);
+
   return result;
+}
+
+/**
+ * Escapes `<` characters in MDX content that are NOT:
+ * - Inside fenced code blocks (``` ... ```)
+ * - Part of our <section> / </section> tags
+ * - Inside inline code spans (` ... `)
+ *
+ * Replaces bare `<` with `{'<'}` which MDX renders as literal `<`.
+ */
+function escapeMdxAngleBrackets(mdx: string): string {
+  const lines = mdx.split('\n');
+  const result: string[] = [];
+  let inCodeBlock = false;
+
+  for (const line of lines) {
+    // Toggle code block state
+    if (line.trimStart().startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      result.push(line);
+      continue;
+    }
+
+    // Don't touch lines inside code blocks
+    if (inCodeBlock) {
+      result.push(line);
+      continue;
+    }
+
+    // For non-code lines, escape < that isn't part of <section or </section
+    // First, protect inline code spans by replacing them temporarily
+    const inlineCodeSpans: string[] = [];
+    let processed = line.replace(/`[^`]+`/g, (match) => {
+      inlineCodeSpans.push(match);
+      return `__INLINE_CODE_${inlineCodeSpans.length - 1}__`;
+    });
+
+    // Escape < that isn't part of section tags — use HTML entity
+    processed = processed.replace(/<(?!\/?section[\s>])/g, '&lt;');
+
+    // Escape { and } that aren't part of section tags — MDX treats them as JSX expressions
+    // Replace { → &#123; and } → &#125; (HTML entities safe in MDX)
+    processed = processed.replace(/\{/g, '&#123;');
+    processed = processed.replace(/\}/g, '&#125;');
+
+    // Restore inline code spans
+    processed = processed.replace(/__INLINE_CODE_(\d+)__/g, (_, idx) => {
+      return inlineCodeSpans[parseInt(idx)]!;
+    });
+
+    result.push(processed);
+  }
+
+  return result.join('\n');
 }
 
 // ---------------------------------------------------------------------------
