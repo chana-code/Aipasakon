@@ -1,29 +1,46 @@
 import { loadGlossary } from '@/lib/content/glossary';
+import { GlossaryFilter } from '@/components/glossary/GlossaryFilter';
 
 export default async function GlossaryPage() {
-  const entries = (await loadGlossary()).slice().sort((a, b) => a.term_en.localeCompare(b.term_en));
+  const entries = (await loadGlossary()).slice().sort((a, b) =>
+    a.term_en.localeCompare(b.term_en)
+  );
 
   return (
-    <div className="mx-auto max-w-prose px-6 py-12">
-      <h1 className="font-thai text-3xl font-semibold mb-2">คำศัพท์</h1>
-      <p className="text-fg-2 mb-10">คำศัพท์ AI ที่ใช้ในหลักสูตร พร้อมคำแปลและคำอธิบายภาษาไทย</p>
+    <main style={{ background: "var(--bg-page)" }}>
+      <div style={{ maxWidth: 880, margin: "0 auto", padding: "56px 28px 96px" }}>
+        <div style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: 11,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "var(--fg-3)",
+          marginBottom: 12,
+        }}>Glossary · ภาคผนวกศัพท์</div>
 
-      <dl className="space-y-6">
-        {entries.map(e => (
-          <div key={e.term_en} className="border-b border-line pb-4">
-            <dt className="font-mono text-navy-900 text-lg">
-              {e.term_en} <span className="font-thai text-fg-3 text-base ml-2">— {e.term_th}</span>
-            </dt>
-            <dd className="font-thai text-fg-2 mt-2 leading-relaxed">{e.definition_th}</dd>
-            {e.see_also.length > 0 && (
-              <p className="text-sm text-fg-3 mt-2">
-                เกี่ยวข้อง: {e.see_also.join(', ')}
-              </p>
-            )}
-          </div>
-        ))}
-        {entries.length === 0 && <p className="text-fg-3 italic">ยังไม่มีคำศัพท์</p>}
-      </dl>
-    </div>
+        <h1 style={{
+          margin: "0 0 16px",
+          fontFamily: "var(--font-display)",
+          fontSize: 44,
+          fontWeight: 600,
+          color: "var(--fg-1)",
+          letterSpacing: "-0.01em",
+        }}>คำศัพท์ — Thai + English</h1>
+
+        <p style={{
+          fontFamily: "var(--font-thai)",
+          fontSize: 17,
+          lineHeight: 1.8,
+          color: "var(--fg-2)",
+          maxWidth: 640,
+          margin: "0 0 40px",
+        }}>
+          ศัพท์เทคนิคทุกคำในตำราถูก link มาที่นี่ครั้งแรกที่ปรากฏ.
+          ถ้าศัพท์ไหนต้องการอธิบายยาวกว่านี้ มี topic note แยกในหลักสูตร — ดู &ldquo;บทเต็ม&rdquo; ด้านขวาของแต่ละ entry.
+        </p>
+
+        <GlossaryFilter entries={entries} />
+      </div>
+    </main>
   );
 }
