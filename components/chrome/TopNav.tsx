@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Wordmark } from './Wordmark';
 import { Icon, Icons } from './Icon';
+import { AuthButton } from '@/components/auth/AuthButton';
 
 export function TopNav() {
   const items = [
@@ -80,6 +81,8 @@ export function TopNav() {
           background: "var(--paper)",
         }}>⌘K</span>
       </Link>
+
+      <AuthButton />
     </header>
   );
 }

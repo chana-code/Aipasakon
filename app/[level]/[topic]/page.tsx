@@ -6,6 +6,8 @@ import { CurriculumSpine } from '@/components/reader/CurriculumSpine';
 import { DepthToggle } from '@/components/reader/DepthToggle';
 import { StatusBadge } from '@/components/reader/StatusBadge';
 import { LevelChip } from '@/components/chrome/LevelChip';
+import { BookmarkButton } from '@/components/learn/BookmarkButton';
+import { CompleteButton } from '@/components/learn/CompleteButton';
 import Link from 'next/link';
 
 export async function generateStaticParams() {
@@ -90,6 +92,17 @@ export default async function ChapterPage({
             {readMin} min read
             {chapter.last_reviewed && ` · last reviewed ${chapter.last_reviewed}`}
           </span>
+        </div>
+
+        {/* Bookmark + Complete actions */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          marginBottom: 32,
+        }}>
+          <BookmarkButton chapterSlug={chapter.slug} />
+          <CompleteButton chapterSlug={chapter.slug} />
         </div>
 
         {/* TL;DR box */}
