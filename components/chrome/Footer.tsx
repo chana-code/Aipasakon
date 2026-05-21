@@ -1,14 +1,23 @@
-import Link from 'next/link';
+import { Wordmark } from './Wordmark';
 
 export function Footer() {
   return (
-    <footer className="border-t border-line mt-24 py-10 text-sm text-fg-3">
-      <div className="mx-auto max-w-6xl px-6 flex flex-col gap-3 md:flex-row md:justify-between">
-        <p>© AI ภาษาคน — Ong, VP Commercial @ Fairdee.</p>
-        <ul className="flex gap-5">
-          <li><Link href="/about" className="hover:text-teal-600">เกี่ยวกับ</Link></li>
-          <li><Link href="/curriculum" className="hover:text-teal-600">หลักสูตร</Link></li>
-        </ul>
+    <footer style={{ marginTop: 80, padding: "32px 28px 48px", borderTop: "1px solid var(--line)" }}>
+      <div style={{
+        maxWidth: 1180,
+        margin: "0 auto",
+        display: "flex",
+        alignItems: "center",
+        gap: 18,
+      }}>
+        <Wordmark size={15} />
+        <span style={{ fontFamily: "var(--font-thai)", fontSize: 13, color: "var(--fg-3)" }}>
+          AI ไม่ยาก ถ้าพูดภาษาคน · by Ong
+        </span>
+        <span style={{ flex: 1 }} />
+        <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--fg-3)" }}>
+          v0.1 · last updated 2026-05-22
+        </span>
       </div>
     </footer>
   );
