@@ -1,18 +1,35 @@
-const COLORS = {
-  stub:     'border-fg-3 text-fg-3',
-  drafting: 'border-orange-500 text-orange-600',
-  reviewed: 'border-teal-500 text-teal-600',
-  stable:   'border-navy-900 text-navy-900',
-} as const;
+const STATUS_COLOR: Record<string, string> = {
+  stub:     '#94896E',
+  drafting: '#C18A2E',
+  reviewed: '#14B5AB',
+  stable:   '#2A7A3F',
+};
 
-const LABELS = {
-  stub: 'stub', drafting: 'drafting', reviewed: 'reviewed', stable: 'stable',
-} as const;
-
-export function StatusBadge({ status }: { status: keyof typeof COLORS }) {
+export function StatusBadge({ status }: { status: 'stub' | 'drafting' | 'reviewed' | 'stable' }) {
   return (
-    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${COLORS[status]}`}>
-      {LABELS[status]}
+    <span style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 6,
+      padding: "3px 10px 3px 8px",
+      borderRadius: 999,
+      background: "#fff",
+      border: "1px solid var(--line-2)",
+      fontFamily: "var(--font-latin)",
+      fontSize: 11.5,
+      fontWeight: 500,
+      color: "var(--fg-2)",
+      letterSpacing: "0.01em",
+      lineHeight: 1.4,
+    }}>
+      <span style={{
+        width: 7,
+        height: 7,
+        borderRadius: "50%",
+        background: STATUS_COLOR[status] ?? STATUS_COLOR.stub,
+        flexShrink: 0,
+      }} />
+      {status}
     </span>
   );
 }
