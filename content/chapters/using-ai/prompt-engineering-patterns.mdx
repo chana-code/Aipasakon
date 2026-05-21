@@ -1,0 +1,390 @@
+---
+slug: prompt-engineering-patterns
+level: using-ai
+title: "Prompt Engineering Patterns"
+status: reviewed
+prerequisites:
+  - prompt-engineering-basics
+  - how-llms-respond
+last_reviewed: 2026-05-18
+tldr: "Prompt engineering ที่ใช้ในงานจริงไม่ใช่ \"เคล็ดลับลับ\" แต่เป็นชุดของ pattern ที่มีชื่อ มีกลไก และมีเงื่อนไขที่ใช้ได้ผล. บทนี้แคตตาล็อก pattern หลัก 11 ตัว — role prompting, few-shot, chain-of-thought, self-consistency, structured output, self-critique, decomposition, negative prompting, delimiter separation, persona anchoring, refusal handling — พร้อมเงื่อนไขการใช้, ตัวอย่าง, และข้อจำกัด. ในการใช้งานจริง prompt ที่ดีมักเป็นการ **stack** หลาย pattern เข้าด้วยกัน ไม่ใช่เลือกอันใดอันหนึ่ง."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Prompt engineering ที่ใช้ในงานจริงไม่ใช่ "เคล็ดลับลับ" แต่เป็นชุดของ pattern ที่มีชื่อ มีกลไก และมีเงื่อนไขที่ใช้ได้ผล. บทนี้แคตตาล็อก pattern หลัก 11 ตัว — role prompting, few-shot, chain-of-thought, self-consistency, structured output, self-critique, decomposition, negative prompting, delimiter separation, persona anchoring, refusal handling — พร้อมเงื่อนไขการใช้, ตัวอย่าง, และข้อจำกัด. ในการใช้งานจริง prompt ที่ดีมักเป็นการ **stack** หลาย pattern เข้าด้วยกัน ไม่ใช่เลือกอันใดอันหนึ่ง.
+
+Prompt engineering pattern คือ **โครงสร้างซ้ำ ๆ ที่นักใช้ AI พบว่าได้ผลในงานหลายแบบ** — ไม่ใช่เวทมนตร์ ไม่ใช่ secret words. แต่ละ pattern แก้ปัญหาเฉพาะ: โมเดลตอบ generic เกินไป → **role prompting**; ไม่เข้าใจ format → **few-shot**; พลาดใน reasoning → **chain-of-thought**; ตอบไม่ stable → **self-consistency**; ต้องเอาผลเข้าระบบอื่น → **structured output**; งานซับซ้อนเกิน → **decomposition**.
+
+ในงาน production คุณจะไม่เลือก pattern เดียว — จะ **stack** 3-5 ตัวเข้าด้วยกัน. prompt ใน customer service AI อาจมี role + few-shot + structured output + negative constraint + delimiter ทั้งหมดในข้อความเดียว.
+
+### Mental model
+นึกถึง pattern เหล่านี้เป็น **เครื่องมือในกล่อง** ไม่ใช่ recipe ตายตัว. ช่างไม้ที่ดีไม่ได้เลือก "ค้อนหรือไขควง" — เขาใช้ทั้งคู่ในงานเดียว. แต่ละ pattern มีต้นทุน (token cost, latency, complexity) — ไม่ใช่ใช้ทุก pattern ทุก prompt.
+
+**ผลตามมา:** (1) pattern ใหม่ ๆ ที่ลือกันใน Twitter ส่วนใหญ่เป็น variation/combo ของ pattern เดิม; (2) pattern เดียวกันได้ผลต่างกันบนโมเดลต่างกัน ต้องทดสอบกับโมเดลที่จะใช้จริง; (3) โมเดลรุ่นใหม่ (Claude 4.5+, GPT-5+) "ต้องการ" pattern พวกนี้น้อยลงเพราะ trained ดีขึ้น แต่ pattern ยังช่วยใน edge case.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+ส่วนนี้แตกออกเป็น 11 pattern + ส่วนสุดท้ายว่าด้วยการ stack หลาย pattern. แต่ละ pattern จะมี: คำนิยาม, เมื่อใช้, มินิเทมเพลต, ตัวอย่าง, และจุดที่ pattern หยุดช่วย.
+
+### 2.1 Role prompting
+
+**คำนิยาม:** บอกโมเดลให้ "สวมบทบาท" บางอย่าง เพื่อเปลี่ยน distribution ของ token ที่มันจะ generate ให้ใกล้กับงานในบทบาทนั้น.
+
+**เมื่อใช้:** เมื่อ default output ของโมเดลฟังดู generic เกินไป หรือไม่ตรงกับวงการที่ต้องการ (เช่น writing style, level of detail, jargon density).
+
+**มินิเทมเพลต:**
+```
+Act as a [role] with [years/level of experience]. 
+[Specific task].
+```
+
+**ตัวอย่าง:**
+> "Act as a senior technical writer at a SaaS company. Rewrite the following changelog entry so it's clear to non-engineers but still accurate. Keep under 80 words."
+
+**จุดที่หยุดช่วย:**
+- ถ้า role generic เกินไป ("act as an expert") ไม่ค่อยช่วย — ต้องระบุชัด ๆ
+- โมเดลรุ่นใหม่ ๆ trained มาให้ default style ที่ดีแล้ว — role ช่วยน้อยกว่ารุ่นก่อน
+- Role ไม่ทำให้โมเดล "เก่งขึ้น" จริง — มันแค่เปลี่ยน style/diction. งานที่ต้องการความถูกต้องเชิงข้อเท็จจริงต้องใช้ verification หรือ retrieval ไม่ใช่ role อย่างเดียว
+
+### 2.2 Few-shot prompting (in-context learning)
+
+**คำนิยาม:** ให้ตัวอย่าง 2-5 คู่ของ input → output ในตัว prompt เพื่อให้โมเดล infer pattern แล้วทำซ้ำกับ input ใหม่. เป็น core concept ที่ทำให้ GPT-3 เด่นขึ้นมา .
+
+**เมื่อใช้:**
+- งานที่ format ของ output มี structure ที่ไม่ standard
+- งาน classification / labeling ที่ category ของคุณเฉพาะตัว
+- เมื่อ zero-shot (ไม่มีตัวอย่าง) ให้ผลไม่ stable
+
+**มินิเทมเพลต:** [Instruction] ตามด้วย 2-5 คู่ของ `Input: ... / Output: ...` แล้วปิดด้วย `Input: <real> / Output:` ให้โมเดลเติม.
+
+**ตัวอย่าง:** Classify sentiment ของ tweet ภาษาไทย
+```
+Classify each tweet as positive / negative / neutral.
+
+"ร้านนี้อร่อยมาก กลับมาแน่นอน"        → positive
+"รอนานมาก แอร์ก็เสีย ไม่กลับมาแล้ว"   → negative
+"อาหารธรรมดา ราคาก็พอดี"             → neutral
+"ส่งช้าเกินไป แต่รสชาติโอเค"          →
+```
+
+**จุดที่หยุดช่วย:**
+- เกิน ~5-8 ตัวอย่าง ผลมักไม่ดีขึ้น (เปลือง token เปล่า)
+- ตัวอย่างที่เลือกมา bias ผลลัพธ์อย่างแรง — ถ้าตัวอย่างทั้งหมดเป็น positive โมเดลจะ bias ไป positive
+- งาน reasoning ลึก ๆ few-shot อย่างเดียวไม่พอ ต้องใช้ chain-of-thought ร่วม
+
+### 2.3 Chain-of-Thought (CoT)
+
+**คำนิยาม:** บอกโมเดลให้ "คิดออกมาเป็นขั้น" (think step by step) ก่อนตอบคำตอบสุดท้าย. paper ดั้งเดิมโดย Wei et al. 2022  แสดงว่า CoT ช่วย performance ใน math word problems และ multi-step reasoning อย่างมีนัยสำคัญ — โดยเฉพาะในโมเดลขนาดใหญ่.
+
+**เมื่อใช้:**
+- งาน math, logic, planning, multi-hop reasoning
+- งานที่ต้องตรวจสอบ chain of inference (audit trail)
+- เมื่อโมเดลตอบเป๋ใน final answer และคุณสงสัยว่า reasoning ผิดตรงไหน
+
+**มินิเทมเพลต:**
+```
+[Question]
+
+Let's think step by step.
+```
+หรือใน chat-tuned model:
+```
+[Question]
+
+Before answering, list the steps you'll take, then work through them, then give the final answer.
+```
+
+**ตัวอย่าง:**
+> "ร้านขายขนม 3 ร้าน ร้าน A ขายชิ้นละ 12 บาท ลด 10% ร้าน B ขายชิ้นละ 11 บาท ไม่ลด ร้าน C ขายชิ้นละ 15 บาท ลด 30% ถ้าซื้อ 20 ชิ้น ร้านไหนถูกที่สุด? Let's think step by step."
+
+**จุดที่หยุดช่วย:**
+- โมเดลขนาดเล็ก (<10B parameter) CoT ช่วยน้อย หรือบางทีแย่ลง — เพราะ "การคิด" ที่ generate ออกมา ก็ผิดอยู่ดี
+- โมเดลรุ่นใหม่ที่มี **built-in reasoning mode** (เช่น o-series, Claude Extended Thinking) — การพิมพ์ "think step by step" อาจซ้ำซ้อนกับ internal reasoning ที่ทำอยู่แล้ว
+- งานที่ไม่ใช่ reasoning (เช่น สรุปบทความ) CoT มักเปลือง token โดยไม่ได้ผลดีขึ้น
+- **สำคัญ:** "การคิด" ที่ generate ออกมา **ไม่ใช่** กระบวนการคิดจริงของโมเดล — มันคือ generated text ที่ดูเหมือนการคิด งานวิจัย interpretability แสดงว่า reasoning chain บางครั้งไม่ตรงกับ internal computation จริง
+
+### 2.4 Self-Consistency
+
+**คำนิยาม:** Run prompt เดียวกันหลายรอบ (ปกติ 5-40 รอบ) ด้วย temperature > 0 เพื่อให้ output แตกต่างกัน แล้วเอาคำตอบที่ "ส่วนใหญ่ตอบเหมือนกัน" (majority vote). เทคนิคนี้ใช้ในงาน math/QA ที่มีคำตอบสุดท้ายชัดเจน.
+
+**เมื่อใช้:**
+- งาน reasoning ที่ correctness สำคัญและ budget ของ token + latency ไม่ใช่ปัญหา
+- benchmark / evaluation ที่ต้องการ noise reduction
+- งาน high-stakes (medical triage, legal classification) ที่อยากลด variance
+
+**มินิเทมเพลต (pseudo-code):** สร้าง answers ด้วยการเรียกโมเดล N รอบที่ temperature > 0, extract final answer จากแต่ละรอบ, แล้วเลือก majority vote.
+
+**ตัวอย่าง:** ใน math benchmark — ถาม "ผลคูณของรากของ x²-5x+6 = 0" 10 รอบ. 7 รอบตอบ 6, 2 รอบตอบ 5, 1 รอบตอบ "ไม่แน่ใจ" — เลือก 6.
+
+**จุดที่หยุดช่วย:**
+- งานที่คำตอบเป็น text เปิด (creative writing, summarization) — โหวตไม่ได้
+- เพิ่ม cost ตามจำนวน sample ตรง ๆ — N=20 คือจ่ายเงิน 20 เท่า
+- ถ้าโมเดล bias ผิดทาง systematic majority vote ก็ผิดต่อ — self-consistency ลด variance ไม่ลด bias
+
+### 2.5 Structured Output
+
+**คำนิยาม:** บังคับให้โมเดลตอบใน format ที่ parsable — JSON, XML, YAML, markdown table, หรือ schema เฉพาะ. ทำได้สองระดับ: ผ่าน prompt (ขอใน text) หรือผ่าน API feature (JSON mode / tool use / response schema) — ที่ระดับ API ปลอดภัยกว่ามาก ดู [structured-output-and-json-mode](/building-with-ai/structured-output-and-json-mode).
+
+**เมื่อใช้:**
+- เอา output ไป feed เข้า code/system อื่น
+- ต้องการหลาย field จาก response เดียว (เช่น sentiment + confidence + key phrases)
+- เมื่อ free-form output ต้อง parse ลำบาก
+
+**มินิเทมเพลต:** ระบุ schema ใน prompt — เช่น `{"sentiment": "positive"|"negative"|"neutral", "confidence": <float 0-1>, "reasoning": <one sentence>}` — พร้อมคำสั่ง "Do not include any text outside the JSON."
+
+**ตัวอย่าง:** Extract ข้อมูลจาก email ลูกค้า — schema ระบุ `customer_name`, `issue_type` (billing/technical/feature_request/other), `urgency` (low/medium/high), `summary` (under 30 words). Email อยู่ใน triple-quote delimiter.
+
+**จุดที่หยุดช่วย:**
+- ผ่าน prompt อย่างเดียว — โมเดลยัง hallucinate JSON ที่ parse ไม่ได้ (ลืม comma, ใช้ single quote, ใส่ markdown fence). production ต้องใช้ JSON mode/structured output API
+- Schema ใหญ่/ซับซ้อนเกิน 20-30 field — โมเดลจะลืม field หรือ duplicate. ต้องแตกเป็นหลาย call
+- Output format ที่บังคับเข้มเกินอาจกระทบ quality ของ content (โมเดลใช้ token ไปกับ format มากกว่ากับเนื้อ)
+
+### 2.6 Self-Critique / Reflection
+
+**คำนิยาม:** ให้โมเดลผลิตคำตอบครั้งแรก แล้วในขั้นที่สอง ให้โมเดล "วิจารณ์" คำตอบของตัวเอง แล้วในขั้นที่สาม เขียนใหม่ตามคำวิจารณ์.
+
+**เมื่อใช้:**
+- งานเขียนที่ต้องการ quality สูง (essay, proposal, marketing copy)
+- งานวิเคราะห์ที่ first-pass มักพลาดบาง angle
+- เมื่อ caller มี budget เวลา/cost สำหรับ 2-3 turn
+
+**มินิเทมเพลต:**
+```
+Step 1: [original task]
+Step 2: Review your answer above. List 3 specific weaknesses or errors.
+Step 3: Rewrite the answer fixing those weaknesses.
+```
+
+**ตัวอย่าง:**
+> "Draft a 150-word product launch email. Then critique your draft — list 3 weaknesses in tone, clarity, or call-to-action. Then rewrite, fixing them."
+
+**จุดที่หยุดช่วย:**
+- โมเดลมักจะ "วิจารณ์" แบบ generic ("could be more engaging") ไม่ specific พอที่จะนำไปปรับ
+- ถ้า first-pass ผิดด้านข้อเท็จจริง — self-critique มักไม่จับ เพราะโมเดล believe คำตอบตัวเอง
+- ทำหลายรอบ (3+ rounds) มักไม่ดีขึ้น — converge ไปที่ "safe, bland" version
+
+### 2.7 Decomposition
+
+**คำนิยาม:** แตกงานซับซ้อนเป็น sub-task ย่อย แล้ว chain output ของ task หนึ่งเป็น input ของอีก task หนึ่ง. มี 2 รสชาติ: **manual decomposition** (มนุษย์เขียน chain) และ **agentic decomposition** (ให้โมเดลแตก task เอง).
+
+**เมื่อใช้:**
+- งานที่มี multi-step pipeline ชัด (extract → analyze → summarize → format)
+- งานที่ใช้ context window เยอะถ้าทำใน prompt เดียว
+- เมื่ออยาก inspect/debug แต่ละ step ได้
+
+**มินิเทมเพลต (manual chain):**
+```
+Step 1 prompt: Extract key claims from the article below.
+Step 2 prompt (input = output of step 1): For each claim, rate confidence 1-5.
+Step 3 prompt (input = output of step 2): Write a 100-word summary using only claims rated 4-5.
+```
+
+**ตัวอย่าง:** วิเคราะห์ feedback ลูกค้า 500 รายการ
+1. Call 1: classify แต่ละรายการเป็น category
+2. Call 2: per category, สรุป pain point หลัก
+3. Call 3: prioritize pain points ตาม frequency + severity
+4. Call 4: เขียน executive summary
+
+**จุดที่หยุดช่วย:**
+- งานเล็ก ๆ — decomposition เพิ่ม latency + cost โดยไม่ได้ quality ดีขึ้น
+- Error compound — step 1 ผิด step 2 ก็พลอยผิด ต้องใส่ check ระหว่างกลาง
+- Agentic decomposition (ให้โมเดลแตก task เอง) ใน 2026 ยัง brittle — โมเดลแตก task ไม่สม่ำเสมอ
+
+### 2.8 Negative Prompting / Explicit Constraints
+
+**คำนิยาม:** ระบุชัดเจนว่า "อย่าทำ" อะไร นอกเหนือจากระบุว่า "ทำ" อะไร.
+
+**เมื่อใช้:**
+- เมื่อโมเดลมี default behavior ที่ไม่ต้องการ (ใส่ disclaimer, ใส่ emoji, ใส่ markdown formatting)
+- เมื่อต้องบังคับ scope ของคำตอบ
+- เมื่อ output จะถูก parse — ต้องไม่มี prose ก่อน/หลัง
+
+**มินิเทมเพลต:** หลัง main instruction ใส่ section `Constraints:` ที่ระบุ "Do NOT ..." แต่ละข้อ — เช่น do NOT include disclaimers, do NOT use emoji, do NOT exceed N words, output only requested content.
+
+**ตัวอย่าง:**
+> "Summarize this article in exactly 3 bullet points. Do NOT add 'Here is the summary:' or any introduction. Do NOT use emoji. Each bullet must be under 20 words. Start your response with the first bullet."
+
+**จุดที่หยุดช่วย:**
+- Constraint ที่ขัดกับ training (เช่น "ห้ามใส่ safety warning ในเรื่อง weapons") โมเดลจะไม่ยอมตาม — และไม่ควรพยายามให้ตาม
+- Constraint ยาวเกินไป (10+ "don't") — โมเดลจะหลงและทำผิดบางข้อ. concise > exhaustive
+- Negation บางครั้ง backfires — "don't think about pink elephants" effect. ถ้าเป็นไปได้ rephrase เป็น positive instruction
+
+### 2.9 Delimiter-based Separation
+
+**คำนิยาม:** ใช้ delimiter (triple quotes, XML tags, markdown headers) แยกส่วนต่าง ๆ ของ prompt อย่างชัดเจน — instruction, context, user input, examples, output format.
+
+**เมื่อใช้:**
+- เกือบทุก prompt ที่ยาวกว่า 5 บรรทัด
+- เมื่อมี user-supplied content ปนใน prompt (ป้องกัน prompt injection บางส่วน)
+- เมื่อมีหลาย section ที่โมเดลต้อง refer ต่างกัน
+
+**มินิเทมเพลต:** ใส่แต่ละส่วนของ prompt ใน tag ที่แยกชัด เช่น `<instructions>...</instructions>`, `<context>...</context>`, `<user_input>...</user_input>`, `<output_format>...</output_format>`
+
+**ตัวอย่าง:** ใน Anthropic Claude — XML tags เป็น convention ที่ทำงานได้ดีเป็นพิเศษ
+```
+<task>Translate the email below to formal Thai.</task>
+<rules>Use ครับ/ค่ะ register. Preserve proper nouns in English. Do not translate code.</rules>
+<email>{email_content}</email>
+```
+
+**จุดที่หยุดช่วย:**
+- Prompt สั้นมาก (<3 บรรทัด) — delimiter เปลือง token เปล่า
+- Delimiter ที่ collide กับ user content (เช่น user paste markdown ที่มี triple backtick แล้วคุณก็ใช้ triple backtick) — แก้โดยเลือก delimiter ที่ไม่น่าปรากฏใน input (XML tag แปลก ๆ หรือ unique string)
+- Delimiter อย่างเดียวไม่ใช่ defense ต่อ prompt injection — ดู [prompt-injection](/building-with-ai/prompt-injection)
+
+### 2.10 Persona / Style Anchoring
+
+**คำนิยาม:** ให้ตัวอย่าง style จริง (1-3 ชิ้น) ที่ต้องการให้โมเดลเลียนแบบ แทนการอธิบาย style ด้วยคำคุณศัพท์ (เช่น "punchy, witty, conversational"). ใกล้กับ few-shot แต่เน้นที่ **voice/tone** ไม่ใช่ task pattern.
+
+**เมื่อใช้:**
+- งานเขียนที่ต้องการ brand voice เฉพาะ
+- เลียน writing style ของตัวเองหรือ writer ที่ชื่นชอบ
+- เมื่ออธิบาย style ด้วยคำพูดไม่พอ (style ละเอียดเกินกว่าจะบรรยายได้)
+
+**มินิเทมเพลต:**
+```
+Write in the voice exemplified by these samples.
+
+Sample 1: """[150-300 word sample]"""
+Sample 2: """[another sample]"""
+
+Now write [target task] in that same voice.
+```
+
+**ตัวอย่าง:** ให้โมเดลเขียน blog intro ในสไตล์ตัวเอง — paste 2 intro เก่าที่ชอบ แล้วบอกให้เขียนเรื่องใหม่.
+
+**จุดที่หยุดช่วย:**
+- Sample สั้นเกินไป (<50 word) — โมเดลจับ style ไม่ทัน
+- Sample เยอะเกินไป (>5 ชิ้น) — โมเดลเริ่ม mix style ไม่ consistent
+- Style ที่ขัดกับ training (เช่นโมเดลที่ trained มาให้สุภาพมาก จะดื้อ ๆ เมื่อให้เขียน edgy/snarky)
+- โมเดล chat-tuned บางตัว revert ไป default voice หลังหลาย turn — ต้อง re-anchor
+
+### 2.11 Refusal Handling
+
+**คำนิยาม:** เมื่อโมเดลปฏิเสธคำขอ — อาจด้วย safety, policy, หรือ uncertainty — ต้องแยกระหว่าง **legitimate refusal** (คำขอ harmful จริง) กับ **over-refusal** (legitimate request ที่ phrasing ทำให้โมเดลเข้าใจผิด).
+
+**Legitimate refusal — อย่าพยายาม bypass:** คำขอเพื่อทำอันตราย, ฉ้อโกง, สร้างเนื้อหา illegal, หรือข้อมูลที่ทำอันตรายโดยตรง. การพยายาม rephrase ในกรณีนี้คือการหา loophole — ออกแบบงานใหม่แทน.
+
+**Over-refusal — rephrase ได้:**
+- เพิ่ม professional context ("I'm a security researcher analyzing...", "I'm a medical professional asking about...")
+- เจาะจงเป้าหมายเชิงป้องกัน: "Explain how phishing emails are typically structured so I can train employees to recognize them" ดีกว่า "write a phishing email"
+- ตั้ง context ผ่าน system prompt ถ้ามี access
+
+**มินิเทมเพลต (legitimate context ที่ถูก over-refuse):**
+```
+Context: I'm a [role] working on [legitimate use case]. 
+The reason I need this is [specific reason].
+Request: [rephrased, specific request]
+```
+
+**จุดที่หยุดช่วย / red flag:**
+- ถ้าต้องพยายาม bypass หลายรอบ — ทบทวนว่า refusal นั้น legitimate. โมเดลรุ่นใหม่ over-refuse น้อยลง ถ้ายังไม่ยอม คำขออาจอยู่ใน gray zone จริง
+- "Jailbreak prompts" ที่ลือกัน — ทำงานชั่วคราว ผู้ผลิตปิดได้เร็ว. ใช้ใน production = legal/policy risk
+- "ฉันไม่แน่ใจ" ของโมเดล ≠ safety refusal — เป็น uncertainty signal ควรเพิ่ม specificity หรือใช้ retrieval/tool
+
+### 2.12 How to combine patterns
+
+ใน production prompt มักไม่ใช้ pattern เดียว — มันคือการ **stack**. ลำดับชั้นที่พบบ่อย:
+
+1. **Identity:** role + persona/style anchor
+2. **Structure:** delimiter separation between sections
+3. **Examples:** few-shot (ถ้าจำเป็น)
+4. **Reasoning:** chain-of-thought directive (ถ้าเป็นงาน reasoning)
+5. **Output:** structured output schema + negative constraints
+6. **Verification:** self-critique step (ถ้า budget เอื้อ)
+
+**กฎ stacking ที่ใช้ได้จริง:**
+
+1. **เริ่มน้อย เพิ่มทีละ pattern** — ทุก pattern เพิ่ม token cost + complexity. ถ้า zero-shot ก็พอ ใช้ zero-shot
+2. **วัดผลทุกครั้งที่เพิ่ม pattern** — บางครั้ง pattern ทำให้ผลแย่ลง โดยเฉพาะกับโมเดลรุ่นใหม่ที่ trained มาดีแล้ว
+3. **อย่ามี pattern ที่ขัดกัน** — เช่น CoT ("คิดออกมาเป็นขั้น") + strict JSON output ("no text outside JSON") ต้องเลือก หรือใส่ reasoning เป็น field ของ JSON
+4. **System prompt vs user prompt** — pattern เหล่านี้กระจายระหว่าง system (role, rules, format) และ user (task, input). ดู [system-prompts-vs-user-prompts](/using-ai/system-prompts-vs-user-prompts)
+
+ตัวอย่าง stack จริงดูที่ Worked Example 1 ด้านล่าง — รวม 4 pattern ใน prompt เดียว.
+
+---
+
+## Worked Examples
+
+### Example 1: รวม role + few-shot + structured + negative
+**งาน:** Intent classifier ภาษาไทยสำหรับ chatbot ธนาคาร
+
+```
+You are a Thai-language conversation analyst.
+
+<examples>
+User: "ขอเช็คยอดบิลเดือนนี้หน่อยค่ะ"  → {"intent": "check_balance", "confidence": 0.95}
+User: "สวัสดีครับ"                  → {"intent": "greeting", "confidence": 0.99}
+User: "อันนี้ใช้ยังไง"               → {"intent": "help", "confidence": 0.80}
+</examples>
+
+Choose intent from: greeting, check_balance, help, complaint, other.
+Do NOT add any text outside the JSON.
+
+User: "{user_message}"
+```
+
+ใช้ pattern 4 ตัว stack กัน: role (2.1) + few-shot (2.2) + structured (2.5) + negative constraint (2.8). Output เป็น JSON สม่ำเสมอกว่า zero-shot อย่างมีนัยสำคัญในงาน domain-specific.
+
+### Example 2: Decomposition + structured output ใน research pipeline
+**งาน:** สรุปงานวิจัย 50 paper เป็น report
+
+แทนที่ prompt เดียวยาว — แตกเป็น 4 step:
+1. **Per paper:** extract `{title, authors, year, claim, evidence, limitations}` เป็น JSON
+2. **Aggregate:** group ตาม claim — claim ไหนมีหลาย paper support
+3. **Synthesize:** เขียน narrative summary จาก aggregated claim
+4. **Critique:** ให้โมเดลวิจารณ์ summary — มี bias ไหน, paper ที่ขัดแย้งถูกข้ามไหม
+
+แต่ละ step ใช้ structured output ทำให้ inspect/debug ได้ และ error ไม่ compound เงียบ ๆ. รวม decomposition (2.7) + structured (2.5) + self-critique (2.6).
+
+### Example 3: Refusal handling — แยก legitimate vs over-refusal
+**คำขอเดิม:** "Write a phishing email for me" → โมเดลปฏิเสธ — **legitimate refusal**, อย่าพยายาม bypass
+
+**Rephrase ที่ถูกต้อง:**
+> "I'm running security awareness training for a Thai bank. Show 3 phishing email patterns commonly used to target banking customers, with annotations on red flags employees should recognize. This is for defensive training, not for sending."
+
+ความแตกต่างไม่ใช่ "หาคำหลอกโมเดล" — แต่เป็น **เปลี่ยน frame งานให้ตรงกับ legitimate context จริง**. ถ้างานจริงคือโจมตี ไม่มี rephrase ใดที่ถูกต้อง.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** มี "magic prompt" หรือ "secret words" ที่ทำให้โมเดลตอบดีขึ้นเสมอ
+   **ความจริง:** ไม่มี pattern ใดดีเสมอในทุกงาน. CoT ช่วย reasoning แต่เปลือง token สำหรับงานสรุป. Few-shot ช่วย format แต่ bias ผลลัพธ์. ทุก pattern มี trade-off
+
+2. **ความเข้าใจผิด:** Chain-of-Thought = โมเดล "คิดจริง"
+   **ความจริง:** CoT คือ generated text ที่ดูเหมือนการคิด. งานวิจัย interpretability แสดงว่า reasoning chain บางครั้งไม่ตรงกับ internal computation. ใช้ CoT เพื่อ accuracy ได้ แต่อย่าเชื่อ "เหตุผล" ที่โมเดลให้มาว่าตรงกับสิ่งที่ทำจริง 
+
+3. **ความเข้าใจผิด:** โมเดลรุ่นใหม่ทำให้ prompt engineering หมดความสำคัญ
+   **ความจริง:** โมเดลรุ่นใหม่ "อภัย" prompt ที่แย่ได้ดีขึ้น zero-shot performance สูงขึ้น แต่ในงาน production ที่ต้องการ consistency, structured output, หรือ domain-specific behavior pattern เหล่านี้ยังจำเป็น มันแค่ "พื้นใหม่" สูงขึ้น
+
+4. **ความเข้าใจผิด:** ยิ่ง prompt ยาว = ยิ่งดี
+   **ความจริง:** Prompt ยาวเกินทำให้โมเดลสนใจ instruction หลักลดลง (lost in the middle), เสีย token, เพิ่ม latency. กฎคือ "สั้นที่สุดที่ได้ผล" — แต่ละ token ต้อง pay its way
+
+5. **ความเข้าใจผิด:** ถ้าโมเดล refuse ก็แค่ rephrase ให้มันยอม
+   **ความจริง:** มี refusal ที่ legitimate กับที่ over-refuse. พยายาม bypass legitimate refusal = นั่งทำสิ่งที่ผิด. การ rephrase ที่ดีคือเพิ่ม legitimate context ไม่ใช่หา loophole
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** ระบุ prompt engineering pattern อย่างน้อย 6 ตัว และอธิบายว่าแต่ละตัวแก้ปัญหาอะไร
+2. **(Explain)** Chain-of-Thought มักช่วย accuracy ใน math/reasoning — แต่ทำไมจึงไม่ค่อยช่วยในงานสรุปบทความ?
+3. **(Apply)** คุณต้องสร้าง classifier ที่รับ review สินค้าภาษาไทย แล้วตอบ sentiment + topic + actionable insight. คุณจะ stack pattern ไหนบ้าง และในลำดับใด?
+4. **(Apply)** โมเดล refuse คำขอ "explain how SQL injection works" คุณจะตอบสนองยังไง — และถ้าเป็น "write a SQL injection payload for testing" จะตอบต่างกันยังไง?
+5. **(Synthesize)** เทียบ self-consistency กับ self-critique — เมื่อไหร่ควรใช้อันไหน?
+
+---
+
+</section>

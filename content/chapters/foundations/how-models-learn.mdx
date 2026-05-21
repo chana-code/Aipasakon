@@ -1,0 +1,197 @@
+---
+slug: how-models-learn
+level: foundations
+title: "How Models Learn"
+status: reviewed
+prerequisites:
+  - what-is-machine-learning
+last_reviewed: 2026-05-18
+tldr: "\"การเรียนรู้\" ของ machine learning model คือกระบวนการ **ปรับตัวเลขภายในโมเดล (parameters) ทีละนิดเพื่อให้ทำนายผิดน้อยลงเรื่อย ๆ**. หัวใจของกระบวนการนี้คือ 3 ส่วน: **loss function** ที่บอกว่าโมเดลผิดมากแค่ไหน, **gradient descent** ที่บอกว่าควรปรับไปทางไหน, และ **training data** จำนวนมหาศาลที่ใช้เป็นโจทย์ฝึก. ทั้งหมดนี้ไม่ใช่เวทมนตร์ — เป็น optimization ที่ทำซ้ำเป็นล้าน ๆ ครั้งจนตัวเลขลงตัว."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+"การเรียนรู้" ของ machine learning model คือกระบวนการ **ปรับตัวเลขภายในโมเดล (parameters) ทีละนิดเพื่อให้ทำนายผิดน้อยลงเรื่อย ๆ**. หัวใจของกระบวนการนี้คือ 3 ส่วน: **loss function** ที่บอกว่าโมเดลผิดมากแค่ไหน, **gradient descent** ที่บอกว่าควรปรับไปทางไหน, และ **training data** จำนวนมหาศาลที่ใช้เป็นโจทย์ฝึก. ทั้งหมดนี้ไม่ใช่เวทมนตร์ — เป็น optimization ที่ทำซ้ำเป็นล้าน ๆ ครั้งจนตัวเลขลงตัว.
+
+ถ้าใครพูดว่า "AI เรียนรู้จาก data" คำถามตรง ๆ คือ — **เรียนรู้ยังไง?** มันมีสมอง? มีความเข้าใจ? คำตอบจริง ๆ คือไม่. กระบวนการ "เรียนรู้" ของ machine learning model เป็นเรื่องของ **ปรับตัวเลข** ภายในโมเดลซ้ำ ๆ ให้ผลออกมาดีขึ้นเรื่อย ๆ.
+
+ลองนึกถึงตัวอย่างง่ายที่สุด: เรามีจุดข้อมูล (data point) จำนวนหนึ่งกระจายอยู่บนกราฟ และเราอยากลากเส้นตรงที่ "เข้ากับ" จุดเหล่านี้มากที่สุด. สมการของเส้นตรงคือ `y = wx + b` มีตัวเลขที่ปรับได้ 2 ตัวคือ `w` (ความชัน) และ `b` (จุดตัดแกน). คำถาม: ค่า `w` และ `b` ที่ดีที่สุดคืออะไร?
+
+วิธีที่ machine learning ใช้เพื่อหาคำตอบมี 3 องค์ประกอบหลัก:
+
+1. **มีวิธีวัดความผิด** — ตัวเลขที่บอกว่า "เส้นที่ลากตอนนี้ห่างจากจุดข้อมูลมากแค่ไหน". เลขนี้เรียกว่า **loss** (หรือ cost หรือ error). loss น้อย = ดี. loss มาก = แย่.
+2. **มีวิธีรู้ว่าควรปรับไปทางไหน** — สำหรับค่า `w` และ `b` ที่อยู่ตอนนี้ ถ้าเพิ่ม `w` ขึ้นนิดหนึ่ง loss จะมากขึ้นหรือน้อยลง? ทิศทางนี้เรียกว่า **gradient**.
+3. **ทำซ้ำ** — ปรับ parameter ทีละนิดในทิศทางที่ลด loss ทำซ้ำเป็นแสนเป็นล้านครั้ง จนกว่า loss จะต่ำพอ.
+
+ทั้งหมดนี้คือสิ่งที่เรียกว่า **training**. ไม่ว่าจะเป็นโมเดลเล็กระดับ regression หรือ LLM ขนาดล้านล้าน parameter หลักการพื้นฐานเหมือนกัน — ต่างกันที่ขนาด.
+
+### Mental model
+นึกถึง training ว่าเหมือน **การเดินลงเขาขณะปิดตา**. คุณยืนอยู่บนภูเขาที่ "ความสูง" คือ loss — ยิ่งต่ำยิ่งดี. คุณมองไม่เห็นทั้งภูเขาแต่รู้สึก "ความชัน" ใต้เท้าได้. ทุกก้าว คุณเลือกเดินไปทางที่ลาดลง. ก้าวเล็ก ๆ ซ้ำ ๆ จะพาคุณลงไปยังจุดต่ำสุดที่หาเจอ. นี่คือ **gradient descent**.
+
+ผลตามมาที่สำคัญ:
+1. โมเดล "ไม่ได้เข้าใจ" data — มันแค่ลด loss. ถ้า loss ถูกออกแบบมาไม่ดี โมเดลก็จะเก่งในสิ่งที่ผิดเป้า
+2. ทุก parameter ของโมเดล (ของ LLM คือเป็นพันล้านตัว) ถูกปรับด้วยกลไกเดียวกันนี้พร้อมกัน
+3. การ "เรียนรู้" จึงเป็น optimization process — มีคณิตศาสตร์ชัดเจน ไม่ใช่ความลึกลับ
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 Loss function — สเกลที่บอกว่าโมเดลผิดแค่ไหน
+
+ก่อนจะเริ่ม train ได้ ต้องนิยามก่อนว่า "ดี" แปลว่าอะไร ในรูปของตัวเลข. นี่คือหน้าที่ของ **loss function** (หรือเรียก cost function / objective function).
+
+ตัวอย่างที่พื้นฐานที่สุด: **mean squared error (MSE)** สำหรับ regression
+- สำหรับแต่ละจุดข้อมูล: คำนวณ `(predicted − actual)²`
+- รวมทุกจุด หารด้วยจำนวนจุด — ได้ loss
+
+ทำไมต้องยกกำลังสอง? เพื่อให้ค่าลบและค่าบวกไม่หักล้างกัน และเพื่อ "ลงโทษ" error ใหญ่หนักกว่า error เล็ก. สำหรับงาน classification (เช่นแยก spam vs not-spam) loss ที่ใช้บ่อยคือ **cross-entropy loss** — แนวคิดต่างไปเล็กน้อย แต่หลักการเดียวกัน: ตัวเลขเดียวที่บอกว่าโมเดลผิดมากแค่ไหน.
+
+**จุดสำคัญที่หลายคนข้าม:** machine learning model **มองไม่เห็น "ภาพรวม"** ของปัญหา. มันไม่รู้ว่าอะไรคือ "คำตอบที่ถูก" ในความหมายของมนุษย์. มันเห็นแค่เลข loss. ทั้งหมดที่มันจะทำได้คือ "ลดเลขนี้". ดังนั้น loss function จึงเป็นการแปล "เป้าหมาย" ของเราให้เป็นภาษาที่โมเดลเข้าใจได้ — ถ้าแปลผิด โมเดลก็เก่งในเรื่องผิด.
+
+### 2.2 Optimization problem — ภูมิทัศน์ของ loss
+
+นึกถึง parameter ทุกตัวเป็น "พิกัด" บนพื้นที่. สำหรับโมเดล `y = wx + b` ที่มี 2 parameter เราได้พื้นที่ 2 มิติ — เป็นแผ่นพื้นเรียบ ๆ. loss ที่ตำแหน่งต่าง ๆ เป็น "ความสูง" — กลายเป็นภูมิทัศน์ (loss landscape) ในสามมิติ.
+
+เป้าหมายของ training คือ **หาตำแหน่งที่ความสูง (loss) ต่ำที่สุด**.
+
+สำหรับโมเดลเส้นตรงง่าย ๆ คณิตศาสตร์มีวิธี "แก้สมการตรง ๆ" ได้ — เรียกว่า closed-form solution (ในเชิง regression ก็คือ normal equations). แต่สำหรับ neural network ที่มี parameter เป็นพันล้านตัว ภูมิทัศน์อยู่ในมิติพันล้าน — แก้ตรง ๆ ไม่ได้. ต้องใช้วิธี **search** — เริ่มจากจุดสุ่ม แล้วค่อย ๆ เดินไปยังจุดต่ำกว่า.
+
+### 2.3 Gradient descent — อัลกอริทึมเดินลงเขา
+
+**gradient** คือเวกเตอร์ที่บอกว่า "ที่ตำแหน่งนี้ ถ้าขยับแต่ละ parameter ไปนิดหนึ่ง loss จะเพิ่มเร็วที่สุดในทิศทางไหน". gradient descent แค่กลับทิศ — เดินไปในทิศตรงข้ามของ gradient ทุกก้าว เพราะนั่นคือทิศที่ loss ลดเร็วที่สุด.
+
+อัลกอริทึมในระดับ pseudocode:
+```
+เริ่มต้น: สุ่มค่า parameter เริ่มต้น
+ทำซ้ำ:
+    1. ใช้ parameter ปัจจุบัน คำนวณ output ของโมเดลบน training data
+    2. คำนวณ loss
+    3. คำนวณ gradient ของ loss เทียบกับ parameter ทุกตัว
+    4. ปรับ parameter: new = old − (learning_rate × gradient)
+หยุดเมื่อ: loss นิ่ง หรือครบจำนวน step ที่กำหนด
+```
+
+**learning rate** คือขนาดก้าวที่เดินในแต่ละครั้ง. ใหญ่เกิน → กระโดดข้าม minimum ไปมาแกว่งไม่ลง. เล็กเกิน → ใช้เวลานานเกิน หรือติดอยู่จุดที่ไม่ใช่ minimum จริง. การปรับ learning rate เป็นหนึ่งใน hyperparameter ที่สำคัญที่สุดของ training.
+
+### 2.4 Backpropagation — คำนวณ gradient ใน neural network
+
+ในโมเดลเส้นตรงที่มี 2 parameter คำนวณ gradient ตรง ๆ ได้ด้วย calculus ไม่กี่บรรทัด. แต่ neural network สมัยใหม่มี parameter เป็นพันล้านตัวเรียงตัวกันเป็นชั้น ๆ — gradient ของ parameter ในชั้นต้นขึ้นกับการทำงานทุกชั้นที่ตามมา.
+
+**Backpropagation** (เรียกย่อว่า backprop) คืออัลกอริทึมที่คำนวณ gradient ของทุก parameter อย่างมีประสิทธิภาพ โดยอาศัยกฎลูกโซ่ (chain rule) ของ calculus. ในระดับ intuition: เริ่มจาก loss ที่ end ของโมเดล แล้ว "ถอยหลัง" ผ่านแต่ละชั้น คำนวณว่า parameter ในชั้นนั้นมีส่วน "รับผิดชอบ" ต่อ error แค่ไหน. รายละเอียดทางคณิตศาสตร์อยู่ใน Level 4 ดู [backpropagation](/advanced/backpropagation).
+
+สำหรับ Level 1 จำเท่านี้พอ: **backprop คืออัลกอริทึมที่บอกว่าควรปรับ weight แต่ละตัวไปทิศไหนเพื่อให้ loss ลด**.
+
+### 2.5 Training data, epochs, batches
+
+ในทางปฏิบัติ การคำนวณ gradient โดยใช้ training data ทั้งชุดในทุก step ช้าและกิน memory เกินไป. แทนที่จะทำแบบนั้น เราใช้ **mini-batch**:
+
+- **Batch**: กลุ่มเล็ก ๆ ของ training example (เช่น 32, 256, หรือ 1024 ตัวอย่าง) ที่ใช้คำนวณ gradient ในแต่ละ step
+- **Iteration / step**: 1 ครั้งของ "คำนวณ loss → คำนวณ gradient → ปรับ parameter" บน 1 batch
+- **Epoch**: 1 รอบที่ผ่าน training data ทั้งหมดครบทุก example
+
+วิธีนี้เรียก **stochastic gradient descent (SGD)** — "stochastic" เพราะแต่ละ step ใช้ตัวอย่างแบบสุ่ม. ปรากฏว่า SGD ไม่เพียงเร็วกว่าเดิม แต่ยัง **generalize ดีกว่า** ในมิติสูง เพราะ noise ในแต่ละ step ช่วยให้โมเดลหลุดออกจาก minimum ที่ตื้นและแย่ ไปสู่ minimum ที่ flat และดีกว่า.
+
+ในยุคปัจจุบัน optimizer ที่ใช้บ่อยที่สุดคือ **Adam** (และ variant อย่าง AdamW) — เป็น SGD ที่ฉลาดขึ้น มีการปรับ learning rate ของแต่ละ parameter อัตโนมัติ. ในระดับนี้แค่จำชื่อพอ ดู  บทที่ 8 สำหรับรายละเอียด.
+
+### 2.6 Data, compute, time — ทำไม training LLM ถึงแพงมหาศาล
+
+LLM ระดับ frontier (GPT-4, Claude, Gemini) มี parameter เป็นแสนล้านถึงล้านล้านตัว และ pretrain บน text จำนวน trillion ๆ token. มาดูว่าทำไมต้นทุนถึงอยู่ที่ระดับร้อยล้านดอลลาร์ต่อรอบ train:
+
+1. **ทุก step ของ training** ต้องทำ forward pass (ส่ง batch ผ่านโมเดลเพื่อคำนวณ output) + backward pass (backprop เพื่อคำนวณ gradient) ผ่านทุก parameter
+2. **จำนวน step** อยู่ระดับล้าน ๆ — เพราะ training data มีมหาศาล และต้องผ่านโมเดลให้ครบ
+3. **GPU/TPU หลายพันตัวพร้อมกัน** — ต้องประสานงานข้าม chip ผ่าน network ความเร็วสูง (เรื่อง distributed training เป็นปัญหาวิศวกรรมระดับสูงในตัวเอง)
+4. **ใช้เวลาเป็นสัปดาห์ถึงหลายเดือน** ของ wall-clock time
+
+ความสัมพันธ์ระหว่าง compute, data, parameter, และ performance ของ LLM ถูกศึกษาเชิง empirical ในงาน scaling laws ดู  และ Chinchilla . ใจความหลัก: performance ดีขึ้นแบบคาดเดาได้เมื่อ scale ทั้งสามอย่างพร้อมกัน — แต่ ROI ของแต่ละ axis ลดลง.
+
+นี่คือสาเหตุที่ **frontier LLM training กระจุกอยู่ในไม่กี่ lab** — OpenAI, Anthropic, Google DeepMind, Meta — เพราะคนอื่นไม่มี compute capacity. การ fine-tune ต่อจาก base model ที่ release แล้วเป็นเรื่องที่คนทั่วไปทำได้ในระดับมหาวิทยาลัยและ startup เล็ก ๆ แต่ pretraining frontier model ไม่ใช่.
+
+### 2.7 Data quality > data quantity (หลังจุดหนึ่ง)
+
+ก่อนปี 2022 ความเชื่อกระแสหลักคือ "ยิ่งข้อมูลเยอะยิ่งดี". หลังจากนั้นมีหลักฐานมากขึ้นว่า **คุณภาพข้อมูลสำคัญกว่าปริมาณ หลังจากเกินขั้นต่ำที่ต้องการ**. ตัวอย่างเช่น Phi series ของ Microsoft แสดงว่าโมเดลขนาดเล็กฝึกบนข้อมูลคุณภาพสูง (textbook-style) ตีเสมอโมเดลใหญ่ที่ฝึกบนข้อมูล web ดิบในหลาย benchmark.
+
+"Garbage in, garbage out" เป็นความจริงที่ pervade: bias ใน training data → bias ในโมเดล, factual error → hallucination, repetition → mode collapse. การจัดการ data quality (data curation) เป็นงานที่ใช้เวลาและเงินไม่น้อยกว่า compute ในยุคปัจจุบัน.
+
+### 2.8 What can go wrong
+
+- **Overfitting**: โมเดล "จำ" training data แต่ generalize ไม่ได้กับข้อมูลใหม่ ดู [what-is-machine-learning](/foundations/what-is-machine-learning) สำหรับรายละเอียด
+- **Local minima vs global minima**: ในภูมิทัศน์ 2D อาจห่วงว่าจะติดอยู่ที่จุดต่ำสุดในเฉพาะที่ ไม่ใช่ต่ำสุดจริง ๆ. ปรากฏว่าในมิติสูง (เช่น billion-dimension) ปัญหานี้น้อยกว่าที่คิด — saddle points (จุดที่ลาดลงในบางทิศ ขึ้นในบางทิศ) เป็นปัญหามากกว่า และ stochastic gradient noise ช่วยหลุดได้
+- **Vanishing / exploding gradients**: ใน neural network ลึก gradient ที่ backprop ผ่านหลายชั้นอาจเล็กลงเรื่อย ๆ จนหายไป (vanishing) หรือใหญ่ขึ้นจน overflow (exploding). มีเทคนิคแก้หลายอย่าง — ReLU activation, residual connections, layer normalization, gradient clipping. รายละเอียดอยู่ใน Level 4
+- **Training instability**: บางครั้ง loss กระโดดอย่างไม่มีเหตุผล หรือโมเดลพังกะทันหันกลาง training. นี่คือเหตุผลที่ frontier lab ต้อง monitor training อย่างใกล้ชิด มี checkpoint ทุก ๆ ช่วงเวลา และพร้อมจะ rollback
+
+---
+
+## Worked Examples
+
+### Example 1: เส้นตรง y = wx + b
+สมมติเรามี data 3 จุด: `(1, 2)`, `(2, 4)`, `(3, 7)`. เราอยากหาเส้น `y = wx + b` ที่ "เข้ากับ" จุดเหล่านี้ดีที่สุด.
+
+- เริ่มต้น: สุ่ม `w = 0.5`, `b = 0`. คำนวณ prediction: `(1, 0.5), (2, 1), (3, 1.5)`. เทียบกับจริง: error = `(2−0.5)² + (4−1)² + (7−1.5)² = 2.25 + 9 + 30.25 = 41.5`
+- gradient บอกว่าตอนนี้ ถ้าเพิ่ม `w` loss จะลด (เพราะเส้นยังชันไม่พอ) และถ้าเพิ่ม `b` ก็เช่นกัน
+- ปรับ: `w = 0.5 + 0.1 × (gradient direction) ≈ 0.7`, `b = 0 + 0.1 × ... ≈ 0.15`. คำนวณ loss ใหม่ — ลดลง
+- ทำซ้ำเป็นพันรอบ จนกว่า `w, b` จะลู่เข้าค่าหนึ่ง (สำหรับ data นี้ ประมาณ `w ≈ 2.5, b ≈ −0.67`)
+
+นี่คือ gradient descent ทำงานในมิติ 2. สำหรับ LLM หลักการเหมือนกัน แต่ในมิติพันล้าน.
+
+### Example 2: ฝึก spam classifier
+ปัญหา: รับ email หนึ่งฉบับ ตอบว่า spam หรือ not-spam.
+
+- **Training data**: email หนึ่งล้านฉบับที่ label แล้ว (spam = 1, not-spam = 0)
+- **Model**: neural network เล็ก ๆ ที่รับ feature ของ email (เช่น คำที่ปรากฏ, ความถี่) → ออก probability ของ spam
+- **Loss**: cross-entropy — ลงโทษเมื่อโมเดลทำนายผิดและมั่นใจสูง
+- **Training**: วน mini-batch ละ 64 email ผ่านโมเดล คำนวณ loss, backprop, ปรับ weight. ทำหลาย epoch จนกว่า validation loss จะนิ่ง
+- **ผล**: weight ของโมเดลปรับให้คำที่บ่งบอก spam (เช่น "winner", "click here", "limited time") เพิ่มน้ำหนักไปทาง spam และคำธรรมดาเป็นกลาง
+
+โมเดลไม่ได้ "เข้าใจ" ว่าทำไม email หนึ่งเป็น spam — มันแค่หาฟังก์ชันจาก feature ไป probability ที่ลด loss ได้ดีที่สุด.
+
+### Example 3: อนาล็อกการยิงธนู
+อยากยิงให้โดนเป้า:
+- **loss** = ระยะห่างระหว่างจุดที่ลูกธนูตกกับจุดศูนย์กลางของเป้า
+- **parameter** = มุมยกของคันธนู และแรงดึงสาย
+- **gradient** = ถ้ายกคันสูงขึ้นนิด ลูกธนูตกไกลขึ้นหรือใกล้ขึ้น? ดึงแรงขึ้นนิด ลูกธนูตกไกลขึ้นหรือใกล้ขึ้น?
+- **gradient descent** = ปรับมุมและแรงทีละนิดในทิศที่ลดระยะห่างจากเป้า ยิงใหม่ ดูผล ปรับใหม่
+- **learning rate** = ขนาดของการปรับในแต่ละครั้ง — ปรับเยอะเกิน → กระโดดข้ามเป้าไปอีกด้าน. ปรับน้อยเกิน → ใช้เวลานานเกินจะโดน
+
+อนาล็อกนี้เริ่มพังเมื่อพูดถึง backpropagation ในโมเดลลึก ๆ — เพราะใน neural network "parameter" ที่ปรับมีพันล้านตัว ไม่ใช่สองสามตัวเหมือนการยิงธนู และการรู้ "ใครรับผิดชอบ error ส่วนไหน" ต้องใช้กฎลูกโซ่ของ calculus.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** โมเดลเรียนรู้แบบเดียวกับมนุษย์ — มีความเข้าใจ มีการสรุปแนวคิด
+   **ความจริง:** กระบวนการ training เป็น optimization ล้วน — ปรับตัวเลขเพื่อลด loss. ไม่มีการ "เข้าใจ" ในความหมายแบบมนุษย์. โมเดลที่ generalize เก่งคือโมเดลที่ลด loss ในขณะที่ pattern ที่ใช้ทำนายเป็น pattern ที่ใช้ได้กับ data ใหม่ ๆ ด้วย ไม่ใช่ pattern ที่จำเฉพาะ training set
+
+2. **ความเข้าใจผิด:** ยิ่งโมเดลใหญ่ + data เยอะ ผลก็ยิ่งดีเสมอ
+   **ความจริง:** Scaling laws () บอกว่ามีความสัมพันธ์เชิง predict ได้ระหว่าง compute, data, parameter, และ performance — แต่ ROI ลดลง และ Chinchilla () แสดงว่าโมเดลส่วนใหญ่ที่ปล่อยก่อนปี 2022 ใหญ่เกินเมื่อเทียบกับ data ที่ใช้ train. data quality, training recipe, และ alignment ก็มีผลเทียบเท่า scale
+
+3. **ความเข้าใจผิด:** Training คือเหตุการณ์ครั้งเดียวที่ "ทำให้โมเดลฉลาด"
+   **ความจริง:** Training เป็น process ต่อเนื่องที่มีหลาย stage — pretraining, supervised fine-tuning (SFT), RLHF / DPO ฯลฯ. แต่ละ stage เปลี่ยน distribution ของ weight ในทางที่ต่างกัน. โมเดล "ฉลาด" ที่เราใช้ใน ChatGPT / Claude เป็นผลของหลาย stage รวมกัน ไม่ใช่ pretraining อย่างเดียว ดู [what-is-an-llm](/foundations/what-is-an-llm)
+
+4. **ความเข้าใจผิด:** Gradient descent หา global minimum ได้เสมอ
+   **ความจริง:** สำหรับฟังก์ชัน convex (เช่น linear regression) ใช่. สำหรับ neural network ภูมิทัศน์ไม่ convex และไม่มีรับประกันว่าจะถึง global minimum. ในทางปฏิบัติ minimum ที่ดี "พอ" ก็เพียงพอ — และมีหลักฐานว่าในมิติสูง local minima ของ neural network มักดีพอ ๆ กับ global minimum
+
+5. **ความเข้าใจผิด:** Learning rate ตั้งเล็ก ๆ ไว้ก็ปลอดภัย ช้าหน่อยแต่ถึงเป้าแน่
+   **ความจริง:** learning rate เล็กเกินอาจทำให้ติดอยู่ใน saddle point หรือ local minimum ที่ตื้น ไม่หลุดออกไปยัง region ที่ดีกว่า. learning rate ที่เหมาะสมเป็นเรื่อง empirical และมักใช้ schedule (เริ่มสูง ค่อย ๆ ลด) มากกว่าใช้ค่าเดียวตลอด
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** loss function หมายถึงอะไร และทำไม training ต้องมี loss function?
+2. **(Explain)** อธิบาย gradient descent ในหนึ่งย่อหน้าให้คนที่ไม่ใช่ technical ฟัง โดยใช้ภาพ "เดินลงเขา" ได้
+3. **(Apply)** ถ้า train โมเดลแล้ว loss บน training data ลดเรื่อย ๆ แต่ loss บน validation data เริ่มเพิ่ม — เกิดอะไรขึ้น และควรทำอะไรต่อ?
+4. **(Apply)** ตั้ง learning rate ใหญ่เกินจะเกิดอะไร? ตั้งเล็กเกินจะเกิดอะไร?
+5. **(Synthesize)** ทำไมการ pretrain LLM ระดับ frontier ถึงต้องใช้ GPU หลายพันตัวเป็นเวลาเดือน ๆ ทั้ง ๆ ที่อัลกอริทึม gradient descent ก็เรียบง่าย?
+
+---
+
+</section>

@@ -1,0 +1,230 @@
+---
+slug: privacy-and-data-handling
+level: using-ai
+title: "Privacy and Data Handling"
+status: reviewed
+prerequisites:
+  - the-ai-landscape-2026
+last_reviewed: 2026-05-18
+tldr: "ก่อน paste อะไรเข้า AI ต้องตอบ 3 คำถามให้ได้: **data นี้ไปที่ไหน ใครเห็น ใช้ train model ได้ไหม**. คำตอบขึ้นกับ tier ของ product — consumer (free/personal), enterprise (business), หรือ API — ซึ่งมี data handling ต่างกันมาก. หลักคิดคือ **เลือก tier ให้เหมาะกับ sensitivity ของ data** และ **อย่า paste ข้อมูลที่ตัวเองไม่มีสิทธิ์เปิดเผย** (PII ลูกค้า, credential, ข้อมูลภายใต้ NDA/PDPA/GDPR) เข้า consumer tier ไม่ว่ากรณีใด ๆ."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+ก่อน paste อะไรเข้า AI ต้องตอบ 3 คำถามให้ได้: **data นี้ไปที่ไหน ใครเห็น ใช้ train model ได้ไหม**. คำตอบขึ้นกับ tier ของ product — consumer (free/personal), enterprise (business), หรือ API — ซึ่งมี data handling ต่างกันมาก. หลักคิดคือ **เลือก tier ให้เหมาะกับ sensitivity ของ data** และ **อย่า paste ข้อมูลที่ตัวเองไม่มีสิทธิ์เปิดเผย** (PII ลูกค้า, credential, ข้อมูลภายใต้ NDA/PDPA/GDPR) เข้า consumer tier ไม่ว่ากรณีใด ๆ.
+
+ทุกครั้งที่ paste text เข้า AI ข้อความนั้นจะถูกส่งไปยัง **server ของ provider** (OpenAI, Anthropic, Google, ฯลฯ). server ประมวลผล สร้างคำตอบ ส่งกลับ. คำถามสำคัญคือเกิดอะไรขึ้นกับ text นั้น **หลัง** จากตอบคำถามเสร็จ — เก็บไว้นานแค่ไหน ใครเปิดดูได้ และจะถูกนำไปใช้ฝึก model รุ่นต่อไปหรือไม่.
+
+คำตอบไม่ได้มีคำตอบเดียว — มันขึ้นกับ **tier** ของ product ที่ใช้:
+
+- **Consumer tier** (ChatGPT ฟรี/Plus, Claude.ai ฟรี/Pro, Gemini app) — โดย default conversation **อาจ** ถูกใช้ปรับปรุง / train model. มี opt-out ได้ แต่ผู้ใช้ต้องไปตั้งเอง.
+- **Enterprise/Business tier** (ChatGPT Team/Enterprise/Edu, Claude for Work/Enterprise, Gemini for Workspace) — โดย default data **ไม่** ถูกใช้ train model. มี Data Processing Agreement (DPA), audit log, retention policy ที่ admin คุมได้.
+- **API tier** (เรียก endpoint ของ provider ตรง ๆ — OpenAI API, Anthropic API, Vertex AI) — โดย default data **ไม่** ถูกใช้ train model. กำหนดด้วย commercial terms ที่ developer ต้องอ่านก่อน integrate.
+
+### Mental model
+
+นึกถึง AI product เหมือน **email service**: Gmail ฟรี กับ Google Workspace สำหรับองค์กร เป็น product เดียวกันในระดับ UI แต่ contract ข้างหลังต่างกันมาก. Gmail ฟรีเคยใช้ scan email เพื่อโฆษณา (ตอนนี้ไม่แล้ว) ส่วน Workspace มี contract ห้ามทำแบบนั้นและมีการ audit ตามมาตรฐาน. AI product ใช้ pattern เดียวกัน — **tier ที่จ่ายเงิน → สัญญาที่แข็งกว่า → data handling ที่ปลอดภัยกว่า**.
+
+**ผลตามมา 3 ข้อ:**
+1. การถามว่า "AI ตัวไหนปลอดภัย" ตอบไม่ได้ตรง ๆ — ต้องถามว่า "tier ไหนของ AI ตัวไหน" และ "data อะไร"
+2. การ paste ข้อมูลบริษัทเข้า ChatGPT ฟรี ไม่ใช่แค่ "ไม่แนะนำ" — มันอาจเป็นการ **ผิดสัญญา** (NDA, employment contract) และ **ผิดกฎหมาย** (PDPA / GDPR) แม้จะตั้งใจดี
+3. การ "เลิกใช้ AI ไปเลย" ไม่ใช่คำตอบ — คำตอบคือ **เลือก tier ให้เหมาะกับ data** และ **มี process ที่ทำซ้ำได้**
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 Data flow ของ AI product ทั่วไป
+
+เวลา user พิมพ์ข้อความเข้า AI chat ขั้นตอนที่เกิดขึ้นจริงคือ:
+
+1. **Client → server**: text ถูกส่งผ่าน HTTPS (encrypted in transit) ไปยัง endpoint ของ provider
+2. **Inference**: server run model บน GPU เพื่อสร้าง response
+3. **Logging**: ส่วนใหญ่ provider จะ log request + response เพื่อ (ก) debugging, (ข) abuse monitoring, (ค) อาจรวม future training — ขึ้นกับ tier
+4. **Retention**: log ถูกเก็บตาม retention policy — consumer มัก 30 วันถึงไม่จำกัด, enterprise มัก 30 วัน, API มักสั้นกว่าและกำหนดได้
+5. **Human review** (บางส่วน): บาง conversation อาจถูก human reviewer (พนักงานหรือ contractor ของ provider) เปิดดูเพื่อ safety/abuse detection. นี่คือสาเหตุที่ผู้ใช้ "ที่ไม่ใช่เจ้าของบัญชีคนนั้น" อาจเห็น content ได้
+
+ประเด็นสำคัญ: **encrypted in transit ≠ data ปลอดภัยจากการนำไปใช้ภายใน**. การเข้ารหัสกัน eavesdropping ระหว่างทาง แต่ provider เองมี clear-text access ที่ฝั่ง server เสมอ.
+
+### 2.2 Three deployment tiers — รายละเอียด
+
+**Consumer tier** (ChatGPT Free/Plus/Pro, Claude.ai Free/Pro/Max, Gemini app)
+- **ใช้ train?** Default = **yes**. มี opt-out (Settings → Data Controls สำหรับ ChatGPT, ตั้งค่าใน Anthropic Privacy Settings สำหรับ Claude.ai)  
+- **Human review?** ใช่ — บางส่วนของ conversation อาจถูก review เพื่อ safety
+- **Retention?** เป็นเดือนถึงไม่จำกัด ขึ้นกับ provider; deleted conversation อาจยังถูกเก็บใน backup
+- **Contract?** Terms of Service สำหรับ end user (ไม่มี DPA, ไม่มี audit certification)
+- **เหมาะกับ**: ใช้ส่วนตัว, brainstorm, เรียนรู้, ทดลอง — **ไม่ใช่งานบริษัท**
+
+**Enterprise/Business tier** (ChatGPT Team/Enterprise/Edu, Claude for Work/Enterprise/Team, Gemini for Workspace, Microsoft 365 Copilot business)
+- **ใช้ train?** Default = **no** ตาม commercial terms   
+- **Human review?** จำกัด — เฉพาะกรณี abuse/security; admin ของ org เห็น audit log
+- **Retention?** ตั้งได้ (เช่น 30 วัน, no retention ตามแผน)
+- **Contract?** มี DPA (Data Processing Agreement), BAA (สำหรับ healthcare ในบางประเทศ), SOC 2 Type II, ISO 27001  
+- **เหมาะกับ**: งานบริษัททั่วไป รวมถึง confidential business info ที่ไม่ถึงระดับ maximum-sensitive
+
+**API tier** (OpenAI API, Anthropic API, Google Vertex AI, AWS Bedrock, Azure OpenAI)
+- **ใช้ train?** Default = **no** ตาม commercial terms (ทุก major provider ปี 2026)
+- **Human review?** จำกัด — มัก opt-in สำหรับ safety review; abuse monitoring ยังมีบางกรณี
+- **Retention?** กำหนดได้ละเอียดสุด — บาง provider มี "zero data retention" tier (data ถูก delete ทันทีหลัง inference)
+- **Contract?** Commercial terms ที่ดู คล้าย cloud service ทั่วไป + DPA + เลือก region ได้
+- **เหมาะกับ**: integration เข้าระบบบริษัท, RAG (ดู [rag-architecture](/building-with-ai/rag-architecture)), agent ภายใน
+
+**สำคัญ**: tier ไม่ใช่ "ปลอดภัยกับไม่ปลอดภัย" แบบ binary — มันเป็น **กรอบสัญญา** ที่ผูกมัด provider ในระดับต่างกัน. enterprise/API ไม่ได้ทำให้ data หายไปจาก server ของ provider — ทำให้ **การใช้ data ของ provider ถูกจำกัดและตรวจสอบได้**.
+
+### 2.3 "Training on your data" — หมายถึงอะไรในทางปฏิบัติ
+
+หลายคนได้ยิน "may be used for training" แล้วนึกภาพว่า text ที่เขียนจะปรากฏใน output ของ AI กับคนอื่นในวันรุ่งขึ้น. ความจริงซับซ้อนกว่านั้น:
+
+- **Sampling for review**: บาง conversation ถูกสุ่มให้ human reviewer ของ provider ดู (เพื่อ safety, quality, abuse) — ปริมาณน้อยมากเทียบกับทั้งหมด แต่ "เป็นไปได้"
+- **Dataset inclusion**: ถ้า user ไม่ opt out conversation อาจเข้า training dataset ของ model รุ่นถัดไป — model จะ encode pattern ของ data แต่ **ไม่ใช่การ memorize verbatim ในกรณีทั่วไป**
+- **Memorization risk**: data ที่ unique / ซ้ำหลายครั้งใน training set มีโอกาส memorize ได้ และอาจ leak ผ่าน prompt บางแบบ (training data extraction) — risk ต่ำสำหรับ data ทั่วไป แต่สูงสำหรับ data ที่มี pattern ชัดเจน เช่น email/code ที่มี unique structure
+- **Retention even with opt-out**: provider ส่วนใหญ่สงวนสิทธิ์เก็บ data ระยะหนึ่ง (เช่น 30 วัน) เพื่อ safety/abuse monitoring แม้ user opt-out training แล้ว — เพราะกฎหมายและความรับผิดบางอย่างต้องการ
+
+**Air-gapped จริง ๆ ทำได้ทางเดียว**: รัน model ภายใน infrastructure ของตัวเอง (on-premise / local) — ดู §2.6.
+
+### 2.4 ประเภท data ที่ "ห้าม paste เข้า consumer AI"
+
+ต่อไปนี้คือ data ที่ไม่ควรเข้าสู่ consumer tier ไม่ว่าในกรณีใด — โดยทั่วไปแม้แต่ enterprise tier ก็ต้องคิดให้ดี:
+
+- **Customer PII** (Personally Identifiable Information): ชื่อ-นามสกุล, email, เบอร์โทร, address, เลขบัตรประชาชน, เลข passport, เลขผู้เสียภาษี
+- **Financial account info**: เลขบัญชี, credit card, CVV, security code, internet banking credential
+- **Medical / health records**: ผลตรวจ, ประวัติรักษา, ใบสั่งยา (อยู่ภายใต้ HIPAA ในสหรัฐ, PDPA + พระราชบัญญัติสุขภาพแห่งชาติในไทย)
+- **Login credentials & secrets**: password, API key, OAuth token, JWT, SSH key, .env file, certificate private key
+- **Confidential business info**: financial statements ก่อน public, M&A deal, customer list, pricing strategy, internal roadmap, source code under NDA
+- **Legal & regulated content**: คำให้การ, evidence, ข้อมูล under litigation hold, ข้อมูลที่ผูกกับ NDA, ข้อมูลที่ระบุในสัญญาจ้างว่า confidential
+
+ข้อสุดท้ายสำคัญที่สุด: **ถ้าตัวเองในฐานะลูกจ้างไม่มีสิทธิ์ส่งไฟล์นี้ให้คนนอก ก็ไม่มีสิทธิ์ paste เข้า consumer AI** เพราะในเชิงสัญญานั่นคือการเปิดเผยข้อมูลให้ third party (provider).
+
+### 2.5 PDPA ของไทย และบริบทระหว่างประเทศ
+
+**PDPA — พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล พ.ศ. 2562** มีผลบังคับใช้เต็มรูปแบบในปี 2022 . หลักการสำคัญที่กระทบการใช้ AI:
+
+- **Lawful basis**: การ process personal data ต้องมีฐานทางกฎหมาย — consent, สัญญา, legitimate interest, ฯลฯ. paste ข้อมูลลูกค้าเข้า AI = การ process ที่ต้องมีฐาน
+- **Purpose limitation**: data ใช้ได้เฉพาะตามวัตถุประสงค์ที่แจ้ง — ลูกค้าให้ข้อมูลเพื่อ "สั่งซื้อสินค้า" ไม่ใช่ "ให้พนักงานเอาไป paste เข้า ChatGPT เพื่อสรุป"
+- **Data subject rights**: เจ้าของข้อมูลมีสิทธิ์ขอ access, แก้ไข, ลบ — ถ้า data เข้าไปใน training set ของ model แล้ว การลบทำได้ยาก
+- **Cross-border transfer**: ส่ง data ออกนอกไทยต้องมีกลไกป้องกันที่เพียงพอ. consumer AI ส่วนใหญ่ host ใน US/EU — ต้องใช้ enterprise tier ที่มี DPA + adequacy assessment
+- **Data Protection Officer (DPO)**: บริษัทบางประเภทต้องมี DPO และ DPO มีบทบาทใน approve การใช้ AI กับ personal data
+
+**บริบทกฎหมายอื่น** ที่ relevant ถ้าบริษัททำธุรกิจข้ามประเทศ:
+- **GDPR** (EU)  — แม่แบบของ PDPA, เข้มกว่าในบางจุด (right to be forgotten ชัดเจน, fine สูงถึง 4% global revenue)
+- **EU AI Act**  — เริ่มบังคับใช้ตั้งแต่ 2024 เป็นต้นไป, กำหนดข้อบังคับเพิ่มสำหรับ AI system โดยจัด risk level (prohibited, high-risk, limited-risk, minimal-risk)
+- **HIPAA** (US, healthcare), **GLBA** (US, financial), **SOX** (US, public companies) — มีผลถ้าทำธุรกิจกับลูกค้าใน sector เหล่านั้น
+
+**ในทางปฏิบัติ**: enterprise tier ของ major provider ปี 2026 สามารถ comply กับ PDPA ได้ ถ้าทำ DPA, ตั้ง retention เหมาะสม, จำกัด admin access, และมี internal policy รองรับ. consumer tier comply ไม่ได้.
+
+### 2.6 Local / on-premise model — เมื่อ trade-off คุ้ม
+
+สำหรับ data ที่ sensitivity สูงสุด (state secrets, ข้อมูลภายใต้ litigation hold, IP ที่เป็น core competitive advantage) แม้แต่ API tier ของ cloud provider อาจไม่เพียงพอ. ทางเลือกคือ **รัน open-weight model ภายใน infrastructure ของตัวเอง**:
+
+- **Open-weight models**: Llama (Meta), Mistral, Qwen (Alibaba), DeepSeek, Gemma (Google) — สามารถ download weight และ run ใน server ขององค์กรเองได้
+- **Deployment**: บน on-premise GPU server, private cloud, หรือ VPC-isolated cloud instance
+- **ข้อดี**: data ไม่ออกจาก network ขององค์กรเลย; ควบคุม audit, retention, access ทั้งหมดเอง
+- **ข้อเสีย**: **capability gap** — open-weight model ปี 2026 ตามหลัง frontier closed model (GPT-5 รุ่น, Claude 4 รุ่น, Gemini 3 รุ่น) ในงาน reasoning ที่ยาก, capability ใหม่ ๆ มาช้ากว่า. cost ของ infrastructure + วิศวกร MLOps สูง
+
+**เมื่อ trade-off คุ้ม**:
+- งานที่ task ชัดเจน และ open-weight model ก็เพียงพอ (classification, summarization, simple Q&A)
+- ข้อมูลที่ leak แล้วเสียหายมาก (legal, defense, frontier R&D)
+- regulator บังคับ data residency แบบเข้ม (เช่น banking ในบางประเทศ)
+
+**เมื่อไม่คุ้ม**: งานทั่วไปที่ frontier model ทำได้ดีกว่ามาก และข้อมูล sensitivity อยู่ในระดับที่ enterprise tier ครอบคลุมได้ (ซึ่งเป็นกรณีส่วนใหญ่ในบริษัททั่วไป).
+
+### 2.7 Practical workflow rules
+
+หลัก 4 ข้อสำหรับใช้ AI ในที่ทำงานอย่างปลอดภัย:
+
+1. **Sanitize ก่อน paste** — ถ้าจะใช้ consumer tier กับงานที่เกี่ยวข้องกับ data จริง: redact ชื่อ/email/เลขบัญชีออก แทนด้วย placeholder ("Customer A", "[EMAIL]", "[PHONE]") — ใช้ deterministic tool (regex, dedicated redaction library) ไม่ใช่ AI ในการ redact (ดู §2.8)
+2. **Match tier ↔ sensitivity** — ใช้ enterprise สำหรับงานบริษัท, ใช้ API/local สำหรับงาน sensitive, ใช้ consumer สำหรับงานส่วนตัว/ทดลอง. **อย่าใช้บัญชีส่วนตัวสำหรับงานบริษัท**
+3. **Audit ที่ตัวเอง share ไปแล้ว** — review chat history เป็นระยะ, ลบ conversation ที่มี data sensitive, รู้ว่าตัวเองเคย paste อะไร
+4. **Configure org settings** — admin ของ enterprise tier ควรเปิด: training opt-out (default ก็ไม่ใช้ train แต่ confirm), audit log retention, sharing restriction, model selection (บล็อก model ที่ไม่ผ่าน review), single sign-on
+
+### 2.8 Special cases — synthetic data และ deterministic redaction
+
+**Synthetic data**: ถ้าต้องวิเคราะห์ pattern ของ data จริงแต่ paste ตัวจริงเข้า AI ไม่ได้ → ใช้ AI สร้าง **synthetic data** ที่มี structure คล้ายตัวจริงแต่ไม่ใช่ตัวจริง แล้ววิเคราะห์บน synthetic. ใช้ได้ดีกับงาน schema design, test data, demo. **ระวัง**: synthetic data ที่สร้างจาก real data โดยตรง อาจ leak ตัวจริงได้ — ต้อง generate จาก schema ไม่ใช่จาก row จริง.
+
+**Deterministic redaction**: การลบ PII ออกจากเอกสาร **อย่าใช้ AI** เป็นด่านแรก — AI plausibly redact ผิด (ลืม redact บางจุด, redact เกินจำเป็น) แบบที่ตรวจไม่ได้. ใช้ tool deterministic — regex สำหรับ pattern ชัดเจน (email, เลขบัตร), NER library ที่ run local (spaCy, Presidio), หรือ rule-based redaction tool ขององค์กร. AI ใช้ได้ใน step **หลัง** redaction (วิเคราะห์ document ที่ sanitize แล้ว) — ไม่ใช่ใน step redaction เอง.
+
+---
+
+## Worked Examples
+
+### Example 1: นักวิเคราะห์การเงินอยากสรุปรายงาน Q3
+**สถานการณ์**: ได้ไฟล์ Q3 financial report ที่ยังไม่ public ขนาด 40 หน้า อยากสรุปด้วย AI
+
+**วิเคราะห์**:
+- ข้อมูลใน document = **material non-public information (MNPI)** — sensitive สูง, leak อาจผิดกฎหมายเรื่อง insider trading
+- **ห้าม**: paste เข้า ChatGPT บัญชีส่วนตัว / Claude.ai ฟรี
+- **ทำได้**: ใช้ ChatGPT Enterprise / Claude for Work บัญชีบริษัทที่ admin set retention = 30 วัน, opt-out training (default)
+- **เพิ่มความปลอดภัย**: redact ตัวเลขหลัก ๆ → ขอ AI ช่วยร่าง template สรุป → ใส่ตัวเลขจริงด้วยมือ
+
+### Example 2: HR ต้องร่าง warning letter
+**สถานการณ์**: ต้องเขียน letter ถึงพนักงาน A เรื่องวินัย ที่มี detail เฉพาะตัว
+
+**วิเคราะห์**:
+- ข้อมูล = PII + employment record — ภายใต้ PDPA ต้องมี lawful basis
+- **ห้าม**: paste ชื่อ-นามสกุล-ตำแหน่ง-detail วินัยเข้า consumer AI
+- **ทำได้**:
+  1. ใช้ enterprise tier ของบริษัท + sanitize (Employee A, Date X, Incident Y)
+  2. ขอ AI ช่วย structure ของ letter
+  3. กรอกชื่อ-รายละเอียดจริงตอน final draft ใน Word ไม่ใช่ใน AI
+
+### Example 3: Developer อยาก debug code ที่มี API key อยู่
+**สถานการณ์**: code 200 บรรทัด มี `OPENAI_API_KEY = "sk-..."` hardcode ใน config
+
+**วิเคราะห์**:
+- API key = credential, leak = ทุกคนใช้บัญชีบริษัทได้จนกว่าจะ revoke
+- **ห้าม**: paste โดยไม่ remove key — แม้แต่ enterprise tier ก็ไม่ควร (เพราะ key อาจอยู่ใน log ของ provider ชั่วระยะหนึ่ง)
+- **ทำได้**: replace key ด้วย `OPENAI_API_KEY = "REDACTED"` ก่อน paste ไม่ว่า tier ไหน. หลังจาก paste ที่ใดก็ตามที่ key เคยอยู่: **rotate key ทันที** (ถือว่า compromised แม้ยังไม่ confirmed leak)
+
+### Example 4: นักวิจัยอยากใช้ AI วิเคราะห์ interview transcript
+**สถานการณ์**: transcript จาก qualitative interview 30 คน, มีชื่อจริง + รายละเอียดส่วนตัว, participant consent ไว้ว่าใช้ใน research โดยไม่ระบุตัวตน
+
+**วิเคราะห์**:
+- Consent form ระบุ "ไม่ระบุตัวตน" → การส่งชื่อจริงเข้า third-party AI = ผิด consent
+- **ต้องทำ**: deterministic redaction (replace ชื่อด้วย P01-P30) **ก่อน** paste
+- **เลือก tier**: enterprise/API ของสถาบัน + ลง DPA. ถ้าสถาบันไม่มี ใช้ local model
+- **เพิ่ม**: ถ้า interview เกี่ยวกับ sensitive topic (สุขภาพ, การเงิน, การเมือง) — local model ปลอดภัยกว่ามาก
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** ChatGPT/Claude เป็น "AI ที่ปลอดภัย" เพราะเป็นบริษัทใหญ่
+   **ความจริง:** ความปลอดภัยขึ้นกับ **tier ที่ใช้** ไม่ใช่ชื่อ product. ChatGPT Free และ ChatGPT Enterprise มี data handling ต่างกันโดยสิ้นเชิง แม้เป็น product ชื่อเดียวกันของบริษัทเดียวกัน
+
+2. **ความเข้าใจผิด:** ถ้า opt-out training แล้ว data จะไม่ถูกเก็บเลย
+   **ความจริง:** opt-out training ลดการใช้ data ฝึก model แต่ provider ยังคงเก็บ log ระยะหนึ่ง (มัก 30 วัน) เพื่อ safety/abuse monitoring ตามข้อกำหนดของ provider เอง 
+
+3. **ความเข้าใจผิด:** API tier "ส่ง data ไป provider ตรง ๆ" จึงเสี่ยงกว่า consumer
+   **ความจริง:** ตรงข้าม. API tier มี commercial contract ที่ห้าม provider ใช้ data train โดย default, มี retention สั้นกว่า, และมี "zero retention" option. consumer tier มี contract อ่อนกว่าและ default ใช้ data train
+
+4. **ความเข้าใจผิด:** การ paste data เข้า AI = "แค่ส่งให้คอมพิวเตอร์" จึงไม่นับเป็นการเปิดเผยข้อมูล
+   **ความจริง:** ในเชิงกฎหมายและสัญญา การส่ง data ไปยัง server ของ third party (OpenAI, Anthropic, Google) = **การเปิดเผยข้อมูลให้ third party**. ภายใต้ NDA / PDPA / GDPR นับเป็น disclosure เต็มรูปแบบ
+
+5. **ความเข้าใจผิด:** Local model ปลอดภัย 100% เพราะรันบนเครื่องตัวเอง
+   **ความจริง:** Local ลด risk จาก third-party แต่ไม่ลด risk อื่น — endpoint security (เครื่องโดน hack), insider risk (พนักงานเข้าถึง), accidental leak (เช่น log ถูก backup ไป cloud) ยังคงอยู่. Local คือ **ส่วนหนึ่ง** ของ defense ไม่ใช่ทั้งหมด
+
+6. **ความเข้าใจผิด:** ถ้าใช้ enterprise tier แล้วจะ paste อะไรก็ได้
+   **ความจริง:** Enterprise tier ลด risk จาก provider แต่ไม่ลด risk จาก contractual restriction. ข้อมูลภายใต้ NDA ของลูกค้า/คู่ค้าอาจห้าม share กับ third party ไม่ว่า tier ใด — ต้องตรวจ contract specific เสมอ
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** AI product แบ่งเป็น 3 tier หลักอะไรบ้าง และแต่ละ tier ต่างกันอย่างไรในเรื่องการใช้ data ฝึก model?
+2. **(Explain)** อธิบายว่าทำไม "encrypted in transit" ไม่ได้แปลว่า data ปลอดภัยจาก provider เอง
+3. **(Apply)** เพื่อนร่วมงานจะ paste customer list 200 รายชื่อเข้า ChatGPT Free เพื่อสรุป segmentation. ระบุปัญหา 3 ข้อ (เชิงกฎหมาย, เชิงสัญญา, เชิง risk) และเสนอ workflow ที่ปลอดภัยกว่า
+4. **(Apply)** บริษัทมีข้อมูลผู้ป่วยที่ต้องวิเคราะห์ pattern เพื่อทำ research — ควรใช้ tier ไหน และทำไม? ถ้า budget จำกัดเลือก local model ตัวไหนได้บ้าง?
+5. **(Synthesize)** เปรียบเทียบข้อแลกเปลี่ยน (trade-off) ระหว่าง enterprise cloud AI vs. local open-weight model ใน 3 มิติ — capability, cost, privacy guarantee
+6. **(Synthesize)** ออกแบบ checklist 5 ข้อ ที่พนักงานต้องตอบให้ครบก่อนจะ paste อะไรก็ตามเข้า AI
+
+---
+
+</section>

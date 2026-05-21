@@ -1,0 +1,211 @@
+---
+slug: what-is-machine-learning
+level: foundations
+title: "What is Machine Learning?"
+status: reviewed
+prerequisites:
+  - what-is-ai
+  - types-of-ai
+last_reviewed: 2026-05-18
+tldr: "Machine learning (ML) คือแนวทางสร้างโปรแกรมที่ **เรียนรู้ pattern จาก data แทนการเขียน rule ตรง ๆ ด้วยมือ**. ในการเขียนโปรแกรมแบบเดิม โปรแกรมเมอร์ใส่ rule เข้าไป โปรแกรมก็ประมวลผล data ออกมา. ใน ML เราใส่ทั้ง data และคำตอบเข้าไป ให้ algorithm หา rule เอง. นี่คือแนวทางหลักที่อยู่เบื้องหลังเกือบทุก AI system ที่ใช้งานจริงตั้งแต่ปี 2010 เป็นต้นมา — รวมถึง [[what-is-deep-learning|deep learning]] และ [[what-is-an-llm|LLM]]."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Machine learning (ML) คือแนวทางสร้างโปรแกรมที่ **เรียนรู้ pattern จาก data แทนการเขียน rule ตรง ๆ ด้วยมือ**. ในการเขียนโปรแกรมแบบเดิม โปรแกรมเมอร์ใส่ rule เข้าไป โปรแกรมก็ประมวลผล data ออกมา. ใน ML เราใส่ทั้ง data และคำตอบเข้าไป ให้ algorithm หา rule เอง. นี่คือแนวทางหลักที่อยู่เบื้องหลังเกือบทุก AI system ที่ใช้งานจริงตั้งแต่ปี 2010 เป็นต้นมา — รวมถึง [what-is-deep-learning|deep learning](/foundations/what-is-deep-learning|deep learning) และ [what-is-an-llm|LLM](/foundations/what-is-an-llm|LLM).
+
+**Machine learning** คือสาขาย่อยของ AI ที่เปลี่ยนวิธีการเขียนโปรแกรมอย่างสิ้นเชิง.
+
+ในการเขียนโปรแกรมแบบเดิม (traditional programming) มนุษย์เป็นคนคิด rule แล้วเขียนเป็น code ให้คอมพิวเตอร์ทำตาม. โปรแกรมเดิมจะมีหน้าตาประมาณนี้:
+
+> **Data + Rules → Answer**
+
+ในขณะที่ ML พลิกความคิด — แทนที่จะเขียน rule ด้วยมือ เราใส่ตัวอย่าง (data) กับคำตอบที่ถูกต้องเข้าไป แล้วให้ algorithm "หา rule" ที่อธิบายความสัมพันธ์เอง:
+
+> **Data + Answers → Rules (เรียกว่า "model")**
+
+เมื่อได้ model มาแล้ว เวลามี data ใหม่เข้ามา เราป้อนให้ model ทำนาย answer ออกมา:
+
+> **Data + Model → Predicted Answer**
+
+ฟังดูคล้ายเดิม แต่ผลกระทบมหาศาล. งานหลายอย่างที่มนุษย์ "ทำได้แต่ articulate rule ไม่ออก" — เช่นแยกแมวออกจากหมาในรูปภาพ, แยก email สแปม, รู้ว่าใครเขียนข้อความนี้ — กลายเป็นงานที่ทำได้เมื่อมีตัวอย่างมากพอ.
+
+**ตัวอย่างคลาสสิก: ตรวจจับ spam**
+- แบบเดิม: เขียน 1,000 if-statement ("ถ้ามีคำว่า 'Viagra'... ถ้า sender อยู่ใน blacklist... ถ้ามีลิงก์เกิน 5 อัน...") — รายการยาวขึ้นเรื่อย ๆ สแปมเมอร์ปรับตัว เราตามไม่ทัน
+- แบบ ML: แสดง email 10,000 ฉบับให้ algorithm ดู โดยติด label ว่าฉบับไหน spam ฉบับไหนไม่ใช่ — algorithm หา pattern เอง พอมี email ใหม่ก็เอามา predict
+
+ML ชนะตรงที่ (1) มนุษย์ไม่ต้อง articulate rule ทุกข้อ และ (2) เมื่อ pattern เปลี่ยน (สแปมเมอร์เปลี่ยนวิธี) แค่ re-train ด้วย data ใหม่ก็พอ ไม่ต้องเขียน code ใหม่.
+
+### Mental model
+มอง ML เป็น **"การสอนด้วยตัวอย่าง" แทน "การสอนด้วยกฎ"**. เหมือนสอนเด็กให้แยกแมวกับหมา — เราไม่ได้บอกว่า "หูแบบนี้ ขนแบบนี้ จมูกแบบนี้" เราชี้รูปแล้วบอก "นี่หมา นี่แมว" หลาย ๆ รอบ แล้วเด็กก็แยกได้เองในที่สุด.
+
+**ผลตามมา 3 ข้อ:**
+1. ML ต้องการ data จำนวนมาก — ตัวอย่างน้อย model ก็เรียนรู้ pattern ได้ไม่ดี
+2. ML ดีเท่า data ที่ป้อนให้ — ถ้า data มี bias หรือผิด model ก็จะมี bias หรือผิดตามไปด้วย
+3. ML ไม่ "เข้าใจ" สิ่งที่ทำในความหมายของมนุษย์ — มันแค่หา pattern ทางสถิติที่ generalize ได้ดี
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 The shift in detail: rules in vs rules out
+
+นิยามอย่างเป็นทางการของ Tom Mitchell (1997) ที่ยังใช้กันจนถึงปัจจุบัน:
+
+> A computer program is said to learn from experience **E** with respect to some class of tasks **T** and performance measure **P**, if its performance at tasks in T, as measured by P, improves with experience E.
+
+ตีความ: ML system มี 3 องค์ประกอบเสมอ — task ที่ต้องการทำ, ตัววัดว่าทำได้ดีแค่ไหน, และประสบการณ์ (data) ที่ใช้เรียนรู้.
+
+นี่ต่างจาก traditional programming ตรงที่ผู้พัฒนาไม่ได้บอก "วิธีทำ" โดยตรง — บอกแค่ "อะไรคือทำได้ดี" แล้วให้ algorithm ค้นหาวิธีการเอง ผ่านการปรับ parameter ภายใน model.
+
+### 2.2 When ML is the right tool
+
+ML เหมาะเมื่อ:
+- **มี pattern ใน data จำนวนมาก** — มี data หลายหมื่น/หลายล้านตัวอย่าง และเชื่อว่ามี pattern ที่ generalize ได้
+- **Rule ชัด articulate ยาก** — งานที่มนุษย์ "ทำได้แต่อธิบายไม่ถูก" (รู้จักหน้าคน, เข้าใจภาษา, แยกอารมณ์ในเสียง)
+- **Environment เปลี่ยน** — pattern ใน data เปลี่ยนตามเวลา (พฤติกรรมผู้ใช้, fraud, สแปม) — re-train ง่ายกว่าเขียน rule ใหม่
+- **ยอม trade-off interpretability ได้** — ส่วนใหญ่ ML model (โดยเฉพาะ deep learning) อธิบายการตัดสินใจของตัวเองไม่ได้ชัด
+
+ML **ไม่** เหมาะเมื่อ:
+- **Rule ชัด ตายตัว** — การคำนวณภาษี, การ validate รูปแบบ email, การคำนวณดอกเบี้ย — เขียน if-else ตรง ๆ ดีกว่า ทั้งแม่นยำกว่า debug ง่ายกว่า
+- **Data น้อยมาก** — ML ต้องการตัวอย่างเยอะ ถ้ามีตัวอย่าง 10 ตัว heuristic ของมนุษย์ดีกว่า
+- **ต้องการ explainability ระดับสูง** — การตัดสินใจทางการแพทย์/กฎหมายบางประเภท ที่ต้องอธิบายเหตุผลแต่ละ case ได้ชัด
+- **Stake สูง zero tolerance for error** — ระบบที่ผิดไม่ได้เลย (เช่น control rod ใน reactor) ไม่ควรใช้ ML เป็น single decision maker
+
+### 2.3 Three classic paradigms
+
+ML แบ่งตามวิธีที่ algorithm ได้รับ feedback เป็น 3 paradigm หลัก:
+
+**Supervised learning** — เรียนจากคู่ `(input, correct_output)`. data ที่ใช้ train มี label ที่ถูกต้องกำกับ. model พยายามเรียนรู้ function `f(x) = y` ที่ map input ไป output.
+- ตัวอย่าง:
+  - **Image classification** — input คือรูป output คือ label ("cat", "dog")
+  - **Spam detection** — input คือ email output คือ "spam" หรือ "not spam"
+  - **Regression** — input คือ feature ของบ้าน (พื้นที่, ทำเล, จำนวนห้อง) output คือราคา (เลขจริง)
+- ใช้บ่อยที่สุดในงาน production จริง เพราะการประเมินผลตรงไปตรงมา (เทียบ prediction กับ label)
+- ต้องการ labeled data ซึ่งมักแพง (มนุษย์ต้อง annotate)
+
+**Unsupervised learning** — เรียนจาก `(input)` ล้วน ๆ ไม่มี label. model พยายามหาโครงสร้างใน data
+- ตัวอย่าง:
+  - **Clustering** — แบ่ง customer ออกเป็นกลุ่มตามพฤติกรรม โดยไม่กำหนดกลุ่มล่วงหน้า
+  - **Dimensionality reduction** — บีบข้อมูลหลายมิติให้เหลือมิติน้อยลงโดยรักษาโครงสร้างหลัก เช่น PCA, embedding
+  - **Anomaly detection** — หาตัวที่ "ผิดปกติ" จาก pattern ส่วนใหญ่ (fraud, manufacturing defect)
+- ประเมินผลยากกว่า — ไม่มี "คำตอบที่ถูก" ให้เปรียบเทียบ
+
+**Reinforcement learning (RL)** — agent ทำ action ใน environment ได้รับ reward signal กลับมา learn policy ที่ทำให้ reward สะสมสูงสุด
+- ตัวอย่าง:
+  - **Game playing** — AlphaGo, AlphaZero (Go, Chess) เรียนเล่นเกมจากการเล่นกับตัวเองแล้วได้ reward เมื่อชนะ
+  - **Robotics** — สอน robot หยิบของ เดิน ปรับท่าทาง
+  - **RLHF ใน LLM** — ใช้ human feedback เป็น reward signal ปรับ LLM ให้ตอบในแบบที่มนุษย์ชอบ ดู [what-is-an-llm](/foundations/what-is-an-llm) และ 
+- ต่างจาก supervised ตรงที่ไม่มี "คำตอบที่ถูก" ทันที — feedback คือ scalar reward ที่อาจมาช้า
+
+**Self-supervised learning (ควรรู้ในปี 2026)** — เป็นกรณีพิเศษที่ใช้ structure ของ data เองมาสร้าง label ขึ้นมา ไม่ต้องให้มนุษย์ label. ตัวอย่างคลาสสิก: ใน LLM training นำ text มาตัด token ออก แล้วให้ model ทำนายว่าตำแหน่งนั้นควรเป็น token อะไร — input และ label มาจาก text เดียวกัน. นี่คือกลไกหลักของ [what-is-an-llm|LLM pretraining](/foundations/what-is-an-llm|LLM pretraining) และเป็นเหตุผลที่ LLM ใช้ text จากอินเทอร์เน็ตได้ทั้งหมดโดยไม่ต้อง label ด้วยมือ.
+
+### 2.4 Training data, generalization, overfitting
+
+**Training data vs test data** — หลักการพื้นฐานของ ML คือ data ที่ใช้ train ต้องแยกจาก data ที่ใช้ประเมิน. ถ้า evaluate model บน training data เดียวกันที่ใช้ train ตัวเลขจะดูดีหลอก ๆ เพราะ model "เคยเห็น" คำตอบมาแล้ว. ในทางปฏิบัติ มัก split data เป็น train / validation / test set (เช่น 70/15/15)
+
+**Generalization** — เป้าหมายแท้จริงของ ML ไม่ใช่การทำได้ดีบน training data — แต่เป็นการทำได้ดีบน data ใหม่ที่ model ไม่เคยเห็น. เรียกความสามารถนี้ว่า generalization. model ที่ generalize ดีคือ model ที่จับ pattern ที่เป็นจริงในประชากร ไม่ใช่ pattern ที่เป็นแค่ noise ของ training set โดยบังเอิญ
+
+**Overfitting** — เมื่อ model "จำ" training data ได้ดีเกินไป จนเรียน noise และรายละเอียดเฉพาะของ training set ติดมาด้วย ทำให้ทำงานบน data ใหม่ได้แย่. analogy: นักเรียนที่ท่อง keyword ข้อสอบเก่าได้หมดแต่ไม่เข้าใจเนื้อหา — เจอข้อสอบใหม่ก็ทำไม่ได้.
+- อาการ: training accuracy สูง แต่ test accuracy ต่ำ
+- วิธีป้องกัน: เพิ่ม training data, ใช้ regularization, ใช้ model ที่เล็กลง (ดูเพิ่ม [how-models-learn](/foundations/how-models-learn))
+
+**Underfitting** — ตรงข้ามกับ overfitting — model เล็ก/ง่ายเกินกว่าจะจับ pattern ที่แท้จริงใน data ได้ ทำให้ทำงานแย่ทั้งบน training และ test set. ในยุค deep learning ปัญหานี้พบน้อยกว่า overfitting เพราะ model ใหญ่ขึ้นเรื่อย ๆ
+
+### 2.5 The ML loop
+
+วงจรการพัฒนา ML system ทุกตัวมีโครงสร้างคล้ายกัน:
+
+1. **เตรียม data** — collect, clean, label (ถ้าจำเป็น), split เป็น train/val/test
+2. **เลือก model** — เลือก class ของ algorithm (linear model, tree, neural network, ฯลฯ)
+3. **Train** — ป้อน training data ให้ algorithm ปรับ parameter ภายในเพื่อลด loss
+4. **Evaluate** — วัด performance บน validation/test set
+5. **Iterate** — ถ้ายังไม่ดีพอ ปรับ data / model / hyperparameter แล้ววนใหม่
+6. **Deploy** — เอา model ไปใช้กับ data จริง, monitor performance ต่อเนื่อง
+
+รายละเอียดของ step "Train" — โดยเฉพาะการที่ algorithm "ปรับ parameter" ทำงานยังไง — อยู่ใน [how-models-learn](/foundations/how-models-learn) บทถัดไป.
+
+### 2.6 ML's relationship to AI
+
+ML คือ **หนึ่งในแนวทาง** ของ AI ไม่ใช่ทั้งหมดของ AI. ระบบ AI ที่เป็น symbolic / rule-based (ดู [types-of-ai](/foundations/types-of-ai)) — เช่น expert system ในยุค 1980s หรือ chess engine แบบเก่า — ไม่ใช่ ML.
+
+แต่ตั้งแต่ ~2010 หลัง deep learning ทะลุ benchmark ImageNet () ML กลายเป็นแนวทางที่ครอบงำ AI ในแง่ปฏิบัติ. AI system สมัยใหม่เกือบทั้งหมด — computer vision, speech recognition, machine translation, recommendation systems, LLM — เป็น ML ทั้งสิ้น. ถึงขนาดที่ในการสนทนาทั่วไป "AI" และ "ML" เริ่มใช้แทนกันได้ ทั้ง ๆ ที่ในทาง strict ML เป็น subset ของ AI.
+
+---
+
+## Worked Examples
+
+### Example 1: Rule-based vs ML — กรองคำหยาบในระบบ chat
+
+**แบบ traditional programming:**
+- เก็บ list ของคำหยาบ ~500 คำ
+- เขียน function ตรวจว่า message มีคำใน list หรือไม่ ถ้ามี block
+- ข้อดี: เข้าใจง่าย debug ง่าย อธิบายให้ user เข้าใจได้
+- ข้อเสีย: ตามไม่ทัน — user หาทางเลี่ยงด้วยการสะกดผิด, ใช้สัญลักษณ์แทนตัวอักษร, ใช้ภาษาเปรียบเปรย; ยัง false positive สูง — บริบทเชิงวิชาการที่อ้างถึงคำเหล่านี้โดน block
+
+**แบบ ML:**
+- รวบรวมข้อความ 100,000 ข้อความ label "toxic" / "not toxic" โดยมนุษย์
+- Train classifier (เช่น text classifier ด้วย neural network)
+- ข้อดี: จับ context ได้, จับ variation ได้
+- ข้อเสีย: ต้องการ data จำนวนมาก, อธิบายว่าทำไม block ยาก, มี bias ตาม labeler
+
+**คำตัดสิน:** ระบบ production สมัยใหม่มักผสม — rule-based เป็นด่านแรกสำหรับ case ชัดเจน + ML สำหรับ case ซับซ้อน + human review สำหรับ borderline.
+
+### Example 2: Overfitting — predict ผลสอบจากนักเรียน 30 คน
+
+สมมติเรามี data ของนักเรียน 30 คน — feature คือ จำนวนชั่วโมงอ่านหนังสือ, จำนวนชั่วโมงนอน, จำนวนวิชาที่เรียน, สีของกระเป๋านักเรียน, วันเกิด, ฯลฯ รวม 50 feature. Output คือคะแนนสอบ.
+
+ถ้าเรา train neural network ขนาดใหญ่บน data 30 ตัวอย่างนี้ model จะ "จำ" คะแนนของนักเรียนแต่ละคนได้ทั้งหมด รวมถึงเรียนรู้ pattern ที่ไม่จริง (เช่น "นักเรียนที่กระเป๋าสีฟ้าจะได้คะแนน 85" — บังเอิญในตัวอย่าง 30 ตัวเป็นแบบนั้น).
+
+เมื่อใช้ predict นักเรียนใหม่ที่ model ไม่เคยเห็น — model จะใช้ pattern ปลอมเหล่านี้ ทำให้ predict ผิด. นี่คือ overfitting.
+
+วิธีแก้: เพิ่ม data, ลด feature ที่ไม่น่าเกี่ยวข้อง, ใช้ model เล็กลง, ใช้ regularization (ดู [how-models-learn](/foundations/how-models-learn)).
+
+### Example 3: เลือก paradigm — 3 สถานการณ์จริง
+
+| สถานการณ์ | Paradigm ที่เหมาะ | เพราะ |
+| --- | --- | --- |
+| มี email 1 ล้านฉบับติด label spam/not-spam ต้องการ classifier | **Supervised** | มี input + label พร้อมใช้ |
+| มี customer log 100,000 record อยากรู้ว่ามีลูกค้ากี่กลุ่มที่พฤติกรรมต่างกัน | **Unsupervised (clustering)** | ไม่รู้ "ถูก" คืออะไร แค่หา structure |
+| สร้าง agent ที่เล่นเกมหมากรุก ต้องการให้มันชนะ | **Reinforcement** | feedback มาช้า (รู้แพ้/ชนะตอนจบเกม) ต้องเรียน strategy ที่ทำให้ชนะระยะยาว |
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** ML กับ AI คือสิ่งเดียวกัน
+   **ความจริง:** ML เป็น subset ของ AI. AI ครอบคลุมถึง symbolic system, search algorithm, planning ฯลฯ ที่ไม่ใช่ ML. แต่เพราะ ML ครอบงำ AI ในทางปฏิบัติตั้งแต่ ~2010 คนทั่วไปจึงใช้ทั้งสองคำสลับกัน ดู [types-of-ai](/foundations/types-of-ai)
+
+2. **ความเข้าใจผิด:** model ที่ accuracy 99% บน training data คือ model ที่ดี
+   **ความจริง:** ตัวเลขนี้ไม่มีความหมายถ้าไม่ได้วัดบน data ที่ model ไม่เคยเห็น. model ที่จำ training set ได้ 100% อาจ generalize แย่มาก (overfitting). ตัวเลขที่สำคัญคือ test/validation accuracy บน data ที่ hold out ไว้
+
+3. **ความเข้าใจผิด:** ML model "เข้าใจ" สิ่งที่มันทำ
+   **ความจริง:** ML model หา pattern ทางสถิติที่ minimize loss บน training data. มันไม่มี "ความเข้าใจ" แบบมนุษย์. นี่เป็นเหตุผลที่ model อาจล้มเหลวอย่างไม่คาดคิดเมื่อเจอ input ที่ต่างจาก training distribution (distribution shift)
+
+4. **ความเข้าใจผิด:** ยิ่งใช้ feature เยอะ ML ยิ่งดี
+   **ความจริง:** Feature เกินจำเป็นเพิ่มความเสี่ยง overfitting และทำให้ต้องการ data มากขึ้น. การเลือก feature ที่เกี่ยวข้องจริง ๆ (feature engineering) สำคัญพอ ๆ กับการเลือก model ในงาน classical ML
+
+5. **ความเข้าใจผิด:** ML ทุกแบบใช้ neural network / deep learning
+   **ความจริง:** Deep learning เป็นเพียง subset ของ ML. ในงาน production จริง classical ML (logistic regression, random forest, gradient boosting) ยังเป็นเครื่องมือหลัก โดยเฉพาะเมื่อ data เป็น tabular ขนาดไม่ใหญ่ — บางครั้งทำงานได้ดีกว่า deep learning ด้วยซ้ำ ดู [what-is-deep-learning](/foundations/what-is-deep-learning)
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** ความแตกต่างระหว่าง traditional programming กับ machine learning ในประโยคเดียวคืออะไร?
+2. **(Explain)** อธิบายว่าทำไม supervised learning ต้องการ labeled data แต่ unsupervised learning ไม่ต้อง — แล้วทั้งสองแบบประเมินผลต่างกันยังไง?
+3. **(Apply)** มี 3 ปัญหา: (ก) คำนวณภาษีจากรายได้ตามอัตราที่กรมสรรพากรประกาศ (ข) แยกรูปสุนัขออกจากรูปแมว (ค) ตรวจจับธุรกรรมต้องสงสัยใน 10 ล้าน transaction รายเดือน. แต่ละปัญหาควรใช้ traditional programming หรือ ML แบบไหน — และเพราะอะไร?
+4. **(Apply)** ทีมหนึ่ง train model จาก data 50,000 ตัวอย่าง ได้ training accuracy 99% แต่เมื่อ deploy ตัวเลขในจริงตกเหลือ 65%. อะไรน่าจะเกิดขึ้น และจะวินิจฉัยยังไง?
+5. **(Synthesize)** อธิบายว่า self-supervised learning ในการ pretrain LLM เป็นกรณีพิเศษของ supervised learning ยังไง — และทำไมมันถึงสำคัญ?
+
+---
+
+</section>

@@ -1,0 +1,223 @@
+---
+slug: how-llms-respond
+level: using-ai
+title: "How LLMs Respond — กลไกการสร้าง output ทีละ token"
+status: reviewed
+prerequisites:
+  - what-is-an-llm
+last_reviewed: 2026-05-18
+tldr: "LLM สร้าง output โดย **ทำนาย token ทีละตัว**: ทุกขั้นตอนโมเดลคำนวณ probability distribution บน vocabulary ทั้งชุด แล้ว **สุ่ม** token หนึ่งตัวจาก distribution นั้น ต่อท้าย input แล้ววนใหม่จนกว่าจะเจอ stop token. เพราะมีขั้นตอน sampling ที่มี randomness ในตัว — prompt เดียวกันจึงให้ output ไม่เหมือนกันได้ทุกครั้ง และนี่คือเหตุผลที่ output ออกมาแบบ stream ทีละคำให้เราเห็น."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+LLM สร้าง output โดย **ทำนาย token ทีละตัว**: ทุกขั้นตอนโมเดลคำนวณ probability distribution บน vocabulary ทั้งชุด แล้ว **สุ่ม** token หนึ่งตัวจาก distribution นั้น ต่อท้าย input แล้ววนใหม่จนกว่าจะเจอ stop token. เพราะมีขั้นตอน sampling ที่มี randomness ในตัว — prompt เดียวกันจึงให้ output ไม่เหมือนกันได้ทุกครั้ง และนี่คือเหตุผลที่ output ออกมาแบบ stream ทีละคำให้เราเห็น.
+
+ใน [what-is-an-llm](/foundations/what-is-an-llm) เราเห็นแล้วว่า LLM ทำงานบนหลักการเดียว: **ทำนาย token ถัดไป**. บทนี้ขยายภาพให้เห็นว่า ตั้งแต่เรากด Enter ใน ChatGPT จนข้อความตอบไหลขึ้นจอ มีอะไรเกิดขึ้นทีละขั้น.
+
+ลำดับเหตุการณ์โดยย่อ:
+1. ข้อความที่เราพิมพ์ถูกแปลงเป็นลำดับของ **token** (หน่วยย่อยของข้อความ — ไม่ใช่ตัวอักษร ไม่ใช่คำ)
+2. โมเดล "ดู" token ทั้งหมดที่มีตอนนี้ แล้วคำนวณว่า token ถัดไปน่าจะเป็นอะไร — output เป็น **probability distribution** บน vocabulary ทั้งหมด (มัก ~50,000–200,000 token)
+3. ระบบ **เลือก** (sample) token หนึ่งตัวจาก distribution นั้น — ไม่ใช่เลือกตัวที่ probability สูงที่สุดเสมอไป
+4. token ที่ได้ถูก **detokenize** กลับเป็นข้อความและส่งให้ผู้ใช้เห็น (นี่คือเหตุผลที่ text ปรากฏแบบ stream ทีละคำ)
+5. token ตัวนั้นถูกต่อท้าย input แล้ววน step 2 ใหม่
+6. วนไปเรื่อย ๆ จนโมเดลสร้าง **stop token** (EOS — end-of-sequence) หรือถึง limit ที่ตั้งไว้
+
+ทั้งหมดนี้ทำให้เกิดสมบัติสำคัญสองอย่างที่ผู้ใช้จริงต้องเข้าใจ:
+
+**สมบัติ 1: output มี randomness ในตัว**
+เพราะขั้น sample ในข้อ 3 มีการสุ่ม — prompt เดียวกัน ส่งสองครั้ง อาจได้คำตอบไม่เหมือนกัน. นี่ไม่ใช่ bug. มันคือ design choice ที่ทำให้คำตอบของ LLM "ดูเป็นธรรมชาติ" และ "หลากหลาย" — แต่ก็แปลว่าเราเอา LLM ไปใช้กับงานที่ต้องการความสม่ำเสมอแบบเป๊ะ ๆ ไม่ได้ตรง ๆ.
+
+**สมบัติ 2: output ออกมาทีละชิ้น ไม่ใช่ทั้งก้อน**
+เวลาเห็น ChatGPT พิมพ์ตอบทีละคำ มันไม่ใช่ animation. โมเดลกำลัง generate token ทีละตัวจริง ๆ. เราจึงเห็น token ตัวแรกได้เกือบทันที โดยไม่ต้องรอจนทั้งคำตอบเสร็จ — เรียกว่า **streaming**.
+
+### Mental model
+
+นึกถึง LLM เป็น **คนที่เขียนนิยายโดยห้ามอ่านล่วงหน้าและห้ามลบ**. ทุกครั้งที่เขาเขียนคำใหม่ เขาต้องดูทุกอย่างที่เขียนไปแล้ว แล้วเลือกคำต่อไปจากตัวเลือกที่ "น่าจะมาตรงนี้" ในใจ. เขาไม่ได้วางโครงไว้ก่อนเขียน — เขาเขียนไปเรื่อย ๆ แล้วโครงค่อยปรากฏ.
+
+จากภาพนี้สามผลตามมา:
+1. **โมเดล "วางแผน" ล่วงหน้าไม่ได้** ในความหมายแบบมนุษย์ — มันตัดสินใจทีละ token เท่านั้น (เทคนิคอย่าง chain-of-thought แก้ปัญหานี้ทางอ้อม ดู [prompt-engineering-patterns](/using-ai/prompt-engineering-patterns))
+2. **เคยเขียนผิดแล้วถอยกลับไม่ได้** — ถ้า token แรก ๆ พาออกนอกทาง โมเดลจะพยายาม "แก้ตัว" ในส่วนที่เหลือ ซึ่งมักทำให้คำตอบทั้งก้อนเพี้ยน
+3. **ใช้เวลาในการตอบยาวขึ้นแปรผันตามจำนวน token output** — ไม่ใช่ตามความ "ยาก" ของคำถาม
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 The full inference pipeline
+
+ขั้นตอน end-to-end ที่ LLM สร้างคำตอบหนึ่งครั้ง (เรียกว่า **inference**):
+
+```
+prompt (text)
+   │
+   ▼ tokenize
+[token_ids]               เช่น [4521, 891, 12, 7733, ...]
+   │
+   ▼ embed + forward pass ผ่าน transformer layers ทั้งหมด
+logits over vocabulary    distribution ดิบ (ก่อน softmax)
+   │
+   ▼ softmax + sampling
+next_token_id             เช่น 882
+   │
+   ▼ append to context
+[token_ids, 882]
+   │
+   ▼ (ทำซ้ำจนเจอ EOS)
+   ▼ detokenize
+output text
+```
+
+ทุกครั้งที่มีการ generate token หนึ่งตัว โมเดลต้องทำ **forward pass** เต็มรอบผ่าน neural network ทั้ง stack (transformer หลายสิบถึงเป็นร้อย layer) . การ generate 200 token = 200 forward pass. นี่คือเหตุผลที่ output ยิ่งยาว = ยิ่งช้าและยิ่งแพง.
+
+ในระบบ production จริง มี optimization ระดับล่างหลายอย่าง (KV cache, speculative decoding, batched inference) ที่ทำให้ไม่ต้องคำนวณซ้ำตั้งแต่ต้นทุกรอบ — แต่ในระดับ conceptual ภาพข้างบนยังถูก.
+
+### 2.2 Sampling: greedy vs probability-based
+
+หลังจาก forward pass โมเดลให้เรา distribution บน vocabulary ทั้งหมด. ขั้นถัดไปคือ **เลือก** token หนึ่งตัวจาก distribution นั้น. วิธีเลือกแบ่งหลัก ๆ ได้สองแนว:
+
+**Greedy decoding** — เลือก token ที่มี probability สูงสุดเสมอ
+- Pro: deterministic เมื่อ input เหมือนกัน
+- Con: output มัก "น่าเบื่อ", ซ้ำซาก, ติด loop ง่าย — เพราะ token ที่ดูปลอดภัยที่สุดเสมอไม่ได้ทำให้ข้อความน่าอ่าน
+- ใช้กับ: งานที่ต้องการความนิ่ง เช่น classification, structured output บางประเภท
+
+**Probability-based sampling** — สุ่ม token จาก distribution โดยให้โอกาสตาม probability
+- Pro: output หลากหลาย ฟังดูเป็นธรรมชาติ ตอบงาน creative ได้ดีกว่า
+- Con: ไม่ deterministic — รัน prompt เดียวกันสองครั้งอาจได้คนละคำตอบ
+- ปรับ "ความ random" ได้ผ่าน parameter เช่น **temperature**, **top-p**, **top-k** — ดูรายละเอียดที่ [temperature-and-determinism](/using-ai/temperature-and-determinism)
+
+Production system ของ chat product ส่วนใหญ่ (ChatGPT, Claude, Gemini) **ใช้ sampling ไม่ใช่ greedy** เป็น default ด้วยเหตุผลด้านคุณภาพ output. นี่คือสาเหตุอันดับหนึ่งที่ output ไม่ deterministic.
+
+### 2.3 ทำไม temperature=0 ก็ยังไม่ deterministic เสมอไป
+
+โดยทฤษฎี ถ้าตั้ง temperature = 0 ระบบจะกลายเป็น greedy decoding และควรจะ deterministic. แต่ในระบบจริงผู้ใช้พบบ่อยว่า — ตั้ง temperature = 0 แล้วยังได้คำตอบไม่เหมือนกันเป๊ะ ๆ. สาเหตุมีหลายชั้น:
+
+1. **Floating-point non-associativity บน GPU** — การบวก float ใน parallel hardware ขึ้นกับลำดับ ซึ่งขึ้นกับ batch size และการจัดสรร compute ในขณะนั้น. ผลรวมต่างกันแม้แต่นิดเดียวที่ logits ก็อาจทำให้ argmax เปลี่ยน
+2. **Batching ที่ provider** — request ของเราอาจถูก batch รวมกับ request อื่น ๆ และ batch ที่ต่างกันให้ผลคำนวณต่างกันเล็กน้อย
+3. **Model update เงียบ ๆ** — provider อาจ update weight ของรุ่นเดียวกันโดยไม่ประกาศ
+4. **Tie-breaking** — เมื่อ probability ของ 2 token เสมอกันมาก argmax จะเลือกตัวไหนขึ้นกับ implementation detail
+
+สรุป: **ในระบบ production ผ่าน API ของผู้ให้บริการ อย่าถือว่า temperature = 0 = deterministic**. ถ้าต้องการ deterministic จริง ๆ ต้องใช้ self-hosted model พร้อม fixed seed และ pin ทุก stack — ซึ่งคนใช้งานทั่วไปทำไม่ได้. รายละเอียดเพิ่มเติมที่ [temperature-and-determinism](/using-ai/temperature-and-determinism).
+
+### 2.4 Stop tokens และการหยุด generation
+
+โมเดลไม่ได้ generate ไปเรื่อย ๆ จนหมดแรง. มันหยุดเมื่อเจอเงื่อนไขใดเงื่อนไขหนึ่ง:
+
+- **EOS token (end-of-sequence)** — token พิเศษใน vocabulary ที่โมเดล "เรียนรู้" ระหว่าง training ว่าเป็นสัญลักษณ์จบข้อความ. เมื่อ sample ได้ EOS โมเดลหยุดทันที
+- **Stop sequences ที่ผู้ใช้กำหนด** — ผู้พัฒนาสามารถส่ง list ของ string ที่ "ถ้าเจอให้หยุด" เช่น `"\nUser:"` เพื่อกัน chat model ไม่ให้พูดเลียนแบบฝั่งผู้ใช้
+- **max_tokens limit** — limit แข็งที่ผู้เรียก API ตั้ง ป้องกัน output ยาวเกิน budget
+- **Server timeout** — บางครั้ง provider ตัดเองเมื่อใช้เวลานานเกิน
+
+ถ้า output ถูกตัดกลางคันโดยไม่เจอ EOS (truncation) มัก = ชน max_tokens. ในกรณีนี้คำตอบจะดูเหมือนหยุดกลางประโยค ไม่ใช่จบสวย ๆ — เป็น signal ว่าต้องเพิ่ม budget หรือสรุปให้สั้นลง.
+
+### 2.5 Streaming output
+
+เพราะโมเดล generate token ทีละตัวอยู่แล้ว — เราจึงสามารถส่ง token ให้ผู้ใช้เห็น **ทันทีที่ sample ได้** โดยไม่ต้องรอจนทั้งคำตอบเสร็จ. นี่คือสิ่งที่เรียกว่า **streaming**.
+
+ในเชิง user experience streaming สำคัญมากเพราะ:
+- **Time-to-first-token (TTFT)** ต่ำกว่า total response time มาก — ผู้ใช้รู้สึก "ตอบเร็ว" แม้คำตอบรวมจะใช้เวลา 10-20 วินาที
+- ผู้ใช้สามารถ **อ่านไประหว่างที่โมเดล generate** — ใช้เวลาคุ้มกว่า
+- ถ้าเห็นว่า output ผิดทิศแล้ว ผู้ใช้สามารถ **หยุด generation ได้กลางคัน** ประหยัด token
+
+ในทาง API: provider เปิดให้ใช้ผ่าน Server-Sent Events (SSE) หรือ WebSocket. response ไม่ใช่ JSON ก้อนเดียว แต่เป็น stream ของ event ที่แต่ละ event มี token หรือกลุ่ม token เล็ก ๆ.
+
+ข้อสังเกตที่หลายคนเข้าใจผิด: **streaming ไม่ได้แปลว่าโมเดลคิด "ตามไป" กับ token ที่ปล่อยออกมา**. การ generate ของ token ตัวที่ 50 เกิดขึ้น **หลัง** token ตัวที่ 49 ถูก commit แล้ว — ไม่มีการแก้ย้อนหลัง. streaming คือการ "เปิดเผยผลทีละชิ้น" ไม่ใช่ "คิดสด ๆ ออกหน้ากล้อง" ในความหมายที่โมเดลกลับไปแก้ของเก่าได้.
+
+### 2.6 Tokens vs ตัวอักษร vs คำ — และผลกระทบกับภาษาไทย
+
+**Token ไม่ใช่ตัวอักษร และไม่ใช่คำ**. มันคือหน่วยย่อยที่ได้จาก **subword tokenizer** เช่น Byte-Pair Encoding (BPE) หรือ SentencePiece — ที่ train บน corpus หนึ่ง ๆ ให้รู้จัก "ชิ้นส่วนยอดนิยม" ของภาษา.
+
+ผลของวิธี train tokenizer:
+- ภาษาอังกฤษ: คำที่พบบ่อยมัก = 1 token (`" the"`, `" and"`, `" is"`). คำหายาก/คำยาวจะถูกซอย (`" tokenization"` → `" token"`, `"ization"`)
+- ภาษาไทย: tokenizer ของ LLM ตะวันตก (GPT, Claude) train บนข้อมูลที่มีไทยสัดส่วนน้อยกว่าอังกฤษมาก. ไทยจึงมัก ถูกซอยเป็นชิ้นเล็ก — 1-3 ตัวอักษรไทยต่อ 1 token ในบางช่วง บางคำถึงขั้นซอย byte-level
+
+ตัวอย่างคร่าว ๆ (ตัวเลขขึ้นกับ tokenizer แต่ละค่ายและแต่ละรุ่น):
+
+| ข้อความ | จำนวน token โดยประมาณ |
+|---|---|
+| `"Hello, how are you?"` | ~6 token |
+| `"สวัสดี เป็นอย่างไรบ้าง"` | ~15-25 token |
+
+**ผลตามมาเชิงปฏิบัติ:**
+1. **ต้นทุนสูงกว่า** — API คิดเงินตาม token ทั้ง input และ output. prompt ภาษาไทยจึงแพงกว่า prompt ภาษาอังกฤษที่มีเนื้อหาเทียบเท่ากัน 2-3 เท่าโดยทั่วไป
+2. **context window กินเร็วกว่า** — context limit นับเป็น token ไม่ใช่ตัวอักษร. document ภาษาไทย 10 หน้าอาจกินพื้นที่เท่า document ภาษาอังกฤษ 25-30 หน้า. ดู [context-windows](/using-ai/context-windows)
+3. **TTFT และความเร็ว generation ช้าลง** — ออก token จำนวนมากกว่าเพื่อสื่อความหมายเดียวกัน
+4. **คุณภาพ tokenization กระทบ reasoning** — เมื่อคำถูกซอยแบบไม่สมเหตุสมผล โมเดลทำงานยากขึ้น (เป็นปัญหาที่งานวิจัย low-resource language สนใจมาก)
+
+แนวทางลดผลกระทบ: เลือกรุ่นที่มี tokenizer พัฒนาเฉพาะสำหรับภาษาเอเชีย (เช่น tokenizer ของ Gemini, Claude รุ่นใหม่ ๆ ดีกว่ารุ่นเก่า), หรือพิจารณาเขียน prompt ระบบเป็นอังกฤษและให้ตอบเป็นไทย (input ส่วน system จะถูกกว่า).
+
+ภาพรวม pipeline ของ tokenizer และผลต่อ LLM ดูเพิ่มที่ Karpathy's "Let's build the GPT Tokenizer" .
+
+---
+
+## Worked Examples
+
+### Example 1: prompt เดียวกัน สองคำตอบ
+**Setup:** ส่ง prompt `"แนะนำชื่อสุนัขเพศผู้ 1 ชื่อ"` ไป Claude สองครั้งติด ๆ กัน (temperature default)
+
+**สังเกตได้:** ครั้งแรกอาจตอบ `"แม็กซ์"`, ครั้งที่สอง `"โบ"`, ครั้งที่สาม `"มอนเต้"`. ไม่ใช่ bug — เพราะ token แรกของคำตอบถูก **sample** จาก distribution. หลาย token ที่เป็นชื่อสุนัขเพศผู้ทั้งหลายอาจมี probability ใกล้กัน (~5-15% ต่อตัว). ทุกครั้งที่ส่งโมเดลจะสุ่มใหม่.
+
+**บทเรียน:** ถ้าต้องการความนิ่งใน production — ตั้ง temperature ต่ำ ๆ + ใช้ structured prompt + อย่าหวัง deterministic แบบ 100%.
+
+### Example 2: streaming ตัดกลางคันได้
+**Setup:** ผู้ใช้กด "Generate" แล้วเห็น Claude เริ่มเขียน blog post ยาว. หลังอ่านไป 3 บรรทัด เห็นว่าโทนไม่ใช่ที่ต้องการ.
+
+**เหตุผลที่หยุด generation กลางคันได้:** ทุก token ใน streaming เป็นการ commit แล้ว — ไม่มีการ "เก็บ token รอ" ที่ฝั่งโมเดล. ถ้าผู้ใช้สั่งหยุด client ส่ง cancel signal ไป API, API ก็เลิก generate token ต่อไป. **ผู้ใช้จ่ายเฉพาะ token ที่ generate ไปแล้ว** — ประหยัดทั้งเวลาและเงิน.
+
+**บทเรียน:** ตอน prompt มีต้นทุนสูง (deep research, long output) ให้สังเกตทิศของคำตอบในไม่กี่บรรทัดแรก. ถ้าเห็นว่าออกผิดทางตั้งแต่ token แรก ๆ — หยุดและ rewrite prompt ดีกว่ารอจบ.
+
+### Example 3: stop token ตัดกลางประโยค
+**Setup:** เรียก API ด้วย `max_tokens=50` แล้วสั่งให้ "เขียนบทความ 500 คำเรื่อง AI ในประเทศไทย"
+
+**ผลลัพธ์:** ได้ข้อความประมาณ 1-2 ย่อหน้าแรก แล้วถูกตัดกลางประโยค ไม่จบสวย. ไม่ใช่ว่าโมเดล "ขี้เกียจ" — มันถูก hard stop ที่ token ที่ 50 เพราะชน budget.
+
+**บทเรียน:** สำหรับ output ที่คาดว่ายาว — ตั้ง max_tokens ให้พอ (เช่น 2000-4000) และ/หรือออกแบบ prompt ให้ขอ output ที่ขนาดสอดคล้องกับ budget. การถูกตัดกลางคัน mostly = ปัญหาที่ผู้เรียก API ไม่ใช่ที่โมเดล.
+
+### Example 4: token counting ไทย vs อังกฤษ
+**Setup:** มี document เดียวกันที่แปลแล้ว 2 ภาษา ส่งเข้า GPT-4 รุ่นที่ context window = 128K token
+
+**ผลลัพธ์ที่มักเจอ:** ฉบับภาษาอังกฤษ ~40K token (ใช้พื้นที่ 31% ของ context). ฉบับภาษาไทย ~110K token (ใช้ 86% — เกือบเต็ม). ถ้า input ภาษาไทยยาวกว่านิด ๆ อาจเกิน context window ทันที.
+
+**บทเรียน:** เวลาออกแบบระบบที่ feed document ยาวเป็นไทยเข้า LLM — ประเมิน token budget ตั้งแต่ design phase, อย่ารอจน production. มี library นับ token ก่อนส่งเช่น `tiktoken` (ของ OpenAI), `anthropic-tokenizer`.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** ตั้ง temperature = 0 แล้ว LLM จะตอบเหมือนกันเป๊ะ ๆ ทุกครั้ง
+   **ความจริง:** ในระบบ production ที่เรียกผ่าน API แม้ตั้ง temperature = 0 ก็ยังพบความไม่ deterministic เล็กน้อย เนื่องจาก floating-point บน GPU, batching ที่ provider, และ model update ที่ไม่ประกาศ. greedy decoding แค่ "ลด randomness ที่ระดับ algorithm" ไม่ได้ลบ noise ที่ระดับ hardware/infrastructure
+
+2. **ความเข้าใจผิด:** ที่เห็น ChatGPT พิมพ์ทีละคำ เป็น animation ที่ทำให้ดูน่าตื่นเต้น
+   **ความจริง:** โมเดล generate token ทีละตัวจริง ๆ ที่ backend. streaming แค่ส่งต่อทีละ token ให้ client โดยไม่รอจนจบ. ตัว model architecture บังคับให้ต้อง generate ทีละขั้นอยู่แล้ว ไม่ใช่ทางเลือก UI
+
+3. **ความเข้าใจผิด:** 1 token = 1 คำ
+   **ความจริง:** token เป็น subword unit. ภาษาอังกฤษ 1 token ≈ 0.75 คำโดยเฉลี่ย. ภาษาไทย token มักเล็กกว่ามาก (1-3 ตัวอักษรต่อ token ในบางช่วง). คำหายาก/ชื่อเฉพาะ มักถูกซอยเป็นหลาย token. emoji 1 ตัวอาจกิน 2-4 token
+
+4. **ความเข้าใจผิด:** โมเดล "วางแผน" คำตอบทั้งก้อนก่อนเริ่มพิมพ์
+   **ความจริง:** โมเดลตัดสินใจทีละ token เท่านั้น โดยใช้บริบทที่มีอยู่ ณ ขณะนั้น. นี่คือเหตุผลที่เทคนิคอย่าง chain-of-thought (ขอให้โมเดลคิดเป็นขั้น ๆ ก่อนตอบ) ใช้ได้ผล — มันบังคับให้ "การวางแผน" ปรากฏใน output stream เป็น token จริง ๆ ที่โมเดลจะเห็นในรอบถัดไป
+
+5. **ความเข้าใจผิด:** เมื่อ output ถูกตัดกลางคัน = โมเดลเลิกใส่ใจกลาง task
+   **ความจริง:** มักเป็นเพราะชน max_tokens limit ที่ผู้เรียก API ตั้งไว้, ไม่ใช่ความ "ขี้เกียจ" ของโมเดล. แก้โดยเพิ่ม budget หรือออกแบบ prompt ให้ขอ output สั้นลง
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** อธิบาย pipeline จาก prompt → output text ของ LLM เป็น 5-6 ขั้น
+2. **(Recall)** stop token หรือ EOS token คืออะไร และมีกี่เงื่อนไขที่ทำให้ LLM หยุด generate?
+3. **(Explain)** ทำไม prompt เดียวกันส่ง 2 ครั้งถึงได้คำตอบไม่เหมือนกัน? อธิบายทั้งระดับ algorithm และระดับ infrastructure
+4. **(Apply)** ทีมคุณวางแผนสร้างระบบสรุปประชุมภาษาไทยที่ใช้ context window 32K token ของรุ่นหนึ่ง. ทีมประเมินว่าประชุม 1 ชั่วโมงเป็น transcript ~5,000 คำไทย. ระบบจะเข้าข้อจำกัดอะไรบ้าง?
+5. **(Apply)** คุณเรียก API ของ Claude แล้วได้ response ที่จบกลางประโยค. อธิบายว่าน่าจะเกิดจากอะไรและจะ debug อย่างไร
+6. **(Synthesize)** ถ้าออกแบบ chatbot ที่ผู้ใช้คาดหวังคำตอบ "เหมือนเดิม" ทุกครั้งสำหรับคำถามเหมือนเดิม — มีเทคนิคอะไรบ้างที่ใช้ได้ทั้งระดับ prompt และระดับ architecture?
+
+---
+
+</section>

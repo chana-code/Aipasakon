@@ -1,0 +1,203 @@
+---
+slug: what-is-ai
+level: foundations
+title: "What is AI?"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-18
+tldr: "AI (Artificial Intelligence) คือสาขาวิชาที่สร้างระบบคอมพิวเตอร์ให้ทำงานที่ตามปกติแล้วต้องอาศัย \"ความฉลาด\" ของมนุษย์ เช่น การรับรู้ การให้เหตุผล การเรียนรู้ และการตัดสินใจ. ในปี 2026 AI ที่คนทั่วไปสัมผัสได้ส่วนใหญ่ตั้งอยู่บนพื้นฐานของ machine learning โดยเฉพาะ deep learning และ LLM แต่ AI เป็นกรอบที่กว้างกว่านั้น — ครอบคลุมตั้งแต่ symbolic system ยุคแรก จนถึง foundation model สมัยใหม่. นิยามของ AI ยังเป็นเรื่องที่ถกเถียงกันอยู่ และเปลี่ยนไปตามยุค."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+AI (Artificial Intelligence) คือสาขาวิชาที่สร้างระบบคอมพิวเตอร์ให้ทำงานที่ตามปกติแล้วต้องอาศัย "ความฉลาด" ของมนุษย์ เช่น การรับรู้ การให้เหตุผล การเรียนรู้ และการตัดสินใจ. ในปี 2026 AI ที่คนทั่วไปสัมผัสได้ส่วนใหญ่ตั้งอยู่บนพื้นฐานของ machine learning โดยเฉพาะ deep learning และ LLM แต่ AI เป็นกรอบที่กว้างกว่านั้น — ครอบคลุมตั้งแต่ symbolic system ยุคแรก จนถึง foundation model สมัยใหม่. นิยามของ AI ยังเป็นเรื่องที่ถกเถียงกันอยู่ และเปลี่ยนไปตามยุค.
+
+**AI ย่อมาจาก Artificial Intelligence** — แปลตรง ๆ คือ "ความฉลาดที่สร้างขึ้น" หรือ "ปัญญาประดิษฐ์". เป็นชื่อของ **สาขาวิชา** ในวงการ computer science ที่มีเป้าหมายสร้างระบบคอมพิวเตอร์ให้ทำงานที่ปกติแล้วต้องอาศัยความฉลาดของมนุษย์ — เช่น เข้าใจภาษา จำใบหน้า เล่นหมากรุก ขับรถ วินิจฉัยโรค เขียนโปรแกรม.
+
+คำว่า "AI" ถูกใช้ครั้งแรกในการประชุม Dartmouth Summer Research Project ปี 1956 ซึ่งถือเป็นจุดกำเนิดของวงการอย่างเป็นทางการ. ตั้งแต่นั้นมา ความหมายของ AI ก็เปลี่ยนไปเรื่อย ๆ ตามเทคโนโลยีที่ใช้ — จากระบบ rule-based ในยุคแรก (เรียกว่า symbolic AI) มาเป็น statistical machine learning ในทศวรรษ 1990-2010 และเป็น deep learning + LLM ในปัจจุบัน.
+
+**ปัญหาของนิยาม:** AI ไม่มีนิยามที่ทุกคนเห็นพ้องตรงกัน. ส่วนหนึ่งเพราะ "ความฉลาด" เองยังเป็นแนวคิดที่เถียงกันไม่จบ. อีกส่วนเพราะปรากฏการณ์ที่เรียกว่า **"AI effect"** หรือ Tesler's theorem: *"AI คือทุกอย่างที่ยังทำไม่ได้"* — ทันทีที่เราเข้าใจว่าระบบหนึ่งทำสิ่งหนึ่งได้อย่างไร เรามักจะเลิกเรียกมันว่า AI. เครื่องคิดเลขเคยถูกมองว่าเป็น AI ในปี 1960. GPS routing เคยถูกมองว่าเป็น AI. spam filter เคยถูกมองว่าเป็น AI. วันนี้ไม่มีใครเรียกของพวกนี้ว่า AI แล้ว.
+
+**ในปี 2026 เวลาคนทั่วไปพูดว่า "AI"** มักจะหมายถึง LLM อย่าง ChatGPT หรือ Claude. แต่นี่เป็นการใช้ที่แคบเกินไป. AI เป็นกรอบกว้างที่รวม computer vision, robotics, recommender system, game-playing AI, planning system และอีกมาก. LLM เป็นเพียง **ส่วนหนึ่ง** ของ AI ที่ดังที่สุดในช่วงนี้.
+
+### Mental model
+
+นึกถึง AI เป็น **วงกลมซ้อนกัน 4 ชั้น** (nested circles) — แต่ละชั้นเล็กลงและเฉพาะเจาะจงขึ้น:
+
+```
+┌─────────────────────────────────────────┐
+│  AI (Artificial Intelligence)           │
+│  ┌───────────────────────────────────┐  │
+│  │  ML (Machine Learning)            │  │
+│  │  ┌─────────────────────────────┐  │  │
+│  │  │  DL (Deep Learning)         │  │  │
+│  │  │  ┌───────────────────────┐  │  │  │
+│  │  │  │  LLM                  │  │  │  │
+│  │  │  └───────────────────────┘  │  │  │
+│  │  └─────────────────────────────┘  │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+```
+
+- **AI** = สาขาวิชาทั้งหมด รวมทั้งที่ใช้และไม่ใช้ ML
+- **ML** = subset ของ AI ที่เรียนรู้จาก data แทนที่จะถูกเขียน rule ตรง ๆ
+- **DL** = subset ของ ML ที่ใช้ neural network หลายชั้น
+- **LLM** = subset ของ DL เฉพาะกลุ่มที่ทำงานกับภาษา
+
+วงกลมนี้คือ **spine** ที่ผู้อ่านจะใช้ตลอด Level 1. ทุกบทถัดไปจะเจาะลึกที่ชั้นใดชั้นหนึ่งของวงกลมนี้.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 นิยาม classical: AIMA framework
+
+ตำรามาตรฐานของวงการคือ *Artificial Intelligence: A Modern Approach* โดย Russell & Norvig  ซึ่งเสนอกรอบนิยามแบบ 2×2:
+
+|                     | คิดเหมือนมนุษย์ (think humanly) | คิดอย่างมีเหตุผล (think rationally) |
+|---------------------|--------------------------------|--------------------------------------|
+| **ทำเหมือนมนุษย์** (act humanly) | Turing test approach            | —                                    |
+| **ทำอย่างมีเหตุผล** (act rationally) | —                              | Rational agent approach              |
+
+วงการ AI สมัยใหม่ส่วนใหญ่เลือกแนวทาง **rational agent** — สร้างระบบที่เลือก action เพื่อ maximize expected outcome ภายใต้ environment และ goal ที่กำหนด. ไม่จำเป็นต้องเหมือนมนุษย์ ไม่จำเป็นต้องคิดเหมือนมนุษย์ — แค่ต้อง "ทำได้ดี" ตาม metric ที่ตั้งไว้.
+
+### 2.2 นิยาม modern: statistical pattern recognition at scale
+
+ในทศวรรษ 2010 เป็นต้นมา ภาพของ AI เปลี่ยนไป. แทนที่จะเป็นระบบที่มี explicit reasoning ส่วนใหญ่ของ AI ที่ใช้งานจริงในปี 2026 คือ **ระบบ statistical pattern recognition ที่ scale ขึ้นด้วย data จำนวนมหาศาลและ compute ระดับ data center**.
+
+โมเดลแบบนี้ — โดยเฉพาะ foundation model ที่ Bommasani et al. (2021) เรียกขึ้นเป็นชื่อ  — ไม่ได้ถูกเขียน rule. มันเรียน pattern จาก data แล้วใช้ pattern นั้นทำงานหลากหลายแบบ. การ "เข้าใจภาษา" ของ LLM, การ "จำใบหน้า" ของระบบ vision, การ "เล่นหมากล้อม" ของ AlphaGo — ทั้งหมดมาจากกลไกพื้นฐานเดียวกัน: pattern matching ที่แม่นยำมากเพราะ scale.
+
+ตรงนี้สำคัญ — ปี 2026 หลายคนใช้คำว่า "AI" ในความหมายแบบที่สอง (statistical) เป็นหลัก ส่วนแบบ classical เหลือใช้เฉพาะใน research community.
+
+### 2.3 Symbolic AI vs Statistical AI
+
+ในเชิงประวัติศาสตร์ AI แบ่งเป็น 2 paradigm หลัก (ดู [history-of-ai](/foundations/history-of-ai) สำหรับรายละเอียดเพิ่มเติม):
+
+**Symbolic AI (1950s-1980s):**
+- ใช้ rule ที่มนุษย์เขียนชัดเจน — if-then logic, knowledge base, expert system
+- ทำงานได้ดีในโดเมนที่จำกัดและมี rule ชัด — เช่น ระบบช่วยวินิจฉัยโรคในยุค 1980 (MYCIN)
+- พังเมื่อเจอ input ที่ไม่ตรงกับ rule ที่เขียนไว้ — ไม่ generalize
+
+**Statistical / Machine Learning AI (1990s-ปัจจุบัน):**
+- ระบบ "เรียน" จากตัวอย่าง ไม่ต้องมีมนุษย์เขียน rule
+- ทำงานได้ดีกับ input ที่ messy, real-world เช่น ภาพ เสียง ภาษา
+- ต้องการ data จำนวนมากและ compute สูง
+
+ทุกวันนี้ AI ส่วนใหญ่เป็น statistical แต่ในงานบางประเภท เช่น formal verification, theorem proving, หรือ system ที่ต้องการ guarantee เรื่อง correctness — symbolic ยังเป็นทางเลือก. โมเดล hybrid (neuro-symbolic) ก็เป็นทิศทางวิจัยที่ active.
+
+### 2.4 AI vs Automation vs "fancy if-statements"
+
+หนึ่งในความสับสนที่พบบ่อย: บริษัทแห่หนึ่งติด label "AI" บนทุก feature ที่มี automation. ในเชิง technical เส้นแบ่งที่ใช้ได้ดี:
+
+- **Automation / Rule-based system:** behavior ถูก hard-code ไว้ทั้งหมด. input A → ทำ X เสมอ. ไม่มีการเรียน ไม่มี generalization. ตัวอย่าง: Excel macro, cron job, basic chatbot ที่ตอบตาม decision tree.
+- **Machine learning (subset ของ AI):** behavior ถูก "เรียน" จาก data. input ที่ไม่เคยเห็นยัง handle ได้ในระดับหนึ่ง. ตัวอย่าง: spam filter, recommender system, image classifier.
+- **Symbolic AI (subset ของ AI):** behavior ถูกสร้างจาก rule + reasoning engine — ซับซ้อนกว่า simple automation เพราะมี inference. ตัวอย่าง: expert system, planning algorithm, SAT solver.
+
+ระบบที่ถูก market ว่าเป็น "AI-powered" จำนวนมากในตลาดจริง ๆ คือ rule-based automation ที่ใช้ LLM เป็นส่วนประกอบเล็ก ๆ ผู้อ่านควรฝึกตั้งคำถามว่า — *ระบบนี้เรียนจาก data หรือไม่? ถ้าไม่ มันก็ไม่ใช่ ML — ส่วนจะเรียกว่า AI ตามนิยามไหนก็ตาม*.
+
+### 2.5 The AI effect (Tesler's theorem)
+
+ปรากฏการณ์ที่ Larry Tesler ตั้งเป็นนิยามตลก ๆ ว่า *"AI is whatever hasn't been done yet"*. มีนัยที่ลึกกว่าจะคิด:
+
+- ในปี 1960 การที่คอมพิวเตอร์เล่นหมากรุกได้ถือเป็น AI. ปี 1997 Deep Blue ชนะ Kasparov — ทุกคนตื่นเต้น. ปี 2026 เครื่องเล่นหมากรุกทุกตัวเก่งกว่ามนุษย์ — แต่ไม่มีใครเรียกมันว่า AI แล้ว
+- ในปี 2010 ระบบจำเสียงพูด (speech recognition) ที่ใช้ใน Siri ถือเป็น AI ขั้นสูง. ปี 2026 ระบบนี้อยู่ในทุกโทรศัพท์ — ไม่มีใครเรียกว่า AI แล้ว
+- ในปี 2030 หรือ 2035 LLM ก็อาจถูกมองแบบเดียวกัน — กลายเป็น infrastructure ที่ทุกคนใช้ แต่ไม่เรียกว่า AI
+
+นี่ทำให้ "AI" เป็น moving target. **ในตำราเล่มนี้เราใช้คำว่า AI ตามความหมายของวงการ research** — ครอบคลุมทุก approach ที่สร้างระบบให้ทำงานที่ต้องการความฉลาด ไม่ว่าจะใหม่หรือเก่า ไม่ว่าจะตื่นเต้นหรือไม่.
+
+### 2.6 Narrow AI vs General AI
+
+แนวคิดสุดท้ายที่ต้องแยกในระดับ Surface — รายละเอียดอยู่ใน [types-of-ai](/foundations/types-of-ai):
+
+- **Narrow AI (หรือ Weak AI):** ระบบที่ทำงานเฉพาะอย่างได้ดี ทำอย่างอื่นไม่ได้. ChatGPT, AlphaGo, Tesla Autopilot, Google Translate — ทั้งหมดคือ narrow AI. แม้ LLM ดูเหมือนทำได้หลายอย่าง แต่ทำได้แค่ในขอบเขตของ task ที่เป็น text-based และมี pattern ใน training data
+- **General AI (AGI — Artificial General Intelligence):** ระบบ hypothetical ที่ทำงานทั่วไปได้เทียบเท่ามนุษย์ — เรียนรู้เรื่องใหม่เองได้ ปรับตัวข้ามโดเมนได้. **ในปี 2026 AGI ยังไม่มี** แม้บางคนจะอ้างว่าใกล้แล้ว
+- **Superintelligence (ASI):** ระบบ hypothetical ที่ฉลาดกว่ามนุษย์ทุกด้าน — ยังเป็นแนวคิดเชิงทฤษฎี
+
+ทุก AI ที่ใช้งานจริงในปี 2026 คือ narrow AI — แม้แต่ frontier model อย่าง GPT-5, Claude 4.5 หรือ Gemini 2.5 ก็ยังอยู่ในหมวดนี้แม้จะ "กว้าง" กว่ารุ่นก่อนมาก .
+
+---
+
+## Worked Examples
+
+### Example 1: อะไรนับเป็น AI?
+
+ลองพิจารณาระบบเหล่านี้และตัดสินว่านับเป็น AI หรือไม่:
+
+1. **Thermostat ที่เปิด/ปิดแอร์ตามอุณหภูมิที่ตั้งไว้** → ไม่ใช่ AI. เป็น control system ธรรมดา rule ชัด ไม่มีการเรียน
+2. **Recommender system ของ Netflix** → ใช่ AI (ใช้ ML). เรียนจาก behavior ของผู้ใช้แล้ว predict สิ่งที่จะชอบ
+3. **Chess engine Stockfish** → ใช่ AI ตามนิยาม classical แต่คนทั่วไปไม่เรียกแล้ว (AI effect)
+4. **Calculator** → ไม่ใช่ AI. คำนวณตามสูตรที่ hard-code
+5. **Spell checker ของ Microsoft Word ยุค 2000** → กึ่งกลาง — เริ่มจาก rule-based (ไม่ใช่ AI) ค่อย ๆ ใช้ ML มากขึ้นในรุ่นใหม่
+6. **Self-driving feature ของ Tesla** → ใช่ AI (deep learning + computer vision)
+7. **Chatbot ของธนาคารที่ตอบตาม decision tree** → ไม่ใช่ AI ในความหมายที่เคร่งครัด — เป็น rule-based system
+
+ข้อคิด: คำถามที่ใช้ตัดสิน "ระบบนี้เรียนจาก data หรือไม่?" และ "ระบบนี้ generalize ไป input ที่ไม่เคยเห็นได้หรือไม่?"
+
+### Example 2: ChatGPT อยู่ตรงไหนในวงกลม nested
+
+ลองวาง ChatGPT ในชั้นต่าง ๆ:
+
+- **AI** ✓ — ทำงาน language understanding ที่ต้องอาศัยความฉลาด
+- **ML** ✓ — เรียนจาก data (text จากอินเทอร์เน็ตและอื่น ๆ)
+- **Deep learning** ✓ — ใช้ neural network ลึกหลายสิบชั้น
+- **LLM** ✓ — เป็น Large Language Model โดยเฉพาะ (architecture: transformer; ดู [what-is-an-llm](/foundations/what-is-an-llm))
+
+แต่ละชั้นเป็น subset ของชั้นบน. ดังนั้น ChatGPT เป็น "LLM" แต่ก็เป็น "AI" ด้วย — ทั้งคู่ถูกต้อง แค่ใช้คำที่ specific ต่างกัน. การพูดว่า "ChatGPT คือ AI" จึงไม่ผิด แต่ก็ไม่ specific เพียงพอเวลาคุยเชิงเทคนิค.
+
+### Example 3: AI ที่ไม่ใช่ LLM
+
+ในปี 2026 ระบบ AI ที่ใช้งานจริงและไม่ใช่ LLM ยังมีอีกเยอะ:
+
+- **AlphaFold** (DeepMind) — predict โครงสร้าง protein. ใช้ deep learning แต่ไม่ใช่ LLM
+- **ระบบจดจำใบหน้าใน iPhone** — computer vision deep learning
+- **Spam filter ของ Gmail** — classifier แบบ ML ดั้งเดิม
+- **Recommender system ของ TikTok, Spotify** — ส่วนใหญ่ใช้ ML แบบ collaborative filtering + deep learning
+- **Self-driving stack ของ Waymo** — รวม perception (CV), prediction, planning หลาย module — ส่วนใหญ่เป็น DL แต่ไม่ใช่ LLM
+- **AlphaGo, AlphaZero** — reinforcement learning + deep learning
+
+ข้อคิด: ถ้าใครพูดว่า "AI = LLM" ในปี 2026 ก็เห็นภาพแคบเกินไป.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** AI คือ ChatGPT (หรือ LLM โดยทั่วไป)
+   **ความจริง:** LLM เป็นเพียง subset ของ AI. AI ครอบคลุม computer vision, robotics, recommender system, game-playing system, planning, และอื่น ๆ อีกมาก. ที่ LLM เด่นมากในปี 2026 เพราะมัน user-facing และเข้าถึงคนทั่วไปได้
+
+2. **ความเข้าใจผิด:** AI มี "ความเข้าใจ" หรือ "สำนึก" (consciousness)
+   **ความจริง:** AI ที่มีอยู่ทั้งหมดในปี 2026 เป็นระบบ statistical pattern matching ที่ scale ขึ้น. ไม่มีหลักฐานทาง scientific ว่ามี subjective experience หรือ consciousness. ที่ output ฟังดูเหมือนเข้าใจเพราะถูก train บน text ของมนุษย์ที่แสดงความเข้าใจ — ไม่ใช่เพราะมันเข้าใจจริง
+
+3. **ความเข้าใจผิด:** AI = automation
+   **ความจริง:** AI ทุกตัวเป็น automation ในความหมายว่ามันทำงานอัตโนมัติ แต่ automation ไม่ใช่ทุกตัวเป็น AI. ความแตกต่างคือ AI **เรียนจาก data** และ generalize ไป input ใหม่ได้ ส่วน automation ทั่วไปแค่ทำตาม rule ที่เขียนไว้
+
+4. **ความเข้าใจผิด:** AI เป็นเทคโนโลยีเดียว
+   **ความจริง:** AI เป็นชื่อสาขาวิชา ไม่ใช่ชื่อเทคโนโลยี. ภายใต้ร่ม AI มีเทคโนโลยีย่อยจำนวนมาก ที่ใช้กลไก algorithm และ architecture แตกต่างกันโดยสิ้นเชิง — symbolic logic, decision tree, support vector machine, neural network, reinforcement learning, transformer ฯลฯ
+
+5. **ความเข้าใจผิด:** AI จะกลายเป็น AGI เร็ว ๆ นี้ (หรือเป็นแล้ว)
+   **ความจริง:** AI ทั้งหมดที่ deploy ในปี 2026 ยังเป็น narrow AI. แม้ frontier model จะดู "ทำได้หลายอย่าง" แต่ก็ทำได้แค่ในขอบเขตของ task ที่มี pattern ใน training data. AGI ในความหมายที่เคร่งครัด — เรียนเรื่องใหม่ได้เอง ปรับตัวข้ามโดเมนได้เทียบเท่ามนุษย์ — ยังเป็นเป้าหมายที่ไม่แน่ชัดว่าจะถึงเมื่อไร
+
+6. **ความเข้าใจผิด:** ถ้าระบบทำงานง่าย (เช่น if-statement หลายชั้น) ก็ไม่ใช่ AI
+   **ความจริง:** symbolic AI ในยุคแรก ๆ ก็คือ if-statement ที่ซับซ้อนนั่นเอง และยังนับเป็น AI. เส้นแบ่งที่ใช้ได้ดีคือ "ระบบนี้ทำงานที่ต้องอาศัยความฉลาด" ไม่ใช่ "ระบบนี้ใช้ neural network"
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** AI ย่อมาจากอะไร และเกิดเป็นสาขาวิชาในการประชุมที่ไหน ปีไหน?
+2. **(Recall)** อธิบายลำดับชั้น nested ของ AI ⊃ ML ⊃ DL ⊃ LLM พร้อมยกตัวอย่างของแต่ละชั้นมา 1 ตัวอย่าง
+3. **(Explain)** "AI effect" หรือ Tesler's theorem คืออะไร และมีผลต่อวิธีที่เราตัดสินว่าอะไรเป็น AI อย่างไร?
+4. **(Apply)** ระบบเหล่านี้นับเป็น AI หรือไม่ และเพราะอะไร: (ก) เครื่องคิดเลข (ข) Google Maps ที่หา route ที่เร็วที่สุด (ค) Face ID บน iPhone (ง) LINE chatbot ที่ตอบ FAQ ตาม keyword
+5. **(Apply)** ถ้าเพื่อนพูดว่า "AI ก็คือ ChatGPT" คุณจะแก้ความเข้าใจอย่างไรในหนึ่งย่อหน้าที่ทั้งถูกต้องและฟังเข้าใจ?
+6. **(Synthesize)** แยกความแตกต่างระหว่าง symbolic AI กับ statistical AI ในแง่: (ก) วิธีสร้างระบบ (ข) ประเภทงานที่เหมาะ (ค) จุดอ่อนหลัก
+
+---
+
+</section>

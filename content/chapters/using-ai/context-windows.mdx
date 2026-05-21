@@ -1,0 +1,227 @@
+---
+slug: context-windows
+level: using-ai
+title: "Context Windows"
+status: reviewed
+prerequisites:
+  - how-llms-respond
+  - what-is-an-llm
+last_reviewed: 2026-05-18
+tldr: "Context window คือจำนวน token สูงสุดที่ LLM ประมวลผลได้ในหนึ่งครั้งของการ inference โดยนับรวมทั้ง input และ output. ขีดจำกัดนี้เกิดจากธรรมชาติของ attention ที่มี complexity แบบ O(n²) ทำให้ทั้ง memory และ compute เพิ่มแบบกำลังสองเมื่อ sequence ยาวขึ้น. แม้โมเดลรุ่นใหม่จะรองรับ context หลักล้าน token แล้ว แต่พฤติกรรม \"lost in the middle\" และข้อจำกัดเชิง output budget ทำให้การออกแบบ prompt ที่ดียังต้องคิดเรื่องตำแหน่งและความยาวของข้อมูลอย่างจริงจัง."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Context window คือจำนวน token สูงสุดที่ LLM ประมวลผลได้ในหนึ่งครั้งของการ inference โดยนับรวมทั้ง input และ output. ขีดจำกัดนี้เกิดจากธรรมชาติของ attention ที่มี complexity แบบ O(n²) ทำให้ทั้ง memory และ compute เพิ่มแบบกำลังสองเมื่อ sequence ยาวขึ้น. แม้โมเดลรุ่นใหม่จะรองรับ context หลักล้าน token แล้ว แต่พฤติกรรม "lost in the middle" และข้อจำกัดเชิง output budget ทำให้การออกแบบ prompt ที่ดียังต้องคิดเรื่องตำแหน่งและความยาวของข้อมูลอย่างจริงจัง.
+
+**Context window** คือ "หน้าต่างความจำชั่วคราว" ที่ LLM ใช้ในการประมวลผลหนึ่งคำถาม. ทุกอย่างที่โมเดลต้องอ่านในรอบเดียว — system prompt, ประวัติการคุย, เอกสารที่แนบมา, คำถามล่าสุด รวมถึงคำตอบที่โมเดลกำลังสร้าง — ต้องอยู่ภายใน window นี้ทั้งหมด.
+
+ขนาด context window เป็นตัวเลขทางเทคนิคที่นับเป็น **token** ไม่ใช่ตัวอักษรหรือคำ. ในปี 2026 ขนาดที่พบบ่อย:
+- GPT-4 family — ประมาณ 128K token
+- Claude family — 200K token เป็นมาตรฐาน บางรุ่นถึง 1M token
+- Gemini family — 1M token เป็นมาตรฐาน บางรุ่นทดลองที่ 2M token
+
+ตัวเลขเหล่านี้ดูใหญ่ — 200K token แปลคร่าว ๆ ได้ประมาณหนังสือเล่มหนึ่ง. แต่ในการใช้งานจริง ขีดจำกัดยังกระทบงานอย่างต่อเนื่อง เพราะ:
+
+1. **ทุกอย่างกินโควต้าเดียวกัน** — ประวัติแชตที่ยาวขึ้นเรื่อย ๆ + เอกสารที่แนบมา + system prompt + output ที่โมเดลจะตอบ ทั้งหมดต้องรวมอยู่ในตัวเลขเดียว
+2. **โมเดลไม่ได้ "อ่าน" context ดีเท่ากันทุกตำแหน่ง** — ข้อมูลที่อยู่ตรงกลางของ context ยาว ๆ มีโอกาสถูกมองข้ามมากกว่า
+3. **ภาษาไทยกิน token เยอะกว่าภาษาอังกฤษ** — 200K token ในภาษาไทยอาจหมายถึงเนื้อหาน้อยกว่าที่คุณคิดมาก
+
+### Mental model
+นึกถึง context window เป็น **"กระดานทำงาน" (working memory) ที่โมเดลใช้ในแต่ละครั้ง** — ไม่ใช่ "ความจำระยะยาว". เมื่อกระดานเต็ม ข้อมูลใหม่ต้องเขียนทับของเก่า. และที่สำคัญ — โมเดลไม่ได้ "จำ" บทสนทนาที่แล้วจริง ๆ. แอปแชต (ChatGPT, Claude.ai) **ส่งประวัติทั้งหมดให้โมเดลใหม่ทุกครั้งที่คุณส่งข้อความ**. โมเดลไม่ได้มี state ระหว่างรอบ — แอปต่างหากที่ "feed" ข้อมูลซ้ำ.
+
+ผลตามมาที่สำคัญ:
+- การคุยที่ยาวขึ้นเรื่อย ๆ ทำให้ context ใกล้เต็ม → โมเดลเริ่มลืมต้นบทสนทนา
+- "memory features" ใน ChatGPT/Claude เป็นการดึงข้อมูลจาก external store แล้วใส่กลับเข้ามาใน context — ไม่ใช่ความจำของโมเดลจริง ๆ
+- การเริ่มแชตใหม่ = เคลียร์ working memory; ไม่มีการ "พกความรู้" จากแชตที่แล้วถ้าไม่มี memory feature
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 ทำไมต้องมีขีดจำกัด: O(n²) ของ attention
+
+ทุก LLM modern ใช้สถาปัตยกรรม **transformer** ที่หัวใจคือกลไก **self-attention** . attention ทำงานโดยให้ทุก token ใน sequence "มอง" ทุก token อื่นที่อยู่ก่อนหน้าตัวเอง เพื่อคำนวณว่าควรให้ความสนใจกับตำแหน่งใดมากกว่ากัน.
+
+ปัญหาคือ — ถ้า sequence ยาว n token แต่ละ token ต้องคำนวณ attention กับ token อื่น ๆ ทั้งหมด รวม **n × n = n²** ครั้ง. นั่นแปลว่า:
+- เพิ่ม context จาก 4K → 8K (2 เท่า) → compute เพิ่ม 4 เท่า
+- เพิ่ม context จาก 4K → 32K (8 เท่า) → compute เพิ่ม 64 เท่า
+- เพิ่ม context จาก 4K → 1M (250 เท่า) → compute เพิ่มประมาณ 62,500 เท่า
+
+memory ก็เพิ่มในระดับเดียวกัน เพราะต้องเก็บ attention matrix ขนาด n × n. นี่คือเหตุผลที่ขนาด context window ไม่ใช่แค่ "ปรับได้ตามใจ" — มันเป็นปัญหา engineering ที่ใหญ่จริง.
+
+โมเดลที่อ้างว่ารองรับ context 1M+ ใช้เทคนิคหลากหลาย เช่น **sparse attention**, **sliding window attention**, **ring attention**, หรือเทคนิคที่ลด complexity ลงเป็น O(n log n) หรือ O(n) สำหรับบางส่วน. รายละเอียดอยู่ที่ระดับสูงกว่าบทนี้ — สิ่งที่ผู้ใช้ระดับ 2 ควรจำคือ **context ที่ใหญ่ขึ้นไม่ได้ฟรี ทั้งในแง่ compute, latency, และ cost**.
+
+### 2.2 ภาพลวงตาของ "memory" ในแอปแชต
+
+ในการใช้งาน ChatGPT, Claude.ai, Gemini หรือแอปอื่น ผู้ใช้รู้สึกเหมือนคุยกับ AI ที่ "จำ" สิ่งที่เคยพูด. ในกลไกจริงไม่ใช่แบบนั้น:
+
+ทุกครั้งที่คุณส่งข้อความ:
+1. แอปรวบรวมประวัติทั้งหมดของแชตปัจจุบัน (turn 1, 2, 3, ..., n)
+2. ส่งทั้งหมดไปเป็น input ของ LLM
+3. LLM อ่าน "เหมือนเห็นครั้งแรก" ทุกครั้ง
+4. สร้าง output ของ turn ใหม่
+5. แอปบันทึก turn นั้นเก็บไว้สำหรับ turn ถัดไป
+
+ผลที่ตามมา:
+- **บทสนทนาที่ยาว → context ใกล้เต็ม → ค่าใช้จ่ายและ latency ต่อ turn เพิ่มเรื่อย ๆ**
+- เมื่อ context เต็ม แอปจะ truncate (ตัดต้นบทสนทนาทิ้ง) หรือ summarize → ความสม่ำเสมอของบทสนทนาเริ่มลดลง
+- "Memory" feature ที่แอปสมัยใหม่มี (เช่น ChatGPT Memory, Claude Projects) เป็น external store ที่เลือกบางส่วนใส่กลับเข้ามาใน context ในเซสชันใหม่ — ไม่ใช่ความจำของ LLM โดยตรง
+
+### 2.3 Lost in the middle
+
+แม้โมเดลรองรับ context ขนาดใหญ่ ก็ไม่ได้แปลว่ามัน "ใช้" ทุกตำแหน่งของ context ดีเท่ากัน. งานวิจัย **Liu et al. (2023)**  เป็นจุดเริ่มต้นที่ documentated ปรากฏการณ์นี้อย่างเป็นระบบ:
+
+- เมื่อให้ LLM ค้นหาข้อมูลเฉพาะใน context ยาว ๆ ความแม่นยำสูงสุดเมื่อข้อมูลอยู่ที่ **ต้น** หรือ **ท้าย** ของ context
+- ความแม่นยำตกลงอย่างมีนัยสำคัญเมื่อข้อมูลอยู่ **กลาง** context
+- รูปแบบนี้เห็นได้ในโมเดลหลายตัว เป็น "U-shaped" performance curve
+
+ผลในเชิงปฏิบัติ:
+- **คำสั่งสำคัญควรอยู่ต้นหรือท้าย prompt** ไม่ใช่กลาง
+- เอกสาร reference ที่ยาว ๆ ถ้าวางไว้ตรงกลาง prompt อาจถูก "มองข้าม"
+- ในงาน RAG (retrieval-augmented generation) ลำดับของ chunks ที่ส่งให้โมเดลมีผล — ควรใส่ chunk ที่ relevant สุดไว้ใกล้ ๆ คำถาม
+- การ test กับ context ยาว ๆ ในงานจริงสำคัญกว่าเชื่อตัวเลข "1M context" บน datasheet
+
+### 2.4 Token usage ในภาษาไทย
+
+Tokenizer (algorithm แบ่งข้อความเป็น token) ส่วนใหญ่ ถูกออกแบบมาให้เหมาะกับภาษาอังกฤษและภาษาที่ใช้ Latin alphabet. สำหรับภาษาที่ไม่ใช่ Latin — ไทย จีน เกาหลี อาหรับ ฯลฯ — tokenizer แบ่งข้อความเป็น token ที่เล็กกว่ามาก ทำให้ข้อความเดียวกันใช้ token มากกว่าหลายเท่า.
+
+ประมาณการคร่าว ๆ สำหรับ tokenizer ของ GPT-4, Claude, Gemini รุ่นใหม่ ๆ:
+- ภาษาอังกฤษ — 1 token ≈ 4 ตัวอักษร หรือ ≈ 0.75 word
+- ภาษาไทย — 1 token ≈ 1-2 ตัวอักษร (มักน้อยกว่า 1 ตัวอักษร เพราะ Thai characters ใช้ UTF-8 หลาย byte ต่อตัวอักษร)
+
+**ตัวอย่างเปรียบเทียบ:**
+- ประโยค `"The cat sat on the mat."` (22 ตัวอักษร) → ประมาณ 6 token
+- ประโยค `"แมวนั่งอยู่บนเสื่อ"` (17 ตัวอักษร) → ประมาณ 13-17 token
+
+แปลว่าสำหรับเนื้อหาเทียบเท่ากัน **ภาษาไทยกินประมาณ 2-3 เท่าของ token ภาษาอังกฤษ**. ผลตามมา:
+- เอกสาร PDF ภาษาไทย 100 หน้า อาจกินเกือบทั้ง 200K context window ของ Claude
+- ค่าใช้จ่าย API per token จึงสูงกว่าสำหรับงานภาษาไทย (ดู [cost-and-latency-engineering](/building-with-ai/cost-and-latency-engineering))
+- ขีดจำกัด output budget (เช่น 4K-8K token) ในภาษาไทยให้เนื้อหาออกมาน้อยกว่าที่คาด
+
+รายละเอียดเชิงลึกเรื่อง BPE, SentencePiece, และ tokenizer ทางเลือกอยู่ที่ [tokenization-deep-dive](/advanced/tokenization-deep-dive).
+
+### 2.5 Input budget กับ output budget เป็นคนละเรื่อง
+
+หลายคนเข้าใจว่า "200K context window" หมายถึงโมเดลตอบได้ยาวถึง 200K token. ไม่ใช่. **input และ output มี budget แยก** ในโมเดลส่วนใหญ่:
+- Input limit (รวม system + user + ประวัติ) — เท่าขนาด context window (เช่น 200K)
+- Output limit (คำตอบที่โมเดลสร้าง) — มักจำกัดที่ 4K-8K token แม้โมเดลรองรับ context ใหญ่กว่า
+
+เหตุผล:
+- Output ที่ยาวกว่า 4K-8K มี risk เรื่อง coherence ลดลง (output ยาวเกินยิ่ง drift จาก instruction)
+- Compute cost ของการ generate ยาว ๆ สูง — autoregressive generation เพิ่มเวลาเป็น linear กับจำนวน token output
+- ผู้ใช้ส่วนใหญ่ไม่ได้ต้องการคำตอบ 50,000 token เป็นปกติ
+
+ในการสร้างเอกสารยาว ๆ จึงต้องใช้กลยุทธ์ chunking — ขอให้โมเดลสร้างเป็นบท ๆ ทีละบท แล้วนำมาประกอบเอง.
+
+### 2.6 กลยุทธ์เมื่อเนื้อหาเกิน context
+
+เมื่องานต้องประมวลผลข้อมูลที่ใหญ่กว่า context window มีกลยุทธ์หลัก 4 แบบ:
+
+1. **Summarization** — สรุปบางส่วนของ context (เช่น ช่วงต้นของบทสนทนา) ให้สั้นลง แล้วเก็บส่วนสรุปแทน raw text. ใช้ใน chat app ส่วนใหญ่เมื่อ context ใกล้เต็ม. ข้อเสีย: เสียรายละเอียด
+2. **Chunking** — แบ่งเอกสารยาว ๆ เป็น chunk เล็ก ๆ ประมวลผลทีละ chunk แล้วรวมผล. เหมาะกับงาน summarize หรือ extract ที่ไม่ต้องมอง doc เต็มพร้อมกัน
+3. **Retrieval (RAG)** — เก็บเอกสารใน vector database ค้นหาเฉพาะ chunk ที่ relevant กับคำถามแล้วใส่เฉพาะส่วนนั้นใน context. มาตรฐาน de facto สำหรับ knowledge base ขนาดใหญ่ — ดู [rag-retrieval-augmented-generation](/building-with-ai/rag-retrieval-augmented-generation)
+4. **Incremental / streaming processing** — process ทีละ unit ส่ง state ที่ compress แล้วต่อรอบถัดไป. ใช้ในงานวิเคราะห์ log หรือ stream ข้อมูล
+
+ขนาด context window ใหญ่ขึ้น ไม่ได้แปลว่ากลยุทธ์เหล่านี้หมดความจำเป็น — เพราะ **lost in the middle**, **output budget**, และ **cost per token** ยังเป็นข้อจำกัดที่บังคับให้คิดเรื่องการจัด layout ของข้อมูลใน prompt อย่างจริงจัง.
+
+### 2.7 Long-context evals: "needle in a haystack"
+
+ปกติเวลาผู้สร้าง LLM อ้างว่าโมเดลของตนรองรับ context ยาว มักทดสอบด้วย **needle-in-a-haystack (NIAH)** — ฝังประโยค "ผิดที่" หนึ่งประโยค (เช่น "the best pizza topping is pineapple") ในข้อความยาว ๆ แล้วถามโมเดลว่า "what is the best pizza topping?". ถ้าโมเดลตอบได้ถูกถือว่า "ใช้ context ได้".
+
+ข้อจำกัดของการ eval แบบ NIAH:
+- ทดสอบแค่ "ดึงข้อมูล" ไม่ได้ทดสอบ "เข้าใจความสัมพันธ์" ของหลายส่วนใน context
+- การฝัง needle เป็นข้อความที่ผิด pattern ทำให้โมเดล detect ได้ง่ายเกินจริง
+- ไม่ทดสอบเมื่อมี needle หลายอันที่ต้องโยงกัน
+
+มี eval รุ่นใหม่ที่ challenging กว่า เช่น **RULER**, **InfiniteBench**, **LongBench** ที่ทดสอบการ reasoning ข้าม context ยาว ๆ — ในที่นั้นจะเห็นว่า "1M context" ไม่ได้แปลว่าใช้ 1M context ได้เท่ากันในทุกงาน. โมเดลที่อ้างรองรับ 1M token อาจ degrade ลงอย่างมีนัยสำคัญที่ context > 100K token ในงานจริง.
+
+ข้อสรุปเชิงปฏิบัติ: **อย่าเชื่อตัวเลข context size ที่ marketing สื่อ — test กับ workload จริงของคุณก่อนตัดสินใจ**.
+
+---
+
+## Worked Examples
+
+### Example 1: ประมาณ token ของเอกสารภาษาไทย
+**Scenario:** มี PDF รายงานประจำปีของบริษัท (ภาษาไทย) 80 หน้า แต่ละหน้าประมาณ 2,000 ตัวอักษร. ต้องการให้ Claude (context 200K token) อ่านและสรุปทั้งฉบับ.
+
+**คำนวณคร่าว ๆ:**
+- จำนวนตัวอักษรรวม: 80 × 2,000 = 160,000 ตัวอักษร
+- Token (ภาษาไทย ≈ 1 token / 1-2 ตัวอักษร): ประมาณ 100,000-160,000 token
+- เผื่อ system prompt + output: ต้องใช้ ~50K token เพิ่ม
+
+**ผลลัพธ์:** ทั้งเอกสารอาจ "พอใส่" ใน 200K context แต่ใกล้เพดาน. ความเสี่ยง: lost-in-the-middle จะรุนแรงตรงหน้ากลาง ๆ. กลยุทธ์ที่ดีกว่า: chunking ทีละบท แล้วสรุปรวม หรือ RAG ถ้าต้องการ "ถาม-ตอบ" จากเอกสาร.
+
+### Example 2: ทำไมประวัติแชตยาว ๆ ทำให้ราคาเพิ่ม
+**Scenario:** คุณคุยกับ ChatGPT ผ่าน API ในแอปของคุณเอง. แต่ละ turn ของผู้ใช้ ~100 token, ของ assistant ~300 token. ถ้าใน 1 session มี 50 turn:
+
+- Turn 1: ส่ง 100 token, รับ 300 → จ่ายค่า input 100, output 300
+- Turn 2: ส่ง 100 + (100+300) = 500 token, รับ 300 → จ่าย input 500
+- Turn 10: ส่ง 100 + 9 × 400 = 3,700 token → จ่าย input 3,700
+- Turn 50: ส่ง ~20,000 token → จ่าย input 20,000
+
+ค่า input ของ **turn ที่ 50 แพงกว่า turn ที่ 1 ประมาณ 200 เท่า** เพราะทุก turn ต้อง re-send ประวัติทั้งหมด. นี่คือสาเหตุที่ **prompt caching** (ดู [cost-and-latency-engineering](/building-with-ai/cost-and-latency-engineering)) มีคุณค่ามากในแอปแบบ chat — cache บางส่วนเพื่อไม่ต้องคิดเงินซ้ำ.
+
+### Example 3: จัด layout prompt ให้สอดคล้องกับ lost-in-the-middle
+**Bad layout (ความสำคัญอยู่กลาง):**
+```
+[document 1: 5,000 token]
+[document 2: 5,000 token]
+[KEY INSTRUCTION: "ตอบเป็น bullet 3 ข้อ"]
+[document 3: 5,000 token]
+[document 4: 5,000 token]
+[คำถาม: "วิเคราะห์ document ทั้งหมด"]
+```
+ความเสี่ยง: instruction "ตอบเป็น bullet 3 ข้อ" อยู่ตรงกลาง → โมเดลอาจมองข้าม.
+
+**Good layout:**
+```
+[KEY INSTRUCTION: "ตอบเป็น bullet 3 ข้อ ที่สรุปจาก document ทั้งหมด"]
+[document 1: 5,000 token]
+[document 2: 5,000 token]
+[document 3: 5,000 token]
+[document 4: 5,000 token]
+[คำถาม: "วิเคราะห์ document ทั้งหมดและตอบเป็น bullet 3 ข้อ" (ทวน instruction)]
+```
+Instruction อยู่ทั้งต้นและท้าย — ตรงตำแหน่งที่โมเดลให้ความสนใจดีที่สุด.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** "Context window 1M token แปลว่าโมเดลใช้ทั้ง 1M ได้ดีเท่ากัน"
+   **ความจริง:** ความสามารถใช้ context จริง degrade ตามตำแหน่ง — โดยเฉพาะตรงกลาง (lost in the middle ). ตัวเลขบน datasheet เป็น "เพดานทาง engineering" ไม่ใช่ "ขนาดที่ใช้ได้คุณภาพเดียวกันทุกตำแหน่ง"
+
+2. **ความเข้าใจผิด:** "AI 'จำ' บทสนทนาที่เคยคุยกับเรา"
+   **ความจริง:** LLM ไม่มี state ระหว่าง inference. แอปแชต re-send ประวัติทั้งหมดทุก turn. "Memory feature" ในแอปสมัยใหม่เป็น external store ที่แยกจากตัวโมเดล. ปิด session ใหม่ = เริ่มจาก zero ถ้าไม่มี memory feature
+
+3. **ความเข้าใจผิด:** "Output token ไม่จำกัด ถ้า context window ใหญ่"
+   **ความจริง:** Input และ output มี budget แยก. โมเดล context 200K มักจำกัด output ที่ 4K-8K token ต่อรอบ. งานที่ต้องการ output ยาวมาก ต้อง chunked generation
+
+4. **ความเข้าใจผิด:** "ภาษาไทยใช้ token เท่า ๆ กับภาษาอังกฤษ"
+   **ความจริง:** ภาษาไทยกินประมาณ 2-3 เท่าของ token ภาษาอังกฤษสำหรับเนื้อหาเทียบเท่ากัน. ส่งผลทั้ง context budget, cost, และ output length
+
+5. **ความเข้าใจผิด:** "Context window ใหญ่ขึ้นแล้ว ไม่ต้องใช้ RAG แล้ว"
+   **ความจริง:** RAG ยังมีประโยชน์เพราะ (ก) lost-in-the-middle, (ข) cost per token, (ค) latency ที่เพิ่มกับขนาด context, (ง) ความสามารถอัพเดทข้อมูลโดยไม่ retrain. ขนาด context window ที่ใหญ่เป็น *complement* ไม่ใช่ *replacement* ของ retrieval
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** Context window ของ LLM นับเป็นหน่วยอะไร และโดยทั่วไปรวม input และ output ด้วยกันหรือแยก?
+2. **(Explain)** ถ้าเพื่อนถามว่า "ทำไม Gemini รองรับ 2M context แล้ว ทำไมยังเจอปัญหา AI ลืมตอนต้นของบทสนทนา" คุณจะอธิบายอย่างไรในย่อหน้าเดียว?
+3. **(Apply)** คุณมีเอกสารกฎหมายภาษาไทย 50 หน้า (~100K ตัวอักษร) และต้องการให้ AI ตอบคำถามจากเอกสารนั้น. ระบุ 2 กลยุทธ์ที่เหมาะกับงานนี้ และอธิบายข้อแลกเปลี่ยน
+4. **(Apply)** ในการออกแบบ prompt ที่มีหลายเอกสารและ instruction หลายข้อ — คำสั่งสำคัญควรวางไว้ตำแหน่งใดของ prompt และทำไม?
+5. **(Synthesize)** อธิบายความสัมพันธ์ระหว่าง attention's O(n²) complexity กับขีดจำกัด context window — และทำไมโมเดลรุ่นใหม่ที่อ้าง 1M context อาจยังมีปัญหา quality drop ที่ context ยาว ๆ
+
+---
+
+</section>

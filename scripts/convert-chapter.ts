@@ -424,7 +424,7 @@ const KB_LEVELS: Array<{ kbDir: string; webLevel: string }> = [
 ];
 
 async function main() {
-  const kbBase = path.resolve(__dirname, '../../AI Page/AI-Pasa-Kon/00-knowledge-base');
+  const kbBase = path.resolve(__dirname, '../../AI-Pasa-Kon/00-knowledge-base');
   const webBase = path.resolve(__dirname, '../content/chapters');
 
   let converted = 0;

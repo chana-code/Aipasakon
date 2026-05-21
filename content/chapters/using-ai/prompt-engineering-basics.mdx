@@ -1,0 +1,232 @@
+---
+slug: prompt-engineering-basics
+level: using-ai
+title: "Prompt Engineering Basics"
+status: reviewed
+prerequisites:
+  - how-llms-respond
+last_reviewed: 2026-05-18
+tldr: "Prompt engineering คือทักษะการเขียน input ให้ LLM เพื่อให้ได้ output ที่ต้องการอย่างสม่ำเสมอ. หลักสำคัญคือ **ความจำเพาะ (specificity)** — prompt ที่ดีประกอบด้วย context, task ที่ชัดเจน, ตัวอย่าง (เมื่อจำเป็น), รูปแบบ output ที่ต้องการ และข้อจำกัด. มันเป็นทักษะเชิง empirical (ลองแล้วปรับ) ไม่ใช่ทฤษฎี และมีขีดจำกัด — บางปัญหาไม่มี prompt ใดแก้ได้ ต้องเปลี่ยนเป็น RAG, fine-tune หรือ architecture อื่น."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Prompt engineering คือทักษะการเขียน input ให้ LLM เพื่อให้ได้ output ที่ต้องการอย่างสม่ำเสมอ. หลักสำคัญคือ **ความจำเพาะ (specificity)** — prompt ที่ดีประกอบด้วย context, task ที่ชัดเจน, ตัวอย่าง (เมื่อจำเป็น), รูปแบบ output ที่ต้องการ และข้อจำกัด. มันเป็นทักษะเชิง empirical (ลองแล้วปรับ) ไม่ใช่ทฤษฎี และมีขีดจำกัด — บางปัญหาไม่มี prompt ใดแก้ได้ ต้องเปลี่ยนเป็น RAG, fine-tune หรือ architecture อื่น.
+
+**Prompt** คือ text (และบางครั้งเป็นรูปภาพหรือไฟล์) ที่ผู้ใช้ส่งเข้าให้ LLM. เมื่อพิมพ์ข้อความใน ChatGPT หรือ Claude แล้วกด send — ข้อความนั้นทั้งหมดคือ prompt.
+
+**Prompt engineering** คือทักษะการเขียน prompt ให้ได้ผลลัพธ์ที่ต้องการ. หลายคนคิดว่ามันเป็น "เคล็ดวิเศษ" หรือชุด "trick" ที่ต้องท่องจำ — ไม่ใช่. ในความเป็นจริงมันคือทักษะการ **สื่อสารกับระบบที่ทำงานบน pattern** ให้ระบบนั้นเข้าใจสิ่งที่เราต้องการอย่างแม่นยำ.
+
+หลักการพื้นฐานเพียงข้อเดียวคือ: **ยิ่ง prompt จำเพาะเจาะจง output ยิ่งคาดเดาได้**. LLM เป็นเครื่อง pattern-matcher (ดู [what-is-an-llm](/foundations/what-is-an-llm)) — ถ้า input กำกวม โมเดลจะเลือก pattern ที่ "บ่อยที่สุด" ในข้อมูล training ซึ่งอาจไม่ใช่สิ่งที่เราต้องการ. ถ้า input ชัดเจน โมเดลจะ converge เข้าหา pattern ที่ตรงกับ input.
+
+เปรียบเทียบ:
+- **กำกวม:** "เขียนเกี่ยวกับ AI ให้หน่อย"
+- **จำเพาะ:** "เขียนบทความ 300 คำ อธิบายว่า LLM ทำงานอย่างไร สำหรับผู้บริหารที่ไม่มีพื้นฐาน technical ใช้โทนเป็นทางการ ห้ามใช้ศัพท์เทคนิคโดยไม่อธิบาย จบด้วยตัวอย่างใช้งานในธุรกิจ 1 ตัวอย่าง"
+
+prompt ที่สองได้ output ที่คาดเดาได้แม่นกว่าหลายเท่า ไม่ใช่เพราะมัน "ยาวกว่า" แต่เพราะมันลด degree of freedom ที่โมเดลต้องเดาเอง.
+
+### Mental model
+นึกถึง prompt เป็น **คำสั่งที่มอบให้นักเขียน contractor ที่เก่งมาก แต่ไม่รู้จักเราเลย และไม่สามารถถามคำถามกลับได้**. contractor คนนี้:
+- มีความรู้กว้างมาก (LLM อ่าน text มหาศาล)
+- เก่งงานเขียน แต่จะตีความคำสั่งกำกวมไปตามที่ "ลูกค้าทั่วไป" น่าจะหมายถึง
+- ถ้าไม่บอกรูปแบบ output → ได้รูปแบบ default ที่ "ปกติ"
+- ถ้าไม่ให้ตัวอย่าง → contractor จะใช้สไตล์ที่ "ปกติ" ของงานประเภทนั้น
+
+prompt engineering คือทักษะการเขียน brief ให้ contractor คนนี้ครั้งเดียวจบ.
+
+**ผลตามมา:** prompt engineering ไม่ใช่งานเขียนเชิงสร้างสรรค์อย่างเดียว เป็นงานเชิงวิศวกรรม — มีโครงสร้าง มีองค์ประกอบที่คาดเดาได้ และทดสอบได้.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 Prompt vs System Prompt vs Context
+
+ก่อนเข้าเรื่ององค์ประกอบของ prompt ที่ดี ต้องแยกศัพท์ 3 ตัวที่คนสับสนบ่อย:
+
+**Prompt (user prompt):** input ที่ผู้ใช้ส่งใน turn นั้น ๆ — เช่น "สรุปบทความนี้ให้หน่อย"
+
+**System prompt:** instruction ที่ตั้งไว้ก่อนที่ผู้ใช้จะเริ่มคุย เพื่อกำหนดบทบาท/พฤติกรรมของโมเดล. ผู้ใช้ใน ChatGPT/Claude UI ส่วนใหญ่ไม่เห็น system prompt แต่ developer ที่เรียก API ตั้งเองได้. ดู [system-prompts-vs-user-prompts](/using-ai/system-prompts-vs-user-prompts) สำหรับรายละเอียด.
+
+**Context:** ทุกสิ่งที่อยู่ใน context window ตอน inference — รวม system prompt, conversation history, ไฟล์แนบ, output ก่อนหน้า ทุกอย่าง. โมเดลเห็น "context" ทั้งหมดเป็น input เดียวเวลาทำนาย token ถัดไป.
+
+ดังนั้นเวลาพูดว่า "ปรับ prompt" — ในงานทั่วไปหมายถึงปรับ user prompt. แต่ในงาน production ที่ใช้ API "prompt engineering" ครอบคลุมทั้ง system prompt, user prompt และวิธีจัดการ context ทั้งหมด.
+
+### 2.2 องค์ประกอบ 5 อย่างของ prompt ที่ดี
+
+prompt ที่มีประสิทธิภาพสูงมักประกอบด้วย 5 ส่วน — ไม่ใช่ทุก prompt ต้องมีครบทั้ง 5 ส่วน แต่ยิ่งงานซับซ้อน ยิ่งควรครบ.
+
+**(a) Context / Background — บอกเบื้องหลังว่าทำไมขอสิ่งนี้**
+- ใครเป็นคนถาม / output จะถูกใช้ที่ไหน / อ่านโดยใคร
+- ข้อมูลที่เกี่ยวข้องที่โมเดลไม่รู้ (เช่น ข้อมูลภายในบริษัท เอกสาร)
+- ตัวอย่าง: "ฉันเป็น product manager กำลังเตรียม pitch deck ให้นักลงทุน VC ระดับ seed..."
+
+**(b) Task instruction — บอกว่าให้ทำอะไร ด้วยคำกริยาที่ชัด**
+- ใช้กริยาตรง ๆ: เขียน, สรุป, แปล, วิเคราะห์, เปรียบเทียบ, จัดเรียง
+- หลีกเลี่ยงคำกริยากำกวม: "ช่วยดู", "ปรับให้ดีขึ้น"
+- ตัวอย่าง: "สรุป (verb) เอกสารนี้เป็น 5 bullet (object) ความยาวสูงสุด 15 คำต่อ bullet (constraint)"
+
+**(c) Examples (เมื่อจำเป็น) — แสดงรูปแบบที่ต้องการด้วยตัวอย่าง**
+- เรียกว่า "few-shot prompting" — เป็น emergent ability ของ LLM ขนาดใหญ่ที่ค้นพบใน GPT-3 paper 
+- ใช้เมื่อ task มี style/format ที่อธิบายยากเป็นคำพูด แต่แสดงด้วยตัวอย่างได้ง่าย
+- เช่น "เปลี่ยน sentence ให้สุภาพขึ้น — ตัวอย่าง: 'ส่งงานช้า' → 'ขออภัยที่ส่งงานล่าช้ากว่ากำหนด'"
+- รายละเอียดเชิง pattern อยู่ใน [prompt-engineering-patterns](/using-ai/prompt-engineering-patterns)
+
+**(d) Output format — บอกรูปแบบที่ต้องการแน่นอน**
+- markdown / JSON / bullet / paragraph / table?
+- ความยาว? (จำนวนคำ / bullet / paragraph)
+- โทน? (เป็นทางการ / สบาย ๆ / technical)
+- ภาษา? (ไทย / อังกฤษ / ผสม)
+- ตัวอย่าง: "Output เป็น JSON ที่มี key `summary` (string) และ `key_points` (array of strings) — ไม่ต้องมีคำอธิบายเพิ่ม"
+
+**(e) Constraints / Anti-requirements — บอกสิ่งที่ห้าม**
+- "ห้ามใช้ศัพท์เทคนิค", "ห้ามอ้างอิงตัวเลขที่ไม่มีในเอกสาร", "ห้ามใช้ emoji"
+- การห้ามชัดเจนช่วยลดปัญหา hallucination และ output drift
+- มีประโยชน์มากเมื่อ output default ของโมเดลเอนเอียงไปทางที่ไม่ต้องการ
+
+### 2.3 หลักการ specificity เชิงกลไก
+
+ทำไม prompt ที่จำเพาะกว่าให้ output ดีกว่า? ย้อนกลับไปที่กลไก next-token prediction (ดู [how-llms-respond](/using-ai/how-llms-respond)):
+
+โมเดลทำนาย distribution ของ token ถัดไปจาก context. context กำกวม → distribution กว้าง (มี token ที่น่าจะเป็นไปได้หลายตัว) → output มีความสุ่มสูง. context ชัดเจน → distribution แคบ (token ส่วนใหญ่มี probability ต่ำลง เหลือไม่กี่ตัวที่ probability สูง) → output คาดเดาได้.
+
+ในเชิง information theory: prompt ที่จำเพาะคือการลด entropy ของ output. แต่ละ token ของ instruction ตัด space ของ output ที่เป็นไปได้ออก. นี่คือเหตุผลที่ system prompts ที่ดียาวได้แม้ผู้ใช้พิมพ์สั้น — เพราะ space ถูกตัดไปแล้วก่อนถึง user turn.
+
+### 2.4 "Act as a [role]" — ทำไมถึงได้ผล
+
+เทคนิคที่ใช้บ่อยมากคือเริ่ม prompt ด้วย "Act as a [role]" หรือ "You are a [expert in X]". เหตุผลเชิงกลไก:
+
+LLM ถูก train บน text ที่มี role/persona หลากหลาย — บทความวิชาการ, code review, บทสนทนาแพทย์-คนไข้, บล็อก, ฯลฯ. เวลา prompt บอก role โมเดลจะ **focus subset ของ training distribution** ที่ตรงกับ role นั้น. ผลคือ output มี vocabulary, structure, conventions ของ role นั้น.
+
+ตัวอย่าง: "Act as a senior data engineer reviewing code" — โมเดลจะดึง pattern จาก code review ที่เคยเห็น (วิจารณ์ specific, อ้าง best practice, สนใจ edge case) ไม่ใช่จาก casual chat.
+
+**ข้อควรระวัง:** role prompt ไม่ใช่ "อภินิหาร" — ไม่ทำให้โมเดล "เก่งขึ้น" ในสิ่งที่ไม่รู้. ถ้าโมเดลไม่มีความรู้เรื่อง X การบอกให้ "Act as expert in X" แค่ทำให้มัน hallucinate อย่างมั่นใจมากขึ้น. ดู [hallucination](/using-ai/hallucination).
+
+### 2.5 การ iterate บน prompt
+
+Prompt engineering เป็นทักษะเชิง **empirical** ไม่ใช่ theoretical — แม้แต่ผู้เชี่ยวชาญก็ทำนาย output ที่แม่นยำจาก prompt ใหม่ไม่ได้ ต้องลอง. process การ iterate มาตรฐาน:
+
+1. **เขียน prompt ฉบับแรก** — ครอบคลุมองค์ประกอบที่จำเป็น แต่ยังไม่ต้องเป๊ะ
+2. **รัน** — ดู output จริง
+3. **อ่าน output แล้วระบุ "จุดที่ผิด"** — ผิดรูปแบบ? ผิดเนื้อหา? ขาดข้อมูล? โทนผิด?
+4. **map จุดผิดกลับไปที่ component ของ prompt** — ผิดรูปแบบ → ส่วน output format ไม่ชัด. ผิดเนื้อหา → ส่วน context ขาด. โทนผิด → ส่วน role/constraint ไม่ชัด
+5. **แก้ที่ component นั้นโดยเฉพาะ — ไม่เขียนใหม่ทั้ง prompt**
+6. **ลองใหม่ ทำซ้ำจนพอใจ**
+
+นี่เป็น process เชิงวิศวกรรม ไม่ใช่เชิงศิลปะ. คนที่เก่ง prompt engineering ไม่ใช่คนที่ "เขียน prompt สวย" แต่เป็นคนที่ debug output ได้เร็ว.
+
+### 2.6 ความผิดพลาดที่พบบ่อยของผู้เริ่มต้น
+
+- **Task กำกวม:** "ช่วยปรับให้ดีขึ้น" — โมเดลไม่รู้ "ดี" ในมิติไหน
+- **ไม่ระบุ output format:** ได้ paragraph ยาว ทั้งที่ต้องการ bullet list
+- **ขอหลายอย่างใน prompt เดียว:** "สรุป แล้วแปล แล้ววิเคราะห์ความเสี่ยง แล้วเขียน executive summary" — โมเดลทำได้แต่คุณภาพแต่ละส่วนตก. แบ่งเป็นหลาย turn ดีกว่า
+- **ไม่ให้ตัวอย่างเมื่อ format/style แปลก:** ลอง explain ด้วยคำพูดอย่างเดียว ทั้งที่ตัวอย่าง 2 ตัวจะชัดกว่ามาก
+- **เขียน prompt ยาวเพื่อปลอบใจตัวเอง:** เพิ่ม "please be very careful and accurate" หลายรอบ ไม่ช่วย — ใช้ constraint ที่จับต้องได้แทน เช่น "ห้ามอ้างอิงตัวเลขที่ไม่ปรากฏใน input"
+- **ไม่อ่าน output แต่ลองใหม่ทันที:** เปลี่ยน prompt มั่ว ๆ โดยไม่ระบุว่ารอบที่แล้วผิดที่ไหน
+
+### 2.7 ขีดจำกัดของ prompt engineering
+
+prompt engineering แก้ปัญหาได้เยอะมาก — แต่ไม่ใช่ทุกอย่าง. มีสัญญาณว่า prompt ตันแล้ว ต้องเปลี่ยนวิธี:
+
+- **ข้อมูลไม่อยู่ในโมเดล** — เช่น เอกสารภายในบริษัท, ข้อมูลหลัง training cutoff. ต่อให้ prompt ดีแค่ไหน โมเดลก็ไม่รู้สิ่งที่ไม่เคยเห็น → ต้องใช้ **RAG** (retrieval-augmented generation)  หรือ tool ที่ดึงข้อมูลสด
+- **ต้องการ behavior ที่สม่ำเสมอมาก ๆ ในหลายร้อย/พัน input** — prompt อย่างเดียวคงควบคุมไม่อยู่ → พิจารณา **fine-tuning** หรือ structured output schema
+- **Task ต้องการเหตุผลที่ซ้อนกันลึก** — chain-of-thought ช่วยได้ระดับหนึ่ง  แต่บางปัญหาต้องการ multi-step agent ที่เรียก tool ดู [agents-and-orchestration](/building-with-ai/agents-and-orchestration)
+- **ต้องการ guarantee ที่ prompt ให้ไม่ได้** — เช่น "ห้าม hallucinate" หรือ "ห้ามตอบเรื่อง X" — ต้องการ guard rail/validation นอก prompt
+
+หลักทั่วไป: ถ้า iterate 5-10 รอบแล้วยังไม่ได้ผล ให้หยุดถามว่า "prompt engineering ใช่เครื่องมือที่ถูกต้องสำหรับปัญหานี้หรือเปล่า" ก่อน iterate รอบที่ 11.
+
+---
+
+## Worked Examples
+
+### Example 1: prompt กำกวม vs จำเพาะ
+**กำกวม:** "เขียน email บอกลูกค้าว่าโปรเจ็คเลื่อน"
+
+Output ที่ได้: email generic ที่ใช้กับใครก็ได้ ไม่รู้ว่าเลื่อนนานเท่าไหร่ ไม่รู้เหตุผล โทนกลาง ๆ
+
+**จำเพาะ:**
+```
+เขียน email ขอเลื่อนวันส่ง deliverable ให้ลูกค้า โดย:
+- Context: เป็น software project, deliverable เดิม 15 พ.ค., ต้องเลื่อนเป็น 29 พ.ค.
+- เหตุผล: เจอ bug ใน integration กับระบบของลูกค้าที่ต้องใช้เวลาทดสอบเพิ่ม
+- โทน: เป็นทางการแต่อบอุ่น แสดงความรับผิดชอบ ไม่โทษลูกค้า ไม่ใส่ excuse เกินจำเป็น
+- ความยาว: 150-200 คำ
+- ต้องมี: opening เป็นมิตร, สรุปสถานการณ์ 1 ประโยค, เหตุผล, วันที่ใหม่ที่ commit ได้, ข้อเสนอ mitigation (เช่น preview deploy ก่อน), closing ขอบคุณ
+- ห้าม: ใช้คำว่า "ขออภัย" เกิน 1 ครั้ง, ใช้ passive voice, ใส่ emoji
+```
+
+Output: email ที่พร้อมใช้ทันที — ไม่ต้อง iterate
+
+### Example 2: ใช้ example เพิ่ม consistency
+**ปัญหา:** ต้องเปลี่ยน feedback ที่ตรงไปตรงมาให้สุภาพขึ้นโดยคงเนื้อหา 100%
+
+**Prompt:**
+```
+แปลง feedback ของฉันให้สุภาพขึ้น โดยคงเนื้อหาทุกประเด็น
+
+ตัวอย่าง:
+Input: "code เขียนแย่มาก ไม่มี test เลย"
+Output: "อยากให้พิจารณาเพิ่ม test coverage และ refactor ส่วนที่ readability ยังต่ำ"
+
+Input: "presentation นี้เยิ่นเย้อ ตัดได้ครึ่ง"
+Output: "presentation อาจกระชับขึ้นได้โดยตัด section ที่ไม่ critical ออกประมาณครึ่ง"
+
+ตอนนี้แปลงสิ่งนี้:
+Input: "report นี้สรุปไม่ตรงประเด็น ผู้บริหารอ่านไม่รู้เรื่อง"
+Output:
+```
+
+Output คาดเดาได้ — โมเดลทำตาม pattern ของ 2 ตัวอย่างที่ให้
+
+### Example 3: iterate เมื่อ output ไม่ตรง
+**Prompt v1:** "สรุปบทความนี้ให้หน่อย"
+**Output:** สรุปยาว 3 paragraph
+
+**ปัญหาที่ระบุได้:** ยาวเกินไป, ไม่เป็น bullet, ไม่รู้ว่าเน้นมุมไหน
+
+**Prompt v2:** "สรุปบทความนี้เป็น 5 bullet สั้น ๆ เน้นสิ่งที่เกี่ยวกับ business impact"
+**Output:** 5 bullet ตามที่ขอ — แก้ได้ในรอบเดียวเพราะระบุได้ชัดว่า v1 ผิดที่ไหน
+
+ถ้าเดา prompt ใหม่มั่ว ๆ โดยไม่ระบุจุดผิด — อาจเขียน prompt v2 ที่ "ยาวขึ้น" แต่ไม่ได้แก้ที่ root cause
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** prompt ยิ่งยาว = ยิ่งดี
+   **ความจริง:** ยาวช่วยเมื่อเพิ่ม specificity แต่ยาวที่ไม่ได้เพิ่ม signal — เช่น "please please be very careful" — ไม่ช่วยและบางครั้ง dilute instruction ที่สำคัญ. หลักคือ "ทุกประโยคใน prompt ต้องตัด space ของ output ที่ไม่ต้องการได้"
+
+2. **ความเข้าใจผิด:** มี prompt "วิเศษ" ที่ทำให้ output ดีขึ้นเสมอ
+   **ความจริง:** prompt template ที่ดีกับ task หนึ่ง อาจไม่ดีกับอีก task. "Let's think step by step" ช่วย reasoning task บางอย่าง แต่ไม่ช่วย summarization. ไม่มี one-size-fits-all — ต้อง iterate กับ task ตัวเอง
+
+3. **ความเข้าใจผิด:** prompt engineering คือทักษะที่ไม่ต้องเรียน เพราะ "พิมพ์ภาษาคนปกติ"
+   **ความจริง:** การพิมพ์ภาษาคนปกติให้ได้ output ที่สม่ำเสมอ ต้องเข้าใจกลไกของ LLM (next-token prediction, attention, context window). คนที่ "พิมพ์ตามสัญชาตญาณ" ได้ output ที่ดีบางครั้ง ไม่ดีบางครั้ง — แยกไม่ออกว่าทำไม
+
+4. **ความเข้าใจผิด:** ถ้า output ออกมาผิด แปลว่า "โมเดลไม่เก่งพอ"
+   **ความจริง:** บ่อยครั้งกว่าที่คิด สาเหตุคือ prompt ไม่จำเพาะพอ. ก่อนสรุปว่า "โมเดลไม่ไหว" ลอง iterate prompt 3-5 รอบโดยระบุจุดผิดทุกรอบ — ถ้ายังไม่ได้ค่อยพิจารณาเปลี่ยนโมเดล หรือเปลี่ยนวิธี (RAG, fine-tune)
+
+5. **ความเข้าใจผิด:** prompt เดียวใช้ได้กับทุกโมเดล
+   **ความจริง:** GPT, Claude, Gemini, Llama train ด้วย data และ RLHF ต่างกัน — มี default behavior ต่างกัน. prompt ที่ดีกับ Claude อาจต้องปรับเล็กน้อยกับ GPT. เวลาเปลี่ยนโมเดลควรทดสอบ prompt ใหม่
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** องค์ประกอบ 5 อย่างของ prompt ที่ดีคืออะไร ระบุชื่อแต่ละอันให้ครบ
+2. **(Explain)** ทำไม prompt ที่จำเพาะกว่าให้ output ที่คาดเดาได้มากกว่า อธิบายในเชิงกลไก next-token prediction
+3. **(Apply)** มี prompt นี้: "ช่วยเขียนรายงานเกี่ยวกับยอดขาย Q4 ให้หน่อย". ระบุได้ไหมว่าขาดองค์ประกอบใดบ้าง และให้ตัวอย่าง prompt v2 ที่ดีขึ้น
+4. **(Apply)** Output ที่ได้ยาวเป็น paragraph ทั้งที่ต้องการ bullet list. ตามขั้นตอน iterate ใน 2.5 — คุณจะแก้ component ไหนของ prompt
+5. **(Synthesize)** คุณ iterate prompt มา 8 รอบเพื่อให้โมเดลตอบคำถามเรื่อง policy ของบริษัทคุณ — แต่มัน hallucinate ทุกครั้ง. นี่เป็นสัญญาณว่า prompt engineering ตันหรือยัง และวิธีถัดไปคืออะไร
+6. **(Synthesize)** เทคนิค "Act as a senior lawyer" ทำให้โมเดล "เก่งกฎหมายขึ้น" จริงหรือ อธิบายเชิงกลไก
+
+---
+
+</section>

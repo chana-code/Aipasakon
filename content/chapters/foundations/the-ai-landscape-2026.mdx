@@ -1,0 +1,251 @@
+---
+slug: the-ai-landscape-2026
+level: foundations
+title: "The AI Landscape in 2026"
+status: reviewed
+prerequisites:
+  - what-is-an-llm
+  - what-is-deep-learning
+last_reviewed: 2026-05-18
+tldr: "ในปี 2026 อุตสาหกรรม AI ขับเคลื่อนโดย labs จำนวนน้อย (~10 องค์กร) ที่สามารถ train frontier model ระดับร้อยล้านดอลลาร์ขึ้นไปได้ ขณะที่ open-weight ecosystem (นำโดย Meta, Mistral, และ labs จีนเช่น DeepSeek/Qwen) ตามมาใกล้มากขึ้นเรื่อย ๆ. ตลาดแบ่งตามแกน \"closed/proprietary vs open-weight vs open-source\" และตาม category ของ capability (chat, reasoning, multimodal, coding, image/video/audio). สำหรับผู้ใช้ทั่วไป — โดยเฉพาะใน Thailand/SE Asia — การเข้าถึงส่วนใหญ่เกิดผ่าน API/app ของ Western labs โดยมี open-weight ที่ fine-tune สำหรับภาษาไทยเป็นทางเลือกที่กำลังเติบโต."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+ในปี 2026 อุตสาหกรรม AI ขับเคลื่อนโดย labs จำนวนน้อย (~10 องค์กร) ที่สามารถ train frontier model ระดับร้อยล้านดอลลาร์ขึ้นไปได้ ขณะที่ open-weight ecosystem (นำโดย Meta, Mistral, และ labs จีนเช่น DeepSeek/Qwen) ตามมาใกล้มากขึ้นเรื่อย ๆ. ตลาดแบ่งตามแกน "closed/proprietary vs open-weight vs open-source" และตาม category ของ capability (chat, reasoning, multimodal, coding, image/video/audio). สำหรับผู้ใช้ทั่วไป — โดยเฉพาะใน Thailand/SE Asia — การเข้าถึงส่วนใหญ่เกิดผ่าน API/app ของ Western labs โดยมี open-weight ที่ fine-tune สำหรับภาษาไทยเป็นทางเลือกที่กำลังเติบโต.
+
+**AI landscape ในปี 2026** ดูเหมือนตลาด smartphone ในช่วงต้นทศวรรษ 2010 — มี player หลักไม่กี่เจ้าที่แข่งกันที่ระดับ "frontier" (รุ่นเรือธง), มี ecosystem open-source ที่ตามมาใกล้ ๆ และมีผู้ใช้จำนวนมหาศาลที่ใช้ผลิตภัณฑ์ผ่าน app และ API.
+
+**ผู้เล่นหลักฝั่งตะวันตก** มี 5 ราย:
+- **Anthropic** — สร้าง Claude. ก่อตั้งโดยอดีต OpenAI โฟกัสที่ AI safety
+- **OpenAI** — สร้าง GPT/ChatGPT. เป็นคนจุดกระแสรอบนี้ด้วย ChatGPT (พ.ย. 2022)
+- **Google DeepMind** — สร้าง Gemini. รวมตัว Google Brain + DeepMind ปี 2023
+- **Meta** — สร้าง Llama. ใช้กลยุทธ์ปล่อย model weights แบบ open
+- **Mistral AI** (ฝรั่งเศส) — counterweight ของยุโรป มีทั้ง open-weight และ proprietary
+
+**ผู้เล่นหลักฝั่งจีน** — ที่ต้องรู้:
+- **DeepSeek** — สร้างความฮือฮาด้วย DeepSeek-V3 และ DeepSeek-R1 (reasoning) ที่ train ได้ถูกอย่างน่าตกใจ
+- **Alibaba Qwen** — open-weight ที่แข็งและขนาดหลากหลาย
+- **อื่น ๆ:** Moonshot (Kimi), 01.AI (Yi), Baidu (Ernie)
+
+นอกจากนี้ **xAI** (Elon Musk) มี Grok ที่ผูกกับแพลตฟอร์ม X.
+
+**สิ่งที่ทุก lab แข่งกัน** ปัจจุบันคือ 3 มิติ:
+1. **Capability** — ตอบยากได้ไหม, เขียน code ได้ดีไหม, reason ได้ลึกแค่ไหน
+2. **Cost** — ราคาต่อ token ลดลงประมาณ 10 เท่าต่อปี
+3. **Access** — closed (เรียกผ่าน API), open-weight (ดาวน์โหลดมา run เองได้), หรือ open-source (โปร่งใสทั้งหมด)
+
+### Mental model
+นึก AI landscape ปี 2026 เป็น **2 ชั้น**:
+- **ชั้นบน (frontier)** — labs ไม่กี่แห่งที่มี compute ระดับ $100M-$1B ต่อรอบ train. แข่งกันที่ "ใครเก่งที่สุดในงานยากที่สุด"
+- **ชั้นล่าง (deployment)** — ทุกคนที่เหลือ. ใช้ frontier model ผ่าน API หรือใช้ open-weight ที่ลอกตามมาใกล้ ๆ เพื่อสร้าง product/feature
+
+ความรู้ที่ผู้เริ่มต้นต้องมีคือรู้ว่าใครอยู่ชั้นไหน และเลือกใช้อะไรเมื่อ. ไม่จำเป็นต้องจำชื่อ model ทุกเวอร์ชัน — เวอร์ชันเปลี่ยนทุก ๆ เดือน แต่ผู้เล่นและโครงสร้างตลาดเปลี่ยนช้ากว่ามาก.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 The major labs (frontier model makers)
+
+**Anthropic** (สหรัฐฯ, ก่อตั้ง 2021)
+- Flagship: **Claude** family. ณ ต้นปี 2026 ที่เป็นที่รู้จักคือ Claude 3.5 Sonnet, Claude 3 Opus (เวอร์ชันใหม่กว่านี้อาจมีแล้ว — ตรวจสอบ)
+- ก่อตั้งโดย Dario และ Daniela Amodei กับอดีตทีม OpenAI
+- จุดเด่น: focus เรื่อง **AI safety** และ alignment, พัฒนาเทคนิค Constitutional AI  และ RLAIF (Reinforcement Learning from AI Feedback)
+- ผลิตภัณฑ์: Claude (chat app), Claude API, **Claude Code** (CLI agent สำหรับ developer)
+
+**OpenAI** (สหรัฐฯ, ก่อตั้ง 2015)
+- Flagship: **GPT** family. รุ่นที่รู้จักกัน — GPT-4, GPT-4o (multimodal), และ **o-series** (o1, o3) สำหรับ reasoning
+- เป็นผู้จุดกระแส AI รอบปัจจุบันด้วย ChatGPT (เปิดตัว พ.ย. 2022) และ GPT-3 paper ก่อนหน้า 
+- **โครงสร้างองค์กรไม่ปกติ:** non-profit ที่มี for-profit subsidiary — เป็นประเด็นถกเถียงในวงการ
+- ผลิตภัณฑ์: ChatGPT, API, image gen (DALL-E), video gen (Sora)
+
+**Google DeepMind** (UK + US)
+- Flagship: **Gemini** family
+- เกิดจากการรวม Google Brain + DeepMind ในปี 2023 หลังการแข่งขันจาก ChatGPT
+- จุดเด่น: **multimodal native** — Gemini train แบบรับ text + image + audio + video ตั้งแต่ pretraining ไม่ใช่ติดทีหลัง
+- DeepMind ยังมีงานนอก LLM ที่สำคัญ: **AlphaFold** (โปรตีน), **AlphaGo/AlphaZero** (เกม), **AlphaProof** (math)
+
+**Meta** (สหรัฐฯ)
+- Flagship: **Llama** family — เวอร์ชัน 3.x ณ training cutoff
+- กลยุทธ์: **open-weight** — ปล่อย weights ให้นักวิจัยและบริษัทดาวน์โหลดได้ภายใต้ Llama license (ไม่ใช่ open-source แท้ — มีข้อจำกัด เช่น บริษัทใหญ่มาก ๆ ต้องขอ license)
+- เป็น **open-weight family ที่สำคัญที่สุด** ในตลาด — เป็นจุดเริ่มของ fine-tune ส่วนใหญ่ในวงการ
+
+**Mistral AI** (ฝรั่งเศส, ก่อตั้ง 2023)
+- ผลิตทั้ง open-weight (Mistral 7B, Mixtral — mixture-of-experts) และ proprietary (Mistral Large)
+- เป็น **counterweight ของยุโรป** ต่อ labs อเมริกัน — สำคัญทั้งในเชิง ecosystem และ regulation
+
+**xAI** (สหรัฐฯ, ก่อตั้งโดย Elon Musk, 2023)
+- Flagship: **Grok**
+- ผูกกับแพลตฟอร์ม X (Twitter); content policy หลวมกว่าค่ายอื่น
+
+### 2.2 Chinese labs
+
+ในปี 2024-2025 labs จีนพิสูจน์ว่า open-weight สามารถสู้กับ closed Western models ได้:
+
+- **DeepSeek** — DeepSeek-V3 (general) และ **DeepSeek-R1** (reasoning) สร้างความฮือฮาเพราะ train ด้วย compute น้อยกว่าที่คาดมาก. ปล่อย weights และ paper รายละเอียดมากกว่าค่าย Western ส่วนใหญ่
+- **Alibaba Qwen** — Qwen3 family, ขนาดหลากหลาย (จาก mobile-friendly ถึง flagship), open-weight, มี multimodal version
+- **Moonshot AI** — Kimi, จุดเด่นที่ long-context window
+- **01.AI** — Yi models, ก่อตั้งโดย Kai-Fu Lee
+- **Baidu** — Ernie, ใช้ภายในและบาง API
+
+**ประเด็นที่ต้องรู้:** open-weight model จีนจำนวนมาก **competitive กับ Western** open-weight ในปี 2026 และในบางหมวด (reasoning ที่ราคาถูก, long context) เป็นผู้นำ.
+
+### 2.3 The closed vs open spectrum
+
+มี **3 ระดับ** ที่ต่างกันชัดเจน — อย่าสับสน:
+
+1. **Fully proprietary / API-only**
+   - ตัวอย่าง: Claude, GPT-4, Gemini
+   - ใช้ผ่าน API หรือ app ของผู้สร้างเท่านั้น
+   - **เห็น weights ไม่ได้, run บนเครื่องตัวเองไม่ได้**
+   - ข้อดี: capability สูง, ไม่ต้องดูแล infrastructure
+   - ข้อเสีย: lock-in, ราคาขึ้นอยู่กับผู้ให้บริการ, ส่งข้อมูลออก
+
+2. **Open-weight**
+   - ตัวอย่าง: Llama (Meta), Mistral, Qwen, DeepSeek
+   - ดาวน์โหลด weights มา run บนเครื่องตัวเองหรือ cloud ของตัวเองได้
+   - License แตกต่างกัน — บางอันใช้เชิงพาณิชย์ได้เลย, บางอันมีเงื่อนไข
+   - **สำคัญ: ไม่ได้ปล่อย training data หรือ training code ทั้งหมด** — reproduce ไม่ได้
+
+3. **Open-source (open everything)**
+   - ตัวอย่าง: **OLMo** (Allen AI), **Pythia** (EleutherAI), **BLOOM** (BigScience)
+   - เปิด weights + training data + training code + recipe
+   - มีน้อยมาก — เพราะ training data ใหญ่และเปิดยาก, recipe เป็น competitive advantage
+   - ใช้ส่วนใหญ่ในวิจัย ไม่ใช่ใน production
+
+**ความเข้าใจผิดที่พบบ่อย:** "open-weight" ถูกเรียกอย่างหลวม ๆ ว่า "open-source" ซึ่งไม่ตรงนิยามดั้งเดิม. คำว่า "open-weight" เกิดขึ้นมาเพื่อแยกความหมาย.
+
+### 2.4 Model categories by capability
+
+ปี 2026 model ไม่ใช่แค่ "chatbot" ทั่ว ๆ ไปอีกต่อไป — แตกตัวเป็นหลายหมวด:
+
+**Chat / Generalist** — ที่เห็นบ่อยที่สุด (Claude, ChatGPT, Gemini chat). General-purpose, ผ่าน SFT + RLHF แล้ว.
+
+**Reasoning models** — class ใหม่ที่ "คิดนานก่อนตอบ" โดยใช้ chain-of-thought ที่ฝึกมาเฉพาะ. ตัวอย่าง: OpenAI o1/o3, Claude reasoning mode, DeepSeek-R1. **ใช้ compute มากกว่า** ต่อคำตอบหนึ่งครั้ง แต่เก่งกว่ามากใน math, coding, logic. กำลังกลายเป็น standard สำหรับงานยาก.
+
+**Multimodal** — รับ image, audio, video เป็น input ได้. ส่วนใหญ่ของ flagship model ปี 2026 เป็น multimodal โดย default. text-only กลายเป็น legacy.
+
+**Coding-specialized** — Claude (เก่ง code เป็นพิเศษ), GPT-4 family, และ specialist ขนาดเล็กกว่าเช่น Codestral (Mistral), DeepSeek-Coder
+
+**Image generation** — DALL-E (OpenAI), Midjourney, Stable Diffusion (open-weight), Flux, Gemini image
+
+**Video generation** — Sora (OpenAI), Veo (Google), Runway, Kling (จีน)
+
+**Voice / Audio** — ElevenLabs (TTS), OpenAI voice modes, Suno (music generation)
+
+### 2.5 Scale and access reality
+
+**Cost ของ frontier training (รอบเดียว):** $100M-$1B+ ของ compute. มี <10 องค์กรในโลกที่ทำได้.
+
+**Cost ของ inference (การใช้):** democratized — ผู้ใช้ทั่วไปจ่ายต่อการ query เพียงเศษเสี้ยวของเซ็นต์. นักพัฒนาที่มี GPU consumer-grade ก็ run open-weight model 7B-70B ได้.
+
+**การลดต่อ capability ต่อ dollar:** ประมาณ **10 เท่าต่อปี** — capability ที่เมื่อ 2 ปีก่อนเป็น frontier ตอนนี้ run บน laptop ได้.
+
+**Gap ระหว่าง closed กับ open:** ในปี 2023 ห่างหลายเดือนถึงปี. ในปี 2025-2026 ห่างไม่กี่เดือน ในบางหมวด open ตามทันหรือนำในด้าน cost-efficiency.
+
+### 2.6 Key trends as of early 2026
+
+1. **Agentic systems mainstream** — model + tools + memory + loops กลายเป็น default. ดู [agents](/building-with-ai/agents)
+2. **Reasoning models เป็น standard** สำหรับงานยาก (math, code, planning)
+3. **Cost compression** — capability-per-dollar ลด ~10x/ปี ทำให้ application class ใหม่ ๆ เป็นไปได้
+4. **Multimodal native** — text-only model กำลังกลายเป็น legacy
+5. **AI embedded ในทุก product** — IDE, browser, office suite, customer support, ฯลฯ ส่วนใหญ่มี AI integration
+6. **Regulation เริ่มชัด** — EU AI Act มีผลบังคับใช้, US มี executive orders, จีนมีกฎเฉพาะของตัวเอง, ไทย/อาเซียนกำลังพัฒนา framework
+7. **Safety/alignment เป็นประเด็นใน industry** — ไม่ใช่แค่ academic — labs ใหญ่ทุกแห่งมี safety team
+
+### 2.7 Where Thailand / SE Asia fits
+
+- **การใช้งานส่วนใหญ่ผ่าน Western models** — ChatGPT, Claude, Gemini ผ่าน API หรือ app
+- **คุณภาพภาษาไทย:** Frontier model ใช้ได้ดี แต่ **ภาษาอังกฤษยังเป็นภาษาที่แข็งที่สุด** ในทุกโมเดล. Tokenization ของภาษาไทยยัง inefficient กว่า (1 ตัวอักษรไทย ≈ 1-2 token vs 1 token ≈ 0.75 word ในอังกฤษ — ดู [tokenization-deep-dive](/advanced/tokenization-deep-dive))
+- **Open-weight model ที่ fine-tune สำหรับไทย** — มีโครงการในประเทศและภูมิภาคที่ควรรู้:
+  - **Typhoon** (SCB10X) — fine-tune จาก open-weight base เป็น Thai-optimized
+  - **SEA-LION** (AI Singapore) — focus ที่ภาษาอาเซียนหลายภาษา
+- **การพัฒนา frontier model ในประเทศ:** ค่อนข้างจำกัด — focus ส่วนใหญ่อยู่ที่ application layer และ fine-tuning, ไม่ใช่ pretrain ตัว base model จากศูนย์
+
+**สำหรับ developer ไทย:** เส้นทางที่ใช้ได้จริงคือ — (ก) ใช้ Western API สำหรับงานทั่วไป, (ข) ใช้ Thai-fine-tuned open-weight เมื่อต้องการ control/cost/data sovereignty.
+
+### 2.8 What this means for the learner
+
+- คนทั่วไปใช้ 1-3 models ต่อวัน. การเลือกอันไหนเป็นเรื่องของ taste มากกว่า capability — ที่ frontier โมเดลใกล้กันมาก
+- **อย่า lock-in** — API ของ labs ส่วนใหญ่คล้ายกัน, switching cost ต่ำ
+- ถ้าจะ build system serious ดู **open-weight ecosystem** ด้วย — เป็นที่ที่ deployment flexibility อยู่ (run on-prem, fine-tune, control cost)
+- จำชื่อ **lab + family** (เช่น "Anthropic Claude", "Meta Llama") พอ — เวอร์ชันเปลี่ยนเร็วเกินจะตามทัน
+
+---
+
+## Worked Examples
+
+### Example 1: เลือกโมเดลสำหรับ chatbot ภาษาไทยภายในบริษัท
+
+**สถานการณ์:** บริษัทอยากสร้าง internal chatbot ที่ตอบคำถามพนักงานเป็นภาษาไทย เน้น privacy (ข้อมูล HR).
+
+**Options ตาม spectrum:**
+- **Closed API (Claude/GPT/Gemini)** — capability สูง ภาษาไทยดี แต่ข้อมูลออกจากองค์กร — ผิด requirement
+- **Open-weight (Llama 3 / Qwen)** — run on-prem ได้ ภาษาไทยพอใช้ — fine-tune เพิ่มได้
+- **Thai-fine-tuned open-weight (Typhoon)** — ภาษาไทยดีกว่า base open-weight, run on-prem ได้
+
+**ทางเลือกที่สมเหตุสมผล:** Typhoon หรือ Qwen ที่ fine-tune ภาษาไทย run บน GPU ขององค์กร. แลกกับ capability ต่ำกว่า Claude/GPT แต่ได้ privacy ตามต้องการ.
+
+### Example 2: ทำไม "ChatGPT vs Claude" ไม่ใช่คำถามที่มีคำตอบเดียว
+
+**ปัญหา:** มีคนถามว่า "ใช้ ChatGPT หรือ Claude ดี".
+
+**กรอบที่ถูก:** ขึ้นอยู่กับ category ของงาน:
+- **Coding:** Claude (Sonnet/Opus) มีชื่อเสียงเรื่องเก่ง code; o-series ของ OpenAI ก็แข็งใน reasoning
+- **Multimodal (รูป/วิดีโอ):** GPT-4o หรือ Gemini มักดีกว่า
+- **เขียนยาว ๆ / สไตล์:** Claude มักให้ prose ที่ดีกว่า ตามรีวิวของผู้ใช้
+- **Real-time web/search integration:** ขึ้นกับ feature ของ app ในขณะนั้น
+
+**ข้อสรุป:** "ดีที่สุด" ไม่มี — เลือกตาม use case ไม่ใช่ตามชื่อ.
+
+### Example 3: open-weight ใช้ทำอะไรได้บ้างที่ closed ทำไม่ได้
+
+**Use case:** บริษัท fintech อยาก fine-tune model ให้รู้จัก term เฉพาะของผลิตภัณฑ์ตัวเอง และ run แบบที่ inspect activations ได้ (เพื่อ audit).
+
+- **Closed API:** fine-tune ผ่าน API ของ vendor ได้บางส่วน — แต่ดู activation/weight ภายในไม่ได้, vendor ขึ้นราคาเมื่อไรก็ได้
+- **Open-weight (Llama/Qwen):** fine-tune เต็มที่, host เอง, inspect ภายในได้, audit compliance ง่ายกว่า
+
+นี่คือเหตุที่ open-weight ecosystem สำคัญ — ไม่ใช่เพราะมัน "เก่งกว่า" แต่เพราะมัน **ให้สิทธิ์ที่ closed ไม่ให้**.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** "Open-source" และ "open-weight" คือสิ่งเดียวกัน
+   **ความจริง:** Open-weight ปล่อย weights แต่ไม่ได้ปล่อย training data + recipe ทั้งหมด. Open-source แท้ (OLMo, Pythia, BLOOM) ปล่อยทุกอย่างเพื่อ reproduce ได้. ในชีวิตจริง 99% ของ "open" model ที่เห็นคือ open-weight ไม่ใช่ open-source
+
+2. **ความเข้าใจผิด:** Frontier labs มีเทคโนโลยีลับที่ open-weight ตามไม่ทัน
+   **ความจริง:** Gap แคบลงเรื่อย ๆ. ปี 2025-2026 open-weight ที่ดีที่สุด (DeepSeek-R1, Llama, Qwen) สู้กับ closed flagship ได้ในหลายหมวด. ความได้เปรียบของ closed ส่วนใหญ่อยู่ที่ scale ของ inference infrastructure และ product polish ไม่ใช่ research moat
+
+3. **ความเข้าใจผิด:** AI lab ที่ใหญ่ที่สุด = โมเดลดีที่สุด
+   **ความจริง:** Quality ขึ้นอยู่กับ data + recipe + post-training (RLHF/SFT/RLAIF) ไม่ใช่ขนาดของ company. DeepSeek เป็นตัวอย่าง — lab ที่เล็กกว่า ทำ reasoning model ที่ระดับเดียวกับ frontier ของ OpenAI ด้วย compute น้อยกว่า
+
+4. **ความเข้าใจผิด:** ต้องเลือกใช้โมเดลตัวเดียวแล้วยึดติด
+   **ความจริง:** API ของ labs ส่วนใหญ่คล้ายกัน switching cost ต่ำ. มืออาชีพมักใช้หลายโมเดล match กับ category งาน — coding กับ Claude, multimodal กับ Gemini, ฯลฯ
+
+5. **ความเข้าใจผิด:** Chinese model ใช้ไม่ได้/ไม่ปลอดภัย
+   **ความจริง:** Open-weight ของจีน (DeepSeek, Qwen) สามารถดาวน์โหลดมา run บน infrastructure ของตัวเอง ไม่ส่งข้อมูลไปจีน. คำถามเรื่องความปลอดภัยข้อมูลขึ้นกับ **deployment** ไม่ใช่ origin ของ weights
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** ระบุชื่อ lab ตะวันตก 4 แห่งและ flagship model family ของแต่ละแห่งได้ไหม?
+2. **(Recall)** ระบุชื่อ Chinese lab อย่างน้อย 2 แห่งที่ปล่อย open-weight model competitive ได้ไหม?
+3. **(Explain)** ความแตกต่างระหว่าง "open-weight" และ "open-source" คืออะไร — ทำไม Llama เรียกว่า open-weight ไม่ใช่ open-source?
+4. **(Apply)** บริษัทที่ต้องการ chatbot ภายในที่ใช้ข้อมูลลูกค้า เลือกระหว่าง (ก) Claude API (ข) Llama 3 fine-tune on-prem — ปัจจัยอะไรที่ทำให้เลือกอันไหน?
+5. **(Apply)** ทำไม reasoning model (เช่น o3, DeepSeek-R1) ถึง "แพงกว่าต่อ query" แต่ "เก่งกว่าในงานยาก"?
+6. **(Synthesize)** ถ้า cost ของ inference ลด 10 เท่าต่อปี ในอีก 3 ปีตลาด AI application จะเปลี่ยนยังไง — application class ใหม่อะไรที่จะเป็นไปได้?
+
+---
+
+</section>

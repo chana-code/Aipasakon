@@ -1,0 +1,268 @@
+---
+slug: tool-fluency
+level: using-ai
+title: "Tool fluency — เลือก mode ที่ใช่"
+status: reviewed
+prerequisites:
+  - what-is-an-llm
+  - the-ai-landscape-2026
+last_reviewed: 2026-05-18
+tldr: "LLM tool สมัยใหม่ (ChatGPT, Claude, Gemini, Perplexity ฯลฯ) ไม่ใช่ \"กล่องเดียวที่ทำได้ทุกอย่าง\" แต่เป็น **collection ของ mode** ที่ต่างกัน — chat, canvas/artifacts, deep research, voice, reasoning, web search, agent, custom assistant, API — แต่ละ mode ออกแบบสำหรับงานคนละแบบ. ความสามารถในการเลือก mode ที่ตรงงาน (mode-fluency) คือสิ่งที่แยก **power user** ออกจาก **casual user** ได้ชัดที่สุด — มากกว่าการเลือก provider ด้วยซ้ำ."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+LLM tool สมัยใหม่ (ChatGPT, Claude, Gemini, Perplexity ฯลฯ) ไม่ใช่ "กล่องเดียวที่ทำได้ทุกอย่าง" แต่เป็น **collection ของ mode** ที่ต่างกัน — chat, canvas/artifacts, deep research, voice, reasoning, web search, agent, custom assistant, API — แต่ละ mode ออกแบบสำหรับงานคนละแบบ. ความสามารถในการเลือก mode ที่ตรงงาน (mode-fluency) คือสิ่งที่แยก **power user** ออกจาก **casual user** ได้ชัดที่สุด — มากกว่าการเลือก provider ด้วยซ้ำ.
+
+นึกถึง LLM tool ในปี 2026 ไม่ใช่ "แอปแชต" แต่เป็น **multi-tool platform** ที่มีหลายโหมดอยู่ภายในแอปเดียวกัน. เปิด ChatGPT มาจะเห็นปุ่ม Voice, ปุ่ม Deep Research, ตัวเลือก Reasoning model, Canvas, Custom GPTs. เปิด Claude มี Projects, Artifacts, Web Search, Computer Use. เปิด Gemini มี Live, Deep Research, Canvas. แต่ละปุ่มไม่ใช่ของแถม — เป็น **mode คนละแบบ** ที่ส่งผลต่อพฤติกรรมของโมเดล, latency, ราคา, และคุณภาพคำตอบอย่างมีนัยสำคัญ.
+
+ผู้ใช้ส่วนใหญ่ใช้แต่ default chat — เพราะมันเปิดมาเจอก่อน. ผลคือ พอเจองานที่ default chat ไม่เหมาะ (เช่น ค้นข่าวล่าสุด, เขียน document ยาว 10 หน้า, แก้โจทย์เลข) ก็ได้คำตอบที่แย่กว่าที่ควร — แล้วโทษว่า "AI ไม่เก่งพอ" ทั้งที่ความจริงคือเลือก mode ผิด.
+
+**Mode-fluency ไม่ได้พูดถึง "ใช้ Claude หรือ ChatGPT ดี"** — นั่นคือเรื่องเลือก provider (อ่าน [the-ai-landscape-2026](/foundations/the-ai-landscape-2026)). Mode-fluency พูดถึง **เมื่อเปิด tool ตัวใดตัวหนึ่งขึ้นมาแล้ว ใช้ feature ไหนใน tool นั้น**. ในทางปฏิบัติ คนที่เก่งใช้ AI มัก fluent กับหลาย provider พร้อมกัน เพราะแต่ละ provider มี mode ที่เด่นในเรื่องต่าง ๆ.
+
+### Mental model
+มอง LLM tool เป็น **workshop** ไม่ใช่ค้อนตัวเดียว. ใน workshop มีเครื่องมือหลายชิ้น — ค้อน, ไขควง, เลื่อย, ดอกสว่าน. การถาม "ค้อนดีกว่าไขควงไหม" ไม่มีความหมายถ้าไม่บอกว่าทำงานอะไร. โหมดต่าง ๆ ของ LLM tool เป็น **เครื่องมือคนละชิ้นที่ใช้กับงานคนละแบบ** — และเป้าหมายของบทนี้คือให้ผู้อ่านรู้จักเครื่องมือแต่ละชิ้นพอที่จะหยิบขึ้นมาใช้ได้โดยไม่ต้องคิด.
+
+ผลตามมาที่สำคัญ:
+1. งานเดียวอาจต้องใช้หลาย mode — เช่น เริ่มที่ deep research, ย้ายไป canvas เพื่อเขียน, แล้วใช้ reasoning mode ตรวจ logic
+2. การย้าย mode กลางทางมัก **เสีย context** — ต้องวางแผนล่วงหน้าให้น้อยลง
+3. mode ใหม่ ๆ ออกเรื่อย ๆ — สิ่งที่อ่านวันนี้จะ outdated ภายใน 6-12 เดือน (ดู Note Maintenance ท้ายบท)
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 Basic chat mode — โหมดเริ่มต้น
+
+**คืออะไร:** การพิมพ์ข้อความเข้าไปหนึ่งกล่อง ได้คำตอบกลับมาหนึ่งกล่อง สลับกันไป. คือสิ่งที่ ChatGPT เปิดตัวด้วยในปี 2022 และยังเป็น default ของทุก tool.
+
+**กลไก:** model ได้รับ context ทั้งหมดของการสนทนาที่ผ่านมา (จนถึงขีด context window) แล้ว generate ต่อตามหลัก next-token prediction (ดู [what-is-an-llm](/foundations/what-is-an-llm)).
+
+**ใช้เมื่อ:** ถามตอบสั้น ๆ, ideation, อธิบาย concept, ปรับ wording, แปลภาษา, เขียน reply ทั่วไป — งานที่ไม่ต้องอ้างอิงเอกสารยาว, ไม่ต้องการ output ยาวมาก, ไม่ต้องการข้อมูลล่าสุด.
+
+**ข้อจำกัด:**
+- Context resets ระหว่างการแชต (เว้นแต่ provider มี persistent memory เช่น ChatGPT Memory, Claude Projects)
+- ไม่มี citation — โมเดลตอบจาก parametric knowledge อย่างเดียว เสี่ยง hallucination (ดู [hallucination](/using-ai/hallucination))
+- พอแชตยาวขึ้น คุณภาพคำตอบเสื่อม (ดู  — เรื่อง lost-in-the-middle)
+
+### 2.2 Long-context / document modes — โหมดทำงานกับเอกสาร
+
+**คืออะไร:** การ attach ไฟล์ (PDF, docx, txt, code, ฯลฯ) เข้าไปใน chat. ChatGPT, Claude, Gemini ทุกตัวรองรับ. Gemini โดดเด่นเรื่อง context window ใหญ่ (1M+ token) ทำให้อ่านหนังสือหลายเล่มในรอบเดียวได้.
+
+**กลไก:** ไฟล์ถูกแปลงเป็น text (หรือ multimodal token ถ้ามีรูป) แล้วใส่เข้า context window ของโมเดล. การ "เข้าใจไฟล์" คือการที่ token ของไฟล์อยู่ใน attention scope ของโมเดล.
+
+**ใช้เมื่อ:** สรุปรายงาน, วิเคราะห์ contract, ถามคำถามจาก policy document, เปรียบเทียบ proposal หลายฉบับ, อ่าน paper ทางวิชาการ.
+
+**ข้อจำกัด:**
+- ยังอยู่ใต้ context window limit (ดู [context-windows](/using-ai/context-windows)) — เกินก็ถูกตัดทิ้งหรือ summarize อัตโนมัติ
+- คุณภาพ "การอ่าน" ลดลงเมื่อเอกสารยาว — middle section มักถูก attend ต่ำกว่าหัว-ท้าย
+- การ extract ข้อมูลเฉพาะจุดจากไฟล์ยาวยังเสี่ยง miss — โดยเฉพาะเลข, ตาราง, code block ที่ไม่ค่อย structured
+- การคำนวณตัวเลขจากตาราง ไม่ควรเชื่อโดยไม่ตรวจ — โมเดลไม่ได้คำนวณจริง pattern-matching เลข
+
+### 2.3 Canvas / Artifacts modes — โหมด side panel แก้ไขซ้ำ ๆ
+
+**คืออะไร:** Claude Artifacts, ChatGPT Canvas, Gemini Canvas. แทนที่ output จะอยู่ใน chat bubble เดียว มันถูกแยกเป็น **เอกสารด้านข้าง** ที่ตัวเองและผู้ใช้สามารถแก้ทีละส่วนได้ — ไม่ต้องส่ง "พิมพ์ทั้งหมดใหม่อีกที" ทุกครั้งที่อยากแก้.
+
+**กลไก:** ภายในเป็น orchestration layer ที่ทำให้โมเดล output structured artifact (HTML, markdown, code) ที่ระบบเก็บไว้แยกจาก chat. การแก้รอบต่อไป โมเดลรับ artifact เดิม + คำสั่งแก้ → output artifact เวอร์ชันใหม่ที่ระบบ diff/replace ให้.
+
+**ใช้เมื่อ:** เขียน document ยาว, สร้าง prototype code, draft proposal/report ที่ต้องแก้หลายรอบ, สร้าง interactive demo (Artifacts ทำได้ดีกับ HTML/React component).
+
+**ทำไมสำคัญ:** ใน basic chat ถ้าจะแก้ document 5 หน้า ต้องส่งทั้ง 5 หน้าใหม่ทุกครั้งที่อยากแก้ทีละย่อหน้า — สิ้นเปลือง token, ช้า, และ context ค่อย ๆ บวมจนล้น. Canvas/Artifacts แก้ปัญหานี้ด้วยการแยก document ออกจาก conversation history.
+
+**ข้อจำกัด:**
+- ผูกกับ format ที่ provider รองรับ (markdown, HTML, code) — งานที่ format แปลก อาจ degrade เป็น basic chat
+- Artifact ใหญ่มาก ๆ ยังจำกัดที่ context window
+- พอแก้ไปมาก ๆ artifact อาจ "ลืม" สิ่งที่ตัวเองเคยเขียน — ต้องอ่านซ้ำเป็นระยะ
+
+### 2.4 Voice / live audio modes — โหมดเสียงสด
+
+**คืออะไร:** ChatGPT Voice / Advanced Voice Mode, Gemini Live, Claude Voice (เปิดตัวปลาย 2025). ผู้ใช้พูด โมเดลตอบเป็นเสียงทันที low latency.
+
+**กลไก:** ใน multimodal models ใหม่ ๆ เสียงเข้าตรงเป็น audio token (ไม่ผ่าน text intermediate) ทำให้รักษา prosody (จังหวะ น้ำเสียง อารมณ์) ได้ — ต่างจาก voice mode รุ่นแรกที่เป็น speech-to-text → LLM → text-to-speech ซ้อนกัน.
+
+**ใช้เมื่อ:** เดิน/ขับรถพร้อมคุย, ฝึกภาษาต่างประเทศ, ระดมไอเดียออกเสียง, อธิบาย concept ให้เด็ก, brainstorm ที่ไม่ต้องการ output text.
+
+**ข้อจำกัด:**
+- ควบคุม output detail ยาก — บอก "เป็น bullet 5 ข้อ" ในเสียงไม่ได้ผลเท่าใน text
+- ตรวจสอบความถูกต้องยาก — เสียงผ่านไปเร็ว ไม่มี transcript ให้กลับมาอ่าน (บาง provider ให้ transcript บาง provider ไม่ให้)
+- งานที่ต้องการความแม่นยำ (เลข, ชื่อเฉพาะ, URL) ไม่เหมาะ
+- Hallucination ใน voice ยังเกิด — แต่ "ดูเหมือนจริง" กว่าเพราะน้ำเสียงมั่นใจ
+
+### 2.5 Web search / browsing modes — โหมดค้นเว็บสด
+
+**คืออะไร:** Claude with web search, ChatGPT browse/search, Gemini with Google Search grounding, Perplexity (ทั้งแอป built around นี้). โมเดลค้น web ระหว่างตอบ แล้วใช้ผลค้นเป็น context.
+
+**กลไก:** ระบบเป็น **RAG (Retrieval-Augmented Generation)** ตัวหนึ่ง  — ค้น query, ดึง snippet จากเว็บ, ใส่เข้า context, ให้โมเดล generate คำตอบพร้อม citation. คุณภาพ output ขึ้นกับ (1) คุณภาพของ search index, (2) ความสามารถในการ synthesize ของโมเดล.
+
+**ใช้เมื่อ:** เหตุการณ์ล่าสุด (ดู [training-cutoff-and-real-time-info](/using-ai/training-cutoff-and-real-time-info)), ตรวจสอบ fact, หา citation, สำรวจสินค้า/ราคาปัจจุบัน, ค้น changelog/documentation ของ library.
+
+**ข้อจำกัด:**
+- Latency สูงกว่า chat ปกติ (5-30 วินาที)
+- คุณภาพ source แปรปรวน — โมเดลอาจอ้าง content farm หรือ AI-generated article ที่ผิด
+- Citation ที่ให้มา **ต้องตรวจสอบเอง** — pattern คือ link ถูกต้อง แต่เนื้อหาที่โมเดลสรุปอาจไม่ตรงกับที่ link จริง ๆ บอก
+- บาง provider ค้นแล้วยัง hallucinate citation (link ปลอม) — เกิดน้อยลงในปี 2026 แต่ยังเกิด
+
+### 2.6 Deep research mode — โหมดวิจัยหลายขั้น
+
+**คืออะไร:** Perplexity Deep Research, ChatGPT Deep Research (เปิดตัว 2025), Gemini Deep Research, Claude Research. โมเดล planning หลายขั้น, ค้น source หลายสิบหรือร้อยแหล่ง, อ่าน synthesize, แล้ว produce รายงานพร้อม citation ที่ยาวหลายพันคำ.
+
+**กลไก:** เป็น **agentic loop** ภายใน — โมเดลสร้าง research plan → ค้น → อ่าน → ตั้ง sub-question → ค้นต่อ → สังเคราะห์. ใช้ tool use ภายใน, browsing tool, บางครั้ง reasoning model เป็น backbone. ระยะเวลา 5-30 นาทีต่อ query.
+
+**ใช้เมื่อ:** literature review, market scan, competitive analysis, due diligence, technical evaluation ของ vendor, สรุปสถานะของ field/topic ที่ไม่คุ้น.
+
+**ข้อจำกัด:**
+- ใช้เวลานาน — ไม่เหมาะกับ quick lookup
+- ยัง hallucinate ได้ — โดยเฉพาะ citation จาก paper ที่ paywall (โมเดลเห็นแค่ abstract)
+- คุณภาพขึ้นกับ query แรก — ถาม vague ได้ vague
+- ราคาแพง (token usage สูงต่อ query)
+- "looks authoritative" — ผู้อ่านที่ไม่รู้ field มักเชื่อทั้งหมด ทั้งที่อาจมี subtle error
+
+### 2.7 Reasoning mode — โหมด "คิดนาน"
+
+**คืออะไร:** OpenAI o1/o3, Claude Extended Thinking, Gemini Thinking, DeepSeek R1. โมเดลที่ "คิดออกเสียง" ใน hidden chain-of-thought ก่อนตอบ — ใช้ compute มากขึ้นต่อ query เพื่อแลกกับคุณภาพ reasoning ที่สูงขึ้น.
+
+**กลไก:** Training pipeline ต่างจาก chat model ปกติ — ถูก train (มักด้วย reinforcement learning บนปัญหาที่ verify ได้) ให้สร้าง reasoning chain ก่อน final answer. แนวคิดต่อยอดจาก chain-of-thought prompting  แต่ทำเป็น built-in capability.
+
+**ใช้เมื่อ:** โจทย์เลข, การพิสูจน์, code ที่ต้องการ logic แน่น, การวิเคราะห์ที่ต้อง trace step-by-step, debugging logic error, planning multi-step.
+
+**ข้อจำกัด:**
+- Latency สูงมาก — บาง model ใช้เวลาตอบ 30 วินาทีถึงหลายนาที
+- ราคาต่อ query สูง (token ของ reasoning chain นับด้วย)
+- งานเขียน creative / conversational มัก **แย่กว่า** chat model ปกติ — reasoning mode ทำให้ output แห้ง สูตรเยอะ
+- งานที่ไม่ต้องการ reasoning จริง ๆ (เช่น reword email) ก็จะช้าและแพงโดยไม่ได้ประโยชน์
+
+### 2.8 Agent / computer-use modes — โหมดให้ AI ลงมือเอง
+
+**คืออะไร:** Claude Computer Use, OpenAI Operator, Gemini agentic features, autonomous agents จาก third-party. AI ควบคุม browser / desktop / API ทำงานหลายขั้นด้วยตัวเอง — ไม่ใช่แค่ตอบ chat.
+
+**กลไก:** model + tool execution loop. โมเดลเห็น screenshot/DOM/output → ตัดสินใจ action ถัดไป → ระบบ execute → return ผล → วนใหม่ จนกว่าจะถึง goal หรือ error.
+
+**ใช้เมื่อ:** workflow ที่ต้องใช้หลายแอป (เปิดเว็บ, copy ข้อมูล, ใส่ลง spreadsheet, ส่ง email), repetitive task ที่ไม่มี API, browser automation.
+
+**ข้อจำกัด:** (ดู [agents-and-orchestration](/building-with-ai/agents-and-orchestration) สำหรับรายละเอียด)
+- ยัง brittle — error เล็กในขั้นแรกขยายเป็น error ใหญ่ในขั้นหลัง (compounding error)
+- ช้า — ทุก action ต้องรอ screenshot/observation
+- ราคาแพง (token เยอะต่อขั้น)
+- **ความเสี่ยงด้าน security** — AI ที่ควบคุม browser/desktop ของคุณสามารถ leak ข้อมูล, ทำธุรกรรมพลาด, หรือ ถูก prompt injection จากเว็บที่เปิด
+- ต้องนั่งเฝ้า — ไม่ใช่ "ทำเอง" จริง ๆ ในปี 2026
+
+### 2.9 Custom GPT / Project / Custom Assistant — โหมดบันทึก config
+
+**คืออะไร:** ChatGPT Custom GPTs, Claude Projects, Gemini Gems. การ save (1) system prompt, (2) knowledge files, (3) tool settings ไว้เป็น "ตัวตน" ที่เรียกใช้ซ้ำได้.
+
+**กลไก:** ทุกครั้งที่เริ่ม session ใหม่ใน custom assistant ระบบ inject ทั้ง system prompt และ relevant chunk จาก knowledge files (RAG) เข้า context อัตโนมัติ.
+
+**ใช้เมื่อ:** งานที่ทำซ้ำบ่อย — เช่น "เขียน email ในสไตล์ของฉัน", "ตอบคำถาม customer ตาม FAQ", "review code ตาม style guide ของทีม". สร้างครั้งเดียว ใช้ได้นาน.
+
+**ข้อจำกัด:**
+- Provider lock-in — Custom GPT ใช้ได้แค่ใน ChatGPT, Project ใช้ได้แค่ใน Claude
+- การ debug "ทำไมตอบแบบนี้" ยาก — instruction กับ knowledge file มี interaction ที่ไม่ obvious
+- Knowledge file ยังถูกจำกัดด้วย context window — file ใหญ่ ๆ ถูก chunk และ retrieve เป็นบางส่วน
+- "ลืม" instruction กลางทางเป็นปกติ ในแชตยาว ๆ
+
+### 2.10 API mode — โหมดเรียกผ่าน code
+
+**คืออะไร:** การเรียก model ผ่าน HTTP API (Anthropic API, OpenAI API, Google AI Studio) แทนการใช้ web UI.
+
+**ใช้เมื่อ:** integrate AI เข้า product, automate workflow, batch processing, build chatbot/assistant ของตัวเอง.
+
+**สำคัญตอนนี้:** API คือสิ่งที่อยู่ "ใต้" ทุก mode ข้างบน — web UI เป็นเปลือกที่เรียก API พร้อม preset ที่ตั้งไว้แล้ว. การเข้าใจ API ทำให้รู้ว่า mode แต่ละอันต่างกันที่ระดับไหนจริง ๆ.
+
+**ข้อจำกัด:** ต้องเขียน code, ต้องจัดการ rate limit, error handling, billing. รายละเอียดอยู่ Level 3 ทั้งหมด — ดู [00-overview](/building-with-ai/00-overview).
+
+### 2.11 Decision framework — เลือก mode ใน 5 วินาที
+
+ใช้ตารางนี้เป็น cheat sheet:
+
+| งาน | Mode ที่ใช้ |
+|---|---|
+| ถามตอบสั้น / ideation / reword | Basic chat |
+| ข้อมูลล่าสุด / fact-check / ราคา-ข่าว | Web search |
+| สรุป/วิเคราะห์เอกสารที่มีอยู่ | Long-context (attach file) |
+| เขียน document หรือ code ที่ต้องแก้หลายรอบ | Canvas / Artifacts |
+| ทำตอนขับรถ / เดิน / ฝึกพูด | Voice |
+| โจทย์เลข, logic, code ซับซ้อน | Reasoning mode |
+| สำรวจ field ที่ไม่คุ้น / market scan | Deep Research |
+| Workflow ที่ทำซ้ำทุกวัน | Custom GPT / Project |
+| งานหลายแอปที่ไม่มี API | Agent / Computer Use (ระวัง) |
+| Integrate เข้าระบบ / batch | API (Level 3) |
+
+### 2.12 ค่าใช้จ่ายของการย้าย mode กลางทาง
+
+ถ้าเริ่มงานใน basic chat แล้วอยากย้ายไป canvas — โมเดล "ไม่ได้พา context ไปทั้งหมด" เสมอ. บาง tool ย้ายได้ smooth (Claude artifacts เกิดในแชตอยู่แล้ว) บาง tool ต้องเริ่มใหม่ (ย้ายไป deep research = session ใหม่).
+
+**กลยุทธ์:**
+1. คิดก่อนว่า "งานนี้ใหญ่แค่ไหน" — ถ้าใหญ่ เลือก mode ที่เหมาะตั้งแต่ต้น
+2. ถ้าต้องย้าย ให้สรุป context ก่อน — ขอ AI "สรุปสิ่งที่เราคุยกันไว้เป็น brief สำหรับ session ใหม่"
+3. ยอมรับว่า บาง task ต้องใช้ 2-3 mode ในลำดับ — เช่น Deep Research → Canvas → Reasoning review
+
+---
+
+## Worked Examples
+
+### Example 1: เตรียม report ให้บอร์ดบริษัท เรื่องคู่แข่งในตลาด
+**Wrong mode:** ถามใน basic chat ว่า "คู่แข่งของเราในตลาด X มีใครบ้างและทำอะไร" → ได้คำตอบที่ดูดี แต่ข้อมูลเก่า (training cutoff) และไม่มี citation → ถ้าใส่ใน report จริง อาจมีข้อมูลผิดปะปน.
+
+**Right mode chain:**
+1. **Deep Research** mode → ขอ "comprehensive scan ของคู่แข่งในตลาด X ในปี 2026 พร้อม citation" (ใช้เวลา ~15 นาที)
+2. **Canvas/Artifacts** → paste output แล้วบอก "ปรับเป็น executive summary 2 หน้า ในโทนของ board document" (แก้ในด้านข้างไปมา)
+3. **Reasoning mode** → "review logic ของ argument ใน document นี้ — มีจุดไหน assertion ที่ไม่มี evidence รองรับ" (sanity check ก่อนส่ง)
+
+### Example 2: เขียน email reply ตอบลูกค้าที่ไม่พอใจ
+**Wrong mode:** Deep research → over-engineering, ใช้เวลานาน, output ยาวเกินไป.
+
+**Right mode:** Basic chat — งานนี้สั้น, ไม่ต้องการข้อมูลภายนอก, ไม่ต้องการ reasoning ลึก. ขอ "draft reply สุภาพ ยอมรับปัญหา เสนอ solution X" → แก้ทีละ pass สั้น ๆ. ถ้าทำ pattern นี้บ่อย — ย้ายไป **Custom GPT/Project** ตั้ง template ครั้งเดียว ใช้ตลอด.
+
+### Example 3: ตรวจ code function ที่มี logic bug
+**Wrong mode:** Basic chat (chat model) → อาจมองข้าม edge case, ตอบ "ดูเหมือนถูก" ทั้งที่ไม่ถูก.
+
+**Right mode:** **Reasoning mode** — paste code + บอก "เช็คทุก edge case ที่อาจทำให้ function นี้ทำงานผิด" → โมเดล "คิดออกเสียง" ใน reasoning chain หา edge case ที่ chat ปกติพลาด. งานวิจัยบน mathematical reasoning benchmark แสดงว่า reasoning model ทำได้ดีกว่า chat model อย่างมีนัยสำคัญในงานประเภทนี้.
+
+### Example 4: ฟังประชุม Zoom 2 ชั่วโมง แล้วต้องส่ง summary
+**Wrong mode:** Voice mode — ไม่ได้ออกแบบมาเพื่อนี่ (Voice = สนทนา ไม่ใช่ transcription source).
+
+**Right mode chain:**
+1. Transcribe ก่อน (เครื่องมือแยก เช่น Otter, Granola, หรือ Zoom built-in)
+2. **Long-context mode** ใน Claude/Gemini → attach transcript → ขอสรุปตาม structure ที่ต้องการ
+3. ถ้าต้องการ action item list ละเอียด — **Canvas** ให้แก้ทีละ section
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** "Pro plan มี mode พิเศษเลยเก่งกว่า — ใครจ่ายเงินก็ได้คำตอบดีกว่า"
+   **ความจริง:** Pro plan ปลดล็อก mode ที่เหมาะกับงานบางประเภท (deep research, reasoning, large context) — แต่ถ้าใช้ผิด mode ก็แย่กว่า free user ที่เลือก mode ถูก. การจ่ายเงินไม่ทดแทน mode-fluency.
+
+2. **ความเข้าใจผิด:** "Reasoning mode ดีกว่า chat mode เสมอ — เลือกอันที่ฉลาดกว่าก็พอ"
+   **ความจริง:** Reasoning mode แย่กว่า chat mode ในงาน creative, conversational, brainstorm, summarization สั้น ๆ. เพราะมัน train มาให้ "คิดเป็นขั้น" ผลคือ output แห้ง, มี internal monologue ที่ไม่จำเป็น, latency แย่. Mode ไม่ใช่ ranking — เป็น specialization.
+
+3. **ความเข้าใจผิด:** "Deep Research ตอบมาแล้วพร้อม citation = เชื่อได้"
+   **ความจริง:** Deep research มักอ้าง source ที่มีจริง แต่ **เนื้อหาที่สรุปจาก source นั้นอาจไม่ตรงกับที่ source บอก** — โดยเฉพาะ paper paywall ที่โมเดลเห็นแค่ abstract. ต้องเปิด link ตรวจอย่างน้อย key claim.
+
+4. **ความเข้าใจผิด:** "Custom GPT/Project = AI ที่ฉลาดขึ้นกับ domain ของฉัน"
+   **ความจริง:** Custom GPT/Project ไม่ได้ fine-tune โมเดล — มันแค่ inject system prompt + retrieve chunk จาก knowledge file. ความสามารถพื้นฐานของโมเดลเหมือนเดิม. ถ้าโมเดล base ตอบเรื่องนี้ได้แย่ Custom GPT ก็จะแย่.
+
+5. **ความเข้าใจผิด:** "Agent mode คือ AGI ย่อม ๆ — สั่งให้ทำเองได้ไม่ต้องเฝ้า"
+   **ความจริง:** ในปี 2026 agent mode ยัง brittle มาก — error เล็กในขั้นแรกขยายในขั้นถัดไป (compounding error), ตกในกรณีที่ UI เปลี่ยน, เสี่ยง prompt injection. ต้องเฝ้าตลอด, ใช้กับงานที่ผลผิดพลาดไม่ critical (ดู [agents-and-orchestration](/building-with-ai/agents-and-orchestration)).
+
+---
+
+## Self-Check
+
+ลองตอบโดยไม่กลับไปดูด้านบน:
+
+1. **(Recall)** บอกชื่อ mode อย่างน้อย 6 mode ที่มีใน LLM tool สมัยใหม่ และสรุปจุดประสงค์ของแต่ละ mode ใน 1 ประโยค
+2. **(Explain)** ทำไม reasoning mode ถึง **แย่กว่า** chat mode ในงานเขียน creative — อธิบายในระดับกลไก ไม่ใช่ "เพราะมันต่าง"
+3. **(Apply)** เพื่อนร่วมงานต้องทำสไลด์ pitch ลูกค้าใหม่ — เริ่มจากศูนย์ ต้องค้นข้อมูลตลาด + เขียน narrative + ตรวจ logic ก่อนส่ง. แนะนำลำดับ mode ที่ควรใช้ พร้อมเหตุผล
+4. **(Apply)** สถานการณ์: ขับรถอยู่ อยากถาม AI ว่า "บริษัท X ที่เพิ่งซื้อ Y ได้ไป มีผลกระทบยังไงต่อตลาด" — Voice mode พอไหม? ทำไม?
+5. **(Synthesize)** สรุปในย่อหน้าเดียวว่าทำไม mode-fluency สำคัญกว่าการเลือก provider — โดยอ้างถึงกลไกของ mode อย่างน้อย 2 mode
+
+---
+
+</section>

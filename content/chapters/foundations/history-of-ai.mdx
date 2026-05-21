@@ -1,0 +1,239 @@
+---
+slug: history-of-ai
+level: foundations
+title: "History of AI"
+status: reviewed
+prerequisites:
+  - what-is-ai
+last_reviewed: 2026-05-18
+tldr: "ประวัติศาสตร์ AI ตั้งแต่ปี 1950 ถึง 2026 ไม่ใช่เส้นตรงที่พุ่งขึ้นเรื่อย ๆ แต่เป็นวงจรของความหวังสูง ตามด้วยช่วงตกต่ำที่เรียกว่า \"AI winter\" สลับกันมา 2 รอบ ก่อนจะเข้าสู่ยุคปัจจุบันที่ขับเคลื่อนด้วย deep learning และ LLM. รูปแบบที่เห็นซ้ำคือ: AI ก้าวหน้าจริงเมื่อ **algorithms + data + compute** สามอย่างพร้อมกัน — เมื่อขาดอย่างใดอย่างหนึ่ง วงการก็หยุดชะงัก. ปัจจุบัน (2026) เราอยู่ในยุคที่ทั้งสามอย่างเรียงตัวพร้อมกันมากที่สุดในประวัติศาสตร์."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+ประวัติศาสตร์ AI ตั้งแต่ปี 1950 ถึง 2026 ไม่ใช่เส้นตรงที่พุ่งขึ้นเรื่อย ๆ แต่เป็นวงจรของความหวังสูง ตามด้วยช่วงตกต่ำที่เรียกว่า "AI winter" สลับกันมา 2 รอบ ก่อนจะเข้าสู่ยุคปัจจุบันที่ขับเคลื่อนด้วย deep learning และ LLM. รูปแบบที่เห็นซ้ำคือ: AI ก้าวหน้าจริงเมื่อ **algorithms + data + compute** สามอย่างพร้อมกัน — เมื่อขาดอย่างใดอย่างหนึ่ง วงการก็หยุดชะงัก. ปัจจุบัน (2026) เราอยู่ในยุคที่ทั้งสามอย่างเรียงตัวพร้อมกันมากที่สุดในประวัติศาสตร์.
+
+AI ไม่ใช่สิ่งที่เพิ่งเกิดในปี 2022 ตอน ChatGPT เปิดตัว. คำว่า "Artificial Intelligence" ถูกบัญญัติขึ้นในปี **1956** ที่งานประชุมเล็ก ๆ ที่ Dartmouth College — ก่อน ChatGPT ถึง 66 ปี. ระหว่างนั้นวงการ AI ผ่านทั้งช่วงที่คนมั่นใจว่าอีกไม่กี่ปีจะสร้าง AI ระดับมนุษย์ได้ และช่วงที่นักวิจัยปกปิดว่าทำงานด้าน AI เพราะอายและหางานยาก.
+
+ภาพรวมที่ควรจำคือประวัติศาสตร์ AI แบ่งได้คร่าว ๆ เป็น 4 ยุค:
+
+**ยุคที่ 1 — Symbolic AI (1950s-1980s):** เชื่อว่าความฉลาด = การจัดการสัญลักษณ์ตามกฎตรรกะ (logic). นักวิจัยเขียนกฎและความรู้ลงในโปรแกรมตรง ๆ. ได้ผลกับโลกของเล่น (toy domain) แต่พังเมื่อเจอโลกจริงที่ไม่มีกฎตายตัว.
+
+**ยุคที่ 2 — Classical Machine Learning (1990s-2000s):** เปลี่ยนแนวคิดเป็น "ให้โมเดลเรียนรู้จากข้อมูล" แทนการเขียนกฎเอง. ใช้สถิติเป็นหลัก (SVM, decision tree, random forest). IBM Deep Blue ชนะ Garry Kasparov ปี 1997 อยู่ในยุคนี้.
+
+**ยุคที่ 3 — Deep Learning (2012-2017):** Neural network ที่ลึกขึ้นพร้อมกับ GPU ที่แรงขึ้นและ data ที่มากขึ้น เปลี่ยนวงการ computer vision และ NLP. จุดเริ่มต้นคือ AlexNet ในปี 2012 .
+
+**ยุคที่ 4 — LLM และ generative AI (2017-ปัจจุบัน):** Transformer architecture (2017)  เปิดทางให้ scale ขนาดโมเดลขึ้นได้แบบที่ไม่เคยทำได้มาก่อน. ผลคือ GPT, BERT, Claude, Gemini — โมเดลที่ใช้ภาษาธรรมชาติได้คล่อง.
+
+ระหว่างยุคที่ 1 ไป 2 และยุคที่ 2 ไป 3 มี **AI winter** สองครั้ง — ช่วงที่ funding หาย ความคาดหวังสูงเกินไป และความก้าวหน้าหยุดชะงัก. รายละเอียดอยู่ใน section ถัดไป.
+
+### Mental model
+นึกถึงประวัติศาสตร์ AI เป็น **คลื่น** ไม่ใช่ **เส้นตรง**. แต่ละครั้งที่คลื่นขึ้น มันขึ้นจากการที่ปัจจัยสามอย่าง — **algorithms (วิธีคิด), data (ข้อมูล), compute (พลังคำนวณ)** — เรียงตัวพอดี. ทุกครั้งที่คลื่นลง ก็เป็นเพราะอย่างน้อยหนึ่งในสามอย่างขาดไป.
+
+**ผลตามมาที่สำคัญ:**
+1. ยุค LLM ปัจจุบัน (2022+) ไม่ได้เกิดจาก breakthrough ทางทฤษฎีเพียงอย่างเดียว — transformer paper ออกมาตั้งแต่ 2017 — แต่เกิดจากการที่ทั้งสามปัจจัยพร้อมกันในเวลาเดียวกัน
+2. แนวคิดบางอย่างที่ใช้ในปัจจุบัน (เช่น neural network, backpropagation) ถูกคิดมาตั้งแต่ 1980s แล้ว — แต่ตอนนั้น compute และ data ยังไม่พอ
+3. ประวัติศาสตร์ AI ไม่ใช่ประวัติของ "ความฉลาดของเครื่อง" อย่างเดียว แต่เป็นประวัติของ **hardware, อินเทอร์เน็ต, และทุน** ด้วย
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 1950-1956: กำเนิด
+
+ก่อนปี 1956 ยังไม่มีคำว่า "AI". จุดเริ่มอย่างเป็นทางการมี 2 เหตุการณ์สำคัญ:
+
+**Turing test (1950):** Alan Turing เสนอใน paper *"Computing Machinery and Intelligence"* ว่า แทนการถามว่า "เครื่องคิดได้ไหม" (ซึ่งนิยามไม่ชัด) ให้ถามว่า "เครื่องเลียนแบบมนุษย์ในการสนทนาจนคนแยกไม่ออกได้ไหม". นี่คือ operational definition แรกของความฉลาดของเครื่อง.
+
+**Dartmouth Workshop (1956):** John McCarthy, Marvin Minsky, Claude Shannon, Nathaniel Rochester จัดประชุมที่ Dartmouth College ฤดูร้อน 1956. ในข้อเสนอประชุม McCarthy บัญญัติคำว่า **"artificial intelligence"** เป็นครั้งแรก. ผู้จัดเชื่อว่า "นักวิจัยกลุ่มเล็ก ๆ ที่ทำงานร่วมกันหนึ่งฤดูร้อนน่าจะแก้ปัญหาสำคัญของ AI ได้ไปไกล" — ซึ่งกลายเป็นความหวังเกินจริงที่จะตามรังหลายทศวรรษ.
+
+### 2.2 1956-1974: Golden years (Symbolic AI)
+
+ยุคนี้มีความเชื่อพื้นฐานว่าความฉลาด = การจัดการสัญลักษณ์ตามกฎตรรกะ — เรียกว่า **symbolic AI** หรือ **GOFAI (Good Old-Fashioned AI)**. โปรแกรมที่โดดเด่นในยุคนี้:
+- **Logic Theorist (1956)** และ **General Problem Solver (1959)** ของ Newell & Simon — พิสูจน์ทฤษฎีบทคณิตศาสตร์
+- **ELIZA (1966)** ของ Joseph Weizenbaum — chatbot จิตวิทยาตัวแรกที่เลียนแบบจิตแพทย์ Rogerian โดยใช้ pattern matching ง่าย ๆ
+- **SHRDLU (1970)** ของ Terry Winograd — เข้าใจคำสั่งภาษาอังกฤษในโลกของบล็อกรูปทรงเรขาคณิต
+
+ขนานกันมี **perceptron** (1958) ของ Frank Rosenblatt — neural network แบบชั้นเดียวรุ่นแรก ที่หลายคนตอนนั้นเชื่อว่าจะนำไปสู่ machine ที่เรียนรู้ได้เอง. แต่ปี 1969 Minsky & Papert ตีพิมพ์หนังสือ *"Perceptrons"* ที่พิสูจน์ว่า perceptron ชั้นเดียวแก้ปัญหา XOR ไม่ได้ — ผลคือ funding ด้าน neural network แห้งเหือดไปเกือบ 20 ปี.
+
+### 2.3 1974-1980: AI Winter ครั้งแรก
+
+**Lighthill Report (1973)** ของรัฐบาลอังกฤษ และการตัดงบของ DARPA เป็นจุดเริ่มต้น. ปัญหาหลัก:
+- โปรแกรม symbolic AI ทำได้ดีในโลกของเล่น แต่ **combinatorial explosion** ทำให้พังเมื่อขยายไปสู่โลกจริง
+- ความรู้ทั่วไป (common-sense knowledge) เขียนเป็นกฎตายตัวไม่ได้
+- Hardware ตอนนั้นจำกัดมาก
+
+### 2.4 1980-1987: Expert systems boom
+
+ยุคนี้กลับมาด้วยแนวคิด **expert system** — โปรแกรมที่บรรจุความรู้ของผู้เชี่ยวชาญในรูป "if-then rules" สำหรับ domain เฉพาะ. ตัวอย่าง:
+- **MYCIN** — วินิจฉัยการติดเชื้อในเลือด
+- **XCON** ของ Digital Equipment Corporation — กำหนดค่า computer ตามคำสั่งซื้อ ประหยัดให้บริษัทปีละ ~$40M
+
+ตลาด expert system โตเป็นอุตสาหกรรม $1B+ ในปลาย 1980s. ญี่ปุ่นเปิดตัว Fifth Generation Computer Project ลงทุน $850M.
+
+### 2.5 1987-1993: AI Winter ครั้งที่สอง
+
+Expert system พังเพราะ:
+- **Brittleness** — กฎที่เขียนไว้ตายตัว เมื่อเจอ case ที่อยู่นอกกฎก็พังทันที
+- **Knowledge acquisition bottleneck** — การดึงความรู้จากผู้เชี่ยวชาญมาเขียนเป็นกฎ ใช้เวลาและคนมหาศาล
+- **Maintenance cost** — กฎหลายพันข้อ update ลำบาก
+- **Hardware รุ่นใหม่** (workstation ทั่วไป) ทำงานได้ดีกว่า LISP machine เฉพาะทาง บริษัทผลิต LISP machine ล้มทันที
+
+นักวิจัยจำนวนมากเปลี่ยนชื่อสาขาตัวเองเป็น "informatics", "machine learning", "computational intelligence" เพื่อหลีกเลี่ยงคำว่า AI ที่กลายเป็นคำต้องห้าม.
+
+### 2.6 1990s-2000s: ML resurgence (statistical learning)
+
+วงการกลับมาแบบเงียบ ๆ ด้วยแนวคิดต่างจากเดิม — แทนการเขียนกฎ ให้โมเดลเรียนรู้จาก data ด้วยสถิติ. เทคนิคที่โดดเด่น:
+- **Support Vector Machine (SVM)** — Vapnik 1990s
+- **Random forests, gradient boosting**
+- **Hidden Markov Models** สำหรับ speech recognition
+- **Bayesian networks** สำหรับ probabilistic reasoning
+
+จุดเด่นของยุคนี้:
+- **1997: IBM Deep Blue ชนะ Garry Kasparov** ในหมากรุก — ใช้ brute-force search + heuristic ไม่ใช่ ML สมัยใหม่ แต่เป็นจุดที่สื่อมวลชนกลับมาสนใจ AI
+- **Web ทำให้ data มหาศาลเข้าถึงได้** — เป็นครั้งแรกที่นักวิจัยมีข้อมูลจริงระดับ TB ให้เรียนรู้
+- **Google Search (1998)** — แสดงว่า statistical approach ขนาดใหญ่ใช้ได้จริงกับปัญหาจริง
+
+### 2.7 2006-2012: Deep learning เริ่มก่อตัว
+
+ปี 2006 Geoffrey Hinton ตีพิมพ์ paper เรื่อง **deep belief networks** ที่แสดงว่า neural network หลายชั้นที่ฝึกได้จริงเป็นไปได้. ก่อนหน้านี้ neural network ลึก ๆ ฝึกไม่ได้เพราะ **vanishing gradient** และ data/compute ไม่พอ.
+
+ปัจจัยสามอย่างที่เปลี่ยน:
+1. **Algorithms** — better initialization, ReLU activation, dropout
+2. **Data** — **ImageNet** (Fei-Fei Li, 2009) สร้าง dataset 14M รูป จัด label โดยมนุษย์
+3. **Compute** — GPU จาก NVIDIA (เดิมทำสำหรับเกม) เร็วกว่า CPU 10-100 เท่าสำหรับ matrix operation
+
+จุดเปลี่ยนคือปี **2012: AlexNet**  — Krizhevsky, Sutskever, Hinton ใช้ deep CNN ชนะการแข่ง ImageNet ด้วย margin ห่างคู่แข่งถึง 10 percentage point. นั่นคือวันที่วงการ computer vision ทั้งหมดเปลี่ยนทิศมาทาง deep learning ภายในไม่กี่เดือน.
+
+### 2.8 2012-2017: ยุค Deep Learning
+
+หลัง AlexNet สาขาต่าง ๆ ของ AI ก็ถูก deep learning เข้าครอบครองอย่างรวดเร็ว:
+- **CNN (Convolutional Neural Network)** — ครองงาน vision
+- **RNN/LSTM** — งาน sequence: speech, translation
+- **2014: GAN (Generative Adversarial Networks)** — Goodfellow — โมเดลสร้างรูป
+- **2016: Google Translate เปลี่ยนเป็น NMT (Neural Machine Translation)** — quality กระโดดข้ามคืน
+- **2016: AlphaGo ชนะ Lee Sedol** ที่หมากล้อม — ใช้ deep RL + Monte Carlo tree search. หมากล้อมเคยถูกมองว่ายากเกินที่ AI จะชนะมนุษย์ในอีก 10 ปี
+
+### 2.9 2017-2020: Transformer revolution
+
+ปี **2017** Vaswani et al. (Google) ตีพิมพ์ paper *"Attention Is All You Need"* . Transformer architecture มีจุดเด่นสำคัญสองข้อ:
+- **Parallelizable** — train ได้บน GPU/TPU จำนวนมากพร้อมกัน ต่างจาก RNN ที่ต้อง process ตามลำดับ
+- **Scale ได้ดี** — ยิ่งใหญ่ ยิ่งดี ในแบบที่ architecture ก่อนหน้านี้ทำไม่ได้
+
+ผลตามมาภายใน 3 ปี:
+- **2018: BERT**  (Google) — bidirectional transformer สำหรับ understanding ตั้งมาตรฐานใหม่ใน NLP benchmark ส่วนใหญ่
+- **2018-2019: GPT-1 และ GPT-2** (OpenAI) — pretrain บน text จำนวนมาก แล้ว fine-tune. OpenAI ไม่ปล่อย GPT-2 ตัวใหญ่ทันทีเพราะกังวลเรื่อง misuse
+- **2020: GPT-3**  — 175B parameters, แสดงให้เห็น **in-context learning** ที่ scale อย่างเดียวก็สร้างความสามารถใหม่ ๆ ขึ้นได้
+
+### 2.10 2020-2022: ยุคก่อน ChatGPT
+
+ช่วงนี้เป็นช่วงที่ในวงการวิจัยรู้แล้วว่า scale = พลัง แต่สาธารณชนยังไม่รู้:
+- **2020: Scaling laws**  (Kaplan et al.) — ความสัมพันธ์ระหว่าง compute, data, parameters กับ performance ทำนายได้แบบ power law
+- **2022: Chinchilla**  (DeepMind) — ปรับ scaling laws ของ Kaplan: ที่ compute budget เท่ากัน โมเดลควรเล็กลงและ train บน data มากขึ้น
+- **2022: DALL-E 2, Stable Diffusion, Midjourney** — generative image โผล่ขึ้นพร้อม ๆ กัน
+
+### 2.11 2022-2024: ยุคสาธารณะ
+
+**30 พฤศจิกายน 2022: ChatGPT เปิดตัว.** นี่คือเหตุการณ์ที่ AI กระโดดจากวงวิจัยมาสู่สาธารณชน — ChatGPT ถึง 100M user ภายใน 2 เดือน (เร็วที่สุดในประวัติศาสตร์ผลิตภัณฑ์ consumer). ChatGPT ในทางเทคนิคเป็น GPT-3.5 + RLHF (Reinforcement Learning from Human Feedback) — ดู InstructGPT paper .
+
+หลังจากนั้น:
+- **มีนาคม 2023: GPT-4** (OpenAI) — multimodal, capability กระโดดอีกชั้น
+- **2023: Claude (Anthropic), Gemini/Bard (Google), Llama (Meta open weight)** — เกิดการแข่งขันระดับโลก
+- **2023-2024: Agent boom** — โมเดลที่เรียกใช้ tool, browse web, เขียน code, ทำงานหลาย step
+- **2024: Multimodal native** — image + audio + video ทำในโมเดลเดียวกัน
+
+### 2.12 2024-2026: Reasoning era
+
+จุดเปลี่ยนสำคัญใน 18 เดือนล่าสุด:
+- **กันยายน 2024: OpenAI o1** — โมเดลที่ใช้ **inference-time compute** (คิดยาวก่อนตอบ) เพิ่ม performance ในงาน math/code อย่างชัดเจน
+- **2025: o3, Claude 3.5/3.7 Sonnet, Gemini 2.0/2.5** — reasoning models เป็นมาตรฐาน
+- **2025-2026: Agentic systems ในระดับ production** — AI ทำงานหลายชั่วโมงต่อ task ได้ มีการใช้ใน software engineering, customer support, research
+- **2026: Regulatory frameworks เริ่มชัด** — EU AI Act, ระบบ AI Safety Institute ในหลายประเทศ
+
+### 2.13 บทเรียนสามปัจจัย: algorithms, data, compute
+
+มองย้อนทั้งหมด เห็น pattern ชัด: **AI ก้าวหน้าเมื่อทั้งสามปัจจัยเรียงตัวพอดี**.
+
+| ยุค | Algorithms | Data | Compute | ผล |
+|---|---|---|---|---|
+| 1960s | symbolic, rule-based | ขาด | ขาด | toy domains |
+| 1980s | expert systems | partial | partial | brittle, ล้ม |
+| 2000s | statistical ML, SVM | web data เกิด | ปานกลาง | ใช้ได้จริงในบาง domain |
+| 2012-2017 | deep learning, CNN/RNN | ImageNet, web-scale | GPU | vision/NLP breakthrough |
+| 2017-2022 | transformer, scaling | trillion tokens | TPU/H100 cluster | LLM ระดับใช้งานได้ |
+| 2022-2026 | RLHF, reasoning, agents | curated + synthetic | data center scale | mass adoption |
+
+AI winter ทุกครั้งเกิดจากปัจจัยอย่างน้อยหนึ่งอย่างขาด — และทุกครั้งที่ทั้งสามอย่างพร้อมพร้อมกัน วงการก็พุ่ง.
+
+---
+
+## Worked Examples
+
+### Example 1: ทำไม neural network ที่คิดในยุค 1980s ดังตอน 2012?
+
+Backpropagation ถูกตีพิมพ์ปี 1986 (Rumelhart, Hinton, Williams). ทำไมต้องรออีก 26 ปี?
+- **Algorithms:** ทฤษฎีมีตั้งแต่ 1986 แต่ practical tricks (ReLU, dropout, batch norm) ค่อย ๆ มาในยุค 2000s
+- **Data:** ImageNet (2009) เป็น dataset แรกที่ใหญ่พอให้ neural network ลึกเรียนรู้ได้โดยไม่ overfit
+- **Compute:** GPU consumer-grade ที่ทำ matrix multiplication เร็วเกิดในกลาง 2000s — AlexNet train บน 2x GTX 580 ที่ปี 2010 ราคา ~$500
+
+ถ้าขาดแม้แค่หนึ่งใน 3 — เช่น train AlexNet บน CPU ปี 2012 — ก็ใช้เวลาเป็นเดือนแทนสัปดาห์ และอาจไม่มีใครพยายาม. AlexNet เป็นตัวอย่างคลาสสิกของ "ปัจจัยทั้งสามเรียงพอดี".
+
+### Example 2: ทำไม ChatGPT ดังกว่า GPT-3 ทั้งที่โมเดลใกล้กัน?
+
+GPT-3 ปล่อย API ปี 2020 — นักพัฒนาในวงการรู้ความสามารถมัน. ChatGPT (พ.ย. 2022) ใช้ฐานเดียวกัน (GPT-3.5). ต่างกันที่:
+- **Interface** — chat UI ฟรี ใช้งานได้ทันที ไม่ต้องเขียน code เรียก API
+- **RLHF** — fine-tune ให้ตอบในแบบที่มนุษย์ชอบ (helpful, harmless, honest) ดู 
+- **Branding และ timing**
+
+บทเรียน: ความก้าวหน้าใน AI ไม่ใช่แค่เรื่อง model capability แต่ยังเป็นเรื่อง **product** และ **interface** ด้วย.
+
+### Example 3: ทำไม Symbolic AI ถึงพังกับ "ความเข้าใจภาษา"?
+
+ในยุค 1970s นักวิจัยพยายามเขียน "กฎไวยากรณ์ของภาษาอังกฤษ" ลงในโปรแกรมโดยตรง. ปัญหาที่เจอ:
+- **Ambiguity:** "I saw the man with the telescope" — กล้องอยู่ที่ใคร? กฎตายตัวบอกไม่ได้ ต้องอาศัยบริบท
+- **Common sense:** "the trophy doesn't fit in the suitcase because it's too big" — "it" หมายถึงอะไร? ต้องรู้เรื่องโลกจริง
+- **Exception จำนวนมหาศาล:** ทุกกฎมี edge case นับร้อย
+
+LLM ในปัจจุบันไม่ได้ "เข้าใจ" ในความหมายเดียวกัน แต่ pattern-match จาก text จำนวนมหาศาลที่เคยเห็น ซึ่งครอบคลุม case ที่ในยุค symbolic ต้องเขียนกฎเอง. นี่คือเหตุผลที่ statistical/neural approach กลายเป็นทางที่ใช้ได้จริง.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** AI เพิ่งเกิดในปี 2022 ตอน ChatGPT เปิดตัว
+   **ความจริง:** วงการ AI มีอายุ 70 ปี (ตั้งแต่ Dartmouth 1956). ChatGPT คือจุดที่ AI กระโดดเข้าสู่สาธารณชน แต่ความก้าวหน้าหลักทั้งหมด (deep learning, transformer, GPT-3) เกิดขึ้นก่อนหน้านั้นทั้งหมด
+
+2. **ความเข้าใจผิด:** Deep learning เป็นไอเดียใหม่
+   **ความจริง:** Neural network ถูกคิดมาตั้งแต่ 1940s (McCulloch-Pitts neuron 1943). Backpropagation ปี 1986. CNN ปี 1989 (LeCun). สิ่งที่ใหม่ในยุค 2012+ ไม่ใช่ทฤษฎี แต่คือ data + compute ที่ทำให้ทฤษฎีเดิม "ทำงานได้จริง"
+
+3. **ความเข้าใจผิด:** AI winter เกิดเพราะนักวิจัยไม่เก่งพอ
+   **ความจริง:** AI winter ทั้งสองครั้งเกิดจากการที่ความคาดหวังของผู้ให้ทุนสูงเกินกว่าที่ปัจจัยพื้นฐาน (data, compute) ตอนนั้นจะรองรับได้ ไม่ใช่ความล้มเหลวของนักวิจัย. นี่เป็นบทเรียนสำคัญ — ปัจจุบันก็มีคนเตือนเรื่อง "AI winter ครั้งที่ 3" ถ้าความคาดหวังเกินจริงอีกครั้ง
+
+4. **ความเข้าใจผิด:** Transformer เป็นเทคนิคที่ออกแบบมาเฉพาะสำหรับ LLM
+   **ความจริง:** Paper *"Attention Is All You Need"* (2017) ตั้งใจแก้ปัญหา machine translation. การพบว่า transformer scale ขึ้นกลายเป็น LLM ได้เป็นการค้นพบในภายหลัง — ไม่ใช่จุดมุ่งหมายดั้งเดิม
+
+5. **ความเข้าใจผิด:** GPT-3 → GPT-4 → GPT-5 เป็น linear progression ที่จะนำไปสู่ AGI แน่นอน
+   **ความจริง:** ประวัติศาสตร์ AI สอนว่าทุก paradigm มี ceiling. Symbolic AI scale ไม่ได้ก่อนถึง human-level. ยังไม่มีหลักฐานว่า scaling ของ transformer จะหรือจะไม่ชน ceiling — Chinchilla  และงานต่อ ๆ มาแสดงว่า scaling ในมิติเดียวให้ผลลดลง
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** คำว่า "Artificial Intelligence" ถูกบัญญัติขึ้นที่ไหนและปีไหน?
+2. **(Recall)** AI winter เกิดขึ้นกี่ครั้งในประวัติศาสตร์ และในยุคไหนบ้าง?
+3. **(Explain)** อธิบายให้เพื่อนที่ไม่ใช่ technical ฟังเข้าใจ ว่าทำไมปี 2012 (AlexNet) ถึงเป็นจุดเปลี่ยนของวงการ AI
+4. **(Explain)** ทำไม transformer (2017) ถึงสำคัญกว่า architecture ก่อนหน้า (RNN, LSTM)?
+5. **(Apply)** ถ้ามีคนถามว่า "ทำไมไม่มีใครสร้าง LLM ได้ในปี 1990 — ตอนนั้นมี neural network แล้วนี่?" คุณจะตอบยังไง โดยอ้างกรอบ "algorithms + data + compute"?
+6. **(Synthesize)** เปรียบเทียบยุค expert system (1980s) กับยุค LLM (2020s) — เหมือนและต่างกันยังไง ในเรื่องความคาดหวัง, ความเปราะบาง (brittleness), และทรัพยากรที่ใช้?
+
+---
+
+</section>

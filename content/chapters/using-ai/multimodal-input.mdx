@@ -1,0 +1,200 @@
+---
+slug: multimodal-input
+level: using-ai
+title: "Multimodal Input — ใช้รูป เสียง PDF และวิดีโอเป็น input"
+status: reviewed
+prerequisites:
+  - what-is-an-llm
+  - how-llms-respond
+last_reviewed: 2026-05-18
+tldr: "Multimodal input หมายถึงโมเดล AI เดียวที่รับ input ได้หลายชนิด — text, image, audio, PDF, และบางครั้ง video — โดยปฏิบัติทุกชนิดเป็น **input เดียวกัน** ที่ผ่านเข้าโมเดล. ในปี 2026 frontier model เกือบทั้งหมด (GPT-4o, Claude, Gemini) เป็น natively multimodal โดย default. ส่วนสำคัญสำหรับผู้ใช้คือ **รู้ว่า input แต่ละชนิดทำอะไรได้ดี ทำอะไรพลาด** และเขียน prompt ให้ระบุได้ว่าต้องการให้โมเดลทำอะไรกับ input เหล่านั้น."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Multimodal input หมายถึงโมเดล AI เดียวที่รับ input ได้หลายชนิด — text, image, audio, PDF, และบางครั้ง video — โดยปฏิบัติทุกชนิดเป็น **input เดียวกัน** ที่ผ่านเข้าโมเดล. ในปี 2026 frontier model เกือบทั้งหมด (GPT-4o, Claude, Gemini) เป็น natively multimodal โดย default. ส่วนสำคัญสำหรับผู้ใช้คือ **รู้ว่า input แต่ละชนิดทำอะไรได้ดี ทำอะไรพลาด** และเขียน prompt ให้ระบุได้ว่าต้องการให้โมเดลทำอะไรกับ input เหล่านั้น.
+
+**Multimodal** หมายถึง "หลายช่องทาง" — ในบริบท AI หมายถึงโมเดลตัวเดียวรับ input ได้มากกว่า text. ผู้ใช้สามารถลากรูป, แนบ PDF, อัด audio, หรือบางครั้งใส่ video เข้า chat ได้โดยตรง โดยไม่ต้องผ่านขั้นตอน transcribe / OCR แยกก่อน. ภายในโมเดลจัดการให้.
+
+ก่อนปี 2023 ส่วนใหญ่เป็น text-only — ถ้าจะให้ AI อ่านรูป ต้องใช้ OCR (Optical Character Recognition) แยก แล้วเอา text ที่ได้ส่งเข้า LLM อีกที. ตั้งแต่ GPT-4V (2023), Gemini 1.0 (2023), และ Claude 3 (2024) เป็นต้นมา โมเดลรุ่นใหม่ทุกตัวออกแบบให้ "เห็น" รูปและ "ได้ยิน" เสียงได้ตั้งแต่ตอน pretraining. ปี 2026 multimodal คือ default — ถ้าโมเดลไหนยังเป็น text-only ถือว่าเป็น exception ไม่ใช่ norm.
+
+ในมุมผู้ใช้ ผลที่ตามมา 3 ข้อ:
+1. **Workflow ง่ายขึ้น** — ถ่ายรูปแผงควบคุมเครื่องซักผ้าแล้วถามได้ทันที โดยไม่ต้องพิมพ์อธิบาย
+2. **ขอบเขตงานกว้างขึ้น** — analyze chart, อ่านลายมือ, สรุปประชุมจาก audio ทำได้ใน app เดียว
+3. **ข้อจำกัดใหม่เกิดขึ้น** — รูปขนาดใหญ่กิน context มาก, audio ยาวมีค่าใช้จ่ายสูง, รูปอาจมีข้อมูลที่ผู้ใช้ไม่ตั้งใจส่ง (ใบหน้า, location จาก EXIF)
+
+### Mental model
+นึกถึง multimodal model เหมือน **ผู้ช่วยที่ "อ่าน" รูป "ฟัง" เสียงได้ในระดับหนึ่ง**. แต่ระดับนั้นไม่เท่ามนุษย์ในทุกมิติ:
+- **ระดับเข้าใจเนื้อหารวม:** ดีมาก — บอกได้ว่ารูปอะไร, audio พูดเรื่องอะไร
+- **ระดับรายละเอียดละเอียดอ่อน:** อ่อน — นับวัตถุในรูปไม่แม่น, อ่านลายมือยาก ๆ ไม่ได้, จำเสียงคนแต่ละคนใน meeting ไม่ค่อยได้
+- **ระดับ spatial และ temporal:** จำกัด — "อะไรอยู่ทางซ้ายของอะไร" ตอบได้ระดับหนึ่ง, "เหตุการณ์ใน video เกิดลำดับไหน" ยังเป็นจุดอ่อน
+
+ภายใต้ฝา input ที่ไม่ใช่ text จะถูกแปลงเป็นชุดของ token ภายใน (visual token / audio token) ที่ใช้ vocabulary เดียวกับ text — โมเดลจึงสามารถ "เห็น" text และรูปเป็น input เดียวกันได้.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 ทำไม multimodal ทำงานได้ — intuition
+
+หลักการคือ: ทุก modality (text, image, audio) ถูก **encode เป็น vector ใน embedding space เดียวกัน**. แนวคิดนี้ปรากฏชัดในงาน CLIP (Radford et al., 2021) ที่ฝึก image encoder กับ text encoder ให้ produce embedding ใกล้กันเมื่อรูปกับ caption เกี่ยวข้องกัน . ในโมเดล multimodal สมัยใหม่ extend หลักการนี้ — รูป (และ audio) ถูกแปลงเป็น "visual token" ที่ inject เข้า context ของ LLM เหมือนเป็น text token พิเศษ.
+
+ผลคือผู้ใช้สามารถผสม text กับ image ใน prompt เดียวได้โดยตรง:
+```
+[รูป chart ยอดขาย Q4] สรุปแนวโน้มยอดขายและบอกว่าเดือนไหนสูงสุด
+```
+โมเดลเห็นทั้งรูปและ text เป็น sequence เดียวที่ต้อง generate response ต่อจาก.
+
+รายละเอียด architecture (vision encoder, projection layer, vision-language alignment) อยู่ใน [vision-language-models](/advanced/vision-language-models) ที่ Level 4. ใน Level 2 เพียงพอที่จะรู้ว่า: รูปและเสียงไม่ใช่ "input พิเศษ" ในมุมโมเดล — ทุกอย่างคือ token ในที่สุด.
+
+### 2.2 Image input — งานที่ทำได้ดี
+
+จากการใช้งานจริงในปี 2025-2026 (จาก personal experience ของผู้เขียน):
+
+- **Describe / caption รูป** — โมเดลบอกได้ว่ารูปคืออะไร มีอะไรอยู่ในรูป สื่ออารมณ์อะไร ระดับแม่นยำสูง
+- **OCR / อ่าน text จากรูป** — ถ่ายป้าย, screenshot, ใบเสร็จ, แล้วให้โมเดลอ่าน text ออกมา. ระดับแม่นยำมักดีกว่า OCR แบบดั้งเดิมในกรณี layout ซับซ้อน เพราะโมเดลใช้ context รอบ ๆ ช่วยตีความ
+- **Diagram / chart interpretation** — รูป flowchart, architecture diagram, bar chart, line chart — โมเดลสรุปได้ว่าแต่ละส่วนคืออะไร และดึง insight ได้ระดับหนึ่ง
+- **UI screenshot → code** — ถ่าย screenshot ของ design แล้วขอ HTML/CSS หรือ React component. ผลออกมาเป็น scaffolding ที่ใช้งานได้แม้ไม่ pixel-perfect
+- **Visual reasoning เชิงเปรียบเทียบ** — "design ไหนสมดุลกว่ากัน", "รูปไหนน่าจะถ่ายในร่ม", "อะไรที่ดูแปลกในรูปนี้" — งานที่ใช้ judgment กว้าง ๆ ทำได้พอควร
+- **Document understanding** — ใบเสร็จ, invoice, ID card layout — ดึง field ออกมาเป็น JSON ได้
+
+### 2.3 Image input — ข้อจำกัดที่ต้องรู้
+
+- **Fine spatial reasoning อ่อน** — การนับวัตถุที่มีจำนวนมาก ("ในรูปมีคนกี่คน") เริ่มผิดเมื่อเกิน 5-10 ชิ้น. ตำแหน่งเชิงพิกัดเป๊ะ ๆ ("วัตถุ A อยู่ห่างจากขอบกี่ pixel") ไม่ได้
+- **Small text / low resolution** — text ขนาดเล็กมาก หรือรูปที่ถ่ายเบลอ จะอ่านไม่ออก หรืออ่านผิดแบบมั่นใจ
+- **ลายมือซับซ้อน** — ลายมือชัดอ่านได้ ลายมือสะเปะสะปะอ่านผิดบ่อย
+- **รูปที่มี text หลายภาษาผสมกัน** — โมเดลบางตัวอ่านภาษาไทยในรูปได้ค่อนข้างดีในปี 2026 แต่ยังอ่อนกว่า text ภาษาอังกฤษอย่างเห็นได้
+- **Generate รูปเทียบกับ describe รูป — ไม่เหมือนกัน** — โมเดลบางตัว (เช่น Claude ในช่วงต้นปี 2026) "เห็น" รูปได้แต่ไม่ generate รูป. ส่วน DALL-E, Imagen, Midjourney เป็น image generator คนละกลุ่ม. โมเดล omni เช่น GPT-4o เริ่มทำได้ทั้งสองทางในตัวเดียว ผู้ใช้ต้องแยกให้ชัดว่ากำลังถามอะไร
+
+### 2.4 PDF / document input
+
+PDF เป็น modality กึ่งกลาง — โดยภายในมักประกอบด้วย text layer (จาก source) และ image layer (สำหรับ scan). app chat สมัยใหม่ส่วนใหญ่รับ PDF โดยตรง โดย pipeline ภายในแบ่งเป็น:
+
+1. **ดึง text จาก text layer** — ใช้ได้ดีถ้า PDF มาจาก export โปรแกรม (Word, Google Docs)
+2. **ใช้ vision เห็นหน้า PDF เป็นรูป** — สำหรับ scan, ตาราง, รูปกราฟิก ที่ text layer ไม่ครอบคลุม
+3. **ส่งทั้งหมดเข้า context window ของโมเดล**
+
+ข้อสังเกตเชิงปฏิบัติ:
+
+- **PDF ยาวกินบริบทเร็ว** — paper วิจัย 30 หน้า ≈ 20,000-40,000 token. context window 200K token รับได้ราว 5-7 ไฟล์เท่านั้น ดูรายละเอียดที่ [context-windows](/using-ai/context-windows)
+- **ตาราง: text extraction มัก "ทับ" structure** — ตารางที่ดูสะอาดใน PDF กลายเป็น text ที่ column ปนกัน. ถ้าตารางสำคัญ ใช้ vision mode (โมเดลเห็นเป็นรูป) ผลมักดีกว่า
+- **รูปและ figure ใน PDF** — โมเดลที่ multimodal เห็นได้ตรง ๆ; โมเดลที่ใช้ text-only pipeline จะ skip
+- **Workflow practical สำหรับเอกสารใหญ่:** split เป็น chunk → สรุปแต่ละ chunk → query ที่ summary แทนการอัด file ทั้งก้อน. หรือใช้ retrieval-augmented setup (ดู [retrieval-augmented-generation](/building-with-ai/retrieval-augmented-generation) ใน Level 3)
+
+### 2.5 Audio input
+
+Audio มี 2 ระดับการใช้งานที่ต้องแยกให้ชัด:
+
+**(ก) Speech-to-Text (transcription)**
+- โมเดลแปลงเสียงพูดเป็น text. ตัวอย่าง: Whisper (OpenAI), Gemini live audio, GPT-4o voice mode
+- คุณภาพการ transcribe ภาษาไทยดีขึ้นปีต่อปี — ปี 2026 ถือว่าใช้งานได้ในระดับมืออาชีพในสภาพแวดล้อมเสียงสะอาด
+- เสียงที่มี background noise สูง, accent หนัก, หรือ jargon เฉพาะวงการ — error rate สูงขึ้น
+
+**(ข) Audio understanding (semantic-level)**
+- โมเดลตอบคำถามเกี่ยวกับ audio ได้โดยไม่ต้อง transcribe ก่อน — "speaker คนนี้รู้สึกอย่างไร", "ในไฟล์นี้มีคนพูดกี่คน", "เสียงพื้นหลังเป็นอะไร"
+- ระดับนี้ใหม่กว่าและคุณภาพยังหลากหลายระหว่าง provider
+- ทำงานได้ดีในงานสรุปประชุม, สรุป podcast, วิเคราะห์ tone ของ customer call
+
+ความสำคัญของการแยก: ถ้าต้องการแค่ transcript "ตามคำพูด" → ใช้ speech-to-text model ที่ optimize เฉพาะ (Whisper) จะถูกกว่า. ถ้าต้องการเข้าใจ semantic ลึก → ใช้ multimodal frontier model แต่ค่าใช้จ่ายสูงกว่า.
+
+### 2.6 Video input
+
+Video เป็น modality ที่ใหม่ที่สุดและมีข้อจำกัดมากที่สุด:
+
+- **Frame sampling under the hood** — โมเดลไม่ได้ "ดู" ทุก frame. ระบบสุ่มหรือเลือก N frame (ส่วนใหญ่ 1-2 fps) มาเป็น input. video 1 นาทีอาจกลายเป็น 60-120 frame ที่โมเดลเห็นจริง
+- **Temporal reasoning ยังอ่อน** — ตอบ "เกิดอะไรขึ้นก่อน-หลัง" ได้ในระดับใหญ่ ๆ แต่ลำดับละเอียดในวินาทียังไม่แม่น
+- **Audio track มักถูกประมวลแยก** — บาง provider รวม audio กับ visual frame, บางตัวไม่. ถ้าสนใจคำพูดใน video อาจต้อง transcribe แยกเสริม
+- **Gemini เป็น early leader** ในด้าน video input ด้วย context window ใหญ่ที่รองรับ video หลายชั่วโมง — provider อื่นกำลังตามมา
+
+ใช้งานจริงปี 2026: เหมาะกับสรุปคลิป tutorial สั้น, อธิบายเหตุการณ์ใน security footage ระดับกว้าง, สกัด key moment. ไม่เหมาะกับงานที่ต้อง precise timestamping หรืออ้างอิง frame ที่แน่นอน.
+
+### 2.7 เขียน prompt multimodal ที่ดี
+
+หลักการเดียวกับ prompt text แต่เพิ่มมิติการอ้างถึง input:
+
+- **ระบุชัดว่าต้องการอะไรกับ input** — แทน "ดูรูปนี้สิ" ให้ใช้ "อธิบาย chart ในรูปนี้ และบอกว่าเดือนไหนยอดสูงสุด"
+- **อ้างถึงส่วนเฉพาะของรูป/เอกสาร** — "ในตารางหน้า 3", "ที่มุมขวาบนของรูป", "ในกราฟแท่งสีแดง" — โมเดลจัดการ reference เชิงพื้นที่/หน้าได้ดีพอสมควร
+- **ระบุ output format** — "ตอบเป็น JSON ตามนี้...", "ให้ผลเป็น bullet list สั้น" — สำคัญพอ ๆ กับ prompt text ปกติ
+- **ถ้ามีหลาย input ระบุการเชื่อมโยง** — "เปรียบเทียบ design A (รูปแรก) กับ design B (รูปที่สอง) ในด้าน balance"
+- **บอกบริบทถ้าจำเป็น** — "นี่คือ screenshot จากแอปธนาคารไทย ช่วยอ่านยอดเงิน" — ช่วยลด ambiguity
+
+### 2.8 Privacy และ cost — ข้อพิจารณาเชิงปฏิบัติ
+
+**Privacy:**
+- รูปที่อัปโหลดมักมี **ข้อมูลที่ผู้ใช้ไม่ตั้งใจส่ง** — ใบหน้าคนอื่น, ป้ายทะเบียนรถ, GPS coordinates ใน EXIF metadata, เอกสารลับในพื้นหลัง
+- เอกสาร PDF อาจมี watermark, comment, metadata ของผู้เขียน
+- Audio มี voice biometric ที่ระบุตัวตนได้
+- รายละเอียดเชิงนโยบายและการป้องกันที่ [privacy-and-data-handling](/using-ai/privacy-and-data-handling) และ ethics ทั่วไปที่ [responsible-use](/using-ai/responsible-use)
+
+**Cost:**
+- รูป 1 รูปกินประมาณ 250-1,500 token แล้วแต่ resolution (ปี 2026)
+- PDF 1 หน้า ≈ 500-2,000 token รวม text + visual
+- Audio 1 นาที ≈ 600-1,500 token (input) สำหรับ frontier model
+- ผลกระทบใน production: feature ที่รับรูปจากผู้ใช้สามารถมีต้นทุน 10-50 เท่าของ feature text-only ที่งานคล้ายกัน — ออกแบบให้ระวัง
+
+---
+
+## Worked Examples
+
+### Example 1: อ่าน screenshot ใบเสร็จ
+**Input:** รูปใบเสร็จร้านอาหาร + prompt "ดึงรายการอาหาร ราคา และยอดรวม ออกเป็น JSON"
+
+โมเดลจะ:
+1. รับรูปเป็น visual token
+2. ทำ implicit OCR + structure recognition (เห็นว่าเป็นใบเสร็จ มี column รายการ-ราคา)
+3. Generate JSON ตาม schema ที่ขอ
+
+ผลที่คาดได้: แม่นยำสูงสำหรับใบเสร็จที่ printed สะอาด; รายการลายมือ หรือใบเสร็จเบลอ อาจตกหล่นหรือเดาผิด. ควร review ก่อนใช้กับข้อมูลที่ถูกต้องต้องเป๊ะ เช่น accounting.
+
+### Example 2: สรุปประชุมจาก audio file
+**Input:** ไฟล์เสียงประชุม 45 นาที + prompt "สรุปประเด็นหลัก, action items, และคนรับผิดชอบ"
+
+ภายใต้ฝา: provider อาจ transcribe เป็น text ก่อนแล้วส่งเข้า LLM, หรือใช้ audio-native model. ทั้งสองวิธี output คล้ายกันสำหรับงานสรุป.
+
+ข้อควรระวัง: 45 นาที audio ≈ 30,000-60,000 token. context window ตัวเล็กอาจรับไม่หมด. ถ้าโมเดลพูดถึงแค่ครึ่งแรกของประชุม เป็น signal ว่าเกิด truncation ดูรายละเอียดที่ [context-windows](/using-ai/context-windows).
+
+### Example 3: เปรียบเทียบ design 2 รูป
+**Input:** รูป design A + รูป design B + prompt "เปรียบเทียบในด้าน visual hierarchy, color balance, และความเหมาะกับการใช้งานบนมือถือ. ตอบเป็นตารางสั้น"
+
+โมเดลจะอ้างถึงทั้งสองรูปได้พร้อมกัน, ระบุความแตกต่างเชิง subjective อย่างมีโครงสร้าง. นี่คือจุดแข็งของ multimodal — งานที่ในอดีตต้อง designer พิจารณาเอง ตอนนี้ได้ความเห็นเบื้องต้นในวินาที. ผลยังต้อง designer ตัดสินใจสุดท้าย เพราะโมเดลขาด context เรื่อง brand และ user.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** Multimodal model "เห็น" รูปเหมือนคนเห็น
+   **ความจริง:** โมเดลแปลงรูปเป็น visual token ที่เป็น compressed representation. รายละเอียดบาง pixel หาย, fine spatial precision ต่ำกว่ามนุษย์, แต่ semantic-level understanding ใกล้เคียงคน. การคาดหวังว่าโมเดล "เห็น" เท่าคนจะทำให้คาดหวังผิดในงานที่ต้องการความละเอียด
+
+2. **ความเข้าใจผิด:** ใส่ PDF ยาวเข้าไปแล้วโมเดลจะอ่านทั้งหมด
+   **ความจริง:** PDF กิน token เร็วและถูก truncate ถ้าเกิน context window. นอกจากนี้ พฤติกรรม "lost in the middle" — โมเดลให้ความสนใจตอนต้นและตอนท้ายของ context มากกว่าตรงกลาง — ก็ใช้กับ PDF ที่ยาวเช่นกัน ดู [context-windows](/using-ai/context-windows)
+
+3. **ความเข้าใจผิด:** Multimodal model generate รูปได้ทุกตัว
+   **ความจริง:** "เห็น" รูปกับ "สร้าง" รูปเป็นความสามารถคนละชุด. โมเดลหลายตัวอ่านรูปได้แต่ไม่สร้างรูป (เช่น Claude ในช่วงต้นปี 2026 เน้น vision input อย่างเดียว). โมเดล omni เช่น GPT-4o รวมทั้งสองด้านในตัวเดียว ส่วน DALL-E, Imagen เป็น image generator แยกที่ไม่ได้รับ text input แบบ conversation
+
+4. **ความเข้าใจผิด:** Audio input คือ speech-to-text เท่านั้น
+   **ความจริง:** โมเดล multimodal สมัยใหม่เข้าใจ semantic ของ audio (mood, speaker count, sound event) ได้โดยไม่ผ่าน transcription. นี่เป็นความสามารถใหม่ที่ต่างจาก Whisper ที่ทำ transcription อย่างเดียว
+
+5. **ความเข้าใจผิด:** Multimodal "ฟรี" — แค่อัปโหลดเพิ่ม
+   **ความจริง:** Image และ audio กิน token มากกว่า text ที่ "เทียบเท่า" หลายเท่า. ใน production การออกแบบ feature multimodal ต้องคิด cost economics. รูป HD ขนาดใหญ่ที่ user อัปโหลดสะสม สามารถเป็นต้นทุนหลักของ product ได้
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** ระบุ modality หลัก 4 ชนิดที่ frontier model ในปี 2026 รองรับเป็น input
+2. **(Explain)** ทำไมโมเดลตัวเดียวจึงรับ text กับ image พร้อมกันได้ — อธิบายในย่อหน้าเดียวระดับ intuition โดยใช้คำว่า "token" และ "embedding"
+3. **(Apply)** มี 2 งาน: (ก) "ดึง field จากใบเสร็จ printed ออกเป็น JSON" และ (ข) "นับจำนวนเหรียญในรูปกองเหรียญ 40 เหรียญ". งานไหน multimodal model น่าจะทำได้แม่น งานไหนเสี่ยง และเพราะอะไร?
+4. **(Apply)** คุณมี audio meeting 2 ชั่วโมง (≈ 90,000 token) และต้องสรุป. โมเดลที่ใช้มี context window 128K token. มี risk อะไร และคุณจะออกแบบ workflow อย่างไร?
+5. **(Synthesize)** เปรียบเทียบ trade-off ระหว่างการให้โมเดลอ่าน PDF ผ่าน text extraction กับการให้เห็น PDF เป็นรูป — ในกรณีใดควรเลือกอย่างไหน?
+
+---
+
+</section>

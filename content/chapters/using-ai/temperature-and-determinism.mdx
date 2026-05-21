@@ -1,0 +1,214 @@
+---
+slug: temperature-and-determinism
+level: using-ai
+title: "Temperature and Determinism"
+status: reviewed
+prerequisites:
+  - how-llms-respond
+last_reviewed: 2026-05-18
+tldr: "Temperature คือ parameter ที่ควบคุมความ \"สุ่ม\" ของการเลือก token ถัดไป โดยปรับ probability distribution ก่อน sampling — ค่าต่ำทำให้ output แม่นและซ้ำได้มากขึ้น ค่าสูงทำให้หลากหลายและสร้างสรรค์มากขึ้น. ในทางปฏิบัติมัก combine กับ top-p (nucleus sampling) เพื่อตัด token ที่ไม่น่าจะเป็นออก. ที่สำคัญ — แม้ตั้ง temperature=0 (greedy decoding) output ก็ยังไม่ deterministic 100% เพราะ floating-point บน GPU, batching และ versioning ของ model ทำให้มี variability เหลืออยู่."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Temperature คือ parameter ที่ควบคุมความ "สุ่ม" ของการเลือก token ถัดไป โดยปรับ probability distribution ก่อน sampling — ค่าต่ำทำให้ output แม่นและซ้ำได้มากขึ้น ค่าสูงทำให้หลากหลายและสร้างสรรค์มากขึ้น. ในทางปฏิบัติมัก combine กับ top-p (nucleus sampling) เพื่อตัด token ที่ไม่น่าจะเป็นออก. ที่สำคัญ — แม้ตั้ง temperature=0 (greedy decoding) output ก็ยังไม่ deterministic 100% เพราะ floating-point บน GPU, batching และ versioning ของ model ทำให้มี variability เหลืออยู่.
+
+ใน [how-llms-respond](/using-ai/how-llms-respond) เราเห็นว่า LLM ไม่ได้ "ตอบคำถาม" ในความหมายตรง ๆ — มันคำนวณ **probability distribution** ของ token ถัดไป (เช่น `ดี: 0.31, ร้อน: 0.24, เย็น: 0.18, ...`) แล้ว **sample** ออกมาหนึ่ง token. คำถามต่อมาคือ — sample ยังไง?
+
+**Temperature** คือ knob หลักที่ควบคุมพฤติกรรมการ sample นี้. มันไม่ได้ตอบว่า "เลือก token ไหน" แต่ตอบว่า **"ให้ความหลากหลายแค่ไหน"**.
+
+- **Temperature ต่ำ (เช่น 0 หรือ 0.1)** — โมเดลเลือก token ที่ probability สูงสุดเกือบทุกครั้ง. output แม่นยำ, "ปลอดภัย", ทำซ้ำได้มากขึ้น แต่ก็น่าเบื่อกว่า
+- **Temperature กลาง (เช่น 0.7)** — สมดุลระหว่างความน่าเชื่อกับความหลากหลาย. ค่า default ของ chat model ส่วนใหญ่
+- **Temperature สูง (เช่น 1.0+)** — โมเดลกล้าเลือก token ที่ probability ต่ำกว่าด้วย. output หลากหลายขึ้น สร้างสรรค์ขึ้น แต่ก็เพี้ยนได้
+
+นอกจาก temperature ยังมีอีก 2 parameter ที่ใช้ร่วมกัน:
+- **Top-k** — ก่อน sample จำกัดให้เลือกได้แค่ k token ที่ probability สูงสุด
+- **Top-p (nucleus sampling)** — เก็บแค่ token ที่ probability สะสมแล้วได้ p (เช่น 0.9) — ตัด long tail ที่น่าจะผิดออก
+
+**Mental model**
+
+นึกถึง LLM ที่กำลังเลือก token ถัดไปเหมือนคนเลือกของในห้างที่มีของหลายล้านชิ้น แต่ละชิ้นมี "ป้ายความน่าจะหยิบ" ติดอยู่. Temperature คือ "อารมณ์" ของคนเลือก:
+- T=0 — แบบนักบัญชี: หยิบของที่ป้ายสูงสุดเสมอ
+- T=0.7 — แบบคนปกติ: ส่วนใหญ่หยิบของที่ป้ายสูง บางครั้งลองของแปลก ๆ บ้าง
+- T=1.5 — แบบคนเมา: หยิบตามใจ ของป้ายต่ำก็คว้าได้
+
+Top-k เปรียบเหมือนกฎ "ดูแค่ 50 อันแรก" — แม้อารมณ์จะเป็นยังไง ก็ไม่หยิบของที่ขายไม่ดี. Top-p คือ "ดูแค่ของยอดนิยมที่รวมกันได้ 90% ของยอดขาย" — ตัดของที่ไม่น่าจะใช่ออก แต่ปริมาณตัวเลือกยืดหยุ่นตาม distribution.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 Temperature กับ softmax
+
+LLM output ที่ออกจาก layer สุดท้ายไม่ใช่ probability แต่เป็น **logits** — เลขจริง (real number) หนึ่งค่าต่อ token ใน vocabulary. เพื่อแปลงเป็น probability ต้องผ่าน **softmax**:
+
+$$P(\text{token}_i) = \frac{e^{z_i}}{\sum_j e^{z_j}}$$
+
+โดย $z_i$ คือ logit ของ token ที่ $i$.
+
+Temperature ($T$) เข้ามาในขั้นนี้ด้วยการ **หาร logits ก่อน softmax**:
+
+$$P_T(\text{token}_i) = \frac{e^{z_i / T}}{\sum_j e^{z_j / T}}$$
+
+- **T = 1**: ไม่เปลี่ยน distribution
+- **T < 1**: หาร logits ด้วยเลขน้อยกว่า 1 → ขยายความต่างของ logits → **distribution คมขึ้น** (peakier) → token ที่ probability สูงอยู่แล้วจะยิ่งเด่น
+- **T > 1**: หารด้วยเลขมากกว่า 1 → บีบ logits → **distribution แบนขึ้น** (flatter) → token ที่ probability ต่ำได้โอกาสมากขึ้น
+- **T = 0**: กรณีพิเศษ — ทำ math ตรง ๆ ไม่ได้ (หารด้วยศูนย์) ในทางปฏิบัติ implement เป็น **greedy decoding** — เลือก argmax ของ logits โดยไม่ sample
+
+ผลคือ temperature ไม่ "เพิ่มความรู้" และ "ไม่ทำให้โมเดลฉลาดขึ้น" — มันแค่เปลี่ยนวิธีตัดสินใจตอน sample บน distribution ที่โมเดลคำนวณมาแล้ว.
+
+### 2.2 Top-k sampling
+
+หลังได้ distribution แล้ว Top-k คือ:
+1. เรียง token ตาม probability จากสูงไปต่ำ
+2. เก็บแค่ $k$ ตัวแรก ตัดที่เหลือออก (probability = 0)
+3. normalize ใหม่ให้รวมเป็น 1
+4. sample จาก subset นี้
+
+ค่า $k$ ที่นิยม: 20–100 สำหรับงานทั่วไป. ข้อเสีย: $k$ ที่ดีขึ้นกับ context — บางตอน distribution คมมาก (k=5 ก็พอ), บางตอนแบน (k=50 ยังเสี่ยงตัด token ที่ดี). นี่คือ motivation ของ top-p.
+
+### 2.3 Top-p (nucleus sampling)
+
+Top-p เปลี่ยนแนวคิดจาก "เก็บ k ตัวแรก" เป็น **"เก็บเท่าที่ probability สะสมแล้วถึง p"**. เปิดตัวใน Holtzman et al. (2020) :
+
+1. เรียง token ตาม probability จากสูงไปต่ำ
+2. หาเซตเล็กที่สุดที่ผลรวม probability ≥ $p$ (เช่น 0.9)
+3. ตัด token นอกเซต, normalize
+4. sample
+
+ข้อดี: **adaptive** — ตอนโมเดลมั่นใจ (distribution คม) เซตจะเล็ก; ตอนไม่มั่นใจ (distribution แบน) เซตจะใหญ่ขึ้นเอง. ค่ายอดนิยมคือ p = 0.9–0.95.
+
+### 2.4 Combining temperature + top-p (production setup)
+
+ในระบบจริง (API ของ OpenAI, Anthropic, Google) มัก expose ทั้ง temperature และ top-p พร้อมกัน. ลำดับการคำนวณคือ:
+
+1. โมเดลคำนวณ logits
+2. apply temperature → ได้ tempered distribution
+3. apply top-p (หรือ top-k) → ตัด tail
+4. sample จาก distribution ที่เหลือ
+
+คำแนะนำจาก API documentation ทั่วไป: ปรับ temperature **หรือ** top-p ทีละตัว ไม่ปรับทั้งคู่พร้อมกัน เพราะ effect ซ้อนกันและตีความยาก. หากปรับ temperature ให้คง top-p ที่ค่า default และในทางกลับกัน.
+
+### 2.5 ทำไม temperature=0 ไม่ deterministic
+
+ความเข้าใจที่ผิดที่พบบ่อยที่สุดในการใช้ LLM API คือ "ตั้ง temperature=0 แล้ว output จะเหมือนเดิมทุกครั้ง". จริง ๆ แล้ว **ไม่ใช่** — output มี variability เหลืออยู่จากหลายแหล่ง:
+
+**(ก) Floating-point non-determinism บน GPU**
+การคูณ matrix บน GPU ใช้ parallel reduction ที่ลำดับการบวกขึ้นกับ scheduling. การบวก floating-point ไม่มีคุณสมบัติ associative ($(a+b)+c \ne a+(b+c)$ ในบางกรณี) ทำให้ผลรวมต่างกันที่ระดับ bit สุดท้าย. เมื่อ logits มีค่าใกล้กัน argmax อาจสลับ token ทั้งที่ใช้ greedy decoding.
+
+**(ข) Batched inference**
+ในระบบ production โมเดลรวม request หลายตัวเข้าเป็น batch เดียวเพื่อประสิทธิภาพ. รูปร่างของ batch (มี request ไหนรวมอยู่บ้าง) ส่งผลต่อ kernel ที่ใช้ และจึงต่อผลของ floating-point. request เดียวกันใน batch ต่างกันอาจให้ logits ต่างกันเล็กน้อย.
+
+**(ค) Model versioning**
+ผู้ให้บริการอย่าง OpenAI, Anthropic, Google อัปเดต weight, fine-tune ใหม่, หรือเปลี่ยน serving stack อยู่ตลอด. ถ้า pin model version แล้วก็ลดได้มาก แต่ไม่หมด เพราะการ deploy ใหม่บน hardware รุ่นใหม่ก็เปลี่ยนได้.
+
+**(ง) Tie-breaking ใน argmax**
+ถ้า top-2 token มี logit เท่ากันพอดี (rare แต่เป็นได้) การเลือกขึ้นกับ implementation detail.
+
+ผลคือ — แม้ตั้ง T=0 + pin model + same prompt — output อาจ "ส่วนใหญ่เหมือน" แต่ไม่รับประกัน 100%. นี่คือเหตุผลที่ production system ต้องคิดเรื่อง non-determinism เป็น first-class concern.
+
+### 2.6 ค่า temperature สำหรับงานแต่ละแบบ
+
+ตารางอ้างอิงจากการใช้งานจริงและ API documentation ทั่วไป (Personal experience, 2026-05-18):
+
+| งาน | Temperature | เหตุผล |
+| --- | --- | --- |
+| Code generation, factual Q&A, classification, extraction | 0 – 0.3 | ต้องการความถูกต้องและทำซ้ำได้; ค่าสูงสุดของ probability มักเป็นคำตอบที่ถูก |
+| Conversational assistant (default) | 0.5 – 0.7 | สมดุลความน่าเชื่อกับความเป็นธรรมชาติของภาษา; ค่า default ของ ChatGPT ในอดีตอยู่ราว 0.7 |
+| Creative writing, brainstorming, ideation | 0.7 – 1.0 | ต้องการความหลากหลาย, surprise, novelty |
+| Wild exploration, "ลองดูว่ามันคิดอะไรแปลก ๆ" | > 1.0 | ใช้น้อยและมัก distort grammar/coherence |
+
+หลักการสำคัญ: **ไม่มีค่าที่ "ดีที่สุด" ตายตัว** — ขึ้นกับ task และโมเดล. โมเดลใหม่ ๆ ที่ผ่าน RLHF หนัก ๆ มักทน temperature สูงได้ดีกว่ารุ่นเก่า. การทดลองหาค่าที่เหมาะคือส่วนหนึ่งของการ tune ระบบ.
+
+### 2.7 ข้อจำกัด — สิ่งที่ temperature แก้ไม่ได้
+
+Temperature เป็น knob ของการ **sample** บน distribution ที่โมเดลเชื่อ. มันไม่ได้แก้ปัญหาที่ฝังอยู่ใน distribution เอง:
+
+- **Hallucination ไม่ได้หายเพราะ T=0** — ถ้าโมเดลเชื่อผิดว่า "X เกิดในปี 1985" ทั้งที่จริงคือ 1987, T=0 จะตอบ "1985" อย่างมั่นใจซ้ำทุกครั้ง. ดู [hallucination](/using-ai/hallucination) — sampling เป็นเพียงผิวบาง ๆ ของปัญหา factual error
+- **Bias ไม่ได้หายเพราะลด randomness** — bias อยู่ใน weight ไม่ใช่ใน sampling
+- **โมเดลไม่ได้ฉลาดขึ้นที่ T สูง** — T สูงทำให้กล้าเลือก token ที่ probability ต่ำ ซึ่งบางครั้งเป็นไอเดียใหม่ บางครั้งเป็นแค่ noise
+
+---
+
+## Worked Examples
+
+### Example 1: ผลของ temperature ต่อ distribution
+สมมุติโมเดลเห็น `"capital of France is "` แล้วได้ logits:
+
+| Token | logit | P (T=1) | P (T=0.5) | P (T=2.0) |
+| --- | --- | --- | --- | --- |
+| Paris | 6.0 | 0.85 | 0.99 | 0.55 |
+| Lyon | 3.0 | 0.04 | < 0.01 | 0.12 |
+| London | 2.5 | 0.03 | < 0.01 | 0.10 |
+| (อื่น ๆ รวม) | — | 0.08 | < 0.01 | 0.23 |
+
+ที่ T=0.5 โมเดล "เกือบจะตอบ Paris แน่นอน". ที่ T=2.0 มีโอกาส ~45% ที่จะตอบอย่างอื่น (รวมถึง London ผิด). กลไกเดียวกันนี้คือเหตุผลที่ creative writing ใช้ T สูง — แต่เป็นเหตุผลที่ factual task ไม่ควรใช้.
+
+### Example 2: top-p ทำให้ adaptive
+**Context A:** `"2 + 2 = "` — distribution: `"4": 0.99, อื่น ๆ <0.01`
+ที่ p = 0.9 nucleus คือ `{"4"}` แค่ตัวเดียว. โมเดลตอบ 4 เกือบแน่นอน.
+
+**Context B:** `"For dinner I want to eat "` — distribution: `pasta: 0.15, pizza: 0.12, sushi: 0.10, rice: 0.08, ...`
+ที่ p = 0.9 nucleus อาจมี 20–30 ตัว. โมเดลเลือกได้หลากหลาย.
+
+แสดงให้เห็นว่า top-p ปรับตัวตามความมั่นใจของโมเดลโดยอัตโนมัติ — ต่างจาก top-k ที่ตัดแบบตายตัว.
+
+### Example 3: ทำไม T=0 ยังให้ output ต่าง
+สมมุติ logits ของ top-2 ที่ token หนึ่งคือ:
+- "good": 4.12345
+- "great": 4.12340
+
+ต่างกัน 0.00005. ที่ floating-point precision (เช่น float16 บน GPU) ความต่างนี้ใกล้กับ noise ของ GPU non-determinism. รัน 10 ครั้ง อาจได้ "good" 7 ครั้ง "great" 3 ครั้ง — แม้ T=0. หลังจากเลือก token แรกต่างกัน path ต่อไปก็จะต่างกันออกไปเรื่อย ๆ.
+
+### Example 4: กลยุทธ์ทำ test repeatable
+สำหรับ eval ใน production:
+
+1. **ตั้ง T=0** — ลด variability ระดับใหญ่ที่สุด
+2. **Pin model version** (เช่น `gpt-4-2024-08-06`) — ไม่ใช้ alias `gpt-4`
+3. **Seed RNG ถ้า API support** — OpenAI มี `seed` parameter (best effort เท่านั้น ไม่รับประกันเต็ม)
+4. **Cache output ที่ verified แล้ว** — ใน CI เช็คกับ cache แทนเรียก model
+5. **Architect for variability** — เขียน assertion เป็น "semantic match" หรือใช้ judge model แทน exact string match
+
+ดูรายละเอียดใน [evals-and-benchmarks](/building-with-ai/evals-and-benchmarks).
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** Temperature ทำให้ LLM "คิดสร้างสรรค์มากขึ้น"
+   **ความจริง:** Temperature ไม่เพิ่มความรู้หรือ reasoning ของโมเดล — มันแค่ปรับการ sample บน distribution เดิม. สิ่งที่ออกมาที่ T สูงคือ token ที่ probability ต่ำกว่า ซึ่งอาจเป็นไอเดียใหม่ที่น่าสนใจ หรือเป็น noise ที่ไม่ได้เรื่อง
+
+2. **ความเข้าใจผิด:** Temperature=0 แปลว่า output จะเหมือนเดิมทุกครั้ง
+   **ความจริง:** Greedy decoding ลด randomness ระดับ sampling แต่ floating-point บน GPU, batched inference และ model versioning ยังทำให้ output ต่างได้. T=0 ทำให้ "ส่วนใหญ่ทำซ้ำได้" ไม่ใช่ "ทำซ้ำได้ 100%"
+
+3. **ความเข้าใจผิด:** Temperature=0 ทำให้ hallucination หาย
+   **ความจริง:** Hallucination เกิดจาก distribution ที่โมเดลเชื่อผิด ไม่ใช่จากการ sample. ถ้าโมเดลเชื่อข้อเท็จจริงผิด T=0 จะตอบผิดอย่างมั่นใจซ้ำ ๆ ทุกครั้ง. ดู [hallucination](/using-ai/hallucination)
+
+4. **ความเข้าใจผิด:** ค่า temperature "ที่ถูกต้อง" มีค่าเดียว
+   **ความจริง:** ค่าที่เหมาะขึ้นกับ task — code/factual ใช้ต่ำ, creative ใช้สูง — และขึ้นกับโมเดลด้วย. โมเดลใหม่กว่ามักทน T สูงได้ดีกว่ารุ่นเก่า
+
+5. **ความเข้าใจผิด:** ควรปรับ temperature และ top-p พร้อมกัน
+   **ความจริง:** API documentation ส่วนใหญ่แนะนำให้ปรับทีละตัว. effect ทั้งสองซ้อนกันและตีความยาก. ปกติคงค่าหนึ่งที่ default แล้วปรับอีกค่า
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** Temperature ทำอะไรกับ logits ในขั้นตอน softmax และค่าใดเรียกว่า "greedy decoding"?
+2. **(Explain)** อธิบายความแตกต่างระหว่าง top-k และ top-p sampling พร้อมเหตุผลว่าทำไม top-p ถือว่า "adaptive"
+3. **(Apply)** กำลังสร้างระบบ classify อีเมลว่าเป็น "spam / not spam". ควรตั้ง temperature เท่าไร เพราะอะไร? ต่างจากระบบ "เขียน tagline โฆษณา" ยังไง?
+4. **(Explain)** ผู้ใช้บ่นว่า "ตั้ง temperature=0 แล้ว ทำไม output ยังต่างกันบ้าง". อธิบายให้ฟัง 3 สาเหตุ
+5. **(Apply)** ทีม eval ต้องการให้ test ใน CI ผ่านซ้ำได้ทุกครั้ง. ระบุ 4 กลยุทธ์ที่ใช้ร่วมกันได้
+6. **(Synthesize)** เพื่อนถามว่า "ถ้าตั้ง temperature สูง LLM จะ hallucinate มากขึ้นใช่ไหม". ตอบยังไงให้ทั้งถูกและครบ — รวมถึงประเด็นว่า hallucination ที่ T=0 ก็เกิดได้ และเหตุผลคืออะไร
+
+---
+
+</section>

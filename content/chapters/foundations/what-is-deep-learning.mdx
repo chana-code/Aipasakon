@@ -1,0 +1,218 @@
+---
+slug: what-is-deep-learning
+level: foundations
+title: "What is Deep Learning?"
+status: reviewed
+prerequisites:
+  - what-is-machine-learning
+  - how-models-learn
+last_reviewed: 2026-05-18
+tldr: "Deep learning (DL) คือ machine learning ที่ใช้ neural network ที่มี layer จำนวนมาก (deep = \"ลึก\" หมายถึงซ้อนหลาย layer). คุณสมบัติเด่นที่ทำให้ DL ต่างจาก classical ML คือ **representation learning** — โมเดลเรียนรู้ feature ของข้อมูลด้วยตัวเอง แทนที่มนุษย์จะต้องนิยาม feature ทีละอย่าง. ตั้งแต่ปี 2012 เป็นต้นมา DL กลายเป็น paradigm หลักของ AI สมัยใหม่ — image recognition, speech, translation, รวมถึง LLM ทั้งหมด ล้วนเป็น deep learning."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Deep learning (DL) คือ machine learning ที่ใช้ neural network ที่มี layer จำนวนมาก (deep = "ลึก" หมายถึงซ้อนหลาย layer). คุณสมบัติเด่นที่ทำให้ DL ต่างจาก classical ML คือ **representation learning** — โมเดลเรียนรู้ feature ของข้อมูลด้วยตัวเอง แทนที่มนุษย์จะต้องนิยาม feature ทีละอย่าง. ตั้งแต่ปี 2012 เป็นต้นมา DL กลายเป็น paradigm หลักของ AI สมัยใหม่ — image recognition, speech, translation, รวมถึง LLM ทั้งหมด ล้วนเป็น deep learning.
+
+**Deep learning คือสาขาย่อยของ machine learning** ที่ใช้ neural network ที่มี layer ซ้อนกันหลายชั้น. ทุกครั้งที่ได้ยินคำว่า ChatGPT, Midjourney, image recognition บนมือถือ, speech-to-text — ทั้งหมดคือ deep learning.
+
+ความสัมพันธ์ของศัพท์ที่ผู้อ่านมักสับสน วาดเป็น **nested circles** ได้ดังนี้:
+
+- **AI** (วงนอกสุด) — ทุกความพยายามสร้างเครื่องที่ทำงานเชิงปัญญาได้ (รวมทั้งระบบ rule-based ยุคเก่า)
+- **ML** (วงในกว่า) — AI ประเภทที่ "เรียนรู้จาก data" ไม่ใช่เขียน rule ด้วยมือ
+- **DL** (วงในกว่าอีก) — ML ที่ใช้ neural network แบบลึก (หลาย layer)
+- **LLM** (วงในสุดของ DL) — DL ที่ train บน text จำนวนมหาศาลด้วย transformer architecture
+
+แต่ละวงที่ลึกเข้าไปคือ subset ของวงนอก. ทุก LLM เป็น deep learning, ทุก deep learning เป็น machine learning, ทุก machine learning เป็น AI — แต่ไม่ใช่ทุก AI เป็น deep learning.
+
+### Mental model
+
+นึกถึง classical ML กับ deep learning ในงาน **บอกว่ารูปนี้เป็นแมวหรือสุนัข**:
+
+- **Classical ML:** มนุษย์ (วิศวกรหรือ domain expert) ต้องนิยามก่อนว่า "feature" ของแมว/สุนัขคืออะไร — เช่น สัดส่วนหู, ความยาวจมูก, สีตา. แล้วเขียน code สกัด feature เหล่านี้ออกจากรูปก่อนป้อนให้โมเดล. **มนุษย์คิด feature, model แค่ตัดสินใจ**.
+- **Deep learning:** ส่งรูปดิบ (pixel) เข้าโมเดลตรง ๆ. โมเดลเรียนรู้เองว่าจะดู feature ไหน — layer แรกอาจจะดู edge และ texture, layer ถัด ๆ ไปประกอบเป็น "หู", "ตา", และสุดท้าย "หน้าแมว". **model เรียน feature เอง มนุษย์แค่จัด data ให้**.
+
+จุดที่สองนี้ — model เรียน feature เอง — เรียกว่า **representation learning** และเป็นหัวใจของเหตุที่ deep learning ปฏิวัติ AI .
+
+**ผลตามมา 2 ข้อ:**
+1. เมื่อ data เยอะพอ DL ทำงานได้ดีกว่า classical ML เพราะ feature ที่ model หาเจอเองมักดีกว่า feature ที่มนุษย์คิด
+2. แต่ DL ก็ต้องการ data และ compute มากกว่า classical ML หลายระดับ — ในงาน data น้อย classical ML ยังเป็นทางเลือกที่ดีกว่า
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 "Deep" หมายถึงอะไรจริง ๆ
+
+คำว่า deep ใน deep learning หมายถึง **จำนวน layer ที่ซ้อนกันใน neural network**:
+
+- **Classical / shallow neural network** (ก่อนปี 2006) มักมี 1-2 hidden layer. พิสูจน์ทางทฤษฎีได้ว่า network ที่มี 1 hidden layer พอใหญ่สามารถ approximate function ใดก็ได้ (universal approximation theorem) — แต่ในทางปฏิบัติทำงานไม่ดีนัก
+- **Deep network** ในยุค 2010s มีตั้งแต่ 10 ถึง 100+ layer
+- **GPT-class transformer** สมัยใหม่มีประมาณ 100 transformer block ซ้อนกัน
+- บาง vision model เช่น ResNet-152 มี 152 layer; โมเดลขนาดใหญ่ระดับ frontier ลึกกว่านั้น
+
+ทำไมความลึกถึงสำคัญ? เพราะแต่ละ layer **สร้าง representation บน output ของ layer ก่อนหน้า**. นี่คือเหตุผลที่ representation ที่ deep network เรียนรู้มีลำดับชั้น (hierarchical):
+
+- ใน vision: layer แรก ๆ เห็น edge → layer กลาง ๆ ประกอบเป็น texture และ part (ตา จมูก หู) → layer ลึก ๆ ประกอบเป็น object และ scene
+- ใน NLP: layer แรก ๆ จับ pattern ระดับ character / subword → layer กลาง ๆ จับ syntax และ phrase structure → layer ลึก ๆ จับ semantic และ context ระดับเอกสาร
+
+ปรากฏการณ์นี้สังเกตได้จากการทำ interpretability — visualize activation ใน layer ต่าง ๆ ของ CNN ที่ train แล้ว เห็น pattern ของ feature เปลี่ยนจาก primitive ไปเป็น abstract ตามความลึก.
+
+### 2.2 Representation learning — หัวใจของ deep learning
+
+ก่อน deep learning era งาน ML ส่วนใหญ่ใช้เวลามากกับ **feature engineering**: วิศวกร domain expert คิด feature ที่เหมาะกับงาน. ตัวอย่าง:
+
+- งาน speech recognition (ก่อน DL): สกัด MFCC, formant, pitch contour ด้วยมือ ก่อนป้อนให้ classifier
+- งาน vision (ก่อน DL): สกัด SIFT, HOG, edge histogram ก่อนป้อนให้ SVM
+- งาน NLP (ก่อน DL): สร้าง bag-of-words, TF-IDF, n-gram, hand-crafted lexicon
+
+ทุกขั้นตอนนี้ต้องการความรู้เฉพาะทาง และมัก **เป็นคอขวด** — feature ที่มนุษย์คิดได้มักไม่ครอบคลุมหรือไม่ optimal.
+
+Deep learning เปลี่ยนกระบวนทัศน์: ป้อน data ดิบเข้าโมเดล ปล่อยให้ network เรียน feature ของตัวเอง ผ่าน gradient descent (ดู [how-models-learn](/foundations/how-models-learn)). feature ที่ network เรียนรู้ไม่ใช่สิ่งที่มนุษย์ตั้งใจ design — แต่กลับ **ดีกว่า** ในงานที่ data มีโครงสร้างซับซ้อน เช่น รูป เสียง ภาษา.
+
+นี่เป็นเหตุผลที่ Goodfellow และคณะเรียกความสามารถนี้ว่า "representation learning" ในตำราเล่มหลักของวงการ . ในมุมหนึ่งอาจกล่าวได้ว่า deep learning ไม่ใช่เทคนิคใหม่ของ neural network — แต่เป็น **paradigm shift ที่ย้าย burden ของ feature design จากมนุษย์ไปเป็น model**.
+
+### 2.3 ทำไม DL ขึ้นมาเป็น dominant paradigm ในปี 2012
+
+แนวคิด neural network ที่มีหลาย layer มีมาตั้งแต่ทศวรรษ 1960. backpropagation ที่ใช้ train deep network ก็มีตั้งแต่ทศวรรษ 1980. แต่จนถึงปี 2010 deep learning ยังไม่ work ในเชิงปฏิบัติ. มีปัจจัย 4 ข้อมารวมตัวกันในช่วง 2010-2012:
+
+**1. Data — ข้อมูลขนาด internet-scale**
+- ImageNet (2009-2012) — labeled image ~14 ล้านรูป กลายเป็น benchmark ที่ทำให้เห็นว่า DL ใช้ data ได้คุ้ม
+- internet text corpora ขนาด trillion-token เปิดทางให้ pretraining ของ LLM ในทศวรรษถัดมา
+- **Insight:** deep network "หิว" data — มี parameter เป็นล้าน/พันล้าน ต้องการ data จำนวนมากเพื่อ generalize ได้
+
+**2. Compute — GPU**
+- GPU ออกแบบมาเดิมเพื่อเร่ง graphics rendering — แต่กลับเหมาะมากกับ matrix multiplication ที่เป็นการคำนวณหลักของ neural network
+- ราคา compute ต่อ FLOP ลดลงประมาณ 100 เท่า ในทศวรรษ 2010s
+- การ parallelize ผ่าน GPU ทำให้ training ที่เคยใช้เวลาเป็นเดือนใช้เวลาเป็นวัน
+
+**3. Algorithms — เทคนิคเล็ก ๆ ที่ทำให้ deep network train ได้จริง**
+- **ReLU activation** แทนที่ sigmoid/tanh — ช่วยแก้ปัญหา vanishing gradient ทำให้ network ลึก train ได้
+- **Dropout** — regularization technique ลด overfitting
+- **Batch normalization** — ทำให้ training stable เมื่อ network ลึก
+- **Weight initialization** ที่เหมาะสม (Xavier, He init) — network เริ่มต้นไม่ตาย
+- ทั้งหมดนี้เป็นการปรับเล็ก ๆ ที่รวมกันแล้วทำให้ network 100+ layer train ได้ ในขณะที่ก่อนหน้านี้ network 5 layer ยังหา minima ไม่เจอ
+
+**4. The 2012 AlexNet moment**
+- ในปี 2012 Krizhevsky, Sutskever และ Hinton ส่ง CNN ลึก train บน GPU เข้า ImageNet competition และ **ชนะ top-5 error rate ที่ 15.3% ในขณะที่ที่ 2 อยู่ที่ 26.2%** — เกือบ 11 percentage point 
+- ก่อนหน้านี้ขอบเขตของ computer vision ใช้ hand-crafted feature เป็นมาตรฐาน — หลัง AlexNet ทุกคนเปลี่ยนมาใช้ deep learning ภายใน 2-3 ปี
+- นี่ถือเป็นจุดเริ่ม "deep learning era" อย่างเป็นทางการ — Hinton พูดในภายหลังว่า "ทันใดนั้นทุกคนก็ฟังเรา"
+
+ทั้งสี่ปัจจัยนี้ไม่ได้พร้อมกันโดยบังเอิญ — แต่เมื่อมาพร้อมกันเปิดทางให้ deep learning ครอบงำสาขา AI ทั้งหมดในทศวรรษถัดมา.
+
+### 2.4 ที่ DL เก่ง vs ที่ DL ไม่ใช่ทางเลือกที่ดีที่สุด
+
+**DL เป็นทางเลือกที่ดี เมื่อ:**
+- **Perception tasks** — vision, speech, language — งานที่ input มี structure ซับซ้อนสูงมิติ (high-dimensional)
+- **Pattern recognition ใน data ขนาดใหญ่** — มี data หลายแสนถึงหลายล้านตัวอย่าง
+- **Generative tasks** — สร้างภาพ เสียง text — งานที่ classical ML แทบไม่สามารถทำได้
+- **End-to-end learning** — อยากให้ระบบเรียนทุก step จาก input ถึง output โดยไม่ต้องออกแบบ pipeline แยกย่อย
+
+**Classical ML (decision tree, SVM, XGBoost, etc.) ยังเหนือกว่าใน:**
+- **Tabular data** — ข้อมูลตาราง (เช่น ข้อมูลธุรกรรม, รายงานทางการเงิน). ปัจจุบัน XGBoost และ gradient boosting machine มักชนะ DL ใน Kaggle competition ประเภทนี้
+- **Data ขนาดเล็ก** (< ~10,000 ตัวอย่าง) — DL จะ overfit; classical ML ที่มี regularization ดีให้ผลที่ generalize ได้ดีกว่า
+- **งานที่ต้องการ interpretability สูง** — decision tree ดูง่ายว่าโมเดลตัดสินใจอย่างไร, deep network เป็น black-box ระดับใหญ่
+- **ระบบที่ compute จำกัด** (เช่น embedded device) — โมเดลขนาดเล็กที่ train จาก classical ML inference เร็วและกินทรัพยากรน้อยกว่า
+
+**สำคัญ:** "DL ปฏิวัติ AI" ไม่ได้แปลว่า DL ดีที่สุดในทุกงาน — แต่หมายความว่า DL **เปิดประตู** ให้กับงานที่ก่อนหน้านี้ทำไม่ได้เลย (เช่น สร้างภาพจาก text, ตอบคำถามภาษาธรรมชาติ). ในงานเดิมที่ classical ML ทำได้อยู่แล้ว classical ML ยังเป็น default ที่ดีในหลายกรณี.
+
+### 2.5 ภาพรวม architecture หลักของ deep learning (preview)
+
+ภายในร่ม DL มีหลาย architecture ที่เหมาะกับ data ต่างกัน — รายละเอียดเต็มอยู่ใน Level 4 บทนี้แค่ preview:
+
+- **MLP (Multi-Layer Perceptron) / Feedforward network** — โครงสร้างพื้นฐาน fully-connected layer
+- **CNN (Convolutional Neural Network)** — สำหรับ image; ใช้ convolution exploit spatial locality
+- **RNN / LSTM (Recurrent Neural Network / Long Short-Term Memory)** — สำหรับ sequence data; เคยเป็น default ของ NLP ก่อน transformer
+- **Transformer** — architecture ที่ "ชนะทุกอย่าง" ตั้งแต่ปี 2017 — เป็นพื้นฐานของทุก LLM ปัจจุบัน (รายละเอียดใน [transformer-architecture](/advanced/transformer-architecture))
+- **Diffusion model** — สำหรับ image / audio generation; เป็นแกนของ Stable Diffusion, DALL-E
+
+ทุก architecture เหล่านี้คือ deep learning. ความเข้าใจที่ระดับ Level 1 เพียงพอแล้ว — Level 4 จะลงรายละเอียดต่อ.
+
+### 2.6 ความเชื่อมโยงกับ LLM
+
+LLM (ดู [what-is-an-llm](/foundations/what-is-an-llm)) คือ **transformer ขนาดมหึมา train บน text จำนวนมหาศาล** — เป็น instance ของ deep learning โดยตรง. ทุก concept ในบทนี้ (representation learning, scaling จาก data/compute, hierarchical feature) ใช้ได้กับ LLM:
+
+- LLM "เรียน feature ของภาษา" เอง โดยไม่มีใครบอกว่า grammar คืออะไร
+- Layer แรก ๆ ของ LLM เรียน pattern ระดับ token/character; layer ลึกเรียน semantic และ world knowledge
+- ปัจจัยที่ทำให้ LLM ก้าวกระโดด (GPT-3, GPT-4, Claude, Gemini) คือปัจจัยเดียวกันกับที่ทำให้ DL ก้าวกระโดดในปี 2012 — data เพิ่มขึ้น, compute เพิ่มขึ้น, algorithm ดีขึ้น
+
+นี่เป็นเหตุที่บทถัดไป ([what-is-a-neural-network](/foundations/what-is-a-neural-network) และ [what-is-an-llm](/foundations/what-is-an-llm)) จะต่อยอดได้โดยตรงจากบทนี้.
+
+---
+
+## Worked Examples
+
+### Example 1: Hierarchical feature ใน CNN ที่ train กับรูปสัตว์
+
+สมมติเรา train CNN ลึก 50 layer ให้แยก "หมา" vs "แมว" จากรูป. ถ้าเรา visualize ว่า layer แต่ละชั้นตอบสนองกับอะไร จะเห็น pattern เป็นลำดับ:
+
+- **Layer 1-3:** ตอบสนองกับ edge (เส้นแนวตั้ง, แนวนอน, ทแยง) และ color blob
+- **Layer 10-15:** ตอบสนองกับ texture (ขนสั้น, ขนยาว, ลาย)
+- **Layer 25-30:** ตอบสนองกับ "part" — หู (ของแมวกับหมาต่างกัน), ตา, จมูก
+- **Layer 45+:** ตอบสนองกับ "หน้าแมวเต็มหน้า" หรือ "หน้าหมาเต็มหน้า"
+
+ไม่มีใครบอกโมเดลว่า "ขั้นแรกหา edge แล้วประกอบเป็น part แล้วประกอบเป็นใบหน้า" — โมเดล **เรียนลำดับนี้เอง** ผ่าน gradient descent. นี่คือ representation learning ใน action.
+
+### Example 2: เมื่อใดควรเลือก classical ML แทน DL
+
+บริษัทมีข้อมูลธุรกรรมลูกค้า 50,000 รายการ มี 30 column (อายุ, รายได้, ประวัติซื้อ, ฯลฯ) ต้องการทำนายว่าใครจะ churn.
+
+- ลอง deep neural network: train ได้ accuracy ~78% แต่ overfit ง่าย, ต้องใช้ regularization หนัก, training ใช้เวลานาน, ตอบไม่ได้ว่าทำไม
+- ลอง XGBoost (classical ML): train ได้ accuracy ~82%, train ใน 30 วินาที, ตีความได้ว่า feature ไหนสำคัญที่สุด (feature importance)
+
+ในงานนี้ classical ML **ชนะทั้งความแม่นและความใช้งานได้** เพราะ:
+1. Data น้อย (50K rows ไม่ใหญ่สำหรับ DL)
+2. Data เป็น tabular ที่ feature มีความหมายชัดอยู่แล้ว — ไม่มี structure ที่ DL ต้องไปเรียน
+3. ต้องการ interpretability เพื่ออธิบายให้ business stakeholder
+
+นี่คือเหตุที่ Kaggle competition ที่เป็น tabular data ส่วนใหญ่ XGBoost และ LightGBM ยังครองอยู่จนปัจจุบัน.
+
+### Example 3: AlexNet — จุดเปลี่ยนของวงการ
+
+ก่อนปี 2012 ImageNet challenge: top-5 error rate ของผู้นำอยู่ที่ ~26% — ขยับลงปีละ 1-2%. การเปลี่ยนแปลงค่อยเป็นค่อยไป ใช้ hand-crafted feature ทั้งหมด.
+
+ปี 2012 AlexNet (CNN 8 layer, train บน GPU 2 ตัว) ส่งผลที่ top-5 error 15.3%  — **ลดลง 10+ percentage point ในปีเดียว**, ผลที่ไม่มีใครเคยเห็นมาก่อน.
+
+ปฏิกิริยา: ปี 2013-2014 ทุก team ใน competition ใช้ deep CNN. ภายในปี 2015 (ResNet) error rate ลงต่ำกว่า human level (5%). วงการ vision ถูก "ทุบ" และเปลี่ยน paradigm ภายใน 3 ปี — เปิดทางให้ DL ขยายไปสู่ NLP (transformer ในปี 2017), speech, และในที่สุด LLM.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** "Deep learning" และ "AI" หมายถึงสิ่งเดียวกัน
+   **ความจริง:** AI เป็นสาขาใหญ่ที่รวมทั้ง symbolic AI, rule-based system, classical ML และ DL. DL เป็น subset ของ ML ซึ่งเป็น subset ของ AI. ปัจจุบัน DL ครองงาน AI ส่วนใหญ่ที่เป็นข่าว แต่ไม่ใช่ทุก AI เป็น DL
+
+2. **ความเข้าใจผิด:** ยิ่ง network ลึก = ยิ่งดีเสมอ
+   **ความจริง:** ความลึกช่วยได้ระดับหนึ่ง แต่ network ที่ลึกเกินไปโดยไม่มี technique เช่น residual connection จะ train ไม่ได้ (vanishing gradient). ResNet ที่เปิดตัวปี 2015 เป็นการพิสูจน์ว่า "ลึกขึ้นได้ ถ้ามี trick ที่เหมาะ" — แต่ลึกไปเรื่อย ๆ ไม่ได้ดีไปเรื่อย ๆ ใน practice ต้อง balance กับ data, compute, และ task
+
+3. **ความเข้าใจผิด:** Deep learning ทำได้ทุกอย่างที่ classical ML ทำได้
+   **ความจริง:** ใน tabular data, small data, และงานที่ต้องการ interpretability classical ML (โดยเฉพาะ gradient boosting) มักให้ผลดีกว่า DL ทั้ง accuracy และต้นทุน. นักวิทยาศาสตร์ข้อมูลที่เก่งจะเลือก tool ตามงาน ไม่ใช้ DL ทุกครั้ง
+
+4. **ความเข้าใจผิด:** Deep learning เป็นเทคโนโลยีใหม่ที่เพิ่งคิดค้นในปี 2012
+   **ความจริง:** แนวคิดของ multi-layer neural network และ backpropagation มีมาตั้งแต่ทศวรรษ 1960-1980. สิ่งที่ "ใหม่" ในปี 2012 คือ **การมารวมตัวของปัจจัย 4 ข้อ** (data, compute, algorithm, GPU parallelism) ที่ทำให้แนวคิดเก่านี้ใช้งานได้จริงเป็นครั้งแรก
+
+5. **ความเข้าใจผิด:** DL "เข้าใจ" ข้อมูลในลักษณะคล้ายมนุษย์เพราะมี hierarchical feature
+   **ความจริง:** การที่ layer ระดับสูงตอบสนองกับ concept abstract (เช่น "หน้าแมว") ไม่ได้แปลว่ามันเข้าใจในความหมายของมนุษย์. มันเป็น statistical correlation ใน weight ที่บังเอิญ activate กับ pattern ที่มนุษย์เรียกว่า "หน้าแมว". การ confusion ตรงนี้นำไปสู่ความเข้าใจผิดเรื่อง consciousness/understanding ของโมเดล AI
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** วาดความสัมพันธ์ของ AI, ML, DL, LLM เป็น nested circle และอธิบายว่าแต่ละวงเป็น subset ของวงที่ใหญ่กว่าอย่างไร
+2. **(Explain)** "deep" ใน deep learning หมายถึงอะไร และทำไมความลึกถึงสำคัญในมุมของ representation
+3. **(Explain)** representation learning ต่างจาก feature engineering อย่างไร และทำไมจึงเป็นเหตุที่ DL ปฏิวัติ AI
+4. **(Apply)** มีงาน 2 อย่าง: (ก) แยกประเภทรูปสินค้าใน e-commerce 5 ล้านรูป และ (ข) ทำนาย default rate ของลูกค้า 8,000 รายจากข้อมูลตาราง 15 column. แต่ละงานเหมาะกับ DL หรือ classical ML — เพราะอะไร?
+5. **(Apply)** อธิบายว่าเหตุใด neural network ที่มีแนวคิดมาตั้งแต่ทศวรรษ 1960 ถึงเพิ่ง "work" ในปี 2012 ตอบโดยอ้างถึงปัจจัยอย่างน้อย 3 ข้อ
+6. **(Synthesize)** LLM เป็น deep learning หรือไม่? อธิบายความสัมพันธ์ของ concept ในบทนี้ (representation learning, hierarchical feature, การ scale ด้วย data+compute) กับการที่ LLM ทำงานได้ดี
+
+---
+
+</section>

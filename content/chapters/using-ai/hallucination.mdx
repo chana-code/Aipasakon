@@ -1,0 +1,272 @@
+---
+slug: hallucination
+level: using-ai
+title: "Hallucination — เมื่อ AI มั่นใจแต่ผิด"
+status: reviewed
+prerequisites:
+  - what-is-an-llm
+  - how-llms-respond
+last_reviewed: 2026-05-18
+tldr: "Hallucination คือพฤติกรรมของ LLM ที่ผลิตข้อความซึ่ง **ลื่นไหล มั่นใจ แต่ผิดข้อเท็จจริงหรือแต่งขึ้นทั้งหมด**. มันไม่ใช่ bug ที่จะแก้ให้หมดได้ — มันเป็นผลตามมาโดยตรงของ objective ในการ train คือ \"ทำนาย token ถัดไปที่น่าจะมาตาม pattern\" ซึ่งไม่มีกลไก verify ความจริงในตัว. สิ่งที่ผู้ใช้ทำได้คือ ลดโอกาสเกิด (RAG, prompt design, reasoning model), ตรวจจับ (citation check, cross-question, domain knowledge), และ ออกแบบ workflow โดยสมมติว่ามันจะเกิด."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Hallucination คือพฤติกรรมของ LLM ที่ผลิตข้อความซึ่ง **ลื่นไหล มั่นใจ แต่ผิดข้อเท็จจริงหรือแต่งขึ้นทั้งหมด**. มันไม่ใช่ bug ที่จะแก้ให้หมดได้ — มันเป็นผลตามมาโดยตรงของ objective ในการ train คือ "ทำนาย token ถัดไปที่น่าจะมาตาม pattern" ซึ่งไม่มีกลไก verify ความจริงในตัว. สิ่งที่ผู้ใช้ทำได้คือ ลดโอกาสเกิด (RAG, prompt design, reasoning model), ตรวจจับ (citation check, cross-question, domain knowledge), และ ออกแบบ workflow โดยสมมติว่ามันจะเกิด.
+
+**Hallucination** ในบริบทของ LLM คือเมื่อโมเดล **สร้างข้อความที่ฟังดูถูกต้อง น่าเชื่อ แต่ไม่ตรงข้อเท็จจริง**. ผู้ใช้ใหม่มักเจอตัวอย่างที่ชัดเจนคือ — ถาม Claude หรือ ChatGPT ว่า "งานวิจัยของ ดร. X ที่ตีพิมพ์ในปี Y มีเนื้อหาอะไร" แล้วได้คำตอบยาว ๆ ที่อ้างชื่อ paper, ชื่อ journal, ตัวเลข สถิติ — ทุกอย่างอ่านเหมือนจริง แต่พอไปเช็คจริง paper นั้นไม่มีตัวตน.
+
+นี่ไม่ใช่ "AI โกหก" ในความหมายว่ามันตั้งใจหลอก. มันไม่มีเจตนา. มันเป็นผลตามมาของกลไกพื้นฐาน — LLM ถูกฝึกให้ **ทำนาย token ที่น่าจะมาต่อ** จาก pattern ใน training data. ไม่ได้ถูกฝึกให้ **ตรวจสอบความจริง**. เมื่อ context ไม่มีคำตอบที่ตรงในความจำของ pattern โมเดลก็เดาตาม pattern ที่ใกล้เคียงที่สุด — ซึ่งบางครั้งใกล้ความจริง บางครั้งสร้างข้อมูลปลอมที่ฟังดูสมเหตุสมผล.
+
+### Mental model
+นึกถึง LLM เป็น **นักเล่าเรื่องเก่ง ๆ ที่อ่านมาเยอะมาก แต่ไม่มีหนังสือต้นฉบับอยู่ในมือตอนเล่า**. เวลาเราถามเรื่องที่มันจำได้ดี มันเล่าได้ถูกต้อง. เวลาเราถามเรื่องที่มันจำได้คร่าว ๆ หรือไม่ได้จำเลย มันยังคงเล่าต่อ — เพราะหน้าที่ของมันคือ "เล่าต่อให้ลื่น" ไม่ใช่ "หยุดเมื่อไม่รู้". มันจะผสม pattern จากเรื่องคล้าย ๆ กันที่จำได้ มาเล่าด้วยความมั่นใจเท่าเดิม.
+
+**ผลตามมา 3 ข้อที่ต้องจำ:**
+1. **Hallucination ไม่หายไปเป็นศูนย์** — แม้โมเดลรุ่นใหม่ที่สุด ผ่าน RLHF, reasoning, RAG ก็ยังมีโอกาสเกิด. ออกแบบ workflow โดยสมมติว่ามันจะเกิดเสมอ
+2. **โมเดลฟังดูมั่นใจเท่ากันทั้งตอนถูกและตอนผิด** — ความมั่นใจไม่ใช่สัญญาณของความจริง. นี่คือคุณสมบัติที่อันตรายที่สุด เพราะมนุษย์ใช้ confidence เป็น truth signal โดยอัตโนมัติ
+3. **เราตรวจจับได้ — แต่ต้องตั้งใจ** — มีเทคนิคหลายอย่างที่ลดความเสี่ยง (RAG, citation, cross-check) แต่ผู้ใช้ต้องรู้จักและใช้ ไม่ใช่หวังให้โมเดลทำเอง
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 ทำไม hallucination ถึงเป็นคุณสมบัติ intrinsic ของ LLM
+
+LLM modern ทุกตัวถูก train ด้วย objective พื้นฐานคือ **next-token prediction** — เห็น context มาก้อนหนึ่ง ทำนาย token ถัดไปที่น่าจะมา. นี่คือ training signal เดียวที่ pretraining ใช้ (ดู [what-is-an-llm](/foundations/what-is-an-llm)).
+
+จาก objective นี้ มี implication ที่สำคัญ:
+- โมเดลถูกฝึกให้ **ผลิต continuation ที่เป็นไปได้** ตาม pattern ใน training data
+- โมเดล **ไม่มี objective** สำหรับ "บอกว่าไม่รู้" — ใน pretraining ไม่เคยมี token พิเศษว่า `<idk>` หรืออะไรในทำนองนั้น
+- ทุก context, distribution ของ token ถัดไปจะมีอย่างน้อยหนึ่ง token ที่ probability สูงสุด — โมเดลต้องผลิตอะไรสักอย่าง
+
+ถึงแม้ post-training (RLHF, SFT) จะสอนโมเดลให้ตอบว่า "ฉันไม่แน่ใจ" หรือ "ฉันไม่มีข้อมูลนั้น" ได้บ้าง  แต่:
+- การสอนนี้ไม่ครอบคลุมทุกกรณี
+- บางครั้ง RLHF สอน "ความเป็น helpful assistant" ที่ขัดกับ "การยอมรับว่าไม่รู้" — โมเดลถูก reward เมื่อให้คำตอบที่ผู้ใช้พอใจ ซึ่งสร้าง pressure ให้พยายามตอบเสมอ
+- การ calibrate ระหว่าง "รู้จริง" กับ "ไม่รู้" ในระดับ probability ยังเป็น open problem ใน research
+
+Survey เรื่อง hallucination ใน LLM  ระบุว่าสาเหตุของ hallucination มีหลายระดับ — จาก training data ที่มี noise/contradiction, จาก architecture ที่ encode knowledge แบบ implicit ใน weight, จาก decoding strategy ที่ favor token น่าจะเป็นมากกว่า token ที่จริง.
+
+### 2.2 ประเภทของ hallucination
+
+วงการ research แบ่ง hallucination ใน NLG/LLM ได้หลายแบบ. แบบที่ใช้บ่อยที่สุดจาก Ji et al.  และ Huang et al. :
+
+**1. Intrinsic hallucination**
+- output **ขัดกับ context/input ที่ให้ไป**
+- ตัวอย่าง: เอกสารระบุว่า "บริษัท ABC ก่อตั้งปี 2010" แต่ตอนสรุป โมเดลเขียนว่า "ก่อตั้งปี 2008"
+- เกิดบ่อยในงาน summarization, translation, document Q&A
+- ตรวจจับได้ง่ายกว่า — เทียบกับ source ได้ตรง ๆ
+
+**2. Extrinsic hallucination**
+- output **เพิ่มเติมข้อมูลที่ไม่มีใน input** และ verify ไม่ได้
+- ตัวอย่าง: ผู้ใช้ขอสรุปบทความเศรษฐกิจ — โมเดลใส่ตัวเลข GDP ที่ไม่ปรากฏใน source แต่ "ดูเหมือนจริง"
+- อันตรายกว่า — บางครั้งข้อมูลที่ใส่ "บังเอิญถูก" บางครั้ง "บังเอิญผิด" — ผู้ใช้แยกไม่ออก
+
+**3. Factual error (world-knowledge hallucination)**
+- output ผิดข้อเท็จจริงโลกจริง โดยไม่มี input ให้เทียบ
+- ตัวอย่าง: "เมืองหลวงของออสเตรเลียคือ Sydney" (จริง ๆ คือ Canberra)
+- เกิดในกรณีที่ผู้ใช้ถามคำถาม factual ตรง ๆ
+- ลด/เพิ่มตาม coverage ของ training data — fact ทั่วไปมัก ถูก, fact long-tail มัก ผิด
+
+**4. Logical / reasoning hallucination**
+- ห่วงโซ่เหตุผลเดินผิดที่ไหนสักจุด → conclusion ผิด
+- ตัวอย่าง: โจทย์คณิตศาสตร์หลายขั้น — โมเดลทำ step 1, 2, 3 ถูก แต่ step 4 ทำผิด arithmetic → answer ผิด
+- ยิ่งห่วงโซ่ยาว ยิ่งสะสม error
+- Reasoning model (เช่น o1, Claude reasoning mode) ลดได้ระดับหนึ่งแต่ไม่หมด
+
+ในทางปฏิบัติ hallucination จริงมักเป็น **ส่วนผสมของหลายประเภท** — เช่น สรุปเอกสารแล้วใส่ผู้ขียนผิด (intrinsic), อ้าง paper ที่ไม่มี (extrinsic), ระบุปี publication ผิด (factual), และให้บทสรุปที่ไม่ตามจากเนื้อหา (reasoning) — ทั้งหมดในย่อหน้าเดียว.
+
+### 2.3 ปัญหา "confident bullshit" — ทำไม hallucination ถึงอันตรายเป็นพิเศษ
+
+LLM **ใช้ภาษาที่มั่นใจระดับเท่ากัน** ไม่ว่าจะถูกหรือผิด. ไม่มี linguistic marker ที่ผู้ใช้สังเกตเห็นได้ทันที. ประโยค:
+- "เมืองหลวงของฝรั่งเศสคือ Paris" (ถูก)
+- "เมืองหลวงของออสเตรเลียคือ Sydney" (ผิด)
+
+โครงสร้างประโยคเดียวกัน ความมั่นใจในภาษาเท่ากัน. ผู้ใช้ที่ไม่รู้คำตอบล่วงหน้า ไม่มีทางแยก.
+
+นี่คือสาเหตุที่ hallucination อันตรายกว่า error ของ search engine — search ที่ทำงานพลาดอาจไม่เจอผลลัพธ์ หรือเจอผลลัพธ์ที่ปลายทางบอก "404 not found". LLM ไม่เคย return "ไม่เจอ" — มันสร้างคำตอบเสมอ.
+
+มนุษย์ใช้ **confidence as truth signal** โดยอัตโนมัติ — เราเชื่อคนที่พูดมั่นใจมากกว่าคนที่พูดลังเล. LLM ถูก train ให้พูดในแบบที่ผู้ใช้ชอบ — ซึ่งคือพูดอย่างมั่นใจ. ผลคือ heuristic ของมนุษย์โดน exploit โดยไม่ตั้งใจ.
+
+### 2.4 Hallucination เกิดบ่อยในสถานการณ์ใด
+
+**สถานการณ์ความเสี่ยงสูง:**
+- **Specific facts** — ตัวเลข, วันที่, ชื่อบุคคล, ชื่อบริษัท, สถิติ. โดยเฉพาะตัวเลขที่ไม่ใช่ round number (เช่น "$3.27 billion" vs "หลายพันล้าน")
+- **Citation / quotation** — อ้าง paper, book, URL, quote. โมเดลแต่ง paper ที่ดู realistic ที่สุดในวงการนี้
+- **Long-tail knowledge** — เรื่องที่ปรากฏน้อยใน training data — บุคคลที่ไม่ดัง, บริษัทขนาดเล็ก, เหตุการณ์ภูมิภาค, niche technical topic
+- **Knowledge after training cutoff** — เหตุการณ์ใหม่หลังวันที่หยุด train (ดู [training-cutoff-and-real-time-info](/using-ai/training-cutoff-and-real-time-info))
+- **Long reasoning chain** — โจทย์ที่ต้อง 5+ ขั้นตอน error สะสม
+- **Long conversation context** — โมเดลถูกถามให้ "จำ" สิ่งที่ผู้ใช้พูดเมื่อหลายร้อย token ก่อน. "lost in the middle" effect (ดู )
+- **Cross-language facts** — โมเดลรู้ fact ในภาษาอังกฤษ แต่ไม่รู้ใน Thai — สอบถามเป็นภาษาไทยมีโอกาสได้ hallucination มากกว่า
+
+**สถานการณ์ความเสี่ยงต่ำ:**
+- **Stable common knowledge** — fact พื้นฐานที่ปรากฏซ้ำหลายล้านครั้งใน corpus (เมืองหลวง, ธาตุ, ปีเกิดบุคคลดังมาก ๆ)
+- **Pattern/template tasks** — เขียนตาม style, format, structure ที่ชัดเจน (email, code boilerplate, summary template)
+- **Tasks where the answer is in the input** — summarization สั้น ๆ, translation, formatting, extraction — ถ้าโมเดลทำ intrinsic error เรา catch ได้ง่าย
+- **Code with verifier** — code ที่เรา run และทดสอบได้ — error ไม่ถูกซ่อน
+
+### 2.5 Mitigation strategies — เรียงตาม impact
+
+**1. Retrieval-Augmented Generation (RAG) — impact สูงสุด**
+ใส่ "ข้อมูลที่จริง" ลงใน prompt โดยตรง — แทนที่จะให้โมเดลค้นจาก parameter memory. RAG ลด factual hallucination ได้ระดับสำคัญ เพราะเปลี่ยน task จาก "remember" เป็น "summarize the given text" — ซึ่ง LLM เก่งกว่ามาก .
+- ใช้ใน Claude Projects, ChatGPT memory + file upload, Perplexity, enterprise chatbot
+- ไม่ได้แก้ทุกอย่าง — RAG ผิดได้ถ้าเอกสารที่ดึงมาผิด หรือโมเดล hallucinate จากเอกสาร (intrinsic) อยู่ดี
+- รายละเอียดที่ [rag-retrieval-augmented-generation](/building-with-ai/rag-retrieval-augmented-generation)
+
+**2. Verify everything that matters — impact สูง (แต่ขึ้นกับวินัยผู้ใช้)**
+ถือ output ของ LLM เป็น **draft** ไม่ใช่ **source**. ทุกตัวเลข, ทุกชื่อ, ทุก citation ที่จะใช้ในงานจริง ต้อง verify ผ่าน source อิสระ. นี่ไม่ใช่เทคนิคของโมเดล — เป็น workflow ของผู้ใช้.
+
+**3. Ask for sources / quotes — impact ปานกลาง**
+ขอให้โมเดลอ้างอิงที่มาของแต่ละ claim. ผลข้างเคียงคือลดความ "พูดเรื่อย ๆ" — แต่ระวัง — **โมเดล hallucinate sources ด้วยได้** — อ้างชื่อ paper ที่ไม่มีตัวตน ใช้ URL ที่ใช้งานไม่ได้.
+- ใช้ได้จริงเมื่อตามไป verify URL/paper ทุกชิ้น
+- ใน Claude / ChatGPT + web search mode จะได้ citation จริงจาก web ที่ verify ได้
+
+**4. Self-critique / verification step — impact ปานกลาง**
+หลังโมเดลตอบ ขอให้มัน "review คำตอบของตัวเองและบอกจุดที่อาจผิด". มีผลในบางกรณี แต่จำกัด — โมเดลอาจ confirm ตัวเองแม้ตอน hallucinate.
+- มีประสิทธิภาพมากขึ้นถ้าใช้ **โมเดลคนละตัว** เป็น critic (separation of concerns)
+
+**5. Multiple samples + majority vote (self-consistency) — impact ในงาน reasoning**
+สำหรับ task ที่มีคำตอบ discrete (math, multiple choice) — sample คำตอบหลายรอบ เลือก majority. ช่วยลด random reasoning error ได้.
+
+**6. Reasoning model — impact ในงาน logic**
+โมเดลที่ใช้ explicit reasoning chain (Claude reasoning, o1, o3) ลด logical hallucination ได้ แต่ **ไม่ลด factual hallucination** ในระดับเดียวกัน — ถ้า fact ไม่อยู่ใน memory, reasoning ก็ผิดจาก premise ผิด.
+
+**7. Lower temperature — impact เล็ก**
+Temperature ต่ำ → โมเดลเลือก token ที่ probability สูงสุด → output มี variance ต่ำลง. ลด hallucination แบบ "เดาแบบสุ่ม" ได้นิดหน่อย แต่ ถ้าโมเดล **มั่นใจในคำตอบผิด** อยู่แล้ว — temperature 0 ก็ยังให้คำตอบผิดเดิมทุกครั้ง. ดู [temperature-and-determinism](/using-ai/temperature-and-determinism).
+
+**8. Structured output / JSON schema — impact ในเฉพาะ failure mode**
+บังคับให้ output อยู่ใน schema (JSON, function call) — ลด hallucination ของ **format** และบางครั้งของ structure แต่ไม่ลด hallucination ของ **content** ใน field. ใช้ได้ดีคู่กับ validation downstream.
+
+### 2.6 Detection — ตรวจจับยังไงว่าโมเดล hallucinate
+
+**Signal ที่ผู้ใช้ใช้ได้จริง:**
+
+1. **The hyper-specific detail check** — ระวังคำตอบที่มีรายละเอียดเฉพาะตัวสูง (precise number, exact date, specific name) โดยที่ "ความมั่นใจดูสูงเกินไป" สำหรับ question domain นั้น. ถ้าถามเรื่อง general แล้วได้ตัวเลขแม่นยำถึง decimal — สงสัยไว้ก่อน
+
+2. **Citation check** — ตามไป verify ทุก paper, book, URL, quote. หาก paper ที่อ้างไม่ปรากฏใน Google Scholar / arXiv → hallucinate. URL ที่ click แล้ว 404 หรือไปที่หน้าไม่เกี่ยวข้อง → hallucinate
+
+3. **Inconsistency probe** — ถามคำถามเดียวกันด้วยคำต่างกัน 2-3 ครั้งใน session แยก. ถ้าโมเดล confident แต่ตอบไม่เหมือนกัน → ไม่รู้จริง
+
+4. **Domain knowledge cross-check** — ในเรื่องที่เรารู้ดี, error ของโมเดลเห็นชัด. ใช้ test ในเรื่องที่เรารู้แล้ว extrapolate ความน่าเชื่อถือไปยังเรื่องที่เราไม่รู้ในโดเมนเดียวกัน
+
+5. **Reversal test** — ถามคำถามในทิศกลับ. "X คือใคร" ตอบได้ดี → "ใครคือ X" ก็ควรตอบได้. ถ้าตอบไม่ได้ — อาจไม่รู้จริง แค่จำ pattern
+
+### 2.7 Honesty about residual risk
+
+แม้ใช้ทุก mitigation ข้างต้น — RAG + verification + reasoning model + structured output — hallucination **ไม่เป็นศูนย์**. ในงานสำคัญ (medical, legal, financial, safety-critical) สมมติเสมอว่ามันจะเกิดและออกแบบ workflow ให้รับได้:
+- มี **human in the loop** ใน decision สุดท้าย
+- มี **audit trail** ของ AI output
+- มี **fallback** ที่ไม่พึ่ง AI สำหรับ edge case
+
+นี่ไม่ใช่ pessimism — มันคือ engineering ที่ตรงกับ property ของเครื่องมือ.
+
+### 2.8 ทิศทาง research ปี 2024-2025
+
+งาน research ปัจจุบันกำลังเดินใน 4 ทิศทางหลัก:
+
+- **Calibrated confidence** — ฝึกโมเดลให้รู้ "ตัวเองรู้จริงแค่ไหน" และแสดงออกเป็น probability ที่สอดคล้องกับความถูกต้อง. ยังเป็น open problem แต่มี progress
+- **RAG + agentic verification** — ระบบที่ AI ตรวจสอบ output ของตัวเองด้วยการเรียก external tool (search, calculator, database) ก่อน return ให้ user — ลด hallucination ได้สำคัญในงาน factual
+- **Reasoning models** — Claude reasoning, o1/o3 ลด logical hallucination แต่ trade off กับ latency และ cost
+- **Constitutional / RLAIF approach** — ใช้ AI feedback ในการสอนโมเดลให้ "ยอมรับว่าไม่รู้" มากขึ้น 
+
+แนวโน้มภาพรวม: **ลดลง ไม่หมด.** ผู้ใช้ในปี 2026 ยังต้องสมมติว่ามันเกิดและออกแบบ workflow รับ.
+
+---
+
+## Worked Examples
+
+### Example 1: Extrinsic hallucination — แต่ง paper citation
+**ผู้ใช้:** "หา paper ล่าสุดเรื่อง federated learning ใน healthcare ให้หน่อย พร้อม link"
+
+**LLM output (มี hallucination):**
+> "งานวิจัยล่าสุดที่น่าสนใจคือ Nguyen et al. (2023) 'Privacy-Preserving Federated Learning for Multi-Hospital EHR Analysis' ตีพิมพ์ใน Nature Digital Medicine, ใช้ differential privacy + secure aggregation บนข้อมูล 12 hospital ในยุโรป..."
+
+**สิ่งที่เกิด:** ชื่อ paper สมเหตุสมผล ชื่อผู้เขียนเอเชียที่ทำงาน topic นี้บ่อย journal มีอยู่จริง — แต่ paper เฉพาะตัวนี้ไม่มี ค้นใน Google Scholar / PubMed ไม่เจอ. นี่คือ extrinsic hallucination ทั่วไป — ตัว LLM ผสม pattern ของ "paper ที่น่าจะตีพิมพ์" จาก training data.
+
+**บทเรียน:** ทุก citation ต้องตามไป verify. โหมด web search ของ Claude/ChatGPT ลด failure นี้ได้ — แต่ในโหมด chat ปกติยังเป็นความเสี่ยงสูงสุด.
+
+### Example 2: Intrinsic hallucination — สรุปเอกสารผิด
+**ผู้ใช้:** อัพโหลด PDF รายงานบริษัทยาว 30 หน้า. ถาม "ทีม R&D มีกี่คน?"
+
+**เอกสารระบุ:** "Research and Development department: 47 employees"
+
+**LLM output (มี hallucination):**
+> "ทีม R&D ของบริษัทมีพนักงาน 74 คน ตามรายงานปี 2024..."
+
+**สิ่งที่เกิด:** โมเดลสลับเลข 47 → 74 (transposition error). เป็น intrinsic hallucination — output ขัดกับ source ที่ให้.
+
+**บทเรียน:** RAG/document Q&A ไม่ได้ป้องกัน intrinsic hallucination 100%. ตัวเลขสำคัญต้อง grep หาใน source ตรง ๆ ไม่ใช้แค่ output ของ AI.
+
+### Example 3: Factual hallucination — ข้อมูล long-tail
+**ผู้ใช้:** "ใครเป็น CEO ของบริษัท Fairdee ในประเทศไทย?"
+
+**LLM output (น่าจะมี hallucination):**
+> "CEO ของ Fairdee ในปัจจุบันคือคุณ สุชาติ วิทยาคุณ ซึ่งร่วมก่อตั้งบริษัทในปี 2019..."
+
+**สิ่งที่เกิด:** Fairdee เป็นบริษัท long-tail (ไม่ดังในระดับโลก). โมเดลไม่มี fact นี้ใน parameter memory — แต่ produce ชื่อไทยที่ฟังเป็นชื่อ executive และระบุปีก่อตั้งที่สมเหตุสมผล. มีโอกาสสูงที่จะผิดเกือบทุกองค์ประกอบ.
+
+**บทเรียน:** สำหรับ entity เฉพาะตัว (บริษัทเล็ก-กลาง, บุคคล) — สงสัยไว้ก่อน. ใช้ web search mode หรือ verify ผ่าน official source.
+
+### Example 4: Reasoning hallucination — math chain error
+**ผู้ใช้:** "ร้านมีลูกค้า 240 คนต่อวัน แต่ละคนใช้จ่ายเฉลี่ย 187 บาท. ถ้า margin คือ 23% หลังหัก rent เดือนละ 45,000 บาท กำไรสุทธิต่อเดือนเท่าไหร่?"
+
+**LLM output (มี hallucination):**
+> "รายได้ต่อวัน: 240 × 187 = 44,880 บาท
+> รายได้ต่อเดือน: 44,880 × 30 = 1,346,400 บาท
+> Margin 23%: 1,346,400 × 0.23 = 309,672 บาท
+> หัก rent: 309,672 − 45,000 = 264,672 บาท
+> **กำไรสุทธิประมาณ 264,672 บาทต่อเดือน**"
+
+**สิ่งที่เกิด:** ในกรณีนี้คณิตศาสตร์เดินถูกพอดี — แต่บ่อยครั้งโมเดลคำนวณ step ใดสักหนึ่งผิด (เช่น 240 × 187 = 44,680 แทน 44,880) แล้ว propagate ไปทั้ง chain. ผู้ใช้ที่ไม่ตรวจกลางทาง จะได้คำตอบสุดท้ายผิด.
+
+**บทเรียน:** สำหรับงานคำนวณ — ใช้ function calling / code execution หรือตรวจทุก step. Reasoning model ลดได้ระดับหนึ่งแต่ไม่หมด.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** Hallucination เป็น bug ที่จะถูกแก้ในรุ่นถัดไป
+   **ความจริง:** Hallucination flow มาจาก objective ของ next-token prediction โดยตรง. รุ่นใหม่ลดความถี่ได้ผ่าน RLHF, RAG, reasoning — แต่ไม่หมด. มันเป็น property structural ไม่ใช่ implementation defect.
+
+2. **ความเข้าใจผิด:** ถ้าผมตั้ง temperature = 0 จะไม่มี hallucination
+   **ความจริง:** Temperature 0 ลดความสุ่มในการเลือก token แต่ไม่ลดความผิดของ pattern ที่โมเดลมั่นใจอยู่แล้ว. โมเดลที่ "มั่นใจในคำตอบผิด" ที่ temperature 0 ก็ยังให้คำตอบผิดเดิม — ทุกครั้ง.
+
+3. **ความเข้าใจผิด:** โมเดลที่ใหญ่กว่าไม่ hallucinate
+   **ความจริง:** โมเดลใหญ่ hallucinate น้อยลงในงานบางประเภท (general fact, common reasoning) แต่ในงาน long-tail / specific knowledge ความเสี่ยงยังสูง. และโมเดลใหญ่บางครั้ง hallucinate ใน "แบบที่น่าเชื่อกว่า" — อันตรายกว่าโมเดลเล็ก เพราะตรวจจับยากกว่า.
+
+4. **ความเข้าใจผิด:** Hallucination = AI โกหก
+   **ความจริง:** ไม่มีเจตนา. LLM ไม่มี internal state ที่ "รู้ว่าตัวเองพูดผิด". มันเป็น statistical pattern matching ที่บางครั้ง pattern ที่ output มาตรงข้อเท็จจริง บางครั้งไม่ตรง. การใช้คำว่า "โกหก" ทำให้เข้าใจกลไกผิด.
+
+5. **ความเข้าใจผิด:** ถ้า LLM อ้าง source แสดงว่าน่าเชื่อถือ
+   **ความจริง:** Source citation เป็น text เหมือนทุกอย่างอื่นที่ LLM produce — มัน hallucinate ได้. ชื่อ paper, ชื่อ author, URL, ปี publication, ชื่อ journal — ทุกอย่าง hallucinate ได้พร้อม ๆ กัน. ต้อง verify ทุก citation ก่อนใช้.
+
+6. **ความเข้าใจผิด:** RAG แก้ hallucination ได้หมด
+   **ความจริง:** RAG ลด factual hallucination ได้สำคัญ แต่ไม่หมด. โมเดลยัง intrinsic hallucinate จาก retrieved document ได้ (สลับเลข, อ่านผิด, สรุปออกไปนอก source). และถ้า retrieval ดึงเอกสารผิดมา — output ผิดเสมอ.
+
+7. **ความเข้าใจผิด:** Reasoning model (o1, o3, Claude reasoning) ไม่ hallucinate
+   **ความจริง:** Reasoning model ลด logical/reasoning hallucination ได้สำคัญ แต่ ลด factual hallucination ในระดับใกล้เคียงโมเดล non-reasoning. ถ้า fact ผิดตั้งแต่ premise — reasoning ที่ดีก็ยังนำไปสู่ conclusion ผิด.
+
+8. **ความเข้าใจผิด:** ผมรู้สึกได้เองว่าโมเดล hallucinate เมื่อไหร่
+   **ความจริง:** มนุษย์แย่มากในการตรวจจับ hallucination จาก linguistic cue เพียงอย่างเดียว เพราะโมเดลใช้ภาษา confident เท่ากันทั้งตอนถูกและตอนผิด. ต้อง verify ด้วย method ที่เป็นระบบ ไม่ใช่ "วิจารณญาณ".
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** Hallucination ใน LLM คืออะไร และทำไมมันเป็นผลตามมา *โดยตรง* ของ training objective?
+2. **(Explain)** แยก intrinsic hallucination กับ extrinsic hallucination พร้อมยกตัวอย่างละ 1 ตัวอย่าง
+3. **(Apply)** มี 3 task: (ก) "สรุปบทความข่าวที่อัพโหลด PDF" (ข) "บอกอัตราดอกเบี้ยปัจจุบันของธนาคารแห่งประเทศไทย" (ค) "เขียน function Python ที่เรียงลำดับ list". งานไหนเสี่ยง hallucinate สูงสุด งานไหนต่ำสุด — และเพราะอะไร?
+4. **(Apply)** ผู้ใช้คนหนึ่งบอกว่า "ผมตั้ง temperature เป็น 0 แล้ว ดังนั้น output ที่ได้ verify แล้ว". คุณจะอธิบายความเข้าใจผิดนี้ยังไง?
+5. **(Apply)** ออกแบบ verification workflow สั้น ๆ (3-5 step) สำหรับงาน "ใช้ LLM ช่วยร่าง legal contract" ที่ลดความเสี่ยง hallucination ได้สูงสุด
+6. **(Synthesize)** ทำไม "ความมั่นใจในภาษา" ของ LLM ถึงเป็นคุณสมบัติที่อันตรายที่สุด — มันเชื่อมโยงกับ heuristic ของมนุษย์ยังไง?
+
+---
+
+</section>

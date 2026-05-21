@@ -1,0 +1,541 @@
+---
+slug: workflows-for-knowledge-work
+level: using-ai
+title: "Workflows for Knowledge Work"
+status: reviewed
+prerequisites:
+  - prompt-engineering-basics
+  - prompt-engineering-patterns
+  - tool-fluency
+  - hallucination
+last_reviewed: 2026-05-18
+tldr: "งาน knowledge work ส่วนใหญ่ (ค้นคว้า, สรุป, ร่าง, แก้, brainstorm, วิเคราะห์, แปล, เขียนสูตร, อธิบาย, ตัดสินใจ, เตรียม/ตามผลประชุม) ตกใน pattern ที่ทำซ้ำได้ — ไม่ใช่ \"งานสร้างสรรค์อันเป็นเอกลักษณ์\" อย่างที่หลายคนเข้าใจ. แต่ละ workflow มีโครงสร้าง prompt, mode/tool ที่เหมาะ, failure mode, และเกณฑ์คุณภาพของตัวเอง. การ invest 10 นาทีออกแบบ template สำหรับงานที่ทำบ่อยจะคืนทุนภายในไม่กี่ครั้ง — นี่คือจุดที่ productivity gain ของ AI compound ที่สุด."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+งาน knowledge work ส่วนใหญ่ (ค้นคว้า, สรุป, ร่าง, แก้, brainstorm, วิเคราะห์, แปล, เขียนสูตร, อธิบาย, ตัดสินใจ, เตรียม/ตามผลประชุม) ตกใน pattern ที่ทำซ้ำได้ — ไม่ใช่ "งานสร้างสรรค์อันเป็นเอกลักษณ์" อย่างที่หลายคนเข้าใจ. แต่ละ workflow มีโครงสร้าง prompt, mode/tool ที่เหมาะ, failure mode, และเกณฑ์คุณภาพของตัวเอง. การ invest 10 นาทีออกแบบ template สำหรับงานที่ทำบ่อยจะคืนทุนภายในไม่กี่ครั้ง — นี่คือจุดที่ productivity gain ของ AI compound ที่สุด.
+
+งาน knowledge work ในโลกจริงดูเหมือนหลากหลายมาก — เขียน proposal, สรุปประชุม, อ่าน paper, ทำ analysis, ตอบ email, brainstorm ชื่อ product, แปลเอกสาร, เขียน SQL — แต่ถ้ามองให้ดี **มันคือชุดของ pattern ที่จำกัด** ซึ่งทำซ้ำกันในรูปแบบต่าง ๆ.
+
+ตัวอย่าง: "เขียน proposal ลูกค้า", "เขียน executive summary ของ Q1", "เขียน LinkedIn post" — ทั้งสามคือ workflow **drafting** ที่มี input (context + goal + audience + tone + length) เหมือนกัน. ถ้าเข้าใจ drafting workflow ครั้งเดียว ก็ใช้กับทั้งสามงานได้.
+
+บทนี้คือ **catalog ของ workflow หลัก ๆ ในงาน knowledge work** พร้อมโครงสร้าง prompt ที่ใช้ได้จริง. ไม่ใช่ list ของ "tips" — เป็น taxonomy เชิงพฤติกรรมของการใช้ AI ในงานจริง.
+
+### Mental model
+
+นึกถึง AI ไม่ใช่ "ผู้ทำงานเก่ง" แต่เป็น **เครื่องสร้าง first draft + เครื่องช่วยคิด** ที่:
+- เก่งงานที่มี pattern ชัด (drafting, summarization, editing, translation)
+- ต้องการ context ที่ดีถึงจะให้ผลดี (ขยะเข้า ขยะออก)
+- ไม่น่าเชื่อในข้อเท็จจริงเฉพาะตัว — ใช้สำหรับโครงสร้างและภาษา ไม่ใช่ ground truth
+- ทำงานเป็น collaborative — คุณ refine ผ่าน iteration ไม่ใช่ get-it-right-first-try
+
+**ผลทางปฏิบัติ:** workflow ส่วนใหญ่ในบทนี้ไม่ใช่ "ส่ง prompt แล้วจบ" — เป็นการสร้าง first draft แล้ว iterate. AI ลดเวลาจาก blank page ไปจุดเริ่มต้นที่ดี ส่วนความ "เสร็จสมบูรณ์" ยังคงเป็นงานของมนุษย์.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+ในส่วนนี้จะเดินผ่าน **11 workflow** ที่ครอบคลุมงาน knowledge work ส่วนใหญ่. แต่ละ workflow จะมีรูปแบบเดียวกัน:
+
+- **One-liner** — สรุปว่า workflow นี้ทำอะไร
+- **Use when** — เมื่อไหร่ควรใช้
+- **Pattern** — โครงสร้าง prompt
+- **Mode/tool** — chat / canvas / deep research / etc. (ดู [tool-fluency](/using-ai/tool-fluency))
+- **Mini-template** — ตัวอย่าง prompt
+- **Watch for** — failure mode ที่พบบ่อย
+- **Quality check** — รู้ได้ยังไงว่า output ดีพอ
+
+### 2.1 Research synthesis — สังเคราะห์ข้อมูลจากหลายแหล่ง
+
+**One-liner:** รับ source ดิบ → ได้ความเข้าใจที่ coherent ในประเด็นที่ถามตามรูปแบบที่กำหนด.
+
+**Use when:**
+- มี source 3-10 อันที่ต้องอ่านและสรุปเป็นความเข้าใจรวม
+- ต้องเขียน briefing / literature review / competitor analysis
+
+**Pattern:** ส่ง source ทั้งหมดเข้า context + ตั้งคำถามที่ชัด + ระบุ output format + บังคับให้อ้าง source ทุกข้อความ.
+
+**Mode/tool:** Canvas/Artifacts สำหรับ output ยาว, Deep Research mode ถ้า AI ต้อง browse เอง, [context-windows](/using-ai/context-windows) เป็นข้อจำกัดสำคัญ.
+
+**Mini-template:**
+```
+ฉันมีเอกสาร 5 ฉบับด้านล่าง (S1-S5). คำถามที่ต้องการคำตอบ:
+"<question>"
+
+ทำสิ่งต่อไปนี้:
+1. สังเคราะห์คำตอบเป็น 3 หัวข้อหลัก
+2. ทุก claim ต้องมี citation รูปแบบ [S1], [S2]...
+3. ระบุจุดที่ source ขัดแย้งกัน
+4. ระบุจุดที่ไม่มี source ตอบ — บอกตรง ๆ ว่า "ไม่พบใน source"
+5. ความยาว: 600-800 คำ
+
+[S1] ...
+[S2] ...
+```
+
+**Watch for:**
+- AI แต่ง citation (paraphrase แล้วใส่ [S2] เฉย ๆ ทั้งที่ S2 ไม่ได้พูดเรื่องนั้น)
+- AI ผสม knowledge ของตัวเองเข้ามาแทนที่จะอิง source — ถ้าเรื่องอ่อนไหวต้องสั่งให้ "ใช้เฉพาะจาก source"
+
+**Quality check:** สุ่ม 3 citation มาเปิด source จริง — ตรงทุกข้อหรือไม่. ถ้าหลุด > 0 แม้ครั้งเดียว ต้อง re-prompt หรือใช้ระบบ RAG (ดู ).
+
+### 2.2 Document summarization — สรุปเอกสาร
+
+**One-liner:** ย่อ document ยาวเป็นรูปแบบสั้นที่รักษาโครงสร้างและจุดสำคัญ.
+
+**Use when:**
+- มี meeting note / report / article ที่ยาวเกินจะอ่านเอง
+- ต้องส่งต่อให้คนที่ไม่มีเวลาอ่าน full text
+
+**Pattern:** กำหนด **ระดับของ summary** ที่ต้องการ (executive 3 bullets / 1-page / sectional detailed) + รักษา structure เดิม + flag uncertainty.
+
+**Mode/tool:** Chat สำหรับ document สั้น; ถ้ายาวกว่า context window ต้องตัดเป็น chunk แล้วรวม (ดู [context-windows](/using-ai/context-windows)).
+
+**Mini-template:**
+```
+สรุปเอกสารด้านล่างเป็น 3 ระดับ:
+
+ระดับ 1 (Executive): 3 bullet points สำหรับ CEO
+ระดับ 2 (Manager): 1 paragraph สรุปประเด็นและ action items
+ระดับ 3 (Detailed): สรุปทีละ section ตาม structure เดิม
+
+ถ้ามีจุดที่ source ไม่ชัด/ขัดแย้ง — flag ด้วย ⚠
+
+เอกสาร:
+"""
+<full text>
+"""
+```
+
+**Watch for:**
+- "Lost in the middle" — โมเดลให้น้ำหนักตอนต้น/ตอนท้ายมากกว่าตรงกลาง โดยเฉพาะเมื่อ context ยาว 
+- Summary ที่ "ใส่สิ่งที่ไม่มีใน input" — โมเดลเติม knowledge ทั่วไปเข้ามา
+
+**Quality check:** เปิดเอกสารต้นฉบับ สุ่มหา point ที่สำคัญสุด 3 จุด — อยู่ใน summary หรือไม่. ถ้าหายไป > 1 ต้อง re-prompt ระบุ "เน้น X, Y, Z".
+
+### 2.3 Drafting — ร่างเอกสารใหม่
+
+**One-liner:** สร้าง first draft จาก zero โดยให้ context + goal + audience + tone + length.
+
+**Use when:**
+- ต้องเริ่มเขียน email / proposal / post / brief / report จาก blank page
+- งานที่มี template ชัด (cover letter, status update, intro email)
+
+**Pattern:** prompt ต้องระบุครบ 5 อย่าง: **context** (สถานการณ์), **goal** (อยากให้ผู้อ่านทำอะไรหลังอ่าน), **audience** (ใคร, รู้อะไรอยู่แล้ว), **tone** (สุภาพ/มืออาชีพ/ไม่เป็นทางการ), **length** (จำนวนคำ/ย่อหน้า) + **constraints** (สิ่งที่ต้อง/ห้ามมี).
+
+**Mode/tool:** Canvas/Artifacts ดีกว่า chat — เพราะ output ยาวและต้อง iterate.
+
+**Mini-template:**
+```
+เขียน email โดยมีรายละเอียดดังนี้:
+
+Context: ลูกค้า Fairdee แจ้งว่าระบบยังมีบั๊ก ฉันต้องตอบและขอเวลา 2 สัปดาห์
+Goal: ลูกค้าเข้าใจว่าเรากำลังแก้ และไม่ยกเลิกสัญญา
+Audience: ผู้จัดการ IT บริษัทใหญ่ ภาษาทางการ
+Tone: รับผิดอย่างมืออาชีพ ไม่แก้ตัว
+Length: 4-6 ประโยค
+Constraints:
+- ห้ามใช้คำว่า "ขอโทษ" เกิน 1 ครั้ง
+- ต้องระบุ timeline ที่ชัดเจน
+- ลงท้ายด้วยการเสนอนัด call
+```
+
+**Watch for:**
+- AI ใช้สำนวน generic, ไม่มี voice — โดยเฉพาะ default tone ของ ChatGPT ที่มัก "AI-flavored"
+- AI ใส่ข้อเท็จจริงที่คุณไม่ได้บอก (วันที่, ตัวเลข, ชื่อ) — มักเป็น hallucination ที่อันตราย
+
+**Quality check:** อ่านดัง ๆ — ฟังเหมือนคุณเขียนเองหรือไม่. ถ้าไม่ ให้ AI rewrite ด้วยตัวอย่างที่คุณเคยเขียนเอง (few-shot, ดู [prompt-engineering-patterns](/using-ai/prompt-engineering-patterns)).
+
+### 2.4 Editing and rewriting — แก้ไขข้อความ
+
+**One-liner:** ปรับ existing text ตามทิศทางที่ชัด ("กระชับลง 30%", "เป็นทางการขึ้น", "ตัดศัพท์เทคนิค").
+
+**Use when:**
+- มี draft อยู่แล้ว แต่ยังไม่พอใจ
+- ต้องปรับให้เหมาะกับ audience ใหม่
+- ตรวจ grammar / สำนวน
+
+**Pattern:** input text + instruction ที่เฉพาะเจาะจง. **บ่อยครั้ง editing เชื่อถือได้กว่า drafting** เพราะ AI มี anchor (ข้อความเดิม) ที่ป้องกันการแต่ง.
+
+**Mode/tool:** Canvas โดยใช้ inline edit หรือ chat ที่ส่ง text เป็น code block.
+
+**Mini-template:**
+```
+แก้ paragraph ด้านล่างตามคำสั่ง:
+- ลดความยาวลง 30%
+- เปลี่ยน tone เป็นทางการขึ้น
+- เก็บ technical term ทั้งหมด ห้ามแปล
+- เก็บ structure เดิม (เริ่มด้วยอะไร จบด้วยอะไร)
+
+แสดง output 2 version ให้เลือก
+
+ข้อความ:
+"""
+<text>
+"""
+```
+
+**Watch for:**
+- AI เปลี่ยนความหมาย ไม่ใช่แค่สำนวน — ต้องเช็ค semantic ทุกครั้ง
+- "Smoothing" — AI ทำให้ทุกอย่างฟังเรียบจน lose nuance
+
+**Quality check:** วาง original กับ edited คู่กัน — เปลี่ยนเฉพาะที่ขอ ไม่ใช่ทั่วทั้งข้อความ. ความหมายเดิมยังอยู่ครบ.
+
+### 2.5 Brainstorming — สร้าง option หลาย ๆ ชุด
+
+**One-liner:** สร้าง option หลากหลายเพื่อช่วยตัดสินใจ (ชื่อ, แนวทาง, headline, approach).
+
+**Use when:**
+- ต้อง name product / feature / project
+- หา angle ของบทความ / campaign
+- คิด solution หลายแบบเพื่อ compare
+
+**Pattern:** define problem แคบที่สุดที่ทำได้ + ขอ **N options ที่ต่างกันจริง ๆ** (ระบุ axis ของความหลากหลาย) + แล้วค่อย probe winners ใน turn ถัดไป.
+
+**Mode/tool:** Chat. **Multiple samples** (เปิดหลาย chat แล้วเปรียบเทียบ) หรือ self-consistency ช่วยได้.
+
+**Mini-template:**
+```
+ฉันต้องตั้งชื่อ feature ใหม่ของ app บัญชีออนไลน์ — feature นี้ทำให้ผู้ใช้
+upload สลิปแล้ว AI จัด category ให้อัตโนมัติ.
+
+ขอชื่อ 15 ชื่อ แบ่งเป็น 3 กลุ่ม:
+- กลุ่ม A: ตรง ๆ บอกสิ่งที่ทำ (5 ชื่อ)
+- กลุ่ม B: ใช้ metaphor (5 ชื่อ)
+- กลุ่ม C: สั้น playful (5 ชื่อ)
+
+แต่ละชื่อตามด้วย 1 ประโยคบอกว่าทำไมเลือกชื่อนี้.
+```
+
+**Watch for:**
+- "Diversity collapse" — ขอ 20 ชื่อ ได้ variation รอบ ๆ idea เดียว
+- AI ทำตัวเป็น critic เร็วเกิน — รีบบอกว่าชื่อไหนดีที่สุด ทั้งที่เราอยากเห็น divergent options ก่อน
+
+**Quality check:** อย่างน้อย 3 ตัวเลือกควรเป็น direction ที่ "คุณไม่เคยคิดเอง". ถ้าทุกตัวคล้ายกัน เพิ่มความ constraint ใน axis (e.g. "บังคับให้กลุ่ม B ใช้คำที่มาจากธรรมชาติ").
+
+### 2.6 Analysis — วิเคราะห์ข้อมูลและหา pattern
+
+**One-liner:** ตีความข้อมูล, หา pattern, เปรียบเทียบ option, ระบุข้อสรุป.
+
+**Use when:**
+- มี structured data (ตาราง, list, transcript) ที่ต้องเข้าใจ
+- ต้องเปรียบเทียบ option หลายอัน
+- ต้องการ multi-step reasoning
+
+**Pattern:** ส่ง **structured data** + คำถามเฉพาะ + **thinking framework** (เช่น SWOT, decision matrix, root-cause) + ใช้ reasoning mode สำหรับงานที่ต้องคิดหลายขั้น (chain-of-thought, ดู ).
+
+**Mode/tool:** Reasoning mode (Claude extended thinking, GPT o-series) สำหรับงานหลายขั้น. Canvas เมื่อต้อง output ยาว.
+
+**Mini-template:**
+```
+มี data ตารางด้านล่าง (ยอดขาย 6 เดือน 4 product).
+
+วิเคราะห์ด้วย framework:
+1. ระบุ trend ของแต่ละ product (เพิ่ม/ลด/คงที่)
+2. ระบุ anomaly (เดือนที่ตัวเลขผิดปกติจาก trend)
+3. ตั้ง hypothesis 2-3 ข้อที่อธิบาย anomaly
+4. ระบุ data ที่ต้องการเพิ่มเพื่อ verify hypothesis
+
+ห้ามใช้ knowledge นอก data นี้.
+
+| Month | A | B | C | D |
+|...|
+```
+
+**Watch for:**
+- AI คำนวณตัวเลขผิด (ดู [what-is-an-llm](/using-ai/what-is-an-llm) — โมเดลทำ math ด้วย pattern matching) — บังคับให้ใช้ code execution / calculator tool ถ้ามี
+- AI สรุปก่อนวิเคราะห์ — ลอกคำตอบที่ "น่าจะถูก" ไม่ใช่อิงตัวเลขจริง
+
+**Quality check:** สุ่มเช็คตัวเลข 3 จุด. ทุก hypothesis ต้องอิง data point ในตาราง ไม่ใช่ generic claim.
+
+### 2.7 Translation and localization — แปลและปรับให้เข้ากับ audience
+
+**One-liner:** แปลระหว่างภาษา / ระหว่างสไตล์ / ระหว่าง audience.
+
+**Use when:**
+- แปลเอกสารทางการ
+- ปรับเอกสารฝรั่งให้เหมาะกับ audience ไทย (ไม่ใช่แค่แปลคำ)
+- เปลี่ยน register (academic → conversational)
+
+**Pattern:** source + target language/register + **glossary** ของศัพท์เฉพาะ + **named entity list** ที่ห้ามแปล (ชื่อบริษัท, product, technical term).
+
+**Mode/tool:** Chat / Canvas. สำหรับงาน volume สูง พิจารณา structured output ที่ส่งคืน JSON.
+
+**Mini-template:**
+```
+แปลเอกสารด้านล่างจากอังกฤษเป็นไทย โดย:
+
+Target audience: นักพัฒนา software ระดับ senior ในไทย
+Register: ทางการแต่ไม่แข็ง (ใช้ "เรา" ไม่ใช่ "ผู้พัฒนา")
+Glossary บังคับ:
+- "deployment" → "deployment" (ห้ามแปล)
+- "rollback" → "rollback"
+- "context window" → "context window"
+Named entities ห้ามแปล: Claude, GPT, Anthropic, OpenAI
+
+แสดง output 2 รูปแบบ:
+1. แปลเต็ม
+2. รายการคำที่ตัดสินใจยาก พร้อมเหตุผล
+
+ข้อความ:
+"""
+<text>
+"""
+```
+
+**Watch for:**
+- AI แปลศัพท์เทคนิคแบบ literal ที่คนในวงการไม่ใช้
+- AI ตัด nuance ของ source — โดยเฉพาะ idiom / tone
+- ชื่อเฉพาะถูกแปลผิด
+
+**Quality check:** ส่ง translated text กลับเข้า model อีกครั้งให้แปลกลับเป็นภาษาเดิม — semantic ยังเหมือนต้นฉบับหรือไม่ (round-trip check). สำหรับงานสำคัญ ใช้ native speaker review.
+
+### 2.8 Coding-adjacent for non-coders — สูตร / regex / SQL / script
+
+**One-liner:** สร้าง code สั้น ๆ (Excel formula, regex, SQL, shell command, simple script) จากคำอธิบายภาษาธรรมชาติ.
+
+**Use when:**
+- คุณรู้ว่าต้องการอะไรในเชิงผล แต่ไม่รู้ syntax
+- งาน one-off ที่ไม่คุ้มจะเรียน language
+
+**Pattern:** อธิบายผลที่ต้องการ + **ให้ตัวอย่าง input/output** + ระบุ environment (Excel เวอร์ชันไหน, Postgres หรือ MySQL, etc.). **Test ก่อน trust** เสมอ.
+
+**Mode/tool:** Chat สำหรับงานสั้น; Canvas/artifact ถ้า code ยาว.
+
+**Mini-template:**
+```
+ฉันต้องการ Excel formula ที่:
+- รับ cell ที่มีข้อความเช่น "2026-05-18 (Mon)"
+- คืนค่าเป็นวันของสัปดาห์ภาษาไทย เช่น "จันทร์"
+
+Environment: Excel 365 ภาษาอังกฤษ
+ตัวอย่าง:
+- Input "2026-05-18 (Mon)" → "จันทร์"
+- Input "2026-05-19 (Tue)" → "อังคาร"
+
+ขอ formula 2 แบบ:
+1. แบบสั้นที่สุด
+2. แบบที่อ่านง่ายแม้จะยาวกว่า
+อธิบายแต่ละ part ของ formula สั้น ๆ.
+```
+
+**Watch for:**
+- Regex / SQL ที่ "ดูถูก" แต่พลาด edge case
+- Function ที่ไม่มีอยู่จริงใน version นั้น
+- AI ใช้ syntax ที่ผสม dialect (PostgreSQL กับ MySQL ปนกัน)
+
+**Quality check:** ทดสอบกับ input อย่างน้อย 3 ตัว รวม edge case (empty, very long, special chars). อย่า paste เข้า production formula โดยไม่ test.
+
+### 2.9 Learning / explanation on demand — ขอคำอธิบายตามระดับ
+
+**One-liner:** ขอให้ AI อธิบายเรื่องที่ไม่รู้ในระดับที่เหมาะกับ background ของเรา.
+
+**Use when:**
+- เจอ concept ใหม่ในงาน
+- ต้องอธิบายเรื่องของตัวเองให้คนอื่นเข้าใจ
+- เตรียมตัวก่อนประชุม cross-functional
+
+**Pattern:** ระบุ **ระดับของผู้รับ** (beginner / informed / expert), **goal** (ทำไมถึงอยากรู้), **what you already know** (เพื่อให้ AI ไม่อธิบายซ้ำสิ่งที่รู้แล้ว).
+
+**Mode/tool:** Chat. สำหรับ deep topic ใช้ Deep Research หรือ Canvas.
+
+**Mini-template:**
+```
+อธิบายเรื่อง "consistent hashing" ให้ฉันฟัง.
+
+Background ของฉัน:
+- เป็น product manager ไม่ใช่ engineer
+- เข้าใจ basic database (rows, indexes)
+- ไม่เคยเขียน distributed system
+- เคยได้ยินคำว่า "hash function" แต่ไม่เข้าใจลึก
+
+Goal: ต้องคุยกับทีม backend ว่าทำไมเราเลือกใช้ และอะไรคือ tradeoff.
+
+Format:
+1. อธิบายปัญหาที่มันแก้ (3-4 ประโยค)
+2. mental model ที่จำง่าย
+3. tradeoff ใหญ่ 2 อย่าง
+4. คำที่ฉันควรรู้เพิ่มถ้าจะคุยลึก
+```
+
+**Watch for:**
+- Confident hallucination — โดยเฉพาะใน niche topic ที่ AI ไม่มี data เยอะ (ดู [hallucination](/using-ai/hallucination))
+- "Textbook fluff" — อธิบายยาวแต่ไม่ตอบ goal
+- Outdated info — AI ไม่รู้ best practice ปัจจุบันถ้า cutoff เก่า
+
+**Quality check:** หลังอ่านแล้ว ลอง explain back ให้ตัวเองฟัง 30 วินาที. ติดตรงไหน ถาม follow-up. สำหรับ topic สำคัญ verify กับ source อื่น (book, expert).
+
+### 2.10 Decision support — ช่วยคิดประกอบการตัดสินใจ
+
+**One-liner:** AI ทำหน้าที่ thinking partner สำหรับ pros/cons, risk assessment, scenario planning — **ไม่ใช่ผู้ตัดสินใจ**.
+
+**Use when:**
+- เลือกระหว่าง option ที่มี dimension หลายชั้น
+- ประเมิน risk ของ approach หนึ่ง
+- ทำ scenario planning (best/expected/worst case)
+
+**Pattern:** frame decision ให้ชัด + ใส่ **context ที่ครบ** (constraint, stakeholder, timeline, value) + ขอ **structured analysis** + ระบุชัดว่าคุณจะตัดสินใจเอง.
+
+**Mode/tool:** Reasoning mode สำหรับ decision ที่ซับซ้อน. Canvas สำหรับ output ยาว.
+
+**Mini-template:**
+```
+ฉันต้องตัดสินใจระหว่าง 2 option:
+
+Option A: <รายละเอียด>
+Option B: <รายละเอียด>
+
+Context: <ทำไมต้องตัดสินใจ, deadline, budget, stakeholder>
+Constraint ที่ตายตัว: <list>
+Value ที่ฉันให้น้ำหนัก: <list, อาจรวมการให้คะแนน>
+
+ทำสิ่งต่อไปนี้:
+1. ระบุ assumption ที่ฉันใช้โดยไม่รู้ตัว
+2. ทำ pros/cons ทั้งสอง option ตาม value ฉัน
+3. ระบุ risk ที่อาจมองข้าม (สำหรับแต่ละ option)
+4. ให้ scenario worst case ของแต่ละ option
+5. ระบุ information ที่ถ้ามีเพิ่มจะเปลี่ยน decision
+
+ห้ามบอกฉันว่า "ควรเลือกอันไหน" — ฉันจะตัดสินใจเอง.
+```
+
+**Watch for:**
+- AI ลำเอียงไป option ที่ฟังดู safe — ไม่ใช่ option ที่ดีที่สุด
+- AI เห็นด้วยกับ assumption ที่ผิดของคุณ (sycophancy)
+- AI ปกปิด risk ที่ pessimistic เกินไป
+
+**Quality check:** อ่าน analysis แล้วเจอ **อย่างน้อย 1 ข้อที่คุณไม่เคยคิดเอง** หรือไม่. ถ้าไม่ — AI ไม่ได้เพิ่ม value ต้อง re-prompt ให้ adversarial.
+
+### 2.11 Meeting prep and follow-up — เตรียมและตามผลประชุม
+
+**One-liner:** ออกแบบ agenda, สร้าง talking point, สรุป action item หลังประชุม.
+
+**Use when:**
+- ก่อนประชุมสำคัญ — ออกแบบ agenda + เตรียม point
+- หลังประชุม — ดึง action item จาก transcript / note
+
+**Pattern:** **ก่อน:** ใส่ context (จุดประสงค์, participant, time, prior history) → ขอ agenda + speaker points. **หลัง:** ส่ง transcript/note → ขอ extracted action items + decisions + open questions.
+
+**Mode/tool:** Chat ก่อนประชุม. Audio transcription tool + Canvas หลังประชุม.
+
+**Mini-template (ก่อน):**
+```
+ออกแบบ agenda 30 นาทีสำหรับประชุม
+
+Goal: ตัดสินใจว่าจะใช้ vendor A หรือ B
+Participants: CEO, CTO, Head of Product (4 คน)
+Prior context: CTO เคยใช้ A มา 2 ปีและไม่ชอบ; CEO ยังไม่รู้ technical detail
+
+Agenda format:
+- Topic | Time | Owner | Goal
+- ระบุ 2-3 talking points ที่ฉันควรเตรียมในฐานะ Head of Product
+- จุดที่คาดว่าจะมี disagreement
+```
+
+**Mini-template (หลัง):**
+```
+ฉันมี note ประชุมด้านล่าง (อาจมีตรงไหน implicit).
+
+ดึงให้:
+1. Decisions ที่ตัดสินใจแล้ว (ใคร, อะไร, when)
+2. Action items (assignee, due date, expected output)
+3. Open questions ที่ยังไม่ตัดสินใจ
+4. จุดที่ note ขัดแย้งกันเอง — flag
+
+Note:
+"""
+<text>
+"""
+```
+
+**Watch for:**
+- AI สร้าง action item ที่ "ดูเหมือนมีในประชุม" แต่ไม่ได้พูดจริง
+- AI ลืม implicit assignee (ใครเป็นคนทำ ถ้าไม่บอกตรง ๆ)
+- โทนของ summary บิดเบือน (ทำให้ดูดีกว่าจริง / drastic กว่าจริง)
+
+**Quality check:** เทียบกับ note ของคุณเอง — มี item ใน output ที่ "ไม่เคยพูด" หรือ "หาย" ไหม. โดยเฉพาะ assignee ต้องเช็คทุกคน.
+
+---
+
+## Worked Examples
+
+### Example 1: Research synthesis ที่ทำผิดและทำถูก
+
+**ทำผิด:**
+> "อ่าน paper สามอันนี้แล้วสรุปให้หน่อย"
+
+ปัญหา: ไม่มี question, format, citation requirement. AI จะ generate summary generic ที่อาจผสมเนื้อหา paper เข้าด้วยกันแบบไม่ชัด.
+
+**ทำถูก:**
+> "ฉันกำลังเขียน briefing ให้ทีม. มี paper 3 อัน [P1][P2][P3] เรื่อง prompt caching.
+> คำถาม: 'caching ลด latency ได้กี่เปอร์เซ็นต์ในการใช้งานจริง และมี tradeoff อะไร'.
+> Output: 200 คำ ทุก claim มี citation [P1]/[P2]/[P3]. ระบุจุดที่ paper ขัดแย้ง. จุดที่ไม่มี paper ตอบ บอก 'ไม่พบ'."
+
+ทดสอบ: AI return summary 200 คำที่ทุก claim มี citation. คุณเปิด P1 ตรวจ — claim 1 อยู่จริงใน P1 หน้า 4. ทำงานได้.
+
+### Example 2: Drafting ที่ iterate ครบรอบ
+
+**Round 1:** ส่ง prompt ตาม template 2.3 ขอ email ขอเลื่อนนัด.
+**Output 1:** Email ดี structure ครบ แต่โทน "AI-flavored" เกินไป — ใช้คำว่า "I hope this email finds you well".
+
+**Round 2:**
+> "Output ดีในเชิงโครงสร้าง แต่ฟังเป็น AI เกิน. นี่คือ email ที่ฉันเคยเขียนเองในสถานการณ์คล้ายกัน:
+> [paste 2 examples]
+> Rewrite output ใหม่ให้ tone เหมือนตัวอย่างของฉัน."
+
+**Output 2:** ใช้ได้ — โทนเหมือนคุณเขียน. เวลารวม 6 นาที vs 25 นาทีถ้าเขียนเองจาก scratch.
+
+**บทเรียน:** drafting แทบไม่เคยจบใน round เดียว. budget 2-3 iterations เป็นปกติ.
+
+### Example 3: Analysis ที่จับ failure ได้
+
+**Setup:** ส่งตาราง sales 6 เดือน 4 product ถาม "ระบุ anomaly".
+**Output:** AI ระบุว่า Product B เดือนมีนาคมตก 40% — "อาจเป็นเพราะ seasonal effect".
+
+**Verify:** เปิดตารางดู — Product B มีนาคม = 1,200; กุมภาพันธ์ = 2,000. ลด 40% จริง. ทำงานได้ ✓
+แต่: "seasonal effect" คือ knowledge นอก data ที่ AI เดามาเอง. ต้อง re-prompt: "อย่าเดาเหตุผล ระบุเพียง pattern ใน data".
+
+**บทเรียน:** บังคับ constraint "stay within data" เป็นวิธีดักที่ดี.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** AI ทำให้ knowledge work เสร็จเร็วขึ้น 10 เท่า
+   **ความจริง:** ในงาน drafting / editing / summarization ที่มี pattern ชัด เร็วขึ้น 2-5 เท่า. ในงาน analysis / decision-making ที่ต้อง verify เยอะ อาจเร็วขึ้นเล็กน้อยหรือใช้เวลาเท่าเดิม (เวลาที่ประหยัดในการสร้าง first draft เสียไปกับการตรวจ). productivity gain ไม่กระจายเท่ากันในทุก workflow.
+
+2. **ความเข้าใจผิด:** prompt ยิ่งยาวยิ่งดี
+   **ความจริง:** prompt ที่ดีคือ prompt ที่ครบ ไม่ใช่ยาว. ยิ่งยาวเสี่ยง "lost in the middle" — โมเดลให้น้ำหนักตอนต้น/ท้ายมากกว่าตรงกลาง . structure (heading, bullet, code block) ช่วยมากกว่า volume.
+
+3. **ความเข้าใจผิด:** AI editing เชื่อถือได้น้อยกว่า AI drafting
+   **ความจริง:** ตรงข้าม. editing ให้ผลที่ predictable กว่าเพราะมี anchor (text เดิม) ที่ป้องกันการแต่ง. drafting มี degree of freedom เยอะกว่ามาก ผลเลย vary มากกว่า. หลายคนใช้ workflow "เขียน outline เองให้ครบ → ให้ AI rewrite ตามนั้น" ซึ่งดีกว่า "บอก AI ให้เขียนจาก scratch".
+
+4. **ความเข้าใจผิด:** template / prompt สำเร็จรูปบนอินเทอร์เน็ตใช้ได้เลย
+   **ความจริง:** template ส่วนใหญ่ optimize ให้ generic case. งานจริงต้องการ context เฉพาะของคุณ — บริษัท, audience, style. template ที่ดีต้อง customize 30-50% ในครั้งแรกที่ใช้. การ "save แล้วใช้เลย" ไม่ค่อย work.
+
+5. **ความเข้าใจผิด:** ถ้า output ไม่ดี แปลว่า AI ไม่เก่ง
+   **ความจริง:** 80%+ ของ output ไม่ดีมาจาก prompt ไม่ครบ — ขาด context, audience, format, constraint อย่างใดอย่างหนึ่ง. ก่อนสรุปว่า "model ทำไม่ได้" ลองเพิ่ม specification ก่อน. ตัว model เดิม prompt ที่ดีขึ้น มักให้ผลที่ดีขึ้นมาก.
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** ระบุ 5 workflow ใด ๆ จาก 11 อันที่บทนี้ครอบคลุม และบอก one-liner ของแต่ละอัน
+2. **(Explain)** ทำไม editing/rewriting workflow มักให้ผลที่ predictable กว่า drafting workflow? อธิบายในเชิงกลไก (อิง next-token prediction)
+3. **(Apply)** คุณต้องเตรียม briefing 1 หน้าให้ CEO เรื่อง "vendor analysis" จาก source 5 อัน. workflow ไหนใช้? เขียน prompt 1 prompt ที่ครบ
+4. **(Apply)** AI ให้ summary ของประชุมที่มี action item ที่คุณจำได้ว่า "ไม่ได้พูด". failure mode คืออะไร และคุณจะ mitigate ยังไงในอนาคต
+5. **(Synthesize)** เลือก workflow 2 อันที่คุณใช้ที่สุดในงานของตัวเอง. ออกแบบ template สำหรับแต่ละอัน (ครบ 5 elements: context, goal, audience, tone/format, constraint) และอธิบายว่าทำไมแต่ละ element สำคัญสำหรับ workflow นั้น
+6. **(Synthesize)** อธิบายว่าทำไม "spend 10 minutes designing your prompt template" จึง compound — ในเชิงของ time saved per use × number of uses และในเชิงของ skill ที่ accumulate
+
+---
+
+</section>

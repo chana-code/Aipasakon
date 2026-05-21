@@ -1,0 +1,267 @@
+---
+slug: what-is-a-neural-network
+level: foundations
+title: "What is a Neural Network?"
+status: reviewed
+prerequisites:
+  - what-is-deep-learning
+  - how-models-learn
+last_reviewed: 2026-05-18
+tldr: "Neural network คือฟังก์ชันทางคณิตศาสตร์ขนาดใหญ่ที่ประกอบจาก \"neuron\" จำนวนมาก — แต่ละ neuron ทำงานง่าย ๆ คือคูณ input ด้วย weight บวก bias แล้วผ่าน activation function. เมื่อนำ neuron มาวางเรียงเป็น layer และซ้อนหลาย layer การคำนวณรวมจะกลายเป็นเครื่องประมาณฟังก์ชัน (function approximator) ที่ทรงพลังพอจะเรียนรู้ pattern ซับซ้อนใน data ได้. ชื่อ \"neural\" มาจากการได้แรงบันดาลใจคร่าว ๆ จาก neuron ทางชีววิทยา แต่ในทางวิศวกรรมมันเป็นเรื่องของคณิตศาสตร์เชิงสถิติ ไม่ใช่แบบจำลองของสมอง."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+Neural network คือฟังก์ชันทางคณิตศาสตร์ขนาดใหญ่ที่ประกอบจาก "neuron" จำนวนมาก — แต่ละ neuron ทำงานง่าย ๆ คือคูณ input ด้วย weight บวก bias แล้วผ่าน activation function. เมื่อนำ neuron มาวางเรียงเป็น layer และซ้อนหลาย layer การคำนวณรวมจะกลายเป็นเครื่องประมาณฟังก์ชัน (function approximator) ที่ทรงพลังพอจะเรียนรู้ pattern ซับซ้อนใน data ได้. ชื่อ "neural" มาจากการได้แรงบันดาลใจคร่าว ๆ จาก neuron ทางชีววิทยา แต่ในทางวิศวกรรมมันเป็นเรื่องของคณิตศาสตร์เชิงสถิติ ไม่ใช่แบบจำลองของสมอง.
+
+**Neural network** (โครงข่ายประสาทเทียม) คือโครงสร้างทางคณิตศาสตร์ที่ใช้ใน deep learning เกือบทุกระบบในปี 2026 — ตั้งแต่ระบบจดจำใบหน้า, รถยนต์ขับเอง, ระบบแนะนำหนัง, ไปจนถึง LLM ที่ขับเคลื่อน ChatGPT และ Claude.
+
+ในภาพใหญ่ neural network ทำงานง่าย ๆ คือ:
+- รับ input เป็นชุดของตัวเลข (เช่น ค่าพิกเซลของรูป, embedding ของคำ)
+- ส่ง input ผ่าน **layer** หลาย ๆ ชั้น แต่ละ layer แปลงตัวเลขให้กลายเป็นชุดตัวเลขใหม่
+- layer สุดท้ายให้ output (เช่น "นี่คือรูปแมว" ด้วย probability 0.92)
+
+แต่ละ layer ประกอบด้วย **neuron** จำนวนมาก. neuron แต่ละตัวเป็นฟังก์ชันเล็ก ๆ ที่:
+1. รับเลขหลายตัวเข้ามา
+2. คูณแต่ละตัวด้วย "weight" ของมันเอง
+3. บวกผลรวม + ตัวเลขเสริมที่เรียกว่า "bias"
+4. ส่งผลลัพธ์ผ่านฟังก์ชันที่ทำให้กราฟไม่เป็นเส้นตรง (activation function)
+5. ส่งเลขที่ได้ไปเป็น input ของ neuron ใน layer ถัดไป
+
+ทั้งหมดที่ neural network "เรียนรู้" คือเลข weight และ bias เหล่านี้. ในโมเดลขนาดใหญ่อย่าง GPT-3 มี weight ประมาณ 175,000 ล้านตัว . การ train คือการปรับเลขทั้งหมดนี้ให้ network ทำนายได้ใกล้เคียงคำตอบที่ถูกที่สุด.
+
+### Mental model
+นึกถึง neural network เป็น **ท่อขนานที่มี knob ปรับได้นับล้าน**. input เข้าด้านหนึ่ง เลขถูกผสมและคูณตามค่าของ knob ในแต่ละจุด ค่อย ๆ ไหลผ่านชั้น ๆ จนถึงปลายท่อกลายเป็น output. การ "เรียนรู้" คือการลองหมุน knob ทุกตัวพร้อมกัน เพื่อให้ output ใกล้กับคำตอบที่อยากได้มากที่สุดในตัวอย่างจำนวนมหาศาล.
+
+**สิ่งสำคัญ 3 ข้อ:**
+1. neural network ไม่ "เข้าใจ" อะไร — มันเป็นฟังก์ชันคณิตศาสตร์ที่ปรับให้พอดีกับ data
+2. ความ "ลึก" (depth) คือจำนวน layer — ยิ่งลึก network ก็ยิ่งแทน pattern ซับซ้อนได้ดี (จนถึงจุดหนึ่ง)
+3. ชื่อ "neural" เป็น metaphor มากกว่าจะเป็นแบบจำลองสมองจริง ๆ
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 The starting point: a single neuron
+
+หน่วยพื้นฐานของ neural network คือ **artificial neuron** หรือ perceptron (ในรูปแบบดั้งเดิมที่สุด เสนอโดย Rosenblatt ในปี 1958). มันคือฟังก์ชันเล็ก ๆ ที่รับเลขหลายตัวแล้วคืนเลขหนึ่งตัว:
+
+```
+output = activation(w1*x1 + w2*x2 + ... + wn*xn + b)
+```
+
+โดย:
+- `x1, x2, ..., xn` คือ input
+- `w1, w2, ..., wn` คือ weight ของ neuron นี้
+- `b` คือ bias (ค่าคงที่ที่ "เลื่อน" ผลลัพธ์)
+- `activation` คือ activation function (ดู 2.4)
+
+ในเชิง geometric สมการ `w1*x1 + ... + wn*xn + b` คือสมการของระนาบ (hyperplane). neuron หนึ่งตัวจึง "ตัด" space ของ input ออกเป็นสองฝั่ง — เปรียบเสมือนผู้ตัดสินใจแบบ binary ที่ขอบเขตเป็นเส้นตรง.
+
+### 2.2 Why "neuron" — และข้อจำกัดของ analogy
+
+ชื่อ "neuron" มาจาก analogy คร่าว ๆ กับเซลล์ประสาทในสมอง: เซลล์ประสาทรับ signal จาก dendrite, รวมสัญญาณใน cell body, ถ้าเกิน threshold ก็ยิง signal ออก axon ไปยังเซลล์ถัดไป. โครงสร้าง "input หลายทาง → ประมวลผล → output หนึ่งทาง" ของ artificial neuron จึงคล้าย ๆ กัน.
+
+แต่ analogy นี้พังเมื่อพิจารณารายละเอียด:
+- เซลล์ประสาทจริงทำงานแบบ **spiking** (ยิง pulse เป็นเวลา) ไม่ใช่ค่าตัวเลขต่อเนื่อง
+- เซลล์ประสาทจริงมี dendrite ที่ทำการประมวลผลซับซ้อนในตัวมันเอง ไม่ใช่แค่ summation
+- สมองมนุษย์มี ~86,000 ล้าน neuron แต่ละตัวมี ~7,000 synapse — ทำงานแบบขนานสูง ใช้พลังงานต่ำ
+- สมองเรียนรู้ผ่านกลไกที่ยังไม่เข้าใจชัดเจน ไม่ใช่ backpropagation
+
+นักวิจัยสมัยใหม่จึงนิยมเรียกว่า "deep network" หรือเรียกตามสถาปัตยกรรม เช่น "transformer" มากกว่าจะเน้นคำว่า "neural" ซึ่งให้ภาพหลอนเรื่องความเหมือนสมอง.
+
+### 2.3 Stacking neurons: layers and networks
+
+neuron เดี่ยว ๆ ทำได้แค่ตัดสินใจแบบเส้นตรง — ไม่สามารถเรียนรู้ pattern เช่น XOR ได้ (Minsky & Papert 1969 แสดงไว้). พลังของ neural network เกิดจากการ **เรียงและซ้อน neuron**:
+
+- **Layer:** neuron หลายตัวที่ทำงานขนานกัน รับ input ชุดเดียวกัน แต่แต่ละตัวมี weight ของตัวเอง — ผลลัพธ์รวมคือ vector ของเลข
+- **Network:** ลำดับของ layer ที่ output ของ layer หนึ่งกลายเป็น input ของ layer ถัดไป
+
+ในสถาปัตยกรรมพื้นฐานที่สุด — **MLP (Multi-Layer Perceptron)** — แต่ละ neuron ใน layer หนึ่งเชื่อมต่อกับทุก neuron ใน layer ถัดไป (เรียกว่า "fully connected" หรือ "dense"). โครงสร้างคือ:
+
+```
+Input layer  →  Hidden layer 1  →  Hidden layer 2  →  ...  →  Output layer
+  (x1...xn)      (h1...hm)         (h1'...hk')               (y1...yp)
+```
+
+**Diagram:**
+
+```
+   x1 ──┐                ┌── h1 ──┐                ┌── y1
+        ├──[layer 1]──── ┤        ├──[layer 2]──── ┤
+   x2 ──┤                ├── h2 ──┤                ├── y2
+        │                │        │                │
+   x3 ──┤                ├── h3 ──┤                ├── y3
+        │                │        │                │
+   x4 ──┘                └── h4 ──┘                └── ...
+
+   input            hidden layer            output
+   (raw data)       (extracted features)    (prediction)
+```
+
+- **Input layer:** รับ raw data เช่น พิกเซลของรูป, embedding ของ token
+- **Hidden layer:** ทำงานหลัก — แต่ละ layer เรียนรู้ feature ในระดับที่เป็น abstraction มากขึ้นเรื่อย ๆ. ใน CNN ที่ใช้รู้จำรูปภาพ layer แรก ๆ เรียนรู้ขอบและเส้น layer ลึกขึ้นเรียนรู้ texture และส่วนของวัตถุ layer ลึกที่สุดเรียนรู้วัตถุทั้งชิ้น 
+- **Output layer:** ให้ผลลัพธ์ตาม task — probability ของ class (classification), ค่าตัวเลข (regression), distribution ของ token (LLM)
+
+### 2.4 Activation functions — ทำไมต้องไม่เป็นเส้นตรง
+
+ถ้าทุก neuron ทำแค่ `w1*x1 + ... + wn*xn + b` (เป็นเส้นตรง) แล้วซ้อนกันหลาย layer — ผลรวมยังคงเป็นสมการเส้นตรงอยู่ดี. นั่นคือข้อเท็จจริงทางคณิตศาสตร์: **composition ของ linear function คือ linear function**. network ที่ลึก 100 layer แต่ไม่มี non-linearity ก็เทียบเท่า network 1 layer ทุกประการ.
+
+**Activation function** คือฟังก์ชันไม่เป็นเส้นตรงที่แทรกหลังการคำนวณ linear ของแต่ละ neuron. มันคือสิ่งที่ทำให้ deep network สามารถแทน pattern ซับซ้อนได้:
+
+- **Sigmoid:** `σ(x) = 1/(1+e^-x)` — บีบค่าให้อยู่ใน [0, 1]. คลาสสิก. มีปัญหา "vanishing gradient" เมื่อ x ใหญ่หรือเล็กมาก (gradient ใกล้ 0 ทำให้ train ยาก)
+- **Tanh:** บีบค่าให้อยู่ใน [-1, 1]. คล้าย sigmoid แต่ centered ที่ 0
+- **ReLU (Rectified Linear Unit):** `ReLU(x) = max(0, x)` — ถ้า x เป็นลบ output = 0, ถ้าบวก output = x. เรียบง่ายอย่างไม่น่าเชื่อ แต่ทรงพลัง
+
+**ทำไม ReLU จึงครองวงการ?**
+- คำนวณเร็วมาก — แค่เปรียบเทียบกับ 0
+- ไม่ saturate ฝั่งบวก — gradient ไม่หาย ทำให้ train deep network ได้
+- ทำให้ network กลายเป็น "piecewise linear" — แทน function ซับซ้อนได้ด้วยการประกอบเส้นตรงเป็นล้านชิ้น
+
+ในปี 2026 LLM ส่วนใหญ่ใช้ ReLU variant เช่น **GELU** (Gaussian Error Linear Unit) หรือ **SwiGLU** — smoother กว่า ReLU เล็กน้อย ทำให้ training stable ขึ้นที่ scale ใหญ่.
+
+### 2.5 Forward pass — การไหลของข้อมูลตอน inference
+
+**Forward pass** คือกระบวนการแปลง input → output โดยไม่ปรับ weight (ใช้ตอน inference / ตอนใช้งาน):
+
+1. ใส่ input vector ที่ input layer
+2. ที่ layer แรก: คำนวณ `output = activation(W1 * x + b1)` โดย W1 คือ matrix ของ weight ทั้งหมดใน layer นั้น
+3. ส่ง output เป็น input ของ layer ถัดไป
+4. ทำซ้ำจนถึง output layer
+5. อ่านผลลัพธ์
+
+ในเชิง engineering: forward pass คือชุดของ matrix multiplication + element-wise activation. GPU เก่งเรื่องนี้มาก เพราะเป็น parallel computation บริสุทธิ์ — เหตุผลที่ training และ inference ของ neural network ใช้ GPU/TPU ไม่ใช่ CPU.
+
+เวลาเราถาม ChatGPT คำถาม — input ถูกแปลงเป็น token, แปลงเป็น embedding vector, แล้วไหลผ่าน transformer layer ราว 100 ชั้น แต่ละชั้นทำ matrix multiplication กับ weight นับพันล้าน. output ของ layer สุดท้ายถูกแปลงเป็น probability distribution ของ token ถัดไป. นี่คือสิ่งที่เกิดขึ้นใต้ทุก response ของ LLM .
+
+### 2.6 Training in brief — และทำไมไม่ลงรายละเอียดที่นี่
+
+การ train neural network คือการปรับ weight และ bias ให้ network ทำนายได้ใกล้คำตอบที่ถูกที่สุด. หลักการ:
+
+- กำหนด **loss function** วัดว่า output ผิดจากคำตอบจริงเท่าไหร่
+- ใช้ **backpropagation** (Rumelhart, Hinton, Williams 1986) คำนวณว่า weight แต่ละตัว "รับผิด" ต่อ loss เท่าไหร่ — ผ่าน chain rule ของแคลคูลัส
+- ปรับ weight ในทิศตรงข้ามกับ gradient ด้วย **gradient descent** หรือ variant (Adam, AdamW)
+- ทำซ้ำกับตัวอย่าง training data หลายล้าน batch
+
+รายละเอียดทั้งหมดอยู่ใน [how-models-learn](/foundations/how-models-learn). ในบทนี้แค่ต้องรู้ว่า **โครงสร้าง (architecture) ของ network เป็นสิ่งที่มนุษย์ออกแบบ ส่วน weight เป็นสิ่งที่เรียนรู้จาก data**.
+
+### 2.7 Architecture variants worth naming
+
+แม้ MLP จะเป็นโครงสร้างพื้นฐาน แต่ในงานจริงมักใช้ architecture เฉพาะทาง ที่ออกแบบมาให้เหมาะกับชนิดของ data:
+
+- **MLP (Multi-Layer Perceptron):** vanilla feedforward — ทุก neuron เชื่อมทุก neuron. ใช้กับ tabular data หรือเป็นส่วนประกอบของ architecture อื่น
+- **CNN (Convolutional Neural Network):** ใช้ convolution layer ที่ exploit spatial locality (พิกเซลใกล้กันสัมพันธ์กัน). ครองงาน computer vision ก่อนยุค transformer — AlexNet (2012) เป็นจุดเริ่ม deep learning era 
+- **RNN (Recurrent Neural Network) / LSTM:** มี "memory" — ส่ง output ของ step ก่อนหน้ากลับเข้ามาเป็น input ของ step ถัดไป. เคยเป็น architecture หลักของ NLP ก่อน 2017
+- **Transformer:** ใช้กลไก **attention** แทน recurrence — ทุก token "มอง" ทุก token ใน input พร้อมกัน. เปิดตัวใน Vaswani et al. 2017  และเป็น architecture ของ LLM modern ทุกตัว. รายละเอียดดู [transformer-architecture](/advanced/transformer-architecture)
+
+LLM ที่เราใช้ทุกวันนี้ — GPT, Claude, Gemini, Llama — ล้วนเป็น transformer.
+
+### 2.8 Scale: from thousands to trillions
+
+จำนวน parameter (weight + bias) ของ neural network วัด "ขนาด" ของโมเดล:
+
+- network ทดลองในห้องเรียน: ~1,000–10,000 parameter
+- ResNet-50 (CNN รู้จำรูป): ~25 ล้าน
+- BERT-base: ~110 ล้าน
+- GPT-3: 175,000 ล้าน 
+- GPT-4 / Claude 3 Opus class: คาดว่าระดับล้านล้าน (trillion) parameter — บางตัวใช้ mixture-of-experts (MoE) เพื่อให้ active parameter ต่อ forward pass น้อยลง
+
+scale นี้คือเหตุผลที่ training ราคา $100M+ ต่อรอบ และเหตุผลที่ state-of-the-art กระจุกอยู่ที่ไม่กี่บริษัท (OpenAI, Anthropic, Google, Meta, xAI). ดู [how-models-learn](/foundations/how-models-learn) เรื่อง compute scaling.
+
+### 2.9 What neural networks ARE vs AREN'T
+
+**ARE:**
+- function approximator ที่เรียนรู้จาก data — universal approximation theorem บอกว่า neural network ที่กว้างพอแทน function ต่อเนื่องได้ทุกชนิด (โดยทฤษฎี)
+- pattern matcher ที่ดี โดยเฉพาะกับ data ที่มี structure (ภาพ, ข้อความ, เสียง)
+- เครื่องมือทางวิศวกรรมที่ทำงานได้ดีในทาง empirical แม้ทฤษฎีจะยังไม่อธิบายได้หมด
+
+**AREN'T:**
+- แบบจำลองของสมองมนุษย์
+- เครื่องที่ "เข้าใจ" หรือมี consciousness
+- reasoning engine แบบ symbolic (แม้พฤติกรรมจะคล้ายในบางกรณี)
+- magic — ทุกพฤติกรรมอธิบายได้ในที่สุดด้วยคณิตศาสตร์เชิงสถิติ
+
+นักวิชาการบางคนเรียก neural network ว่า "fancy curve-fitter" — เป็นการพรรณนาที่ตรงและมีประโยชน์ในการป้องกัน hype.
+
+---
+
+## Worked Examples
+
+### Example 1: Forward pass ของ neuron เดี่ยว
+
+ลองพิจารณา neuron ตัวเดียวที่รับ input 3 ค่า ใช้ ReLU activation:
+- weight: `w1=0.5, w2=-1.2, w3=0.8`
+- bias: `b=0.3`
+- input: `x1=2, x2=1, x3=-1`
+
+คำนวณ:
+- `z = 0.5*2 + (-1.2)*1 + 0.8*(-1) + 0.3 = 1.0 - 1.2 - 0.8 + 0.3 = -0.7`
+- `output = ReLU(-0.7) = max(0, -0.7) = 0`
+
+ถ้าเปลี่ยน activation เป็น sigmoid: `output = σ(-0.7) ≈ 0.332`.
+
+จะเห็นว่า activation มีผลโดยตรงต่อพฤติกรรมของ neuron — ReLU "ดับ" สัญญาณลบทั้งหมด ส่วน sigmoid ปล่อยให้สัญญาณบางส่วนผ่านในรูปบีบอัด.
+
+### Example 2: ทำไมต้องมี activation function (โจทย์ XOR)
+
+XOR คือฟังก์ชันที่ให้ output 1 เมื่อ input ต่างกัน 0 เมื่อเหมือนกัน:
+- (0,0) → 0
+- (0,1) → 1
+- (1,0) → 1
+- (1,1) → 0
+
+ลองวาด 4 จุดนี้บนระนาบ — ไม่มีเส้นตรงเส้นเดียวที่แบ่ง class 0 ออกจาก class 1 ได้. perceptron เดี่ยวจึงแก้ XOR ไม่ได้ (Minsky & Papert 1969 ใช้เรื่องนี้ทำลาย neural network ไป 20 ปี).
+
+แต่ MLP ที่มี hidden layer พร้อม non-linear activation แก้ได้สบาย ๆ — hidden layer แปลง space ให้ XOR กลายเป็น linearly separable ก่อนจะถูก output layer ตัดสินใจ. นี่คือบทเรียนสำคัญที่สุดของ deep learning: **non-linearity + depth คือสิ่งที่ปลดล็อกพลังของ neural network**.
+
+### Example 3: CNN แบบมโนภาพ — รู้จำรูปแมว
+
+input คือรูป 224x224 พิกเซล:
+1. layer 1 (convolution + ReLU): เรียนรู้ filter ที่จับเส้น, ขอบ, สีพื้นฐาน
+2. layer 2-3: รวมขอบเป็น texture และ pattern เล็ก (เช่น ตา, หนวด)
+3. layer ลึก: รวม pattern เล็กเป็นส่วนของวัตถุ (เช่น หน้าแมว, ขาแมว)
+4. layer สุดท้าย: ตัดสินใจ "นี่คือแมว" ด้วย probability 0.92
+
+แต่ละ layer คือ abstraction ที่ลึกขึ้นเรื่อย ๆ — เป็นเหตุผลที่เรียกว่า "**deep** learning" (ดู [what-is-deep-learning](/foundations/what-is-deep-learning)).
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** neural network ทำงานเหมือนสมองมนุษย์
+   **ความจริง:** ได้แรงบันดาลใจมาคร่าว ๆ เท่านั้น. artificial neuron ทำเลขคณิตอย่างง่าย ส่วนเซลล์ประสาทจริงทำงาน spiking, มี dendritic computation, และเรียนรู้ผ่านกลไกที่ยังไม่เข้าใจชัด. analogy นี้พังเมื่อพิจารณารายละเอียดทุกชั้น
+
+2. **ความเข้าใจผิด:** ยิ่ง layer เยอะยิ่งดี
+   **ความจริง:** depth ช่วย — แต่ถึงจุดหนึ่งจะ saturate. network ที่ลึกเกินมีปัญหา vanishing gradient, training instability, และอาจ overfit. เทคนิคอย่าง residual connection (ResNet) และ normalization เป็นสิ่งจำเป็นเพื่อ train network ที่ลึกมาก ๆ
+
+3. **ความเข้าใจผิด:** ถ้าไม่มี activation function ก็แค่ "เรียบง่ายลง" ไม่ได้เสียอะไรไป
+   **ความจริง:** ไม่มี activation = network กลายเป็นสมการเส้นตรงเดียว ไม่ว่าจะมีกี่ layer. ขีดความสามารถลดลงจาก "แทน function ต่อเนื่องอะไรก็ได้" เหลือ "แทน linear function ได้เท่านั้น" — แตกต่างกันเชิงคุณภาพไม่ใช่เชิงปริมาณ
+
+4. **ความเข้าใจผิด:** weight ของ neural network "เก็บข้อเท็จจริง" เป็นชิ้น ๆ
+   **ความจริง:** ความรู้ถูก distribute ในทุก weight แบบกระจาย — ไม่มี neuron ตัวไหน "เก็บความรู้เรื่องประเทศไทย" โดยเฉพาะ. การลบ neuron 1 ตัวไม่ทำให้ลืมข้อเท็จจริงข้อเดียว แต่ค่อย ๆ degrade ทั้งระบบ. นี่คือจุดเริ่มของสาขา **interpretability** ที่พยายามเข้าใจว่า network "รู้" อะไรอยู่ตรงไหน
+
+5. **ความเข้าใจผิด:** Neural network คือสิ่งใหม่ที่เพิ่งคิดได้
+   **ความจริง:** แนวคิดมีมาตั้งแต่ปี 1943 (McCulloch-Pitts), perceptron ปี 1958, backpropagation ปี 1986. สิ่งที่เปลี่ยนหลัง 2012 คือ scale ของ data + compute (GPU) + เทคนิค training ที่ทำให้ network ลึก ๆ train ได้ ดู [history-of-ai](/foundations/history-of-ai)
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** องค์ประกอบของ artificial neuron มีอะไรบ้าง? เขียนสมการของ output ในรูปทั่วไป
+2. **(Recall)** activation function ที่ใช้บ่อยที่สุดใน LLM modern คืออะไร และทำไม
+3. **(Explain)** ถ้าเอา activation function ออกจาก deep network เหลือแค่ linear operation — เกิดอะไรขึ้นในเชิงคุณสมบัติของ network
+4. **(Apply)** ลองคำนวณ output ของ neuron ที่มี `w=[1, -2, 0.5], b=1, x=[2, 1, 4]` โดยใช้ ReLU activation
+5. **(Apply)** เพื่อนถามว่า "neural network คือสมองเทียมใช่ไหม" คุณตอบยังไงให้ทั้งถูกต้องและคนไม่ใช่ technical เข้าใจ
+6. **(Synthesize)** เปรียบเทียบ MLP, CNN, และ Transformer ในแง่: (ก) ชนิดของ data ที่เหมาะ, (ข) inductive bias ที่ architecture ฝังไว้
+
+---
+
+</section>

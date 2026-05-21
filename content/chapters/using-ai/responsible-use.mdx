@@ -1,0 +1,224 @@
+---
+slug: responsible-use
+level: using-ai
+title: "Responsible Use"
+status: reviewed
+prerequisites:
+  - bias-and-limits
+  - hallucination
+  - privacy-and-data-handling
+last_reviewed: 2026-05-18
+tldr: "\"Responsible use\" ของ AI ในมุมผู้ใช้ ไม่ใช่การทำตาม compliance checklist ของบริษัท แต่เป็นการ **ซื่อสัตย์กับตัวเอง** ว่ากำลัง delegate อะไรให้ AI และ **ซื่อสัตย์กับผู้อื่น** ที่ได้รับผลกระทบจากงานของเรา. หลักปฏิบัติพื้นฐานมี 5 ข้อ — disclose, attribute, verify, don't weaponize, respect labor — และต้องคิดให้หนักขึ้นใน context ที่ stakes สูง เช่น hiring, education, medical, journalism. สิ่งที่ responsible use **ไม่ใช่** คือการเลิกใช้ AI หรือใช้แบบลังเลทุกครั้ง — มันคือการเลือกอย่างมีสติในจุดที่ความเลือกของเรา matters จริง."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+"Responsible use" ของ AI ในมุมผู้ใช้ ไม่ใช่การทำตาม compliance checklist ของบริษัท แต่เป็นการ **ซื่อสัตย์กับตัวเอง** ว่ากำลัง delegate อะไรให้ AI และ **ซื่อสัตย์กับผู้อื่น** ที่ได้รับผลกระทบจากงานของเรา. หลักปฏิบัติพื้นฐานมี 5 ข้อ — disclose, attribute, verify, don't weaponize, respect labor — และต้องคิดให้หนักขึ้นใน context ที่ stakes สูง เช่น hiring, education, medical, journalism. สิ่งที่ responsible use **ไม่ใช่** คือการเลิกใช้ AI หรือใช้แบบลังเลทุกครั้ง — มันคือการเลือกอย่างมีสติในจุดที่ความเลือกของเรา matters จริง.
+
+เวลาได้ยินคำว่า "responsible AI" หลายคนคิดถึงเอกสาร compliance ของบริษัทใหญ่ — policy หนา ๆ ที่บอกว่าทำอะไรได้/ไม่ได้. บทนี้ไม่ใช่แบบนั้น. บทนี้พูดถึง responsibility ใน **ระดับผู้ใช้** — คุณ คนเดียว ตัดสินใจใช้ AI ในงานหนึ่ง.
+
+**กรอบหลัก:** AI ไม่มี agency. มันไม่ได้เลือกที่จะตอบ ไม่ได้ตัดสินใจว่า output ของมันจะถูกใช้ทำอะไร. **คนเป็นผู้ตัดสินใจ**. เมื่อคุณใช้ AI ทำงาน คุณยังเป็นเจ้าของผลลัพธ์ทั้งทาง professional, moral และ บางครั้งทาง legal. การ "โทษ AI" ที่ตอบผิดเป็นการหลีกหนีความรับผิดชอบ ไม่ใช่การวิเคราะห์ที่ถูกต้อง.
+
+จากกรอบนี้ ความรับผิดชอบของผู้ใช้แบ่งเป็น 2 ทิศทาง:
+
+1. **ต่อผู้อื่น** — คนที่อ่านงานของคุณ, employer, ลูกค้า, สาธารณะ, แหล่งข้อมูลที่ AI ใช้ train
+2. **ต่อตัวเอง** — skill, judgment, voice ที่อาจค่อย ๆ ฝ่อหากใช้ AI แทนทุกอย่าง
+
+### Mental model
+นึกถึง AI เป็น **ผู้ช่วยที่เก่งมากแต่ไม่รับผิดชอบอะไรเลย** — เหมือน intern ที่ทำงานเร็ว ตอบทุกคำถาม แต่ไม่มีใบประกอบวิชาชีพ ไม่ได้เซ็นชื่อในเอกสาร ไม่โดน sue ถ้าตอบผิด. **คุณ** เป็นคนที่เซ็นชื่อ. ดังนั้น คุณต้องตัดสินใจ 3 อย่าง:
+
+- งานนี้ควรให้ผู้ช่วยทำมากแค่ไหน
+- ผลลัพธ์ต้องตรวจสอบระดับไหน ก่อนปล่อยออก
+- ต้องบอกใครว่าเราใช้ผู้ช่วย
+
+ความรับผิดชอบหลัก ๆ ไม่ได้อยู่ที่ "ใช้ AI หรือไม่ใช้" — แต่อยู่ที่ **ตอบ 3 คำถามนั้นอย่างซื่อสัตย์ทุกครั้ง**.
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 หลักการหลัก 5 ข้อ
+
+**1. Disclosure (การเปิดเผย)**
+เปิดเผยการใช้ AI ในจุดที่กระทบ trust ของผู้รับสาร. ตัวอย่างที่ควร disclose:
+- งานวิชาการ — โดยเฉพาะที่มีกฎชัด (ปัจจุบันมหาวิทยาลัยหลายแห่งต้องการ statement)
+- งาน journalism / commentary — ผู้อ่านเชื่อว่ามาจากนักเขียนคน
+- คำแนะนำเชิงวิชาชีพ (legal, medical, financial) — ลูกความ/คนไข้/ลูกค้าต้องรู้ว่าใครเป็นผู้ตัดสิน
+- Content ที่อ้างเป็น "ของเรา" ในเชิง authenticity — เช่น personal essay, ประวัติส่วนตัว
+- การติดต่อ customer service ที่อาจทำให้ลูกค้าเข้าใจผิดว่าคุยกับคน
+
+ตัวอย่างที่ **ไม่จำเป็น** disclose: ใช้ AI สำหรับ brainstorm ส่วนตัว, ใช้ค้นข้อมูล, ใช้แก้ grammar เล็ก ๆ, ใช้ summarize เอกสารเพื่ออ่านเอง. หลักง่าย ๆ: ถ้าผู้รับสารคงจะรู้สึก "ถูกหลอก" ถ้ารู้ — ต้อง disclose.
+
+**2. Attribution (การให้เครดิต)**
+ต่างจาก disclosure ตรงที่ attribution พูดถึง **ความเป็นเจ้าของ** ของเนื้อหา. ถ้า AI generate ส่วนสำคัญของงาน ไม่ใช่แค่ช่วย format — อย่ารับเครดิตคนเดียว. ในงาน creative writing, code ที่ลึก, design ที่มาจาก AI prompt — ระบุได้ว่า "ใช้ AI ช่วย" หรือมีบทบาทอะไร. การ "อ้างเป็นของตัวเอง" ทั้งหมดที่ไม่ได้เขียนเอง คือ misrepresentation รูปแบบใหม่.
+
+**3. Verification responsibility (ความรับผิดชอบในการตรวจสอบ)**
+นี่เป็นข้อที่สำคัญที่สุดในทางปฏิบัติ. **AI ไม่ใช่ผู้รับผิดชอบ — คุณคือ**. ถ้าคุณเผยแพร่ข้อมูลที่ AI hallucinate ขึ้นมา ความผิดเป็นของคุณ. ถ้าคุณตัดสินใจอะไรโดยอิง AI output และ output ผิด ผลกระทบเป็นของคุณ. AI ไม่ได้โดน fire ไม่ได้โดน sue ไม่โดนเขียน editorial โจมตี — คุณโดน.
+
+ระดับ verification ที่ต้องทำขึ้นกับ stakes:
+- Low stakes (chat ส่วนตัว, brainstorm) — แทบไม่ต้องตรวจ
+- Medium stakes (รายงานในที่ทำงาน, email สำคัญ) — ตรวจ fact ที่ specific, ตรวจ tone
+- High stakes (publish, advise, decide) — ตรวจทุก claim ทุก citation ทุกตัวเลข
+
+**4. Non-weaponization (ไม่ใช้ในทางทำร้าย)**
+ห้ามใช้ AI เพื่อทำร้ายคนเฉพาะกลุ่มหรือเฉพาะคน. รวมถึง:
+- **Deepfake / image manipulation** ของบุคคลจริงโดยไม่ได้รับอนุญาต — โดยเฉพาะที่ทำให้เสื่อมเสียหรือเข้าใจผิด
+- **Mass-personalized scam** — ใช้ LLM สร้าง phishing email ที่ปรับตามแต่ละเหยื่อ
+- **Impersonation** — เลียนเสียง/ลายมือ/รูปแบบการเขียนของคนจริงเพื่อหลอก
+- **Harassment campaign** — ใช้ AI generate content โจมตีคนเป็นจำนวนมาก
+- **Manipulation ของกลุ่มเปราะบาง** — เด็ก, ผู้สูงอายุ, คนที่มีปัญหาสุขภาพจิต
+
+นี่ไม่ใช่ gray area. ทั้งหมดนี้ผิด ไม่ว่ากฎหมายในประเทศจะตามทันหรือไม่.
+
+**5. Respect for labor and consent (เคารพแหล่งข้อมูลและผู้ทำงาน)**
+LLM train จาก text ของคนจริง — นักเขียน, ศิลปิน, ผู้เขียน code, นักข่าว. หลายคนไม่ได้ให้ consent. นอกจากนั้นยังมี **data labelers** — แรงงานในหลายประเทศที่ทำ RLHF ในเงื่อนไขที่บางครั้งหนักและค่าตอบแทนต่ำ. ผู้ใช้ทั่วไปไม่ใช่คนที่จะแก้ปัญหา systemic นี้ แต่ **อย่างน้อยควรรู้ตัว** ว่ากำลังใช้ผลิตผลของกลไกที่มีปัญหาทาง ethics อยู่ — และไม่ควรซ้ำเติมโดยใช้ AI rewrite งานของคนอื่นแล้วอ้างเป็นของตัวเอง.
+
+ภาพรวมความเสี่ยงทั้งหมดของ LLM ในเชิง social/ethical ดู  ที่จัด taxonomy 21 ประเภทใน 6 กลุ่ม.
+
+### 2.2 Context ที่ stakes สูง — ต้องคิดให้หนักกว่าปกติ
+
+**Hiring (การคัดเลือกพนักงาน)**
+ใช้ AI screen resume เสี่ยง codify bias ใน scale มหาศาล. AI เรียนจากข้อมูล hiring เดิมซึ่งสะท้อน bias เดิม — เพศ, อายุ, ชื่อ, มหาวิทยาลัย. หลักปฏิบัติ: ใช้ AI เป็น **signal หนึ่ง** ไม่ใช่ **gate**. ห้ามให้ AI reject candidate โดยอัตโนมัติ. ทุก decision สุดท้ายต้องมีคนดู.
+
+**Education (การศึกษา)**
+แยกชัด ๆ:
+- AI as study aid — ถามคำถาม อธิบาย concept ตรวจคำตอบ — โดยทั่วไป OK
+- AI as substitute for learning — ให้ AI เขียน essay เพื่อส่ง — ขโมยจาก process learning ของตัวเอง
+
+แต่ละ context มีกฎต่างกัน. มหาวิทยาลัยบางแห่งอนุญาตให้ใช้ AI โดย declare; บางแห่งห้ามใน assignment บางประเภท. **ก่อนใช้ ต้องรู้กฎของสถาบัน** และไม่ใช้ความ ambiguity เป็นข้ออ้าง.
+
+**Medical / Legal advice**
+AI ใช้เป็น information source ได้ — ถามคำถามเบื้องต้น, สรุปงานวิจัย, อธิบาย concept. แต่ **ห้ามใช้เป็น decision-maker** ในเรื่องสุขภาพหรือกฎหมาย. ถ้าคุณเป็นวิชาชีพในสาขานี้ และใช้ AI ช่วย — ลูกค้า/คนไข้ควรรู้ ว่า output ผ่านคุณ ไม่ใช่ตัดสินโดย AI. ถ้าคุณเป็นคนทั่วไป — AI ให้ orientation ได้ แต่ decision สำคัญต้องผ่านมืออาชีพจริง.
+
+**Content creation: journalism, sponsored content, academic publishing**
+แต่ละ industry มี norm ต่างกัน:
+- Journalism — disclosure คือ standard. การใช้ AI โดยไม่บอกในงานข่าวคือการละเมิด trust ของผู้อ่าน
+- Sponsored content — กฎหมายของหลายประเทศต้อง disclose AI-generated images / endorsement
+- Academic — journal แต่ละแห่งมี policy ต่างกัน; ทุกแห่งที่ทันสมัยขึ้นต้อง declare ระดับการใช้
+
+**Customer service**
+ถ้าใช้ AI agent กับลูกค้า — ลูกค้าควรรู้ว่ากำลังคุยกับ AI. หลายเขตเริ่มมีกฎหมายบังคับ (เช่น California, EU). แต่แม้ไม่มีกฎหมาย การ "ปลอม" AI เป็นคนคือ deception.
+
+### 2.3 ความซื่อสัตย์ต่อตัวเอง — dependency 3 ระดับ
+
+**Skill atrophy (ทักษะที่ฝ่อ)**
+ใช้ AI ทำทุกอย่าง = ไม่ได้ฝึก. การเขียนคำตอบยาก, การ debug code, การ summarize เอกสาร — ทักษะเหล่านี้ต้องการการฝึก. ถ้าให้ AI ทำทั้งหมด หลังหลายเดือนคุณจะพบว่า "ทำเองไม่ได้แล้ว". ตัดสินใจ proactively ว่าทักษะไหนคุณ **อยากเก็บไว้** — แล้วทำเองในงานเหล่านั้นแม้ AI จะทำเร็วกว่า.
+
+**Critical thinking (การคิดวิเคราะห์)**
+AI shortcut กระบวนการคิด. คำตอบมาแบบ packaged ฟังดู authoritative. ถ้ารับมาโดยไม่ตั้งคำถาม — judgment ของคุณค่อย ๆ เลือน. หลักง่าย ๆ: **อย่าให้ AI ตัดสินใจสุดท้ายให้คุณ** ในเรื่องที่สำคัญ. ใช้มันเป็น sounding board ได้, แต่ judgment สุดท้ายต้องเป็นของคุณ.
+
+**Authentic voice (เสียงตัวเอง)**
+LLM มี style เป็นของตัวเอง — symmetric, balanced, slightly bland. ใช้ AI rewrite ทุกอย่างที่คุณเขียน = งานทุกชิ้นเริ่มมี texture คล้ายกัน, สูญเสีย idiosyncrasy ที่ทำให้คุณเป็นคุณ. ในงานที่ voice matters (essay, social media, personal email) — เขียนเองก่อน ใช้ AI ช่วยขัดเป็นขั้นที่สอง.
+
+### 2.4 Harm รูปแบบ low-key ที่มองข้ามง่าย
+
+ไม่ใช่ทุก harm จะดูเหมือนการทำร้าย. หลายอย่างเป็น harm แบบเงียบ:
+
+- **Misinformation propagation** — share content ที่ AI เขียน โดยไม่ verify ว่าจริง — ส่งต่อข้อมูลผิด scale ใหญ่ขึ้น
+- **Subtle plagiarism** — เอาบทความคนอื่น ใส่ AI ให้ "rewrite" — เนื้อหายังเป็นของเขา แค่เปลี่ยนคำ. นี่ยังคือ plagiarism
+- **Bias amplification** — รับ AI's default framing/wording ไปใช้ — ทำให้ bias ใน training data กลายเป็น norm ในงานของคุณ
+- **Homogenization** — งานทุกชิ้นเริ่มเหมือนกัน เพราะทุกคนใช้ AI ตัวเดียวกัน prompt คล้ายกัน
+
+### 2.5 กลุ่มเปราะบางและ edge cases
+
+- **เด็ก** — เด็กไม่สามารถประเมินความน่าเชื่อถือของ AI ได้เหมือนผู้ใหญ่. ผู้ปกครอง/โรงเรียนต้องคิดเรื่อง guardrail
+- **ผู้ใช้ที่มีปัญหา mental health** — มีกรณีที่ AI chatbot ทำให้สถานการณ์แย่ลง (encourage harm, replace human connection) — context นี้ต้องระวังเป็นพิเศษ
+- **ผู้สูงอายุ / non-technical users** — เปราะบางต่อ AI-generated scam มากกว่า — ถ้าคุณเป็นคนที่เข้าใจ AI ในครอบครัว ช่วยกัน educate
+
+### 2.6 การทำงานในองค์กร
+
+- **รู้ policy** ขององค์กรเรื่อง AI — ใส่ข้อมูล confidential ใน AI ได้ไหม, ต้อง disclose ในเอกสารไหม
+- **ถ้ายังไม่มี policy** — push ให้มี. การไม่มี policy ไม่ใช่อนุญาตทุกอย่าง — มันคือ vacuum ที่ต้องเติม
+- **เมื่อมีข้อสงสัย — ถามก่อน publish** ไม่ใช่ขอโทษทีหลัง
+
+### 2.7 บริบทไทย
+
+วงการ academic, journalism, และ professional ในไทยปี 2026 ยังอยู่ในช่วง **กำหนด norm**:
+- มหาวิทยาลัยหลายแห่งเริ่มออก guideline แต่ยังไม่เป็นมาตรฐานเดียว
+- วงการ advertising/content marketing บางสำนักมี guidance ชัด หลายสำนักไม่มี
+- วงการ legal / medical ยังถกเถียงเรื่องบทบาท AI
+- ไม่มีกฎหมายเฉพาะเรื่องการ disclose AI use ในรูปแบบที่ EU AI Act กำหนด (Risk-based framework) แต่หลายเรื่องสอดคล้องกับกฎหมาย PDPA, พ.ร.บ.คอมพิวเตอร์
+
+ในสภาวะที่กฎยังไม่ชัด **การกระทำของแต่ละคน** มีน้ำหนัก. คนที่เลือก disclose เลือก verify เลือก attribute — กำลังช่วยสร้าง norm ที่ดี. การรอให้กฎบังคับก่อนทำ คือการ pass ความรับผิดชอบไปให้คนอื่น.
+
+### 2.8 4-question checklist ก่อนเผยแพร่งานที่ใช้ AI
+
+ก่อน publish, send, submit — ถามตัวเอง:
+
+1. **Disclosed?** ถ้าผู้รับสารรู้ระดับการใช้ AI ของฉัน เขาจะรู้สึกถูกหลอกไหม
+2. **Verified?** สิ่งที่ matters ใน output (facts, citations, ตัวเลข, claim เกี่ยวกับคนหรือเหตุการณ์) ฉันได้ตรวจสอบหรือยัง
+3. **Judgment retained?** การตัดสินใจสำคัญในงานนี้ — ฉันเป็นคนตัดสิน หรือฉัน rubber-stamp AI?
+4. **Honest about reliance?** ถ้าใครถามว่างานนี้ "ของฉัน" แค่ไหน ฉันตอบได้อย่างซื่อสัตย์ไหม
+
+ถ้าตอบ "no" ในข้อใดข้อหนึ่ง — แก้ก่อนปล่อย.
+
+### 2.9 สิ่งที่ "responsible use" **ไม่ใช่**
+
+- ไม่ใช่การปฏิเสธใช้ AI ทุกอย่าง — นั่นคือการ avoid ไม่ใช่ responsibility
+- ไม่ใช่การขออนุญาตทุกครั้ง — overthinking ทุก use case ทำให้ระบบทำงานไม่ได้
+- ไม่ใช่การลังเลจนเสีย productivity — ความระมัดระวังเกินไปก็มีต้นทุน
+- ไม่ใช่ moralism — การมาบอกคนอื่นว่าใช้ AI ผิด
+
+มันคือ **considered choice** — โดยเฉพาะใน context ที่ stake สูง. ในงานที่ stakes ต่ำ ใช้ AI ได้เต็มที่ ไม่ต้อง agonize.
+
+---
+
+## Worked Examples
+
+### Example 1: นักศึกษาใช้ AI ช่วยทำ thesis
+**สถานการณ์:** นักศึกษาใช้ Claude ช่วย brainstorm idea, อธิบาย concept ที่ไม่เข้าใจ, ตรวจ grammar ของบทที่เขียนเอง, summarize paper ที่ต้องอ่าน
+**Responsible?** โดยทั่วไปใช่ — ใช้เป็น study aid ไม่ใช่ substitute สำหรับ original work. แต่ต้อง: (ก) เช็คว่า university มี disclosure policy ไหม, (ข) ถ้า Claude ช่วยเขียนข้อความที่ลงในตัว thesis — disclose ใน acknowledgements, (ค) verify ว่า citation ที่ Claude แนะนำมีจริง (hallucinate citation เป็นปัญหาคลาสสิก)
+
+### Example 2: HR manager ใช้ AI screen resume
+**สถานการณ์:** บริษัทต้องการ screen resume 500 ใบให้เหลือ 30 ใบสำหรับสัมภาษณ์
+**Responsible?** **เสี่ยงสูง**. ใช้ AI rank ตาม keyword หรือ summary ได้ แต่ห้ามให้ AI reject. ทุกใบควรมีคนดูสายตา อย่างน้อยใน decision boundary. ต้องมี **audit** ว่า AI ranking มี bias ทางเพศ, อายุ, ชื่อ, มหาวิทยาลัยไหม. การลด time-to-hire 50% ไม่คุ้มถ้า codify bias เข้าระบบ
+
+### Example 3: นักเขียน blog ใช้ AI generate post ทั้งบทความ
+**สถานการณ์:** เจ้าของ blog ใช้ ChatGPT generate บทความ 1,500 คำเรื่อง productivity แล้ว publish ในชื่อตัวเอง
+**Responsible?** **ไม่**. ปัญหา 3 อย่าง: (ก) attribution — เนื้อหาส่วนใหญ่ไม่ใช่ของผู้เขียน แต่อ้างเป็นของตัวเอง, (ข) verification — ไม่ได้เช็ค claim ในบทความ, (ค) เสี่ยง bias amplification เพราะ default framing ของ AI ไหลเข้า public discourse โดยไม่ถูกกรอง. แก้ได้โดย disclose + edit ให้เป็นเสียงของตัวเอง + verify ทุก claim
+
+### Example 4: หมอใช้ AI summarize งานวิจัยใหม่
+**สถานการณ์:** หมอใช้ AI summarize paper clinical trial ล่าสุดในสาขาตัวเอง เพื่อ keep up
+**Responsible?** ใช่ — สำหรับการอ่านส่วนตัว / keep up. แต่ถ้าจะนำ summary นั้นไป **ตัดสินใจรักษาคนไข้** — ต้องอ่าน paper จริง. AI สามารถ misrepresent finding ของ trial ในวิธีที่ดูไม่ออกถ้าไม่อ่าน original
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** Responsible use คือการทำตาม corporate AI policy ของบริษัท
+   **ความจริง:** Corporate policy เป็น floor ไม่ใช่ ceiling. มันแก้ liability ขององค์กร ไม่ได้แก้ ethical responsibility ของบุคคล. คุณสามารถทำตาม policy ทุกข้อ แต่ยัง act ไม่ responsible ได้ — เช่น เผยแพร่ content ที่ AI generate โดยไม่ verify
+
+2. **ความเข้าใจผิด:** AI generate content แล้ว AI ผิดเอง ถ้าผิด
+   **ความจริง:** AI ไม่ใช่ legal/moral agent. ทุก output ที่ออกจากชื่อคุณ ความรับผิดชอบเป็นของคุณ. การบอก "AI บอกผม" ไม่ใช่ defense ใน court of law หรือ court of public opinion
+
+3. **ความเข้าใจผิด:** ถ้าฉันใช้ AI ช่วยเล็กน้อยก็ต้อง disclose ทุกครั้ง
+   **ความจริง:** ไม่ — disclose เมื่อกระทบ trust ของผู้รับสาร. ใช้ AI แก้ grammar ไม่ต้อง disclose; ใช้ AI generate เนื้อหาหลักของ essay — ต้อง
+
+4. **ความเข้าใจผิด:** Responsible use = ใช้ AI ให้น้อยที่สุด
+   **ความจริง:** Responsible use ไม่ใช่การ minimize การใช้. มันคือการ **เลือก** อย่างมีสติ. ใช้เยอะใน context ที่ stakes ต่ำเป็นเรื่อง OK; ใช้น้อย/ระวังในที่ stakes สูง
+
+5. **ความเข้าใจผิด:** ถ้ากฎหมายไม่ห้าม แสดงว่าทำได้
+   **ความจริง:** กฎหมาย AI ของทุกประเทศตามไม่ทันเทคโนโลยี. การรอให้กฎห้ามก่อนจะเลิกทำสิ่งที่เป็น harm — คือการให้ harm เกิดก่อน. EU AI Act เป็น framework ที่ทันสมัยที่สุดในปัจจุบัน แต่หลายประเทศรวมไทยยังไม่มีเทียบเท่า — ความรับผิดชอบส่วนบุคคลจึงสำคัญ
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** ระบุหลักการหลัก 5 ข้อของ responsible use ในมุมผู้ใช้ — และยกตัวอย่าง 1 อย่างสำหรับแต่ละข้อ
+2. **(Explain)** ทำไม "AI โกหก ฉันเลย publish ผิด — AI ผิด ไม่ใช่ฉัน" ไม่ใช่ defense ที่ valid ทั้งทาง professional และ moral?
+3. **(Apply)** มี 3 สถานการณ์: (ก) ใช้ AI เขียน LinkedIn post เกี่ยวกับโปรเจกต์ตัวเอง, (ข) ใช้ AI ตอบลูกค้าทาง chat ของบริษัท, (ค) ใช้ AI ช่วยขัด tone ของ email ส่งหัวหน้า. สถานการณ์ใดต้อง disclose? อธิบายเหตุผล
+4. **(Apply)** เพื่อนเป็น HR ขอความเห็นว่าจะใช้ AI screen resume 1,000 ใบเหลือ 50 ใบ — คุณจะให้คำแนะนำอะไรเพื่อให้ใช้แบบ responsible?
+5. **(Synthesize)** อธิบายว่าทำไม "responsible use" ไม่ใช่ "minimize AI use" — และให้ตัวอย่างที่ minimize AI ทำให้ผลลัพธ์แย่ลงโดยรวม
+6. **(Synthesize)** คุณจะแยกระหว่าง "skill atrophy" ที่ควรกังวล กับ "skill atrophy" ที่ยอมรับได้อย่างไร? (Hint: คล้ายกับเรื่องคนใช้ calculator แทนคำนวณในใจ)
+
+---
+
+</section>

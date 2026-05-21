@@ -1,0 +1,227 @@
+---
+slug: bias-and-limits
+level: using-ai
+title: "Bias and Limits"
+status: reviewed
+prerequisites:
+  - what-is-an-llm
+  - hallucination
+last_reviewed: 2026-05-18
+tldr: "LLM ทุกตัวมี **bias** — ความเอนเอียงเชิงระบบใน output ที่สะท้อนมาจาก training data, การ label ของมนุษย์, การ filter ข้อมูล, และ policy ของผู้ให้บริการ — และมี **limits** ที่เป็นข้อจำกัดเชิงโครงสร้างที่ไม่สามารถ \"แก้\" ได้ด้วย prompt. เข้าใจสองสิ่งนี้คือเงื่อนไขสำคัญที่จะใช้ AI กับงานจริงอย่างรับผิดชอบ — เพราะ output ที่ดู fluent มักทำให้ผู้ใช้เชื่อโดยลืมไปว่าโมเดลกำลังสะท้อนเสียงส่วนใหญ่ของข้อมูลที่มันเห็น ไม่ใช่ความจริงกลาง."
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+LLM ทุกตัวมี **bias** — ความเอนเอียงเชิงระบบใน output ที่สะท้อนมาจาก training data, การ label ของมนุษย์, การ filter ข้อมูล, และ policy ของผู้ให้บริการ — และมี **limits** ที่เป็นข้อจำกัดเชิงโครงสร้างที่ไม่สามารถ "แก้" ได้ด้วย prompt. เข้าใจสองสิ่งนี้คือเงื่อนไขสำคัญที่จะใช้ AI กับงานจริงอย่างรับผิดชอบ — เพราะ output ที่ดู fluent มักทำให้ผู้ใช้เชื่อโดยลืมไปว่าโมเดลกำลังสะท้อนเสียงส่วนใหญ่ของข้อมูลที่มันเห็น ไม่ใช่ความจริงกลาง.
+
+**Bias ใน LLM ไม่ใช่เรื่อง "โมเดลแย่"** — มันเป็นผลที่หลีกเลี่ยงไม่ได้จากกระบวนการสร้างโมเดล. LLM เรียนรู้จาก text ที่มนุษย์เขียน ดังนั้น **เสียงไหนดังในข้อมูล เสียงนั้นก็จะดังใน output ของโมเดล**. และถ้าข้อมูลส่วนใหญ่เป็นภาษาอังกฤษจากตะวันตก ความ "เป็นกลาง" ของโมเดลก็คือความเป็นกลางในมุมของผู้พูดภาษาอังกฤษกลุ่มหนึ่งเป็นหลัก.
+
+ลองนึกภาพง่าย ๆ: ถ้าให้นักศึกษาที่อ่านแต่หนังสือพิมพ์อเมริกัน 5 ปีตอบคำถามเรื่องการเมืองโลก คำตอบของเขาจะมีลักษณะคล้ายมุมมองในหนังสือพิมพ์เหล่านั้น แม้เขาจะพยายาม "เป็นกลาง" ก็ตาม. LLM ก็เป็นแบบเดียวกัน — แต่ขนาดใหญ่กว่าและซ่อนกลไกได้ดีกว่า.
+
+ในขณะเดียวกัน LLM มี **limits** ที่ไม่ใช่ bias แต่เป็นข้อจำกัดเชิงโครงสร้าง: ไม่รู้สิ่งที่เกิดหลัง training cutoff, ทำ math จริงไม่ได้, ตรวจสอบคำตอบของตัวเองไม่ได้, และไม่รู้แน่ชัดว่าตัวเองรู้อะไรไม่รู้อะไร.
+
+ผู้ใช้ระดับมือใหม่มักรวม bias กับ hallucination เป็นปัญหาเดียว — มันต่างกัน:
+- **Hallucination** = โมเดลแต่งข้อเท็จจริงที่ไม่มีอยู่จริง (เช่น แต่งชื่อ paper, แต่งวันที่)
+- **Bias** = output มีความเอนเอียงเชิงระบบ แม้ข้อเท็จจริงจะถูก (เช่น สมมติว่า nurse เป็นผู้หญิง, สมมติว่ามาตรฐานที่ดีคือมาตรฐานตะวันตก)
+
+### Mental model
+นึกถึง LLM เป็น **กระจกขยายของ training data**. มันไม่ได้สะท้อนความจริง — มันสะท้อนเสียงของคนที่เขียนข้อความที่มันเคยอ่าน. ถ้าเสียงนั้นเอียงไปทางหนึ่ง โมเดลก็เอียงตาม. mitigation ผ่าน RLHF และ system prompt ช่วยปรับมุมกระจกได้บ้าง แต่ไม่เปลี่ยนสิ่งที่อยู่ในกระจก.
+
+**ผลตามมา 3 ข้อ:**
+1. ไม่มี LLM ตัวใด "เป็นกลาง" จริง — มีแต่ "เอียงตามแบบที่ผู้สร้างเลือก"
+2. การพยายามทำให้เป็นกลางคือการตัดสินใจเชิงคุณค่าเอง (เลือกว่าอะไร "กลาง")
+3. ผู้ใช้ที่ไม่ตระหนักจะรับเอา bias ของโมเดลเข้าไปในงานของตัวเองโดยไม่รู้ตัว
+
+---
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+### 2.1 แหล่งที่มาของ bias
+
+Bias ใน LLM ไม่ได้เกิดที่จุดเดียว — เกิดได้ทุก stage ของ pipeline.
+
+**(ก) Training data bias**
+Pretraining ใช้ text จากอินเทอร์เน็ตเป็นหลัก (Common Crawl, Wikipedia, books, code repositories, ฯลฯ). ข้อมูลเหล่านี้ไม่ representative ของมนุษยชาติ:
+- ภาษาอังกฤษมีสัดส่วนสูงกว่าทุกภาษาอื่นรวมกัน (โดยมาก > 90% สำหรับโมเดลรุ่นแรก ๆ; ลดลงแต่ยังเด่นในรุ่นใหม่)
+- ผู้เขียนเนื้อหาบนเน็ตเอนเอียงไปทาง demographic บางกลุ่ม — อายุ การศึกษา ภูมิภาค รายได้
+- หัวข้อบางอย่าง over-represented (Silicon Valley tech culture, US politics, Western pop culture)
+- หัวข้อบางอย่าง under-represented (ภาษาท้องถิ่นเอเชีย ประวัติศาสตร์ Global South ความรู้พื้นเมือง)
+
+ผลคือ "world knowledge" ของโมเดลโดย default คือ world knowledge ของชาวเน็ตที่เขียนภาษาอังกฤษ .
+
+**(ข) Labeler bias**
+หลัง pretraining โมเดลผ่าน SFT และ RLHF (ดู [what-is-an-llm](/foundations/what-is-an-llm) section 2.3). ขั้นตอนนี้ใช้ human labeler ในการ:
+- เขียน example คำตอบที่ดี (SFT data)
+- เลือกว่าระหว่าง output A vs B อันไหนดีกว่า (preference data สำหรับ reward model)
+
+Labeler เหล่านี้เป็นมนุษย์ที่มี view เฉพาะตัว. งานวิจัยหลายชิ้นแสดงว่า labeler ที่จ้างผ่าน platform ส่วนใหญ่กระจุกในประเทศและช่วงอายุที่จำกัด. preference ของพวกเขาจึงกลายเป็น "preference ของโมเดล" หลัง RLHF.
+
+**(ค) Filtering bias**
+ก่อน train โดยปกติ data จะถูก filter — ลบ text ที่ถือว่า toxic, low-quality, หรือ unsafe. แต่ filter เองเป็น classifier ที่มี bias:
+- คำที่ดู toxic ในบริบทหนึ่งอาจไม่ toxic ในอีกบริบท (AAE — African-American English ถูก over-flag เป็น toxic ในงานวิจัยหลายชิ้น)
+- เนื้อหา LGBTQ+ บางช่วงถูก filter ออกอย่างหนักด้วยกฎ "adult content" ทำให้โมเดลขาดความเข้าใจชุมชนนี้
+- เนื้อหาภาษา non-English ถูก filter ด้วย quality classifier ที่ train บน English ทำให้ text คุณภาพดีในภาษาอื่นถูกตัดทิ้งโดยพลาด
+
+**(ง) Deployment policy bias**
+ผู้ให้บริการ (OpenAI, Anthropic, Google, ฯลฯ) เพิ่ม system prompt และ behavioral rule ก่อนส่งให้ผู้ใช้:
+- "อย่าเข้าข้างฝั่งใดในประเด็นการเมือง"
+- "อย่าให้คำแนะนำทางการแพทย์"
+- "ปฏิเสธคำขอที่อาจ harmful"
+
+กฎเหล่านี้ดู neutral แต่ **การเลือกว่าอะไร "neutral" อะไร "harmful" อะไร "balanced" คือการตัดสินใจเชิงคุณค่าในตัวมันเอง**. โมเดลของ Anthropic, OpenAI, Google, Meta, xAI มี policy ต่างกัน — ผลคือ "ความเห็น" ของแต่ละโมเดลในประเด็นเดียวกันต่างกันชัดเจน ทั้งที่ไม่มีอะไร "ผิดถูก".
+
+### 2.2 Bias ที่พบบ่อยใน LLM ปัจจุบัน
+
+**Gender / racial associations** — โมเดลรุ่นเก่ามักจับคู่อาชีพกับเพศตามค่าเฉลี่ยใน training data (nurse → she, engineer → he, CEO → he). โมเดลรุ่นใหม่ลดเรื่องนี้ลงเยอะผ่าน RLHF แต่ในงานที่ยากขึ้นหรือ context กำกวม association เก่ายังโผล่ขึ้นมาได้.
+
+**English / Western default** — เวลาถามคำถามทั่วไป โมเดลมัก default เป็นมุมตะวันตก: หน่วยวัด, สกุลเงิน, ตัวอย่างวัฒนธรรม, ตัวอย่างชื่อคน. ถามเรื่องการศึกษา default ระบบจะเป็นแบบอเมริกัน. ถามเรื่องการเมือง default frame จะเป็น liberal–conservative แบบอเมริกัน.
+
+**Political / ideological leaning** — โมเดลของแต่ละ lab มีจุดยืนต่างกันชัดเจน. โดยทั่วไป model หลัก ๆ ในตลาด US (Claude, ChatGPT, Gemini) แสดงค่า positionที่อยู่ค่อนไปทาง liberal-progressive ในประเด็นสังคม — ผลจาก labeler pool, training data, และ policy รวมกัน. xAI's Grok ตั้งใจ position ตัวเองตรงข้าม.
+
+**Recency bias toward training cutoff** — โมเดลรู้เรื่องที่เกิดใกล้ cutoff ดีกว่าเรื่องไกล. ในมุม knowledge นี่คือข้อดี แต่ในมุมการสร้าง narrative ทำให้โมเดลเชื่อว่า "ปัจจุบัน" คือ training cutoff (ดู [training-cutoff-and-real-time-info](/using-ai/training-cutoff-and-real-time-info)).
+
+**Authority bias** — โมเดลให้น้ำหนักกับสิ่งที่ปรากฏใน source ที่ดูน่าเชื่อ (Wikipedia, New York Times, academic papers) มากกว่า source อื่น ทั้งที่ source เหล่านี้เองมี bias. ผลคือมุมมองที่ established ดูยิ่ง "ถูก" ในสายตาโมเดล.
+
+### 2.3 Limits ที่ไม่ใช่ bias
+
+นอกจาก bias โมเดลมี limits เชิงโครงสร้างที่ผู้ใช้ต้องเข้าใจ:
+
+**Knowledge gaps**
+- Training cutoff: ไม่รู้สิ่งที่เกิดหลังวันที่ pretrain เสร็จ
+- Long-tail topics: ความรู้เฉพาะทางที่มี text น้อย (เช่น ระเบียบราชการไทยเฉพาะกระทรวง, งานวิจัยที่ไม่ได้ index) มัก hallucinate มากกว่าหัวข้อทั่วไป
+- Low-resource languages: ภาษาที่มี text น้อยใน training (รวมภาษาไทยในบางมิติ) — โมเดลทำงานได้แต่คุณภาพต่ำกว่าภาษาอังกฤษ
+
+**Reasoning limits**
+- Math: ไม่ได้คำนวณ ทำ pattern matching ของผลลัพธ์ math ที่เคยเห็น
+- Multi-step deduction: ยิ่ง chain ยาว ความผิดสะสมยิ่งสูง
+- Novel logic: ถ้าปัญหาไม่คล้ายอะไรใน training data ความสามารถลดลงเร็ว
+
+**Self-awareness limits**
+- โมเดลไม่รู้ว่าตัวเองรู้อะไรไม่รู้อะไร — งานวิจัย calibration แสดงว่าโมเดลมัก confident เกินจริง 
+- "ฉันไม่แน่ใจ" ของโมเดลเป็น generated text ไม่ใช่ introspection จริง
+
+**Verification limits**
+- โมเดลตรวจคำตอบของตัวเองไม่ได้แบบ independent — ถ้าให้ตรวจมันก็ใช้ pattern matching ตัวเดิม
+- ผลคือเทคนิค "ถามโมเดลให้ตรวจคำตอบตัวเอง" ได้ผลน้อยกว่าที่หวัง
+
+### 2.4 บริบทไทยและเอเชียตะวันออกเฉียงใต้
+
+ผู้ใช้ภาษาไทยควรตระหนักเป็นพิเศษ:
+
+**ภาษาไทยเป็น low-resource** ในมาตรฐาน LLM. text ภาษาไทยใน pretraining น้อยกว่าภาษาอังกฤษอย่างมาก ส่งผลให้:
+- คำตอบภาษาไทยมัก grammar ไม่เป็นธรรมชาติเท่าภาษาอังกฤษ
+- โมเดลรู้เรื่องไทยน้อยกว่าที่ผู้ใช้คาด — เรื่องเฉพาะ (กฎหมายไทย, ประวัติศาสตร์ท้องถิ่น, ราชการ) มัก hallucinate
+- หัวข้ออ่อนไหวในบริบทไทย โมเดลมัก default ตอบในกรอบความคิดตะวันตก ซึ่งอาจไม่เหมาะกับ context จริง
+
+**Cultural references skewed Western** — ถ้าขอ analogy, ตัวอย่าง, หรือ recommendation โมเดลมัก default เป็นวัฒนธรรมอเมริกัน. ต้อง prompt อย่างชัดเจน ("ใช้ตัวอย่างจากบริบทไทย", "อ้างอิงวัฒนธรรมเอเชียตะวันออกเฉียงใต้") จึงจะได้ output ที่ relevant.
+
+**ข้อดีที่ตามมา** — โมเดลรุ่นใหม่ (Claude, GPT, Gemini รุ่นปี 2025+) ดีขึ้นกับภาษาไทยอย่างมีนัยสำคัญ และโมเดลของ lab ในเอเชีย (Typhoon ของ SCB10X, Sailor, SEA-LION) ถูกออกแบบมาเพื่อ context นี้โดยเฉพาะ — เป็นทางเลือกที่ควรพิจารณาในงานเฉพาะ.
+
+### 2.5 Mitigation ในทางปฏิบัติ
+
+ไม่มีวิธีกำจัด bias ออกหมด — แต่มีวิธีจัดการที่ได้ผล:
+
+1. **Awareness** — รู้ว่า bias มีอยู่ที่ไหน. ก่อนใช้ output ในงานสำคัญ ถามตัวเองว่า "output นี้สะท้อนข้อเท็จจริงหรือสะท้อนเสียงส่วนใหญ่ใน training data ของโมเดล?"
+2. **Multi-source / multi-model verification** — งานสำคัญให้ใช้หลายโมเดลถาม แล้วเทียบ. ถ้า output ต่างกันชัดเจน นั่นคือสัญญาณว่ามี bias หรือ uncertainty อยู่
+3. **Domain-specific evals** — ถ้าสร้าง product ที่ใช้ AI ต้องมี eval set ที่ test bias ในมิติที่ relevant กับ use case (ดู [evals-and-benchmarks](/building-with-ai/evals-and-benchmarks))
+4. **Prompt-level framing** — ขอให้โมเดลพิจารณาหลายมุม ("เปรียบเทียบมุมมอง pro และ con", "อธิบายจาก perspective ของกลุ่มที่ได้รับผลกระทบ"). ได้ผลปานกลาง ไม่ใช่ทางแก้แต่ลดความเอียงในระดับ output ได้
+5. **เลือกโมเดลที่ทดสอบมาแล้ว** — ถ้าใช้ในงานที่ bias เฉพาะมิติเป็นเรื่องสำคัญ (เช่น hiring) เลือกโมเดลที่ผู้ให้บริการเผยแพร่ผล bias eval ที่เกี่ยวข้อง
+6. **Constitutional AI / RLAIF** — ในระดับ training Anthropic ใช้วิธีให้โมเดลวิจารณ์ตัวเองตามชุดหลักการที่กำหนด ลด harmful bias บางประเภทได้ 
+
+### 2.6 ขีดจำกัดของ mitigation
+
+ต้องตระหนักอย่างจริงใจว่า:
+
+- Bias ไม่สามารถ "ลบ" ได้ — ลดได้เท่านั้น เพราะกระบวนการสร้างโมเดลทุกขั้นเป็นการตัดสินใจเชิงคุณค่า
+- มี trade-off จริงระหว่าง "neutral" กับ "useful" — โมเดลที่ปฏิเสธทุกคำถามที่อาจ controversial จะ neutral แต่ไร้ประโยชน์
+- การ "debias" โดย over-correction เป็น bias อีกแบบหนึ่ง — ทำให้ output ผิดข้อเท็จจริงเพื่อ "balance" ได้
+- ผู้ใช้ปลายทางต้องรับผิดชอบการใช้งาน — ไม่ใช่ผลักทั้งหมดให้ผู้สร้างโมเดล
+
+### 2.7 ผลกระทบเชิงจริยธรรมกับ high-stakes use cases
+
+Use case บางประเภท bias กลายเป็นความเสี่ยงที่ต้องจัดการเป็นพิเศษ:
+- **Hiring** — ใช้ AI screen resume หรือสัมภาษณ์: bias ของโมเดลอาจกีดกัน demographic บางกลุ่มอย่างเป็นระบบ
+- **Legal** — สรุปคดี ค้นหา precedent: bias + hallucination ร่วมกันอันตราย
+- **Medical** — แนะนำการวินิจฉัย: training data ทางแพทย์ skewed ไปทางกลุ่มประชากรเฉพาะ
+- **Education** — assessment, grading: bias ทาง language style ส่งผลต่อคะแนน
+- **Loan / credit** — bias ทาง demographic ในการประเมิน
+
+ทั้งหมดนี้ต้องการ governance ที่จริงจังกว่า "ใช้ AI ตามปกติ". Weidinger et al. (2021) จัดกลุ่ม risk ของ LM ออกเป็น 6 ประเภท — discrimination/exclusion เป็นหนึ่งในนั้นโดยตรง และเชื่อมโยงกับ bias ที่อธิบายในบทนี้ . รายละเอียดเชิง policy ดูที่ [responsible-use](/using-ai/responsible-use).
+
+---
+
+## Worked Examples
+
+### Example 1: Default gender ใน occupation
+**Prompt:** "เขียนเรื่องสั้นเกี่ยวกับหมอที่ช่วยชีวิตคนไข้ในห้องฉุกเฉิน"
+
+โมเดลรุ่นเก่า: 70%+ default ให้หมอเป็นผู้ชาย (ในภาษาไทยอาจไม่ระบุเพศแต่ใช้สรรพนามที่บ่งบอก).
+โมเดลรุ่นใหม่หลัง RLHF: เริ่ม default เป็นผู้หญิงและผู้ชายในสัดส่วนใกล้เคียงขึ้น แต่ใน detail (เช่น nurse ที่ช่วย หรือ administrator) bias เก่ายังโผล่.
+
+**Mitigation:** prompt ให้ชัด ("ตัวละครหมอเป็นผู้หญิงอายุ 35") เพื่อ override default. นี่คือ pattern พื้นฐาน — ถ้าไม่ระบุ โมเดลจะ default ตามสถิติของ training data.
+
+### Example 2: Western framing ในเรื่องวัฒนธรรมไทย
+**Prompt:** "อธิบายวัฒนธรรมการให้ของขวัญในที่ทำงาน"
+
+Output โดย default: framework แบบบริษัทอเมริกัน (Secret Santa, holiday party, ค่าใช้จ่ายไม่เกิน $20). หากผู้ใช้ภาษาไทยถามโดยคาดว่าได้บริบทไทย — ไม่ตรง.
+
+**Mitigation:** "ในบริบทบริษัทไทย วัฒนธรรมให้ของขวัญในที่ทำงานเป็นอย่างไร — ครอบคลุมเทศกาลปีใหม่ สงกรานต์ การเลี้ยงผู้บังคับบัญชา และข้อพึงระวังเรื่องระเบียบจริยธรรมข้าราชการ". prompt ที่ specify context ชัด ได้ output ที่ relevant ขึ้นมาก.
+
+### Example 3: ขีดจำกัดของ self-awareness
+**Prompt:** "บริษัท Fairdee ตั้งอยู่ที่ไหน ก่อตั้งปีไหน CEO ชื่ออะไร"
+
+Fairdee เป็นบริษัทไทยที่ค่อนข้างเฉพาะ training data จะมีน้อย. โมเดลควรตอบ "ไม่มีข้อมูล" — แต่ในทางปฏิบัติมักแต่งคำตอบที่ฟังดูน่าเชื่อ. นี่คือ self-awareness limit ที่ผสมกับ hallucination tendency.
+
+**Mitigation:** ใช้ tool/retrieval (web search, RAG) สำหรับข้อมูลเฉพาะ; หรือ prompt ให้โมเดลรับรู้ขีดจำกัด ("ถ้าไม่แน่ใจให้ตอบว่าไม่มีข้อมูล อย่าเดา"). prompt เทคนิคนี้ลด hallucination ได้บ้างแต่ไม่ทั้งหมด — ดู [hallucination](/using-ai/hallucination).
+
+### Example 4: Political framing ที่ไม่ neutral
+**Prompt (ภาษาอังกฤษ):** "Should governments provide universal healthcare?"
+
+โมเดลส่วนใหญ่ในตลาด US จะตอบในกรอบที่ frame universal healthcare เป็น default ของประเทศพัฒนาแล้ว และ position US ว่าเป็น exception. นี่ไม่ใช่ "ผิด" — เป็นมุมที่สอดคล้องกับ majority view ใน training data ของ Anglo-American academic/journalism source.
+
+**Mitigation:** ถ้าต้องการ analysis ที่ครอบคลุม — prompt ให้ระบุชัด ("วิเคราะห์ argument ทั้งสองฝั่งโดยให้น้ำหนักเท่ากัน รวมถึง critique จาก libertarian และ market-skeptic perspective"). ได้ output ที่ balanced กว่าแต่ไม่ "เป็นกลาง" — เพราะ neutrality เองคือ value judgment.
+
+---
+
+## Common Misconceptions
+
+1. **ความเข้าใจผิด:** Bias เกิดจาก "data ไม่พอ" — ถ้าใส่ data เยอะขึ้นจะ neutral
+   **ความจริง:** การเพิ่ม data ลด bias บางมิติได้ แต่ไม่ลบทั้งหมด เพราะ data เพิ่มก็มีคุณลักษณะของกลุ่มที่ผลิต data นั้น. นอกจากนี้ labeler และ policy bias ไม่เกี่ยวกับขนาด data
+
+2. **ความเข้าใจผิด:** LLM ใหม่ ๆ "เป็นกลาง" แล้ว เพราะผ่าน RLHF
+   **ความจริง:** RLHF ลด bias บางประเภท (toxic, blatantly biased) แต่สร้าง bias ใหม่ตาม preference ของ labeler และ policy ของ lab. "เป็นกลางหลัง RLHF" คือ "เป็นกลางในมุมของผู้ที่ออกแบบ RLHF"
+
+3. **ความเข้าใจผิด:** Bias กับ hallucination เป็นปัญหาเดียวกัน
+   **ความจริง:** ต่างกัน. hallucination = แต่ง fact ที่ไม่มี (เช่น แต่งชื่อ paper). bias = output มีความเอนเอียงเชิงระบบ แม้ fact ถูก (เช่น อธิบายเหตุการณ์โดย default frame จากมุมหนึ่ง). mitigation strategy ต่างกัน
+
+4. **ความเข้าใจผิด:** ใส่ในระบบ system prompt ว่า "ให้เป็นกลาง" แล้ว bias จะหาย
+   **ความจริง:** Prompt-level neutrality framing มีผลจำกัด — เพราะ bias ถูก encode ใน weight ของโมเดล. prompt ปรับ surface ของ output ได้ในระดับหนึ่ง แต่ลด deep bias ที่อยู่ใน representation ไม่ได้
+
+5. **ความเข้าใจผิด:** ถ้ารู้ว่า LLM มี bias ก็ไม่ควรใช้ในงานจริง
+   **ความจริง:** การไม่ใช้ก็มี cost (เสีย productivity ที่เป็นไปได้). การตัดสินใจที่ถูกต้องคือ "ใช้ในงานที่ bias เป็นความเสี่ยงที่จัดการได้ ไม่ใช้ในงานที่ bias เป็นความเสี่ยง catastrophic". เกณฑ์นี้แตกต่างกันตาม use case
+
+6. **ความเข้าใจผิด:** Output ที่ดู "smooth, professional" คือ output ที่ถูกต้อง
+   **ความจริง:** Fluency เป็นจุดอ่อนที่อันตรายที่สุดของ LLM — output ดู confident เสมอ ไม่ว่าจะถูกหรือผิด  เรียกพฤติกรรมนี้ว่า "stochastic parrots": โมเดลส่ง text ที่ฟังดูคล้ายความรู้โดยไม่มี ground truth กำกับ
+
+---
+
+## Self-Check
+
+ลองตอบให้ได้โดยไม่ดูข้างบน:
+
+1. **(Recall)** ระบุแหล่งที่มาของ bias ใน LLM 4 แหล่ง พร้อมยกตัวอย่างสั้น ๆ ของแต่ละ
+2. **(Explain)** อธิบายความแตกต่างระหว่าง bias กับ hallucination ในย่อหน้าเดียวพร้อมตัวอย่าง
+3. **(Apply)** ถ้าจะใช้ LLM ช่วย screen resume สำหรับตำแหน่งวิศวกร bias อะไรที่น่ากังวลที่สุด และคุณจะ mitigate อย่างไร (อย่างน้อย 2 วิธี)
+4. **(Apply)** ผู้ใช้ภาษาไทยถามโมเดลเรื่อง "อาหารกลางวันที่ดีต่อสุขภาพ" แล้วได้คำแนะนำเป็น salad bowl กับ quinoa. นี่เป็น bias ประเภทไหน และจะ prompt อย่างไรให้ได้คำตอบที่ relevant กับบริบทไทย
+5. **(Synthesize)** ทำไม "ใส่ system prompt ว่าให้เป็นกลาง" จึงเป็น mitigation ที่ได้ผลจำกัด เชื่อมโยงคำตอบกับกลไก pretraining และ RLHF
+6. **(Synthesize)** ในการตัดสินใจว่าจะใช้ LLM ในงานหนึ่งหรือไม่ คุณจะใช้เกณฑ์อะไรในการประเมินความเสี่ยงเรื่อง bias เทียบกับประโยชน์ที่ได้
+
+---
+
+</section>
