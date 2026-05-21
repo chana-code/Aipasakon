@@ -59,3 +59,7 @@
   body { background: var(--paper); color: var(--navy-900); }
   ::selection { background: var(--teal-50); color: var(--navy-900); }
 }
+
+article[data-depth="surface"] section[data-depth]:not([data-depth="surface"]) { display: none; }
+article[data-depth="deeper"]  section[data-depth="formal"] { display: none; }
+/* "formal" shows all */

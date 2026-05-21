@@ -11,6 +11,10 @@ export type Chapter = ChapterFrontmatter & { body: string };
 async function readChapterFile(level: Level, file: string): Promise<Chapter> {
   const raw = await readFile(path.join(CONTENT_ROOT, level, file), 'utf-8');
   const { data, content } = matter(raw);
+  // gray-matter auto-parses YAML dates into JS Date objects; coerce back to string
+  if (data.last_reviewed instanceof Date) {
+    data.last_reviewed = data.last_reviewed.toISOString().slice(0, 10);
+  }
   const fm = ChapterFrontmatter.parse(data);
   if (fm.level !== level) {
     throw new Error(`chapter ${fm.slug} has level "${fm.level}" but lives in /${level}/`);

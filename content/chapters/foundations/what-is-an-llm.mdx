@@ -1,0 +1,33 @@
+---
+slug: what-is-an-llm
+level: foundations
+title: "LLM คืออะไร"
+status: drafting
+prerequisites: []
+last_reviewed: 2026-05-20
+tldr: "LLM คือระบบ AI ที่อ่านข้อความจำนวนมหาศาลแล้วเรียนรู้รูปแบบของภาษา จนสามารถสร้างข้อความต่อเนื่องได้"
+---
+
+<section data-depth="surface">
+
+## พูดสั้นๆ
+
+LLM (Large Language Model — โมเดลภาษาขนาดใหญ่) คือระบบที่อ่านข้อความจำนวนมหาศาล แล้วเรียนรู้ว่า "คำต่อไปน่าจะเป็นอะไร"
+
+</section>
+
+<section data-depth="deeper">
+
+## ลึกขึ้นหน่อย
+
+วิธีเรียนของ LLM คือการ "ทาย" คำต่อไปนับล้านล้านครั้ง — ทุกครั้งที่ทายผิด ระบบจะปรับตัวเองให้ทายแม่นขึ้น ทำซ้ำจนกลายเป็นโมเดลที่เข้าใจรูปแบบของภาษาได้ดีพอจะตอบคำถาม สรุปบทความ และเขียนโค้ดได้
+
+</section>
+
+<section data-depth="formal">
+
+## ในเชิงเทคนิค
+
+โมเดลแบบ transformer ใช้ self-attention mechanism เพื่อ encode ความสัมพันธ์ระหว่าง token แต่ละตัวในบริบทเดียวกัน เทรนแบบ next-token prediction บน corpus ขนาดหลายร้อยพันล้าน token จากนั้นทำ instruction tuning + RLHF เพื่อให้ output มีประโยชน์และปลอดภัยขึ้น
+
+</section>
