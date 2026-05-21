@@ -20,7 +20,7 @@ test('curriculum, glossary, videos, about, 404', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'หลักสูตร' })).toBeVisible();
 
   await page.goto('/glossary');
-  await expect(page.getByRole('heading', { name: 'คำศัพท์' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'คำศัพท์', exact: false })).toBeVisible();
 
   await page.goto('/videos');
   await expect(page.getByRole('heading', { name: 'วิดีโอ' })).toBeVisible();
