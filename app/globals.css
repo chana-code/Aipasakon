@@ -1,14 +1,61 @@
 @import "tailwindcss";
 @import "../styles/colors_and_type.css";
 
+/* Aliases so later code can reference --blue-500, --orange-500, --plum-500
+   (mapping to the design system's level colors). */
+:root {
+  --blue-500: var(--level-2);
+  --orange-500: var(--level-3);
+  --orange-600: var(--level-3);
+  --plum-500: var(--level-4);
+}
+
 @theme inline {
+  /* Colors — utility names like bg-paper, text-navy-900, border-line, etc. */
   --color-paper: var(--paper);
+  --color-card: var(--card);
+
   --color-navy-900: var(--navy-900);
+  --color-navy-800: var(--navy-800);
+  --color-navy-700: var(--navy-700);
+
+  --color-teal-50:  var(--teal-50);
+  --color-teal-100: var(--teal-100);
   --color-teal-500: var(--teal-500);
+  --color-teal-600: var(--teal-600);
+  --color-teal-700: var(--teal-700);
+
+  --color-blue-500:   var(--level-2);
+  --color-orange-500: var(--level-3);
+  --color-orange-600: var(--level-3);
+  --color-plum-500:   var(--level-4);
+
+  --color-line:        var(--line);
+  --color-line-strong: var(--line-2);
+
+  --color-fg:    var(--fg-1);
+  --color-fg-2:  var(--fg-2);
+  --color-fg-3:  var(--fg-3);
+
+  /* Fonts — utility names font-thai, font-sans, font-mono */
+  --font-thai: "IBM Plex Sans Thai", "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* Max prose width */
+  --container-prose: 680px;
+
+  /* Custom easing */
+  --ease-calm: cubic-bezier(.2, .6, .2, 1);
 }
 
 @layer base {
-  html { font-family: "IBM Plex Sans Thai", "Inter", system-ui, sans-serif; }
+  html { font-family: var(--font-thai); }
   body { background: var(--paper); color: var(--navy-900); }
   ::selection { background: var(--teal-50); color: var(--navy-900); }
 }
