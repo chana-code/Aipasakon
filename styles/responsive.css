@@ -1,0 +1,36 @@
+/* ──────────────────────────────────────────────────────────────
+   Responsive Utilities
+   ────────────────────────────────────────────────────────────── */
+
+/* Hide on mobile, show on desktop */
+@media (max-width: 767px) {
+  .hide-mobile { display: none !important; }
+}
+@media (min-width: 768px) {
+  .hide-desktop { display: none !important; }
+}
+
+/* ── TopNav responsive ── */
+@media (max-width: 767px) {
+  .nav-desktop { display: none !important; }
+  .search-text { display: none !important; }
+  .search-kbd { display: none !important; }
+  .auth-desktop { display: none !important; }
+  .nav-header { padding: 0 16px !important; gap: 12px !important; }
+}
+@media (min-width: 768px) {
+  .nav-mobile-toggle { display: none !important; }
+  .nav-mobile-menu { display: none !important; }
+}
+
+/* Responsive container padding */
+.container-pad {
+  padding-left: 28px;
+  padding-right: 28px;
+}
+@media (max-width: 767px) {
+  .container-pad {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

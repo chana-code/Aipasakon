@@ -9,20 +9,32 @@ const STATUS_COLOR: Record<string, string> = {
   stable:   '#2A7A3F',
 };
 
-export async function CurriculumSpine({ currentSlug }: { currentSlug?: string }) {
+export async function CurriculumSpine({
+  currentSlug,
+  variant = 'sidebar',
+}: {
+  currentSlug?: string;
+  variant?: 'sidebar' | 'mobile';
+}) {
   const chapters = await loadAllChapters();
 
+  const isMobile = variant === 'mobile';
+
   return (
-    <aside style={{
-      width: 256,
-      padding: "24px 14px 64px 18px",
-      borderRight: "1px solid var(--line)",
-      background: "var(--paper)",
-      overflowY: "auto",
-      height: "calc(100vh - 56px)",
-      position: "sticky",
-      top: 56,
-    }}>
+    <aside
+      style={isMobile ? {
+        padding: "16px 12px 24px",
+      } : {
+        width: 256,
+        padding: "24px 14px 64px 18px",
+        borderRight: "1px solid var(--line)",
+        background: "var(--paper)",
+        overflowY: "auto",
+        height: "calc(100vh - 48px)",
+        position: "sticky",
+        top: 48,
+      }}
+    >
       {LEVELS.map(level => {
         const m = LEVEL_META[level];
         const items = chapters.filter(c => c.level === level);
@@ -67,7 +79,8 @@ export async function CurriculumSpine({ currentSlug }: { currentSlug?: string })
                       display: "flex",
                       alignItems: "center",
                       gap: 8,
-                      padding: "5px 10px 5px 12px",
+                      padding: isMobile ? "10px 12px 10px 14px" : "5px 10px 5px 12px",
+                      minHeight: isMobile ? 44 : undefined,
                       borderRadius: 4,
                       borderLeft: on ? `2px solid ${m.color}` : "2px solid transparent",
                       marginLeft: -2,

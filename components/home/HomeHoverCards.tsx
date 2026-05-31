@@ -36,7 +36,7 @@ const DOORS = [
 
 export function HomeHoverCards() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
       {DOORS.map(d => (
         <DoorCard key={d.id} door={d} />
       ))}
@@ -62,7 +62,7 @@ function DoorCard({ door: d }: { door: typeof DOORS[number] }) {
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = color;
-        (e.currentTarget as HTMLElement).style.background = 'var(--teal-50)';
+        (e.currentTarget as HTMLElement).style.background = '#fff';
       }}
       onMouseLeave={(e) => {
         (e.currentTarget as HTMLElement).style.borderColor = 'var(--line)';

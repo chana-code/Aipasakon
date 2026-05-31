@@ -97,14 +97,7 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               {items.map(e => (
-                <div key={e.term_en} style={{
-                  display: "grid",
-                  gridTemplateColumns: "200px 1fr auto",
-                  gap: 24,
-                  alignItems: "baseline",
-                  padding: "16px 0",
-                  borderBottom: "1px solid var(--line-ink)",
-                }}>
+                <div key={e.term_en} className="flex flex-col gap-1 md:grid md:grid-cols-[200px_1fr_auto] md:gap-6 md:items-baseline py-4 border-b" style={{ borderColor: "var(--line-ink)" }}>
                   <div>
                     <div style={{
                       fontFamily: "var(--font-latin)",
@@ -126,8 +119,25 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
                     fontSize: 15,
                     lineHeight: 1.75,
                     color: "var(--fg-1)",
-                  }}>{e.definition_th}</div>
-                  <div>
+                  }}>
+                    {e.definition_th}
+                    {e.see_also.length > 0 && (
+                      <Link
+                        href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}
+                        className="inline md:hidden ml-2"
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: 11.5,
+                          color: "var(--teal-600)",
+                          textDecoration: "none",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        บทเต็ม →
+                      </Link>
+                    )}
+                  </div>
+                  <div className="hidden md:block">
                     {e.see_also.length > 0 && (
                       <Link
                         href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}

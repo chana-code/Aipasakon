@@ -4,14 +4,14 @@
    ────────────────────────────────────────────────────────────── */
 
 /* ── FONTS ─────────────────────────────────────────────────────
-   IBM Plex Sans Thai      — Thai body + display
-   Inter                   — Latin pair, English technical terms
-   IBM Plex Mono           — code blocks, inline code, file paths
-   All three are CDN-loaded from Google Fonts. If offline copies
-   are needed, drop .woff2 files into fonts/ and override @font-face.
+   Noto Serif Thai         — Thai display/hero headings (serif)
+   IBM Plex Sans Thai Looped — Thai body (looped variant, warmer)
+   DM Sans                 — Latin body, UI labels
+   Source Serif 4           — Latin display, pairs with Noto Serif Thai
+   JetBrains Mono          — code blocks, inline code, file paths
+   All loaded from Google Fonts CDN. If offline copies are needed,
+   drop .woff2 files into fonts/ and override @font-face.
    ────────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
-
 :root {
 
   /* ── COLOR · BRAND ──────────────────────────────────────────
@@ -23,7 +23,7 @@
   --navy-900:  #00143C;   /* primary ink — body text, headings */
   --navy-800:  #0A2150;   /* slightly lifted ink */
   --navy-700:  #1E3463;   /* secondary text on light bg */
-  --navy-600:  #3E5482;   /* tertiary text, captions */
+  --navy-600:  #5B6577;   /* tertiary text, captions — warmer muted */
   --navy-500:  #6376A0;   /* muted/disabled */
 
   --teal-700:  #006B7A;   /* link hover, pressed state */
@@ -64,6 +64,14 @@
   --status-reviewed:  #14B5AB;   /* brand teal */
   --status-stable:    #2A7A3F;   /* forest */
 
+  /* ── COLOR · MARK (teacher's yellow) ────────────────────────
+     Yellow highlight for TL;DR boxes, key-term underlines, and
+     important callouts. A reading aid, not a UI color.
+     ────────────────────────────────────────────────────────── */
+  --mark:        #E8C547;   /* border accent */
+  --mark-bg:     #FDF6E0;   /* box fill */
+  --mark-border: #E8D9A0;   /* subtle border */
+
   /* ── COLOR · SEMANTIC ───────────────────────────────────────
      Everyday tokens. Prefer these over raw scale values in
      component code.
@@ -88,19 +96,21 @@
 
   /* ── TYPOGRAPHY · FAMILIES ──────────────────────────────────
      Thai stack first so Thai glyphs render in Plex Sans Thai
-     even when mixed with Latin. Inter handles English well.
+     Looped even when mixed with Latin. DM Sans handles English.
+     Display uses serif for a "book, not blog" feel.
      ────────────────────────────────────────────────────────── */
-  --font-thai:    "IBM Plex Sans Thai", "Noto Sans Thai", system-ui, sans-serif;
-  --font-latin:   "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  --font-display: "IBM Plex Sans Thai", "Inter", system-ui, sans-serif;
-  --font-mono:    "IBM Plex Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-thai:    "IBM Plex Sans Thai Looped", "DM Sans", system-ui, sans-serif;
+  --font-latin:   "DM Sans", "IBM Plex Sans Thai Looped", system-ui, sans-serif;
+  --font-display: "Noto Serif Thai", "Source Serif 4", Georgia, serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-latin-display: "Source Serif 4", "Noto Serif Thai", Georgia, serif;
 
   /* ── TYPOGRAPHY · SCALE ─────────────────────────────────────
      Conservative scale. Body is 17px (Thai needs a touch more
      than English defaults). Line-height ~1.75 on prose for
      Thai readability — non-negotiable.
      ────────────────────────────────────────────────────────── */
-  --t-display: 56px;  --lh-display: 1.15;
+  --t-display: 52px;  --lh-display: 1.15;
   --t-h1:      40px;  --lh-h1:      1.2;
   --t-h2:      28px;  --lh-h2:      1.3;
   --t-h3:      21px;  --lh-h3:      1.4;
@@ -156,6 +166,30 @@
   --ease:      cubic-bezier(.2,.6,.2,1);
   --dur-fast:  120ms;
   --dur:       180ms;
+}
+
+/* ── RESPONSIVE · MOBILE ──────────────────────────────────── */
+@media (max-width: 767px) {
+  :root {
+    --t-display: 32px;
+    --t-h1: 28px;
+    --t-h2: 22px;
+    --t-h3: 18px;
+    --t-body: 16px;
+    --t-ui: 14px;
+    --col-prose: 100%;
+    --col-wide: 100%;
+    --col-page: 100%;
+  }
+}
+
+/* ── RESPONSIVE · TABLET ──────────────────────────────────── */
+@media (max-width: 1023px) {
+  :root {
+    --t-display: 40px;
+    --t-h1: 32px;
+    --col-page: 100%;
+  }
 }
 
 /* ── BASE ──────────────────────────────────────────────────── */
@@ -259,4 +293,79 @@ hr {
   border: 0;
   border-top: 1px solid var(--border);
   margin: var(--s-6) 0;
+}
+
+/* ── PROSE · chapter reading ──────────────────────────────────
+   Spacing for MDX-rendered content. Generous vertical rhythm
+   is essential for Thai long-form readability.
+   ────────────────────────────────────────────────────────── */
+.prose-chapter p {
+  margin: 0 0 1.15em;
+}
+.prose-chapter p:last-child {
+  margin-bottom: 0;
+}
+.prose-chapter h2 {
+  margin: 2em 0 0.75em;
+}
+.prose-chapter h3 {
+  margin: 1.6em 0 0.6em;
+}
+.prose-chapter h4 {
+  margin: 1.4em 0 0.5em;
+}
+.prose-chapter h2:first-child,
+.prose-chapter h3:first-child,
+.prose-chapter h4:first-child {
+  margin-top: 0;
+}
+.prose-chapter ul,
+.prose-chapter ol {
+  margin: 0.75em 0 1.15em;
+  padding-left: 1.5em;
+}
+.prose-chapter li {
+  margin-bottom: 0.4em;
+}
+.prose-chapter li:last-child {
+  margin-bottom: 0;
+}
+.prose-chapter blockquote {
+  margin: 1.25em 0;
+  padding: 0.75em 1.25em;
+  border-left: 3px solid var(--mark);
+  background: var(--mark-bg);
+  border-radius: 0 var(--r-2) var(--r-2) 0;
+}
+.prose-chapter blockquote p {
+  margin-bottom: 0.5em;
+}
+.prose-chapter blockquote p:last-child {
+  margin-bottom: 0;
+}
+.prose-chapter pre {
+  margin: 1.25em 0;
+}
+.prose-chapter table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.25em 0;
+  font-size: 0.92em;
+}
+.prose-chapter th,
+.prose-chapter td {
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+.prose-chapter th {
+  background: var(--bg-sunk);
+  font-weight: 600;
+}
+@media (max-width: 767px) {
+  .prose-chapter table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

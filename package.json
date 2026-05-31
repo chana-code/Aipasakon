@@ -17,6 +17,8 @@
     "convert:chapters": "tsx scripts/convert-chapter.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.1",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.16.0",
     "next": "15.5.18",

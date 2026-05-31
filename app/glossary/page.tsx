@@ -8,7 +8,7 @@ export default async function GlossaryPage() {
 
   return (
     <main style={{ background: "var(--bg-page)" }}>
-      <div style={{ maxWidth: 880, margin: "0 auto", padding: "56px 28px 96px" }}>
+      <div className="max-w-[880px] mx-auto px-4 md:px-7 pt-8 md:pt-14 pb-16 md:pb-24">
         <div style={{
           fontFamily: "var(--font-mono)",
           fontSize: 11,
@@ -18,10 +18,9 @@ export default async function GlossaryPage() {
           marginBottom: 12,
         }}>Glossary · ภาคผนวกศัพท์</div>
 
-        <h1 style={{
+        <h1 className="text-[28px] md:text-[44px]" style={{
           margin: "0 0 16px",
           fontFamily: "var(--font-display)",
-          fontSize: 44,
           fontWeight: 600,
           color: "var(--fg-1)",
           letterSpacing: "-0.01em",

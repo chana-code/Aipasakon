@@ -7,7 +7,7 @@ export default async function VideosIndex() {
   const videos = await loadAllVideos();
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
+    <div className="mx-auto max-w-4xl px-4 md:px-6 py-8 md:py-12">
       <h1 className="font-thai text-3xl font-semibold mb-2">วิดีโอ</h1>
       <p className="text-fg-2 mb-10">เนื้อหาเสริมแบบวิดีโอ จัดเรียงตามระดับของหลักสูตร</p>
 
@@ -17,7 +17,7 @@ export default async function VideosIndex() {
         return (
           <section key={level} className="mb-10">
             <h2 className="font-thai text-xl font-medium mb-4" style={{ color: LEVEL_META[level].color }}>
-              {LEVEL_META[level].label}
+              {LEVEL_META[level].label_th}
             </h2>
             <ul className="grid md:grid-cols-2 gap-4">
               {items.map(v => (

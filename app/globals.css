@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap');
 @import "tailwindcss";
 @import "../styles/colors_and_type.css";
+@import "../styles/responsive.css";
 
 /* Aliases so later code can reference --blue-500, --orange-500, --plum-500
    (mapping to the design system's level colors). */
@@ -37,10 +39,14 @@
   --color-fg-2:  var(--fg-2);
   --color-fg-3:  var(--fg-3);
 
-  /* Fonts — utility names font-thai, font-sans, font-mono */
-  --font-thai: "IBM Plex Sans Thai", "Inter", system-ui, sans-serif;
-  --font-sans: "Inter", "IBM Plex Sans Thai", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-mark:    #E8C547;
+  --color-mark-bg: #FDF6E0;
+
+  /* Fonts — utility names font-thai, font-sans, font-mono, font-display */
+  --font-thai: "IBM Plex Sans Thai Looped", "DM Sans", system-ui, sans-serif;
+  --font-sans: "DM Sans", "IBM Plex Sans Thai Looped", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-display: "Noto Serif Thai", "Source Serif 4", Georgia, serif;
 
   /* Border radius */
   --radius-sm: 4px;

@@ -17,7 +17,7 @@ export default async function SignupPage({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '40px 20px',
+      padding: '40px 16px',
     }}>
       <div style={{
         width: '100%',
@@ -25,7 +25,7 @@ export default async function SignupPage({
         background: '#fff',
         border: '1px solid var(--line)',
         borderRadius: 12,
-        padding: '40px 36px',
+        padding: '32px 24px',
         boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
       }}>
         <h1 style={{

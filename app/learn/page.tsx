@@ -43,7 +43,7 @@ export default async function LearnPage() {
           fontWeight: 700,
           color: 'var(--fg-1)',
         }}>
-          แดชบอร์ด
+          สวัสดี 👋
         </h1>
         <p style={{
           margin: 0,
@@ -227,7 +227,7 @@ export default async function LearnPage() {
                 borderRadius: '50%',
                 background: meta.color,
               }} />
-              Level {meta.order} — {meta.label}
+              Level {meta.order} — {meta.label_th}
               <span style={{
                 fontFamily: 'var(--font-mono)',
                 fontSize: 12,

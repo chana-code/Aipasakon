@@ -23,7 +23,7 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-prose px-6 py-12">
+    <div className="mx-auto max-w-prose px-4 md:px-6 py-8 md:py-12">
       <h1 className="font-thai text-3xl font-semibold mb-6">ค้นหา</h1>
       <div id="search" />
     </div>

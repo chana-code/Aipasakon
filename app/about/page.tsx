@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const proseAbout: React.CSSProperties = {
   fontFamily: "var(--font-thai)",
   fontSize: 17.5,
@@ -9,7 +11,7 @@ const proseAbout: React.CSSProperties = {
 export default function AboutPage() {
   return (
     <main style={{ background: "var(--bg-page)" }}>
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "72px 28px 96px" }}>
+      <div className="max-w-[720px] mx-auto px-4 md:px-7 pt-10 md:pt-[72px] pb-16 md:pb-24">
         <div style={{
           fontFamily: "var(--font-mono)",
           fontSize: 11,
@@ -19,19 +21,17 @@ export default function AboutPage() {
           marginBottom: 12,
         }}>About · เกี่ยวกับ</div>
 
-        <h1 style={{
+        <h1 className="text-[28px] md:text-[44px]" style={{
           margin: "0 0 24px",
           fontFamily: "var(--font-display)",
-          fontSize: 44,
           fontWeight: 600,
           color: "var(--fg-1)",
           letterSpacing: "-0.01em",
           lineHeight: 1.15,
         }}>AI ภาษาคน</h1>
-        <p style={{
+        <p className="text-xl md:text-[26px]" style={{
           margin: "0 0 24px",
           fontFamily: "var(--font-display)",
-          fontSize: 26,
           fontWeight: 600,
           color: "var(--teal-500)",
           letterSpacing: "-0.005em",
@@ -39,10 +39,7 @@ export default function AboutPage() {
         }}>ตำราเรียน AI ภาษาไทย<br />โดยคนที่ไม่ใช่ developer</p>
 
         {/* Author card */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
+        <div className="flex flex-col sm:flex-row items-center gap-4" style={{
           margin: "32px 0 40px",
           padding: "18px 20px",
           background: "#fff",
@@ -64,7 +61,7 @@ export default function AboutPage() {
             fontWeight: 600,
             color: "var(--navy-700)",
           }}>O</div>
-          <div>
+          <div className="text-center sm:text-left">
             <div style={{
               fontFamily: "var(--font-thai)",
               fontSize: 17,
@@ -137,6 +134,78 @@ export default function AboutPage() {
           <li>ไม่มี comment, like, social proof — ตำราไม่ต้องวัด engagement</li>
           <li>ไม่ต้อง login เพื่ออ่าน. การอ่านคือทั้งหมดที่ตำราเสนอ.</li>
         </ul>
+
+        {/* V-T-J framework */}
+        <h2 style={{
+          margin: "48px 0 6px",
+          fontFamily: "var(--font-display)",
+          fontSize: 24,
+          fontWeight: 600,
+          color: "var(--fg-1)",
+        }}>วิธีคิดของเรา: See → Say → Steer</h2>
+        <p style={{
+          fontFamily: "var(--font-thai)",
+          fontSize: 15,
+          color: "var(--fg-3)",
+          margin: "0 0 20px",
+        }}>ทุกทักษะ AI ใช้สามอย่างนี้เสมอ — ไม่ว่าจะทำภาพ ทำสไลด์ หรือเขียนงาน</p>
+        <div className="grid gap-4 sm:grid-cols-3" style={{ marginBottom: 8 }}>
+          {[
+            { step: 'See', name: 'Vision', desc: 'มองออกว่าผลลัพธ์ที่ดีหน้าตาเป็นยังไง ก่อนจะสั่ง AI' },
+            { step: 'Say', name: 'Translation', desc: 'สั่ง AI ให้ตรงใจ ด้วยภาษาที่มันเข้าใจ' },
+            { step: 'Steer', name: 'Judgment', desc: 'ดูออกว่าผลลัพธ์ผิดตรงไหน แล้วค่อยๆ ปรับให้ดีขึ้น' },
+          ].map(v => (
+            <div key={v.step} style={{
+              background: "#fff",
+              border: "1px solid var(--line)",
+              borderRadius: 10,
+              padding: "18px 18px 20px",
+            }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, color: "var(--fg-1)" }}>{v.step}</div>
+              <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--teal-600)", marginBottom: 8 }}>{v.name}</div>
+              <p style={{ fontFamily: "var(--font-thai)", fontSize: 14.5, lineHeight: 1.7, color: "var(--fg-2)", margin: 0 }}>{v.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Closing CTA */}
+        <div style={{
+          marginTop: 48,
+          padding: "28px 28px 30px",
+          background: "var(--navy-900)",
+          borderRadius: 12,
+          textAlign: "center",
+        }}>
+          <h2 style={{
+            margin: "0 0 16px",
+            fontFamily: "var(--font-display)",
+            fontSize: 24,
+            fontWeight: 600,
+            color: "#fff",
+          }}>พร้อมเริ่มหรือยัง</h2>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/foundations" style={{
+              fontFamily: "var(--font-thai)",
+              fontSize: 15,
+              fontWeight: 500,
+              color: "var(--navy-900)",
+              background: "var(--teal-500)",
+              padding: "11px 22px",
+              borderRadius: 8,
+              textDecoration: "none",
+            }}>เริ่มที่พื้นฐาน →</Link>
+            <Link href="/curriculum" style={{
+              fontFamily: "var(--font-thai)",
+              fontSize: 15,
+              fontWeight: 500,
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.25)",
+              padding: "11px 22px",
+              borderRadius: 8,
+              textDecoration: "none",
+            }}>ดูหลักสูตร</Link>
+          </div>
+        </div>
       </div>
     </main>
   );

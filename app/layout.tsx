@@ -1,7 +1,12 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { TopNav } from '@/components/chrome/TopNav';
 import { Footer } from '@/components/chrome/Footer';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: 'AI ภาษาคน — AI ไม่ยาก ถ้าพูดภาษาคน',

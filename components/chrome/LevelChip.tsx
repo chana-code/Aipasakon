@@ -42,7 +42,7 @@ export function LevelChip({ level, num, size = 'md' }: LevelChipProps) {
         lineHeight: 1.3,
         fontWeight: 600,
       }}>L{m.order}</span>
-      {m.label}
+      {m.label_th}
     </span>
   );
 }

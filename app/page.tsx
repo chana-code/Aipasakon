@@ -6,6 +6,11 @@ import { LevelChip } from '@/components/chrome/LevelChip';
 import { StatusBadge } from '@/components/reader/StatusBadge';
 import { HomeHoverCards } from '@/components/home/HomeHoverCards';
 
+/** Strip basic markdown bold/italic wrappers for plain-text display */
+function stripMd(s: string): string {
+  return s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1').replace(/\*(.+?)\*/g, '$1').replace(/_(.+?)_/g, '$1');
+}
+
 export default async function HomePage() {
   const allChapters = await loadAllChapters();
 
@@ -33,56 +38,41 @@ export default async function HomePage() {
     <main style={{ background: "var(--bg-page)" }}>
 
       {/* ── HERO ──────────────────────────────────────────── */}
-      <section style={{
-        maxWidth: 1180,
-        margin: "0 auto",
-        padding: "96px 28px 56px",
-        display: "grid",
-        gridTemplateColumns: "1fr auto",
-        gap: 64,
-        alignItems: "center",
-      }}>
+      <section className="max-w-[1180px] mx-auto px-4 md:px-7 pt-12 md:pt-[120px] pb-8 md:pb-12 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 md:gap-16 items-center">
         <div>
           {/* Eyebrow */}
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "4px 12px 4px 10px",
-            borderRadius: 999,
-            border: "1px solid var(--line-2)",
-            background: "#fff",
-            fontFamily: "var(--font-mono)",
-            fontSize: 11,
-            color: "var(--fg-2)",
-            letterSpacing: "0.03em",
-            marginBottom: 28,
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--teal-500)" }} />
-            v0.1 · Level 1 ใน reviewed status
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[var(--line-2)] bg-white mb-7 whitespace-nowrap"
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: 11,
+              color: "var(--fg-2)",
+              letterSpacing: "0.03em",
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+            ตำราเปิดอ่านฟรี · 24 บท · อัปเดตต่อเนื่อง
           </div>
 
-          <h1 style={{
-            margin: 0,
-            fontFamily: "var(--font-display)",
-            fontSize: 64,
-            lineHeight: 1.1,
-            letterSpacing: "-0.015em",
-            fontWeight: 600,
-            color: "var(--fg-1)",
-          }}>
+          <h1
+            className="m-0 text-[32px] md:text-[52px] leading-[1.1] font-semibold"
+            style={{
+              fontFamily: "var(--font-display)",
+              letterSpacing: "-0.015em",
+              color: "var(--fg-1)",
+            }}
+          >
             AI ไม่ยาก<br />
             <span style={{ color: "var(--teal-500)" }}>ถ้าพูดภาษาคน</span>
           </h1>
 
-          <p style={{
-            margin: "24px 0 0",
-            maxWidth: 580,
-            fontFamily: "var(--font-thai)",
-            fontSize: 19,
-            lineHeight: 1.7,
-            color: "var(--fg-2)",
-          }}>
+          <p
+            className="mt-6 mb-0 max-w-[580px] text-base md:text-[19px] leading-[1.7]"
+            style={{
+              fontFamily: "var(--font-thai)",
+              color: "var(--fg-2)",
+            }}
+          >
             ตำราเรียน AI ภาษาไทย สำหรับคนทำงาน — เขียนโดย{' '}
             <strong style={{ color: "var(--fg-1)", fontWeight: 600 }}>Ong</strong>
             , VP Commercial ที่ Fairdee. ไม่ใช่บล็อก ไม่ใช่ landing page — เป็น{' '}
@@ -93,7 +83,7 @@ export default async function HomePage() {
             <span style={{ color: "var(--teal-700)" }}>คนที่จะสร้างระบบ AI เองได้</span>
           </p>
 
-          <div style={{ display: "flex", gap: 12, marginTop: 32 }}>
+          <div className="flex flex-col sm:flex-row gap-3 mt-8">
             <Link href="/foundations/what-is-an-llm" style={{
               fontFamily: "var(--font-thai)",
               fontSize: 15,
@@ -107,6 +97,7 @@ export default async function HomePage() {
               textDecoration: "none",
               display: "inline-block",
               transition: "background 140ms",
+              textAlign: "center",
             }}>
               เริ่มอ่าน · Level 1
             </Link>
@@ -122,21 +113,15 @@ export default async function HomePage() {
               cursor: "pointer",
               textDecoration: "none",
               display: "inline-block",
+              textAlign: "center",
             }}>
-              ดู curriculum ทั้งหมด
+              ดูหลักสูตรทั้งหมด
             </Link>
           </div>
         </div>
 
         {/* Logo */}
-        <div style={{
-          width: 220,
-          height: 220,
-          flexShrink: 0,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}>
+        <div className="w-[140px] h-[140px] md:w-[220px] md:h-[220px] mx-auto md:mx-0 order-first md:order-last flex-shrink-0 flex items-center justify-center">
           <Image
             src="/assets/logo-circular-full.png"
             alt=""
@@ -149,7 +134,7 @@ export default async function HomePage() {
       </section>
 
       {/* ── THREE DOORS ──────────────────────────────────── */}
-      <section style={{ maxWidth: 1180, margin: "0 auto", padding: "32px 28px 64px" }}>
+      <section className="max-w-[1180px] mx-auto px-4 md:px-7 pt-4 pb-16">
         <div style={{
           fontFamily: "var(--font-mono)",
           fontSize: 11,
@@ -160,19 +145,22 @@ export default async function HomePage() {
         }}>
           {/* Keep both texts so e2e test finds "เริ่มจากตรงนี้" */}
           <span>เริ่มจากตรงนี้</span>
-          <span style={{ marginLeft: 10, opacity: 0.6 }}>· Start here · เลือกประตูที่ใช่</span>
+          <span style={{ marginLeft: 10, opacity: 0.6 }}>· เลือกประตูที่ใช่</span>
         </div>
         <HomeHoverCards />
       </section>
 
       {/* ── CURRICULUM SPINE ──────────────────────────────── */}
-      <section id="curriculum" style={{
-        background: "var(--paper-2)",
-        borderTop: "1px solid var(--line)",
-        borderBottom: "1px solid var(--line)",
-        padding: "72px 28px",
-      }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+      <section
+        id="curriculum"
+        className="px-4 md:px-7 py-12 md:py-[72px]"
+        style={{
+          background: "var(--paper-2)",
+          borderTop: "1px solid var(--line)",
+          borderBottom: "1px solid var(--line)",
+        }}
+      >
+        <div className="max-w-[1180px] mx-auto">
           <div style={{
             fontFamily: "var(--font-mono)",
             fontSize: 11,
@@ -184,7 +172,7 @@ export default async function HomePage() {
           <h2 style={{
             margin: 0,
             fontFamily: "var(--font-display)",
-            fontSize: 36,
+            fontSize: 32,
             fontWeight: 600,
             color: "var(--fg-1)",
             letterSpacing: "-0.005em",
@@ -204,7 +192,7 @@ export default async function HomePage() {
             {' '}คนที่ไม่เคยรู้จัก AI อ่าน Surface ก็พอ. คนที่มี background CS อ่าน Formal.{' '}
             <em style={{ fontFamily: "var(--font-latin)" }}>โน้ตเดียวกัน รับใช้คน 3 ระดับได้พร้อมกัน</em>.
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
             {Object.entries(LEVEL_META)
               .sort(([, a], [, b]) => a.order - b.order)
               .map(([key, m]) => {
@@ -299,13 +287,8 @@ export default async function HomePage() {
 
       {/* ── LATEST REVIEWED ──────────────────────────────── */}
       {latest.length > 0 && (
-        <section style={{ maxWidth: 1180, margin: "0 auto", padding: "72px 28px 32px" }}>
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "baseline",
-            marginBottom: 18,
-          }}>
+        <section className="max-w-[1180px] mx-auto px-4 md:px-7 pt-12 md:pt-[72px] pb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-4 gap-2">
             <div>
               <div style={{
                 fontFamily: "var(--font-mono)",
@@ -314,7 +297,7 @@ export default async function HomePage() {
                 textTransform: "uppercase",
                 color: "var(--fg-3)",
                 marginBottom: 6,
-              }}>Recently reviewed</div>
+              }}>เพิ่งผ่านการ review</div>
               <h2 style={{
                 margin: 0,
                 fontFamily: "var(--font-display)",
@@ -331,7 +314,7 @@ export default async function HomePage() {
               ไม่ใช่ blog feed — เป็นสัญญาณว่าตำรายังมีคนเขียนต่อ
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
             {latest.map(c => {
               const readMin = Math.ceil(c.body.length / 250);
               return (
@@ -363,7 +346,11 @@ export default async function HomePage() {
                       fontSize: 14,
                       lineHeight: 1.7,
                       color: "var(--fg-2)",
-                    }}>{c.tldr}</div>
+                      display: "-webkit-box",
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: "vertical" as const,
+                      overflow: "hidden",
+                    }}>{stripMd(c.tldr)}</div>
                   )}
                   <div style={{
                     marginTop: 14,
@@ -384,7 +371,7 @@ export default async function HomePage() {
       )}
 
       {/* ── WHY THIS EXISTS ──────────────────────────────── */}
-      <section style={{ maxWidth: 760, margin: "0 auto", padding: "64px 28px 80px" }}>
+      <section className="max-w-[760px] mx-auto px-4 md:px-7 pt-16 pb-20">
         <div style={{
           fontFamily: "var(--font-mono)",
           fontSize: 11,
@@ -392,7 +379,7 @@ export default async function HomePage() {
           textTransform: "uppercase",
           color: "var(--fg-3)",
           marginBottom: 12,
-        }}>Why this exists</div>
+        }}>ทำไมถึงเขียนตำราเล่มนี้</div>
         <p style={{
           fontFamily: "var(--font-thai)",
           fontSize: 18,

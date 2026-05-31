@@ -3,6 +3,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 import { loadAllChapters, loadChapter } from '@/lib/content/chapters';
 import { isLevel, LEVEL_META } from '@/lib/content/levels';
 import { CurriculumSpine } from '@/components/reader/CurriculumSpine';
+import { MobileCurriculumDrawer } from '@/components/reader/MobileCurriculumDrawer';
 import { DepthToggle } from '@/components/reader/DepthToggle';
 import { StatusBadge } from '@/components/reader/StatusBadge';
 import { LevelChip } from '@/components/chrome/LevelChip';
@@ -39,20 +40,17 @@ export default async function ChapterPage({
   }
 
   return (
-    <div style={{
-      display: "grid",
-      gridTemplateColumns: "256px minmax(0, 1fr)",
-      maxWidth: 1280,
-      margin: "0 auto",
-    }}>
-      {/* Left rail — curriculum spine */}
-      <CurriculumSpine currentSlug={chapter.slug} />
+    <div className="grid lg:grid-cols-[256px_minmax(0,1fr)] max-w-[1280px] mx-auto">
+      {/* Left rail — curriculum spine (desktop only) */}
+      <div className="hidden lg:block">
+        <CurriculumSpine currentSlug={chapter.slug} />
+      </div>
 
       {/* Main article */}
       <article
         id="chapter-article"
         data-depth="surface"
-        style={{ padding: "40px 56px 80px", minWidth: 0 }}
+        className="px-4 md:px-8 lg:px-14 pt-8 lg:pt-10 pb-16 lg:pb-20 min-w-0"
       >
         {/* Breadcrumb */}
         <div style={{
@@ -64,19 +62,26 @@ export default async function ChapterPage({
         }}>
           Level {m.order} — {m.label}
           <span style={{ margin: "0 6px", opacity: 0.5 }}>/</span>
-          <span style={{ color: "var(--fg-2)" }}>{chapter.slug}</span>
+          <span style={{ color: "var(--fg-2)" }}>{chapter.title}</span>
         </div>
 
+        {/* Mobile curriculum drawer */}
+        <MobileCurriculumDrawer>
+          <CurriculumSpine currentSlug={chapter.slug} variant="mobile" />
+        </MobileCurriculumDrawer>
+
         {/* H1 */}
-        <h1 style={{
-          margin: "0 0 14px",
-          fontFamily: "var(--font-display)",
-          fontSize: 44,
-          lineHeight: 1.15,
-          letterSpacing: "-0.01em",
-          fontWeight: 600,
-          color: "var(--fg-1)",
-        }}>{chapter.title}</h1>
+        <h1
+          className="text-[28px] md:text-[36px] lg:text-[44px]"
+          style={{
+            margin: "0 0 14px",
+            fontFamily: "var(--font-display)",
+            lineHeight: 1.15,
+            letterSpacing: "-0.01em",
+            fontWeight: 600,
+            color: "var(--fg-1)",
+          }}
+        >{chapter.title}</h1>
 
         {/* Meta row */}
         <div style={{
@@ -109,8 +114,9 @@ export default async function ChapterPage({
         {chapter.tldr && (
           <section id="tldr" style={{
             padding: "20px 22px",
-            background: "var(--paper-2)",
-            borderLeft: "3px solid var(--navy-700)",
+            background: "var(--mark-bg, #FDF6E0)",
+            border: "1px solid var(--mark-border, #E8D9A0)",
+            borderLeft: "3px solid var(--mark, #E8C547)",
             borderRadius: 6,
             margin: "0 0 36px",
           }}>
@@ -123,13 +129,15 @@ export default async function ChapterPage({
               color: "var(--navy-800)",
               marginBottom: 6,
             }}>TL;DR</div>
-            <p style={{
+            <div style={{
               margin: 0,
               fontFamily: "var(--font-thai)",
               fontSize: 16.5,
               lineHeight: 1.8,
               color: "var(--fg-1)",
-            }}>{chapter.tldr}</p>
+            }}>
+              <MDXRemote source={chapter.tldr} />
+            </div>
           </section>
         )}
 
@@ -171,7 +179,7 @@ export default async function ChapterPage({
         </section>
 
         {/* MDX body */}
-        <div style={{
+        <div className="prose-chapter" style={{
           fontFamily: "var(--font-thai)",
           fontSize: 16.5,
           lineHeight: 1.85,
