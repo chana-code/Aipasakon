@@ -1,91 +1,189 @@
 import Link from 'next/link';
 import { loadAllChapters } from '@/lib/content/chapters';
 import { LEVELS, LEVEL_META } from '@/lib/content/levels';
-import { StatusBadge } from '@/components/reader/StatusBadge';
 
-const VTJ = [
-  { step: 'See', name: 'Vision', desc: 'มองออกว่าผลลัพธ์ที่ดีหน้าตาเป็นยังไง ก่อนจะสั่ง AI' },
-  { step: 'Say', name: 'Translation', desc: 'สั่ง AI ให้ตรงใจ ด้วยภาษาที่มันเข้าใจ' },
-  { step: 'Steer', name: 'Judgment', desc: 'ดูออกว่าผลลัพธ์ผิดตรงไหน แล้วค่อยๆ ปรับให้ดีขึ้น' },
-];
+// Per PORT-CONVENTIONS.md: fixed hex values per level
+const LEVEL_HEX: Record<string, string> = {
+  foundations:        '#14B5AB',
+  'using-ai':         '#2D7CD6',
+  'building-with-ai': '#B45A1A',
+  advanced:           '#7A3FA0',
+};
 
 export default async function CurriculumPage() {
   const chapters = await loadAllChapters();
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-12">
-      <h1 className="font-display text-4xl font-semibold mb-2">หลักสูตร</h1>
-      <p className="text-fg-2 text-lg mb-8">
-        เส้นทางเรียน AI เป็นภาษาคน ตั้งแต่ยังไม่รู้อะไรเลย จนใช้งานได้จริงในงานและธุรกิจ
-      </p>
-
-      {/* See → Say → Steer — the V-T-J framework */}
-      <div className="rounded-lg border border-line bg-card p-6 md:p-7 mb-12">
-        <div className="font-mono text-xs uppercase tracking-[0.08em] text-fg-3 mb-5">
-          วิธีคิดของเรา · See → Say → Steer
-        </div>
-        <div className="grid gap-6 sm:grid-cols-3">
-          {VTJ.map(v => (
-            <div key={v.step}>
-              <div className="font-display text-xl text-fg-1">{v.step}</div>
-              <div className="text-xs font-medium text-teal-600 mb-2">{v.name}</div>
-              <p className="font-thai text-sm leading-relaxed text-fg-2">{v.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {LEVELS.map(level => {
-        const items = chapters.filter(c => c.level === level);
-        const meta = LEVEL_META[level];
-        return (
-          <section key={level} id={level} className="mb-12 scroll-mt-20">
-            <div className="flex items-center gap-3 mb-1">
-              <span
-                className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-card px-3 py-1 text-sm font-medium"
-                style={{ fontFamily: 'var(--font-thai)' }}
-              >
-                <span
-                  className="font-mono text-[10px] font-semibold text-white rounded-full px-1.5 py-0.5 leading-none"
-                  style={{ background: meta.color }}
-                >
-                  L{meta.order}
-                </span>
-                {meta.label_th}
-              </span>
-              <span className="text-sm text-fg-3">{items.length} บท</span>
-            </div>
-            <p className="text-sm text-fg-3 mb-4 pl-1">{meta.tagline_th}</p>
-
-            <ul className="space-y-2">
-              {items.map((c, idx) => (
-                <li
-                  key={c.slug}
-                  className="flex items-center gap-4 rounded-md border border-line bg-card py-3 pr-4 transition-colors hover:border-line-strong"
-                  style={{ borderLeft: `3px solid ${meta.color}` }}
+    <div className="max-w-[1200px] mx-auto px-6 py-12 flex flex-col md:flex-row gap-12 relative">
+      {/* Left Column: Sticky Curriculum Spine */}
+      <aside className="hidden md:block w-64 shrink-0">
+        <div className="sticky top-28 space-y-4">
+          <h3 className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78] uppercase tracking-widest mb-6">
+            Course Path
+          </h3>
+          <nav className="flex flex-col gap-3">
+            {LEVELS.map((lvl) => {
+              const meta = LEVEL_META[lvl];
+              const hex = LEVEL_HEX[lvl];
+              const hasChapters = chapters.some(c => c.level === lvl);
+              return (
+                <a
+                  key={lvl}
+                  href={`#${lvl}`}
+                  className={`flex items-center gap-4 p-3 rounded-xl border border-[#E8E2D4] transition-all group bg-white${!hasChapters ? ' opacity-60' : ''}`}
+                  style={
+                    {
+                      '--hover-border': hex,
+                    } as React.CSSProperties
+                  }
+                  onMouseEnter={undefined}
                 >
                   <span
-                    className="font-mono text-sm font-semibold tabular-nums w-9 text-center shrink-0"
-                    style={{ color: meta.color }}
+                    className="w-8 h-8 flex items-center justify-center text-white rounded-full font-bold text-sm shrink-0"
+                    style={{ background: hex }}
                   >
-                    {String(idx + 1).padStart(2, '0')}
+                    {meta.order}
                   </span>
-                  <Link
-                    href={`/${level}/${c.slug}`}
-                    className="font-thai flex-1 min-w-0 hover:text-teal-600 transition-colors"
+                  <span
+                    className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#00143C] transition-colors"
                   >
-                    {c.title}
-                  </Link>
-                  <StatusBadge status={c.status} />
-                </li>
-              ))}
-              {items.length === 0 && (
-                <li className="text-fg-3 italic pl-4 py-2">เร็วๆ นี้</li>
+                    {meta.label_th}
+                  </span>
+                </a>
+              );
+            })}
+          </nav>
+        </div>
+      </aside>
+
+      {/* Main Column */}
+      <div className="w-full max-w-[720px] mx-auto md:mx-0">
+        {/* Page Header */}
+        <header className="mb-12">
+          <h1 className="font-['Noto_Serif_Thai',serif] text-[40px] leading-[1.2] font-bold text-[#00143C] mb-4">
+            หลักสูตร
+          </h1>
+          <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#6c7a78]">
+            เส้นทางเรียน AI เป็นภาษาคน ตั้งแต่ยังไม่รู้อะไรเลย จนใช้งานได้จริงในงานและธุรกิจ
+            ออกแบบมาให้เข้าใจง่ายแต่ลึกซึ้ง พร้อมการประยุกต์ใช้ทันที
+          </p>
+        </header>
+
+        {/* Method Intro: See → Say → Steer */}
+        <section className="mb-16 p-8 rounded-xl border border-[#E8E2D4] bg-[#f5f3ee] relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <span className="material-symbols-outlined text-[120px]">psychology</span>
+          </div>
+          <h2 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-6">
+            ปรัชญาการเรียนรู้: See → Say → Steer
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <div className="text-[#14B5AB] font-bold text-xl">See</div>
+              <p className="text-sm font-['DM_Sans',sans-serif] font-medium text-[#6c7a78]">
+                มองออกว่าอะไรคือ AI ที่ดี และเข้าใจโครงสร้างความรู้
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="text-[#14B5AB] font-bold text-xl">Say</div>
+              <p className="text-sm font-['DM_Sans',sans-serif] font-medium text-[#6c7a78]">
+                สั่งงาน AI ให้ตรงใจ สื่อสารด้วยภาษาที่ถูกต้องและทรงพลัง
+              </p>
+            </div>
+            <div className="space-y-2">
+              <div className="text-[#14B5AB] font-bold text-xl">Steer</div>
+              <p className="text-sm font-['DM_Sans',sans-serif] font-medium text-[#6c7a78]">
+                แก้ผลลัพธ์ให้ดีขึ้น ต่อยอดและควบคุม AI ให้ทำงานระดับมืออาชีพ
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Level Sections */}
+        {LEVELS.map((lvl, levelIdx) => {
+          const meta = LEVEL_META[lvl];
+          const hex = LEVEL_HEX[lvl];
+          const items = chapters.filter(c => c.level === lvl);
+          const isEmpty = items.length === 0;
+
+          return (
+            <section
+              key={lvl}
+              id={lvl}
+              className={`mb-16 scroll-mt-24${isEmpty ? ' opacity-60' : ''}`}
+            >
+              <div className="flex items-center gap-4 mb-8">
+                <span
+                  className="px-3 py-1 text-white rounded text-sm font-bold uppercase"
+                  style={{ background: hex }}
+                >
+                  Level {meta.order}
+                </span>
+                <h2 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C]">
+                  {meta.label_th} ({meta.label})
+                </h2>
+                {isEmpty && (
+                  <span
+                    className="text-sm font-['DM_Sans',sans-serif] font-medium font-bold"
+                    style={{ color: hex }}
+                  >
+                    เร็วๆ นี้
+                  </span>
+                )}
+              </div>
+
+              {isEmpty ? (
+                /* Coming soon placeholder rows */
+                <div className="space-y-2">
+                  {[1, 2].map(n => (
+                    <div
+                      key={n}
+                      className="flex items-center justify-between p-4 rounded-lg border border-dashed border-[#E8E2D4]"
+                    >
+                      <div className="flex items-center gap-6">
+                        <span
+                          className="font-bold w-6 opacity-30"
+                          style={{ color: hex }}
+                        >
+                          {String(n).padStart(2, '0')}
+                        </span>
+                        <div className="h-4 w-48 bg-[#f0eee9] rounded animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {items.map((c, idx) => (
+                    <Link
+                      key={c.slug}
+                      href={`/${c.level}/${c.slug}`}
+                      className="group flex items-center justify-between p-4 rounded-lg border border-[#E8E2D4] bg-white hover:bg-[#f0eee9] transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-6">
+                        <span
+                          className="font-bold w-6"
+                          style={{ color: hex }}
+                        >
+                          {String(idx + 1).padStart(2, '0')}
+                        </span>
+                        <div>
+                          <h4 className="font-['Noto_Serif_Thai',serif] text-lg text-[#00143C]">
+                            {c.title}
+                          </h4>
+                          {c.tldr && (
+                            <p className="text-sm text-[#6c7a78]">{c.tldr}</p>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               )}
-            </ul>
-          </section>
-        );
-      })}
+            </section>
+          );
+        })}
+      </div>
     </div>
   );
 }

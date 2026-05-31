@@ -1,212 +1,214 @@
 import Link from 'next/link';
 
-const proseAbout: React.CSSProperties = {
-  fontFamily: "var(--font-thai)",
-  fontSize: 17.5,
-  lineHeight: 1.9,
-  color: "var(--fg-1)",
-  margin: "0 0 22px",
-};
+const SERIF = "font-['Noto_Serif_Thai',serif]";
 
 export default function AboutPage() {
   return (
-    <main style={{ background: "var(--bg-page)" }}>
-      <div className="max-w-[720px] mx-auto px-4 md:px-7 pt-10 md:pt-[72px] pb-16 md:pb-24">
-        <div style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: 11,
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "var(--fg-3)",
-          marginBottom: 12,
-        }}>About · เกี่ยวกับ</div>
+    <>
+      {/* Header Section */}
+      <section className="max-w-[720px] mx-auto px-6 mb-20 mt-8 text-center md:text-left">
+        <h1
+          className={`${SERIF} text-[40px] leading-[1.2] font-bold text-[#00143C] mb-6`}
+        >
+          เกี่ยวกับ AI ภาษาคน
+        </h1>
+        <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C]/70">
+          AI กำลังมา และไม่มีใครหยุดมันได้ — เป้าหมายของที่นี่คือช่วยให้คนไทยปรับตัวทัน
+          ด้วยภาษาที่คนเข้าใจจริงๆ ไม่ใช่ศัพท์เทคนิคที่ยากเกินเข้าถึง
+        </p>
+      </section>
 
-        <h1 className="text-[28px] md:text-[44px]" style={{
-          margin: "0 0 24px",
-          fontFamily: "var(--font-display)",
-          fontWeight: 600,
-          color: "var(--fg-1)",
-          letterSpacing: "-0.01em",
-          lineHeight: 1.15,
-        }}>AI ภาษาคน</h1>
-        <p className="text-xl md:text-[26px]" style={{
-          margin: "0 0 24px",
-          fontFamily: "var(--font-display)",
-          fontWeight: 600,
-          color: "var(--teal-500)",
-          letterSpacing: "-0.005em",
-          lineHeight: 1.2,
-        }}>ตำราเรียน AI ภาษาไทย<br />โดยคนที่ไม่ใช่ developer</p>
+      {/* Founder Section */}
+      <section className="max-w-[720px] mx-auto px-6 mb-24">
+        <div
+          className="flex flex-col md:flex-row items-center gap-10 bg-white p-8 rounded-xl border border-[#E8E2D4]/30"
+          style={{ boxShadow: '0 4px 20px rgba(0, 20, 60, 0.05)' }}
+        >
+          {/* Avatar: round circle with initial since no real photo */}
+          <div
+            className="w-40 h-40 shrink-0 rounded-full border-4 border-[#f5f3ee] flex items-center justify-center bg-[#f0eee9]"
+            aria-label="ผู้ก่อตั้ง"
+          >
+            <span
+              className={`${SERIF} text-[48px] font-bold text-[#00143C] leading-none`}
+            >
+              อ
+            </span>
+          </div>
 
-        {/* Author card */}
-        <div className="flex flex-col sm:flex-row items-center gap-4" style={{
-          margin: "32px 0 40px",
-          padding: "18px 20px",
-          background: "#fff",
-          border: "1px solid var(--line)",
-          borderRadius: 10,
-        }}>
-          <div style={{
-            width: 72,
-            height: 72,
-            flexShrink: 0,
-            borderRadius: "50%",
-            background: "var(--paper-2)",
-            border: "1px solid var(--line)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontFamily: "var(--font-display)",
-            fontSize: 28,
-            fontWeight: 600,
-            color: "var(--navy-700)",
-          }}>O</div>
-          <div className="text-center sm:text-left">
-            <div style={{
-              fontFamily: "var(--font-thai)",
-              fontSize: 17,
-              fontWeight: 600,
-              color: "var(--fg-1)",
-            }}>Ong</div>
-            <div style={{
-              fontFamily: "var(--font-thai)",
-              fontSize: 14,
-              color: "var(--fg-3)",
-              marginTop: 2,
-              lineHeight: 1.5,
-            }}>VP of Commercial · Fairdee (Qoala Group) · 7+ years in insurtech/fintech</div>
+          <div>
+            <h2
+              className={`${SERIF} text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-2`}
+            >
+              อ๋อง (Ong)
+            </h2>
+            <p className="text-[#14B5AB] font-medium mb-4">
+              ผู้ก่อตั้งและเรียบเรียงเนื้อหา
+            </p>
+            <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C]/70 mb-4">
+              ผมใช้ชีวิตอยู่ในโลก Insurtech และ Fintech ในบทบาท VP Commercial มากว่า 7 ปี
+              หน้าที่หลักของผมคือการเป็น &ldquo;ล่าม&rdquo; ระหว่างโลกธุรกิจและเทคโนโลยี
+            </p>
+            <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C]/70 italic">
+              &ldquo;ผมไม่ได้มาสอนคุณเขียนโค้ด แต่ผมจะสอนคุณสั่งงาน AI ให้เหมือนสั่งงานทีมงานเก่งๆ
+              สักคน ด้วยมุมมองของนักธุรกิจ ไม่ใช่นักพัฒนาโปรแกรม&rdquo;
+            </p>
           </div>
         </div>
+      </section>
 
-        <p style={proseAbout}>
-          ผมเริ่มเขียนตำราเล่มนี้เพราะเนื้อหา AI ภาษาไทยที่{' '}
-          <strong style={{ fontWeight: 600 }}>&ldquo;เขียนจากคนที่เอาไปใช้จริงในธุรกิจ&rdquo;</strong>
-          {' '}— ไม่ใช่จาก developer สอน code, ไม่ใช่จาก hype account ที่เน้นคลิก — ยังน้อยมาก.
-          คนทำงานที่อยากใช้ AI ให้คุ้ม ต้องไปอ่านบล็อกอังกฤษ หรือดู TikTok ที่บอก &ldquo;AI จะมาแย่งงานคุณ&rdquo; —
-          ทั้งสองทางไม่ช่วยให้ใช้งานจริงได้.
-        </p>
-        <p style={proseAbout}>
-          ตำรานี้คือสิ่งที่ผมอยากให้คนทำงานคนหนึ่ง — manager, นักวิเคราะห์, เจ้าของธุรกิจ, นักศึกษาเริ่มทำงาน —
-          อ่านในปี 2026 แล้วเข้าใจ AI พอจะ{' '}
-          <strong style={{ fontWeight: 600 }}>คุย</strong> ·{' '}
-          <strong style={{ fontWeight: 600 }}>ใช้</strong> ·{' '}
-          <strong style={{ fontWeight: 600 }}>สร้าง</strong>
-          {' '}โดยไม่ต้องไปทน hype หรือ jargon ที่ไม่มีคนอธิบาย.
-        </p>
+      {/* Philosophy Section */}
+      <section className="max-w-[720px] mx-auto px-6 mb-24">
+        <div className="border-l-4 border-[#14B5AB] pl-8 py-2">
+          <h2
+            className={`${SERIF} text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-6`}
+          >
+            ทำไมต้องเป็นตำรา ไม่ใช่คอนเทนต์
+          </h2>
+          <div className="space-y-6 font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C]/70">
+            <p>
+              ในยุคที่ข้อมูลล้นทะลัก (Information Overload) การเสพคอนเทนต์รายวันอาจทำให้เรารู้สึก
+              &ldquo;ทันโลก&rdquo; แต่กลับไม่มีโครงสร้างความรู้ที่ยั่งยืน
+            </p>
+            <p>
+              <strong>AI ภาษาคน</strong> จึงถูกออกแบบมาให้เป็น &ldquo;ตำราดิจิทัล&rdquo; ที่มีโครงสร้างชัดเจน
+              ข้อมูลทุกส่วนจะสะสมพอกพูน (Compounding Knowledge) เพื่อให้คุณต่อยอดได้จริงในระยะยาว
+              ไม่ใช่แค่ข่าวที่ผ่านมาแล้วผ่านไป
+            </p>
+          </div>
+        </div>
+      </section>
 
-        <h2 style={{
-          margin: "48px 0 14px",
-          fontFamily: "var(--font-display)",
-          fontSize: 24,
-          fontWeight: 600,
-          color: "var(--fg-1)",
-        }}>วิธีที่ตำรานี้ต่างจากเนื้อหา AI อื่น</h2>
-        <ul style={{
-          paddingLeft: 22,
-          color: "var(--fg-1)",
-          fontFamily: "var(--font-thai)",
-          fontSize: 16.5,
-          lineHeight: 1.85,
-        }}>
-          <li><strong style={{ fontWeight: 600 }}>Business-first lens</strong> — ไม่ใช่ developer สอน code. คนทำงานสอนวิธีคิด</li>
-          <li><strong style={{ fontWeight: 600 }}>Thai-first</strong> — เขียนเป็นไทยตั้งแต่ต้น ไม่ใช่แปลจากอังกฤษ</li>
-          <li><strong style={{ fontWeight: 600 }}>Practical over hype</strong> — ทุกบทจบด้วย &ldquo;ลองทำดู&rdquo; หรือ &ldquo;ใช้ในงานยังไง&rdquo;</li>
-          <li><strong style={{ fontWeight: 600 }}>Honest about limits</strong> — บทไหนยัง stub บอกว่า stub — ไม่แกล้งสมบูรณ์</li>
-        </ul>
-
-        <h2 style={{
-          margin: "48px 0 14px",
-          fontFamily: "var(--font-display)",
-          fontSize: 24,
-          fontWeight: 600,
-          color: "var(--fg-1)",
-        }}>ตำรานี้ไม่ใช่อะไร</h2>
-        <ul style={{
-          paddingLeft: 22,
-          color: "var(--fg-2)",
-          fontFamily: "var(--font-thai)",
-          fontSize: 16,
-          lineHeight: 1.85,
-        }}>
-          <li>ไม่ใช่ blog ที่จัดเรียงตามวันที่</li>
-          <li>ไม่ใช่ funnel ของคอร์ส — ยังไม่มีคอร์สขาย</li>
-          <li>ไม่มี popup ขอ email, ไม่มี &ldquo;Master AI ใน 7 วัน&rdquo;</li>
-          <li>ไม่มี comment, like, social proof — ตำราไม่ต้องวัด engagement</li>
-          <li>ไม่ต้อง login เพื่ออ่าน. การอ่านคือทั้งหมดที่ตำราเสนอ.</li>
-        </ul>
-
-        {/* V-T-J framework */}
-        <h2 style={{
-          margin: "48px 0 6px",
-          fontFamily: "var(--font-display)",
-          fontSize: 24,
-          fontWeight: 600,
-          color: "var(--fg-1)",
-        }}>วิธีคิดของเรา: See → Say → Steer</h2>
-        <p style={{
-          fontFamily: "var(--font-thai)",
-          fontSize: 15,
-          color: "var(--fg-3)",
-          margin: "0 0 20px",
-        }}>ทุกทักษะ AI ใช้สามอย่างนี้เสมอ — ไม่ว่าจะทำภาพ ทำสไลด์ หรือเขียนงาน</p>
-        <div className="grid gap-4 sm:grid-cols-3" style={{ marginBottom: 8 }}>
-          {[
-            { step: 'See', name: 'Vision', desc: 'มองออกว่าผลลัพธ์ที่ดีหน้าตาเป็นยังไง ก่อนจะสั่ง AI' },
-            { step: 'Say', name: 'Translation', desc: 'สั่ง AI ให้ตรงใจ ด้วยภาษาที่มันเข้าใจ' },
-            { step: 'Steer', name: 'Judgment', desc: 'ดูออกว่าผลลัพธ์ผิดตรงไหน แล้วค่อยๆ ปรับให้ดีขึ้น' },
-          ].map(v => (
-            <div key={v.step} style={{
-              background: "#fff",
-              border: "1px solid var(--line)",
-              borderRadius: 10,
-              padding: "18px 18px 20px",
-            }}>
-              <div style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 600, color: "var(--fg-1)" }}>{v.step}</div>
-              <div style={{ fontSize: 12.5, fontWeight: 500, color: "var(--teal-600)", marginBottom: 8 }}>{v.name}</div>
-              <p style={{ fontFamily: "var(--font-thai)", fontSize: 14.5, lineHeight: 1.7, color: "var(--fg-2)", margin: 0 }}>{v.desc}</p>
+      {/* Framework Section: See → Say → Steer (V-T-J) */}
+      <section className="max-w-[720px] mx-auto px-6 mb-24">
+        <h2
+          className={`${SERIF} text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-8 text-center`}
+        >
+          วิธีคิดของเรา: See → Say → Steer
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Vision */}
+          <div
+            className="bg-white p-6 rounded-xl border border-[#E8E2D4]/20 hover:-translate-y-1 transition-transform"
+            style={{ boxShadow: '0 4px 20px rgba(0, 20, 60, 0.05)' }}
+          >
+            <div className="w-10 h-10 bg-[#14B5AB]/10 text-[#14B5AB] rounded-lg flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined">visibility</span>
             </div>
-          ))}
-        </div>
+            <h3 className={`${SERIF} text-xl font-semibold text-[#00143C] mb-2`}>Vision</h3>
+            <p className="text-[#00143C]/70 text-sm">
+              มองออกว่างานไหนควรใช้ AI และอะไรคือผลลัพธ์ที่ดี
+            </p>
+          </div>
 
-        {/* Closing CTA */}
-        <div style={{
-          marginTop: 48,
-          padding: "28px 28px 30px",
-          background: "var(--navy-900)",
-          borderRadius: 12,
-          textAlign: "center",
-        }}>
-          <h2 style={{
-            margin: "0 0 16px",
-            fontFamily: "var(--font-display)",
-            fontSize: 24,
-            fontWeight: 600,
-            color: "#fff",
-          }}>พร้อมเริ่มหรือยัง</h2>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/foundations" style={{
-              fontFamily: "var(--font-thai)",
-              fontSize: 15,
-              fontWeight: 500,
-              color: "var(--navy-900)",
-              background: "var(--teal-500)",
-              padding: "11px 22px",
-              borderRadius: 8,
-              textDecoration: "none",
-            }}>เริ่มที่พื้นฐาน →</Link>
-            <Link href="/curriculum" style={{
-              fontFamily: "var(--font-thai)",
-              fontSize: 15,
-              fontWeight: 500,
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.25)",
-              padding: "11px 22px",
-              borderRadius: 8,
-              textDecoration: "none",
-            }}>ดูหลักสูตร</Link>
+          {/* Translation */}
+          <div
+            className="bg-white p-6 rounded-xl border border-[#E8E2D4]/20 hover:-translate-y-1 transition-transform"
+            style={{ boxShadow: '0 4px 20px rgba(0, 20, 60, 0.05)' }}
+          >
+            <div className="w-10 h-10 bg-[#14B5AB]/10 text-[#14B5AB] rounded-lg flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined">forum</span>
+            </div>
+            <h3 className={`${SERIF} text-xl font-semibold text-[#00143C] mb-2`}>Translation</h3>
+            <p className="text-[#00143C]/70 text-sm">
+              สื่อสารและสั่งงาน AI ให้ได้ตามภาพที่อยู่ในหัว
+            </p>
+          </div>
+
+          {/* Judgment */}
+          <div
+            className="bg-white p-6 rounded-xl border border-[#E8E2D4]/20 hover:-translate-y-1 transition-transform"
+            style={{ boxShadow: '0 4px 20px rgba(0, 20, 60, 0.05)' }}
+          >
+            <div className="w-10 h-10 bg-[#14B5AB]/10 text-[#14B5AB] rounded-lg flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined">settings_suggest</span>
+            </div>
+            <h3 className={`${SERIF} text-xl font-semibold text-[#00143C] mb-2`}>Judgment</h3>
+            <p className="text-[#00143C]/70 text-sm">
+              ขัดเกลาและตัดสินใจเลือกผลลัพธ์ที่ดีที่สุด
+            </p>
           </div>
         </div>
-      </div>
-    </main>
+      </section>
+
+      {/* Principles Section */}
+      <section className="max-w-[720px] mx-auto px-6 mb-24">
+        <h2
+          className={`${SERIF} text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-8`}
+        >
+          เราเชื่อแบบนี้
+        </h2>
+        <div className="space-y-4">
+          <div className="flex items-start gap-4 p-5 bg-[#f5f3ee] rounded-lg border border-[#E8E2D4]/10">
+            <span className="material-symbols-outlined text-[#14B5AB]">check_circle</span>
+            <div>
+              <h4 className="font-bold text-[#00143C]">ภาษาคน ไม่ใช่ศัพท์เทคนิค</h4>
+              <p className="text-[#00143C]/70 text-sm mt-1">
+                ทุกบทเรียนถูกแปลจาก Tech Speak เป็น Business Speak ที่เข้าใจง่ายที่สุด
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 p-5 bg-[#f5f3ee] rounded-lg border border-[#E8E2D4]/10">
+            <span className="material-symbols-outlined text-[#14B5AB]">check_circle</span>
+            <div>
+              <h4 className="font-bold text-[#00143C]">ลงมือทำได้จริง</h4>
+              <p className="text-[#00143C]/70 text-sm mt-1">
+                เน้นกรณีศึกษาที่เจอในชีวิตการทำงานจริง ไม่ใช่แค่ทฤษฎีในห้องแล็บ
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 p-5 bg-[#f5f3ee] rounded-lg border border-[#E8E2D4]/10">
+            <span className="material-symbols-outlined text-[#14B5AB]">check_circle</span>
+            <div>
+              <h4 className="font-bold text-[#00143C]">ซื่อสัตย์เรื่องข้อจำกัดของ AI</h4>
+              <p className="text-[#00143C]/70 text-sm mt-1">
+                เราบอกชัดเจนว่าอะไรที่ AI ทำไม่ได้ และอะไรที่มนุษย์ยังต้องควบคุม
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 p-5 bg-[#f5f3ee] rounded-lg border border-[#E8E2D4]/10">
+            <span className="material-symbols-outlined text-[#14B5AB]">check_circle</span>
+            <div>
+              <h4 className="font-bold text-[#00143C]">ฟรีและอัปเดตเรื่อยๆ</h4>
+              <p className="text-[#00143C]/70 text-sm mt-1">
+                ความรู้พื้นฐานควรเข้าถึงได้ทุกคน และเราจะปรับปรุงเนื้อหาให้ทันสมัยอยู่เสมอ
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Band */}
+      <section className="max-w-[720px] mx-auto px-6 pb-24">
+        <div className="bg-[#14B5AB]/20 rounded-2xl p-10 text-center border border-[#14B5AB]/10">
+          <h2
+            className={`${SERIF} text-[28px] leading-[1.3] font-semibold text-[#00403c] mb-4`}
+          >
+            พร้อมเริ่มหรือยัง?
+          </h2>
+          <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00403c]/80 mb-8 max-w-md mx-auto">
+            เริ่มต้นสร้างรากฐานที่แข็งแรง เพื่อให้คุณก้าวไปข้างหน้าพร้อมกับ AI อย่างมั่นใจ
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link
+              href="/foundations"
+              className="bg-[#14B5AB] text-white px-8 py-3 rounded-xl font-['DM_Sans',sans-serif] text-[14px] font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2"
+            >
+              เริ่มที่พื้นฐาน{' '}
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+            <Link
+              href="/curriculum"
+              className="border border-[#14B5AB] text-[#14B5AB] px-8 py-3 rounded-xl font-['DM_Sans',sans-serif] text-[14px] font-medium hover:bg-[#14B5AB]/5 transition-all flex items-center justify-center"
+            >
+              ดูหลักสูตรทั้งหมด
+            </Link>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }

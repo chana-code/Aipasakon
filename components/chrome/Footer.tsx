@@ -1,17 +1,16 @@
-import { Wordmark } from './Wordmark';
+import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="mt-16 md:mt-24 px-4 md:px-7 pt-8 pb-12 border-t border-line">
-      <div className="max-w-[1180px] mx-auto flex flex-col md:flex-row items-center gap-3 md:gap-[18px]">
-        <Wordmark size={15} />
-        <span className="font-thai text-[13px] text-fg-3">
-          AI ไม่ยาก ถ้าพูดภาษาคน · by Ong
-        </span>
-        <span className="hidden md:block flex-1" />
-        <span className="font-mono text-[11px] text-fg-3">
-          เขียนด้วยใจ · อัปเดตล่าสุด พฤษภาคม 2026
-        </span>
+    <footer className="w-full mt-auto flex flex-col items-center gap-4 text-center pb-8 bg-[#FAF8F3] border-t border-[#EBE6DD] py-12">
+      <div className="font-['Noto_Serif_Thai',serif] text-sm font-bold text-[#1C1A17] mb-4">AI ภาษาคน</div>
+      <div className="flex gap-8 mb-6">
+        <Link href="/about" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">นโยบายความเป็นส่วนตัว</Link>
+        <Link href="/about" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">ติดต่อเรา</Link>
+        <Link href="/curriculum" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">บทเรียนทั้งหมด</Link>
+      </div>
+      <div className="text-xs uppercase tracking-wider text-[#00143C]/40">
+        © {new Date().getFullYear()} ภาษาคน — AI ไม่ยาก ถ้าพูดภาษาคน
       </div>
     </footer>
   );
