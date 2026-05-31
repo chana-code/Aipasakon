@@ -314,7 +314,7 @@ def classify_with_finetuned(email_text: str) -> str:
 
 ### คำถามที่ 4: Volume และ cost เป็นปัจจัยไหม?
 
-- Volume ต่ำ (< 1,000 requests/วัน) → prompting คุ้มกว่าเสมอ
+- Volume ต่ำ (&lt; 1,000 requests/วัน) → prompting คุ้มกว่าเสมอ
 - Volume กลาง (1,000-50,000/วัน) → ดู latency และ accuracy requirement
 - Volume สูง (> 50,000/วัน) + prompt ยาว → fine-tune เพื่อย่อ prompt อาจประหยัดได้มาก
 

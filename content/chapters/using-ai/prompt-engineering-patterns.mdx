@@ -62,7 +62,7 @@ but still accurate. Keep under 80 words.
 **จุดที่หยุดช่วย:**
 - Role ที่ generic เกินไป ("act as an expert") ไม่ค่อยช่วย ต้องระบุให้ชัด
 - Role ไม่ได้ทำให้โมเดล "รู้มากขึ้น" — มันแค่เปลี่ยน style และ tone. งานที่ต้องการข้อเท็จจริงถูกต้องยังต้องตรวจสอบเหมือนเดิม
-- โมเดลรุ่นใหม่ (Claude 3.5+, GPT-4o) มี default style ที่ดีขึ้นมาก role ช่วยน้อยลงสำหรับงานทั่วไป — ยังได้ผลในงานที่ต้องการ voice เฉพาะจริง ๆ
+- โมเดลรุ่นใหม่ (Claude 4, GPT-4o) มี default style ที่ดีขึ้นมาก role ช่วยน้อยลงสำหรับงานทั่วไป — ยังได้ผลในงานที่ต้องการ voice เฉพาะจริง ๆ
 
 <!-- IMAGE: ภาพเปรียบเทียบสองคอลัมน์ ซ้าย: prompt แบบ zero-shot "แก้ email นี้" / ขวา: prompt แบบ role "Act as a customer success manager at a fintech company. Rewrite this email to sound warmer but professional." แสดง output ทั้งสองเพื่อให้เห็นความต่าง
 Style: comparison diagram
@@ -430,7 +430,7 @@ Article:
 ```
 
 **จุดที่หยุดช่วย:**
-- Prompt สั้นมาก (< 3 บรรทัด) — delimiter เปลือง token เปล่า
+- Prompt สั้นมาก (&lt; 3 บรรทัด) — delimiter เปลือง token เปล่า
 - Delimiter ที่ collide กับ user content — ถ้า user paste markdown ที่มี triple backtick แล้วคุณใช้ triple backtick เป็น delimiter ด้วย จะสับสน แก้โดยเลือก delimiter ที่ไม่น่าปรากฏใน input
 - Delimiter อย่างเดียวไม่ใช่ defense ต่อ prompt injection ได้สมบูรณ์ — แต่ช่วย
 
@@ -467,7 +467,7 @@ Now write [target task] in that same voice.
 ลองเอา 2 บทความหรือ email ที่คุณชอบ tone ของมัน paste ลงใน prompt แบบด้านบน แล้วบอกให้เขียนเรื่องใหม่ในสไตล์เดียวกัน. เปรียบเทียบกับการพิมพ์ว่า "เขียนแบบ professional แต่ friendly" โดยไม่มีตัวอย่าง — ผลจะต่างกันเห็นได้ชัด.
 
 **จุดที่หยุดช่วย:**
-- Sample สั้นเกิน (< 50 คำ) — โมเดลจับ style ไม่ทัน
+- Sample สั้นเกิน (&lt; 50 คำ) — โมเดลจับ style ไม่ทัน
 - Sample เยอะเกิน (> 5 ชิ้น) — โมเดลเริ่ม mix style ออกมาไม่ consistent
 - โมเดล chat-tuned บางตัว revert ไป default voice หลังหลาย turn — ต้อง re-anchor ทุกครั้งที่ context ยาว
 
