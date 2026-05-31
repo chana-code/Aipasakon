@@ -26,15 +26,32 @@ export async function CurriculumSpine({
         padding: "16px 12px 24px",
       } : {
         width: 256,
-        padding: "24px 14px 64px 18px",
+        padding: "32px 18px 64px 4px",
         borderRight: "1px solid var(--line)",
         background: "var(--paper)",
         overflowY: "auto",
-        height: "calc(100vh - 48px)",
+        height: "calc(100vh - 4rem)",
         position: "sticky",
-        top: 48,
+        top: "4rem",
       }}
     >
+      {!isMobile && (
+        <div style={{ marginBottom: 28 }}>
+          <h3 style={{
+            margin: 0,
+            fontFamily: "var(--font-display)",
+            fontSize: 18,
+            fontWeight: 700,
+            color: "var(--teal-600)",
+          }}>หลักสูตร</h3>
+          <p style={{
+            margin: "2px 0 0",
+            fontFamily: "var(--font-latin)",
+            fontSize: 12,
+            color: "var(--fg-3)",
+          }}>AI ภาษาคน</p>
+        </div>
+      )}
       {LEVELS.map(level => {
         const m = LEVEL_META[level];
         const items = chapters.filter(c => c.level === level);

@@ -29,125 +29,86 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
   return (
     <>
       {/* Sticky search bar */}
-      <div style={{ position: "sticky", top: 72, zIndex: 5, marginBottom: 36 }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          background: "#fff",
-          border: "1px solid var(--line-2)",
-          borderRadius: 6,
-          padding: "11px 14px",
-        }}>
-          <span style={{ color: "var(--fg-3)" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              strokeWidth="1.6" strokeLinecap="round">
-              <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
-            </svg>
-          </span>
+      <div className="sticky top-[72px] z-10 mb-9">
+        <div className="flex items-center gap-3 bg-white border border-[#E8E2D4] rounded-full px-5 py-3 shadow-sm">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#6c7a78"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
           <input
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="กรองคำศัพท์ · transformer, RAG, embedding…"
-            style={{
-              flex: 1,
-              border: 0,
-              outline: 0,
-              fontFamily: "var(--font-thai)",
-              fontSize: 15.5,
-              color: "var(--fg-1)",
-              background: "transparent",
-            }}
+            className="flex-1 bg-transparent border-0 outline-none font-['DM_Sans',sans-serif] text-[15px] text-[#00143C] placeholder:text-[#6c7a78]"
           />
-          <span style={{ fontFamily: "var(--font-mono)", fontSize: 11.5, color: "var(--fg-3)" }}>
+          <span className="font-['DM_Sans',sans-serif] text-[13px] text-[#6c7a78] tabular-nums whitespace-nowrap">
             {total} entries
           </span>
         </div>
       </div>
 
       {/* Grouped entries */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 36 }}>
+      <div className="flex flex-col gap-10">
         {grouped.map(([letter, items]) => (
           <section key={letter}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              marginBottom: 14,
-              paddingBottom: 8,
-              borderBottom: "1px solid var(--line)",
-            }}>
-              <span style={{
-                width: 32,
-                height: 32,
-                borderRadius: 6,
-                background: "var(--paper-2)",
-                border: "1px solid var(--line)",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "var(--font-mono)",
-                fontSize: 14,
-                fontWeight: 600,
-                color: "var(--fg-1)",
-              }}>{letter}</span>
-              <span style={{ fontFamily: "var(--font-thai)", fontSize: 13, color: "var(--fg-3)" }}>
+
+            {/* Letter heading */}
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#E8E2D4]">
+              <span className="w-8 h-8 flex items-center justify-center rounded-md bg-[#f5f3ee] border border-[#E8E2D4] font-['DM_Sans',sans-serif] text-[14px] font-semibold text-[#00143C]">
+                {letter}
+              </span>
+              <span className="font-['DM_Sans',sans-serif] text-[13px] text-[#6c7a78]">
                 {items.length} {items.length === 1 ? 'term' : 'terms'}
               </span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {items.map(e => (
-                <div key={e.term_en} className="flex flex-col gap-1 md:grid md:grid-cols-[200px_1fr_auto] md:gap-6 md:items-baseline py-4 border-b" style={{ borderColor: "var(--line-ink)" }}>
+
+            {/* Term rows */}
+            <div className="flex flex-col rounded-xl border border-[#E8E2D4] bg-white overflow-hidden">
+              {items.map((e, idx) => (
+                <div
+                  key={e.term_en}
+                  className={`flex flex-col gap-1 md:grid md:grid-cols-[200px_1fr_auto] md:gap-6 md:items-baseline px-5 py-4${idx < items.length - 1 ? ' border-b border-[#E8E2D4]' : ''}`}
+                >
+                  {/* Term name */}
                   <div>
-                    <div style={{
-                      fontFamily: "var(--font-latin)",
-                      fontSize: 16,
-                      fontWeight: 600,
-                      color: "var(--fg-1)",
-                    }}>{e.term_en}</div>
+                    <div className="font-['DM_Sans',sans-serif] text-[15px] font-semibold text-[#00143C] leading-snug">
+                      {e.term_en}
+                    </div>
                     {e.term_th && (
-                      <div style={{
-                        fontFamily: "var(--font-thai)",
-                        fontSize: 12.5,
-                        color: "var(--fg-3)",
-                        marginTop: 2,
-                      }}><i>{e.term_th}</i></div>
+                      <div className="font-['DM_Sans',sans-serif] text-[13px] text-[#6c7a78] mt-0.5">
+                        {e.term_th}
+                      </div>
                     )}
                   </div>
-                  <div style={{
-                    fontFamily: "var(--font-thai)",
-                    fontSize: 15,
-                    lineHeight: 1.75,
-                    color: "var(--fg-1)",
-                  }}>
+
+                  {/* Definition */}
+                  <div className="font-['DM_Sans',sans-serif] text-[15px] leading-[1.75] text-[#00143C]">
                     {e.definition_th}
                     {e.see_also.length > 0 && (
                       <Link
                         href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="inline md:hidden ml-2"
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: 11.5,
-                          color: "var(--teal-600)",
-                          textDecoration: "none",
-                          whiteSpace: "nowrap",
-                        }}
+                        className="inline md:hidden ml-2 font-['DM_Sans',sans-serif] text-[13px] text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
                       >
                         บทเต็ม →
                       </Link>
                     )}
                   </div>
-                  <div className="hidden md:block">
+
+                  {/* บทเต็ม link (desktop) */}
+                  <div className="hidden md:flex items-center">
                     {e.see_also.length > 0 && (
                       <Link
                         href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}
-                        style={{
-                          fontFamily: "var(--font-mono)",
-                          fontSize: 11.5,
-                          color: "var(--teal-600)",
-                          textDecoration: "none",
-                          whiteSpace: "nowrap",
-                        }}
+                        className="font-['DM_Sans',sans-serif] text-[13px] font-medium text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
                       >
                         บทเต็ม →
                       </Link>
@@ -156,8 +117,15 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
                 </div>
               ))}
             </div>
+
           </section>
         ))}
+
+        {grouped.length === 0 && (
+          <div className="text-center py-16 font-['DM_Sans',sans-serif] text-[15px] text-[#6c7a78]">
+            ไม่พบคำที่ค้นหา
+          </div>
+        )}
       </div>
     </>
   );

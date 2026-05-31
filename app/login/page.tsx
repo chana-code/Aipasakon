@@ -12,70 +12,35 @@ export default async function LoginPage({
   const redirectTo = next ?? '/learn';
 
   return (
-    <div style={{
-      minHeight: 'calc(100vh - 56px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px 16px',
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: 400,
-        background: '#fff',
-        border: '1px solid var(--line)',
-        borderRadius: 12,
-        padding: '32px 24px',
-        boxShadow: '0 2px 16px rgba(0,0,0,0.06)',
-      }}>
-        <h1 style={{
-          margin: '0 0 8px',
-          fontFamily: 'var(--font-thai)',
-          fontSize: 26,
-          fontWeight: 700,
-          color: 'var(--fg-1)',
-        }}>เข้าสู่ระบบ</h1>
+    <div className="min-h-[calc(100vh-64px)] flex flex-col justify-center items-center px-6 py-12 bg-[#fbf9f4]">
+      {/* Card */}
+      <div className="w-full max-w-[440px]">
+        <div className="bg-white border border-[#E8E2D4] rounded-lg p-8 md:p-10 shadow-[0_4px_20px_rgba(0,20,60,0.03)]">
+          {/* Header */}
+          <div className="text-center mb-8">
+            <h1 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-2">
+              เข้าสู่ระบบ
+            </h1>
+            <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]">
+              ยินดีต้อนรับกลับมา อ่านต่อจากที่ค้างไว้ได้เลย
+            </p>
+          </div>
 
-        <p style={{
-          margin: '0 0 28px',
-          fontFamily: 'var(--font-thai)',
-          fontSize: 14.5,
-          color: 'var(--fg-3)',
-        }}>ยินดีต้อนรับกลับมา</p>
+          {/* Auth form (Google + divider + email/password + submit) */}
+          <AuthForm mode="login" redirectTo={redirectTo} />
 
-        <AuthForm mode="login" redirectTo={redirectTo} />
-
-        <div style={{
-          marginTop: 20,
-          paddingTop: 20,
-          borderTop: '1px solid var(--line)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          textAlign: 'center',
-        }}>
-          <p style={{
-            margin: 0,
-            fontFamily: 'var(--font-thai)',
-            fontSize: 13.5,
-            color: 'var(--fg-3)',
-          }}>
-            ยังไม่มีบัญชี?{' '}
-            <Link href="/signup" style={{ color: 'var(--teal-600)', textDecoration: 'none', fontWeight: 500 }}>
-              สมัครสมาชิก
-            </Link>
-          </p>
-          <Link
-            href="/auth/reset"
-            style={{
-              fontFamily: 'var(--font-thai)',
-              fontSize: 13.5,
-              color: 'var(--fg-3)',
-              textDecoration: 'none',
-            }}
-          >
-            ลืมรหัสผ่าน?
-          </Link>
+          {/* Footer link */}
+          <div className="mt-8 text-center">
+            <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]">
+              ยังไม่มีบัญชี?{' '}
+              <Link
+                href="/signup"
+                className="text-[#14B5AB] font-bold hover:underline ml-1"
+              >
+                สมัครสมาชิก
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

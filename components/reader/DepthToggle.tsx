@@ -19,11 +19,17 @@ export function DepthToggle({ targetId }: { targetId: string }) {
   };
 
   return (
-    <div>
+    <div style={{ textAlign: "center" }}>
       <div
         role="tablist"
         aria-label="ระดับเนื้อหา"
-        style={{ display: "inline-flex", borderBottom: "1px solid var(--line)" }}
+        style={{
+          display: "inline-flex",
+          padding: 4,
+          background: "var(--paper-2)",
+          border: "1px solid var(--line)",
+          borderRadius: 999,
+        }}
       >
         {TABS.map(t => {
           const on = active === t.id;
@@ -35,39 +41,37 @@ export function DepthToggle({ targetId }: { targetId: string }) {
               aria-label={t.label}
               onClick={() => onSelect(t.id)}
               style={{
-                background: "transparent",
+                background: on ? "var(--teal-500)" : "transparent",
                 border: 0,
                 cursor: "pointer",
-                padding: "10px 18px 12px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 2,
-                borderBottom: on ? "2px solid var(--teal-500)" : "2px solid transparent",
-                marginBottom: -1,
-                transition: "color 140ms",
-                color: on ? "var(--fg-1)" : "var(--fg-3)",
+                padding: "8px 22px",
+                borderRadius: 999,
+                boxShadow: on ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
+                transition: "background 140ms, color 140ms",
+                color: on ? "#fff" : "var(--fg-3)",
                 fontFamily: "var(--font-thai)",
-                fontSize: 14.5,
-                fontWeight: 500,
+                fontSize: 14,
+                fontWeight: on ? 700 : 500,
+                whiteSpace: "nowrap",
               }}
             >
+              {t.th}
               <span style={{
+                marginLeft: 6,
                 fontFamily: "var(--font-latin)",
-                fontSize: 11.5,
-                letterSpacing: "0.04em",
-                color: on ? "var(--teal-600)" : "inherit",
-                opacity: on ? 1 : 0.7,
-              }}>{t.en}</span>
-              <span>{t.th}</span>
+                fontSize: 11,
+                letterSpacing: "0.02em",
+                opacity: on ? 0.85 : 0.6,
+              }}>({t.label})</span>
             </button>
           );
         })}
       </div>
       <div style={{
-        marginTop: 8,
+        marginTop: 12,
         fontFamily: "var(--font-thai)",
-        fontSize: 12.5,
+        fontSize: 13,
+        fontStyle: "italic",
         color: "var(--fg-3)",
       }}>
         {TABS.find(t => t.id === active)?.desc}

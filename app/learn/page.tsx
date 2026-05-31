@@ -1,8 +1,16 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { loadAllChapters } from '@/lib/content/chapters';
 import { LEVELS, LEVEL_META } from '@/lib/content/levels';
-import { DashboardCard } from '@/components/learn/DashboardCard';
+
+// Per-level hex literals (from PORT-CONVENTIONS.md)
+const LEVEL_HEX: Record<string, string> = {
+  foundations:        '#14B5AB',
+  'using-ai':         '#2D7CD6',
+  'building-with-ai': '#B45A1A',
+  advanced:           '#7A3FA0',
+};
 
 export default async function LearnPage() {
   const supabase = await createClient();
@@ -12,10 +20,9 @@ export default async function LearnPage() {
 
   const chapters = await loadAllChapters();
 
-  // Fetch bookmarks + completions in parallel
   const [bookmarksResult, completionsResult] = await Promise.all([
     supabase.from('user_bookmarks').select('chapter_slug').eq('user_id', user.id),
-    supabase.from('user_completions').select('chapter_slug').eq('user_id', user.id),
+    supabase.from('user_completions').select('chapter_slug, completed_at').eq('user_id', user.id),
   ]);
 
   const bookmarkedSlugs = new Set(
@@ -27,236 +34,213 @@ export default async function LearnPage() {
 
   const totalChapters = chapters.length;
   const completedCount = chapters.filter(c => completedSlugs.has(c.slug)).length;
-  const bookmarkCount = bookmarkedSlugs.size;
   const progressPct = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
 
+  // Per-level chapter counts
+  const levelStats = LEVELS.map(level => {
+    const lvlChapters = chapters.filter(c => c.level === level);
+    const lvlDone = lvlChapters.filter(c => completedSlugs.has(c.slug)).length;
+    return { level, total: lvlChapters.length, done: lvlDone };
+  });
+
+  // Resume: first non-completed chapter (or most recently completed if all done)
+  const resumeChapter = chapters.find(c => !completedSlugs.has(c.slug));
+
+  // Bookmarked chapters
   const bookmarkedChapters = chapters.filter(c => bookmarkedSlugs.has(c.slug));
 
+  // Completed chapters (most recent first by position in list, max shown = all)
+  const completedChapters = chapters.filter(c => completedSlugs.has(c.slug));
+
+  // Display name: prefer user metadata name, fall back to email prefix
+  const displayName = (user.user_metadata?.full_name as string | undefined)
+    ?? (user.email?.split('@')[0] ?? 'คุณ');
+
   return (
-    <div>
-      {/* Header */}
-      <div style={{ marginBottom: 36 }}>
-        <h1 style={{
-          margin: '0 0 6px',
-          fontFamily: 'var(--font-thai)',
-          fontSize: 32,
-          fontWeight: 700,
-          color: 'var(--fg-1)',
-        }}>
-          สวัสดี 👋
+    <div className="pt-10 pb-20 px-6 max-w-[720px] mx-auto">
+
+      {/* Greeting Header */}
+      <header className="mb-10">
+        <h1 className="font-['Noto_Serif_Thai',serif] text-[32px] leading-[1.2] font-bold text-[#00143C] mb-4">
+          สวัสดี, {displayName} 👋
         </h1>
-        <p style={{
-          margin: 0,
-          fontFamily: 'var(--font-thai)',
-          fontSize: 15,
-          color: 'var(--fg-3)',
-        }}>
-          {user.email}
-        </p>
-      </div>
-
-      {/* Progress stats */}
-      <div style={{
-        background: '#fff',
-        border: '1px solid var(--line)',
-        borderRadius: 12,
-        padding: '24px 28px',
-        marginBottom: 36,
-      }}>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-          gap: 24,
-          marginBottom: 20,
-        }}>
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 28,
-              fontWeight: 700,
-              color: 'var(--teal-600)',
-              lineHeight: 1,
-            }}>
-              {completedCount}
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-thai)',
-              fontSize: 13,
-              color: 'var(--fg-3)',
-              marginTop: 4,
-            }}>
-              บทที่อ่านจบแล้ว
-            </div>
-          </div>
-
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 28,
-              fontWeight: 700,
-              color: 'var(--fg-2)',
-              lineHeight: 1,
-            }}>
-              {totalChapters}
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-thai)',
-              fontSize: 13,
-              color: 'var(--fg-3)',
-              marginTop: 4,
-            }}>
-              บทเรียนทั้งหมด
-            </div>
-          </div>
-
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 28,
-              fontWeight: 700,
-              color: 'var(--fg-2)',
-              lineHeight: 1,
-            }}>
-              {bookmarkCount}
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-thai)',
-              fontSize: 13,
-              color: 'var(--fg-3)',
-              marginTop: 4,
-            }}>
-              บุ๊กมาร์ก
-            </div>
-          </div>
-
-          <div>
-            <div style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 28,
-              fontWeight: 700,
-              color: 'var(--fg-2)',
-              lineHeight: 1,
-            }}>
-              {progressPct}%
-            </div>
-            <div style={{
-              fontFamily: 'var(--font-thai)',
-              fontSize: 13,
-              color: 'var(--fg-3)',
-              marginTop: 4,
-            }}>
-              ความก้าวหน้า
-            </div>
+        <div className="flex flex-col gap-2">
+          <p className="font-['DM_Sans',sans-serif] text-[16px] leading-[1.6] text-[#00143C]/70">
+            อ่านไปแล้ว {completedCount} บท จาก {totalChapters} บท
+          </p>
+          <div className="w-full h-1.5 bg-[#f0eee9] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#14B5AB] rounded-full transition-all duration-1000 ease-out"
+              style={{ width: `${progressPct}%` }}
+            />
           </div>
         </div>
+      </header>
 
-        {/* Progress bar */}
-        <div style={{
-          height: 8,
-          background: 'var(--line)',
-          borderRadius: 999,
-          overflow: 'hidden',
-        }}>
-          <div style={{
-            height: '100%',
-            width: `${progressPct}%`,
-            background: 'var(--teal-600)',
-            borderRadius: 999,
-            transition: 'width 0.3s ease',
-          }} />
+      {/* Curriculum Progress Strip */}
+      <section className="mb-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {levelStats.map(({ level, total, done }) => {
+            const meta = LEVEL_META[level];
+            const hex = LEVEL_HEX[level];
+            const inactive = done === 0;
+            return (
+              <Link
+                key={level}
+                href={`/${level}`}
+                className={`p-4 bg-white border border-[#E8E2D4] rounded-lg flex flex-col gap-1 no-underline transition-opacity hover:opacity-80${inactive ? ' opacity-60' : ''}`}
+              >
+                <span
+                  className="font-['DM_Sans',sans-serif] text-[14px] font-bold uppercase tracking-wider"
+                  style={{ color: hex }}
+                >
+                  {meta.label_th}
+                </span>
+                <span className="font-['DM_Sans',sans-serif] text-[16px] leading-[1.6] font-semibold text-[#00143C]">
+                  {done}/{total} บท
+                </span>
+              </Link>
+            );
+          })}
         </div>
-      </div>
+      </section>
 
-      {/* Bookmarked chapters */}
-      {bookmarkedChapters.length > 0 && (
-        <section style={{ marginBottom: 40 }}>
-          <h2 style={{
-            margin: '0 0 16px',
-            fontFamily: 'var(--font-thai)',
-            fontSize: 18,
-            fontWeight: 600,
-            color: 'var(--fg-1)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}>
-            <span>★</span> บุ๊กมาร์กของคุณ
+      {/* อ่านต่อ (Resume) Section */}
+      {resumeChapter && (
+        <section className="mb-12">
+          <h2 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-6">
+            อ่านต่อ
           </h2>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-            gap: 14,
-          }}>
-            {bookmarkedChapters.map(c => (
-              <DashboardCard
+          <div className="bg-white border border-[#E8E2D4] p-8 rounded-lg">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+              <div className="flex flex-col gap-3">
+                <span
+                  className="inline-flex items-center px-3 py-1 font-['DM_Sans',sans-serif] text-[14px] font-bold rounded-full w-fit"
+                  style={{
+                    background: `${LEVEL_HEX[resumeChapter.level]}1a`,
+                    color: LEVEL_HEX[resumeChapter.level],
+                  }}
+                >
+                  {LEVEL_META[resumeChapter.level].label_th}
+                </span>
+                <h3 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C]">
+                  {resumeChapter.title}
+                </h3>
+                {resumeChapter.tldr && (
+                  <p className="font-['DM_Sans',sans-serif] text-[16px] leading-[1.6] text-[#00143C]/70 max-w-md">
+                    {resumeChapter.tldr}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Link
+                href={`/${resumeChapter.level}/${resumeChapter.slug}`}
+                className="bg-[#14B5AB] text-white font-['DM_Sans',sans-serif] text-[14px] font-bold px-8 py-3 rounded hover:bg-[#0e9a91] transition-all flex items-center gap-2 no-underline"
+              >
+                อ่านต่อ <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ที่คั่นไว้ (Bookmarks) Section */}
+      {bookmarkedChapters.length > 0 && (
+        <section className="mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C]">
+              ที่คั่นไว้
+            </h2>
+            <Link
+              href="/curriculum"
+              className="text-[#14B5AB] font-['DM_Sans',sans-serif] text-[14px] font-bold hover:underline no-underline"
+            >
+              ดูทั้งหมด
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {bookmarkedChapters.map(c => {
+              const hex = LEVEL_HEX[c.level];
+              return (
+                <Link
+                  key={c.slug}
+                  href={`/${c.level}/${c.slug}`}
+                  className="group relative bg-white border border-[#E8E2D4] p-6 rounded-lg hover:border-[#14B5AB] transition-colors no-underline block"
+                >
+                  <div className="flex flex-col gap-3">
+                    <span
+                      className="inline-flex items-center px-3 py-1 font-['DM_Sans',sans-serif] text-[14px] font-bold rounded-full w-fit"
+                      style={{ background: `${hex}1a`, color: hex }}
+                    >
+                      {LEVEL_META[c.level].label_th}
+                    </span>
+                    <h3 className="font-['DM_Sans',sans-serif] text-[16px] leading-[1.6] font-bold text-[#00143C]">
+                      {c.title}
+                    </h3>
+                    {c.tldr && (
+                      <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]">
+                        {c.tldr}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* อ่านจบแล้ว (Completed) Section */}
+      {completedChapters.length > 0 && (
+        <section>
+          <h2 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-6">
+            อ่านจบแล้ว
+          </h2>
+          <div className="bg-white border border-[#E8E2D4] rounded-lg overflow-hidden divide-y divide-[#E8E2D4]">
+            {completedChapters.map(c => (
+              <Link
                 key={c.slug}
-                slug={c.slug}
-                title={c.title}
-                level={c.level}
-                status={c.status}
-                isBookmarked={true}
-                isCompleted={completedSlugs.has(c.slug)}
-              />
+                href={`/${c.level}/${c.slug}`}
+                className="p-5 flex justify-between items-center group hover:bg-[#fbf9f4] transition-colors no-underline"
+              >
+                <div className="flex items-center gap-4">
+                  <span className="material-symbols-outlined text-[#14B5AB]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    check_circle
+                  </span>
+                  <div>
+                    <p className="font-['DM_Sans',sans-serif] text-[16px] leading-[1.6] font-medium text-[#00143C]">
+                      {c.title}
+                    </p>
+                    <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]">
+                      {LEVEL_META[c.level].label_th}
+                    </p>
+                  </div>
+                </div>
+                <span className="material-symbols-outlined text-[#6c7a78] opacity-0 group-hover:opacity-100 transition-opacity">
+                  chevron_right
+                </span>
+              </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* All chapters grouped by level */}
-      {LEVELS.map(level => {
-        const levelChapters = chapters.filter(c => c.level === level);
-        if (levelChapters.length === 0) return null;
-        const meta = LEVEL_META[level];
+      {/* Empty state when no activity yet */}
+      {completedChapters.length === 0 && bookmarkedChapters.length === 0 && !resumeChapter && (
+        <section className="text-center py-16">
+          <p className="font-['DM_Sans',sans-serif] text-[16px] leading-[1.6] text-[#6c7a78]">
+            ยังไม่มีกิจกรรม — เริ่มต้นอ่านบทแรกได้เลย
+          </p>
+          <Link
+            href="/curriculum"
+            className="inline-block mt-6 bg-[#14B5AB] text-white font-['DM_Sans',sans-serif] text-[14px] font-bold px-8 py-3 rounded hover:bg-[#0e9a91] transition-all no-underline"
+          >
+            ดูหลักสูตร
+          </Link>
+        </section>
+      )}
 
-        return (
-          <section key={level} style={{ marginBottom: 40 }}>
-            <h2 style={{
-              margin: '0 0 16px',
-              fontFamily: 'var(--font-thai)',
-              fontSize: 18,
-              fontWeight: 600,
-              color: 'var(--fg-1)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-            }}>
-              <span style={{
-                display: 'inline-block',
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                background: meta.color,
-              }} />
-              Level {meta.order} — {meta.label_th}
-              <span style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                color: 'var(--fg-3)',
-                fontWeight: 400,
-              }}>
-                ({levelChapters.filter(c => completedSlugs.has(c.slug)).length}/{levelChapters.length})
-              </span>
-            </h2>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: 14,
-            }}>
-              {levelChapters.map(c => (
-                <DashboardCard
-                  key={c.slug}
-                  slug={c.slug}
-                  title={c.title}
-                  level={c.level}
-                  status={c.status}
-                  isBookmarked={bookmarkedSlugs.has(c.slug)}
-                  isCompleted={completedSlugs.has(c.slug)}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      })}
     </div>
   );
 }
