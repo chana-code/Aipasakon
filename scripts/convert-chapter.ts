@@ -1,10 +1,19 @@
 /**
  * convert-chapter.ts
  *
- * Converts KB markdown files (Obsidian format) to website MDX format.
+ * ⚠️ DEPRECATED — DO NOT RUN. Kept only for its unit-tested pure helpers.
  *
- * Exported functions are used by tests and can be imported individually.
- * When executed directly (CLI), converts all chapters from the KB source.
+ * This script was the original KB → MDX converter. It expects the OLD knowledge-base
+ * format (Surface/Deeper depth splits) and reads from `AI-Pasa-Kon/00-knowledge-base/`,
+ * which has been RETIRED and archived at `AI-Pasa-Kon/_archive/00-knowledge-base/`.
+ *
+ * The current process: chapters are authored directly in `AI-Pasa-Kon/website-content/`
+ * (the single source of truth) following `website-content-brief.md`, then published as
+ * MDX in `website/content/chapters/`. There is no automated KB conversion step anymore.
+ *
+ * The CLI entry point below will fail (its source folder no longer exists). The exported
+ * helper functions remain covered by tests/unit/content/convert.test.ts (inline fixtures,
+ * no filesystem dependency) and are safe to keep.
  */
 
 import matter from 'gray-matter';

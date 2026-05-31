@@ -1,0 +1,658 @@
+---
+slug: fine-tuning-methods
+level: building-with-ai
+title: "Fine-tuning วิธีต่าง ๆ — SFT, LoRA, RLHF และวิธีเลือกให้ถูก"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจวิธี fine-tune LLM แบบต่าง ๆ ตั้งแต่ Supervised Fine-tuning (SFT), LoRA/QLoRA ที่ประหยัด GPU, RLHF/DPO สำหรับ alignment จนถึงการเลือกวิธีและเตรียม dataset"
+---
+# Fine-tuning วิธีต่าง ๆ — SFT, LoRA, RLHF และวิธีเลือกให้ถูก
+
+คุณเปิดหน้า Google แล้วพิมพ์ว่า "how to fine-tune LLM" ผลที่ได้มาคือทะเลคำย่อ — SFT, LoRA, QLoRA, RLHF, DPO, PEFT, PPO — แต่ละอันมีบทความของตัวเอง มี GitHub repo ของตัวเอง และมีคนบอกว่า "ต้องใช้ตัวนี้สิ" คนละคนกัน คุณอยากจะ fine-tune model ให้ตอบแบบที่บริษัทต้องการ แต่ยังไม่รู้ด้วยซ้ำว่าจะเริ่มต้นจากตรงไหน
+
+ถ้าคุณผ่าน[บทก่อนหน้าเรื่อง When to Fine-tune](/building-with-ai/fine-tuning-vs-prompting) มาแล้ว คุณรู้แล้วว่า fine-tuning เหมาะกับสถานการณ์ไหน และ prompt engineering ควรมาก่อนเสมอ แต่พอตัดสินใจว่าจะ fine-tune จริง ๆ กลับพบว่ามีทางเลือกอีกชั้นหนึ่งรออยู่
+
+บทนี้จะพาคุณเดินผ่านวิธี fine-tune แต่ละแบบ — ไม่ใช่แค่อธิบายว่าคืออะไร แต่อธิบายว่ามันทำงานยังไง ต่างกันตรงไหน และคุณควรเลือกแบบไหนในสถานการณ์แบบไหน พร้อม code จริงที่รันได้เลย
+
+<!-- IMAGE: ภาพ decision tree แสดงเส้นทางการเลือก fine-tuning method แต่ละแบบ จาก "มี GPU ไหม" ไปจนถึงคำตอบสุดท้าย -->
+
+---
+
+## Fine-tuning ทำอะไรกับ Model จริง ๆ
+
+ก่อนลงรายละเอียด ขอทบทวนภาพรวมก่อนสักครั้ง เพราะถ้าเข้าใจตรงนี้ทุกอย่างหลังจากนี้จะชัดขึ้นมาก
+
+Model อย่าง GPT-4 หรือ Llama ได้รับการ pre-train มาจากข้อความบนอินเทอร์เน็ตจำนวนมหาศาล — เว็บไซต์, หนังสือ, code, บทความวิชาการ — รวมกันหลายพันล้านประโยค กระบวนการนี้สร้าง weights หรือพารามิเตอร์นับพันล้านตัวที่เก็บ "ความรู้" เอาไว้ในรูปของตัวเลข
+
+เปรียบได้กับนักศึกษาที่จบ ม.ปลาย — เขามีความรู้กว้างมาก รู้คณิตศาสตร์, ภาษา, วิทยาศาสตร์, สังคม แต่ยังไม่เก่งงานเฉพาะทาง ถ้าอยากให้เขาเป็นหมอ ก็ต้องส่งไปเรียนแพทย์ ถ้าอยากให้เขาเป็นนักกฎหมาย ก็ส่งไปคณะนิติศาสตร์
+
+Fine-tuning ก็คือการ "เรียนเฉพาะทาง" ของ model — คุณนำ model ที่ผ่านการ pre-train มาแล้ว แล้วฝึกต่ออีกรอบด้วย dataset เฉพาะทางที่คุณเตรียมมาเอง ผลลัพธ์คือ weights ของ model จะปรับตัวให้เก่งงานนั้น ๆ โดยยังคงความรู้พื้นฐานเดิมไว้
+
+> 💡 **Key insight:** Fine-tuning ไม่ได้ "สอน" model ตั้งแต่ต้น — มันปรับ weights ที่มีอยู่แล้วให้เอนเอียงไปทางงานที่คุณต้องการ เหมือนนักศึกษาแพทย์ที่ยังจำวิชาภาษาไทยได้ แต่ตอนนี้เก่งเรื่องกายวิภาคมากขึ้น
+
+สิ่งที่คุณต้องการสอน model มีสองมิติหลัก: **รูปแบบการตอบ** (ตอบแบบนี้, ใช้ภาษาแบบนี้, มีโครงสร้างแบบนี้) และ **ความรู้เฉพาะทาง** (รู้เรื่องนี้เพิ่ม, เข้าใจ domain นี้ลึกขึ้น) วิธี fine-tune แต่ละแบบเหมาะกับมิติที่ต่างกัน
+
+<!-- IMAGE: ภาพ diagram แสดง pre-trained weights เป็นฐาน แล้วมี fine-tuning layer ปรับทับอยู่ด้านบน คล้าย layer ของ Photoshop -->
+
+---
+
+## Supervised Fine-tuning (SFT) — วิธีคลาสสิกที่สุด
+
+เริ่มจากวิธีที่ง่ายและตรงที่สุดก่อน
+
+**Supervised Fine-tuning** คือการสอน model โดยให้ตัวอย่างคู่ input-output ที่คุณเตรียมมาเอง แล้วบอก model ว่า "เวลาเจออะไรแบบนี้ ให้ตอบแบบนี้"
+
+เหมือนการพาพนักงานใหม่นั่งดูพนักงานเก่าทำงาน 200 ชิ้น แล้วบอกว่า "ดูดีนะ ต่อไปนี้คุณทำแบบนี้เลย" ไม่ต้องอธิบายทฤษฎี ไม่ต้องสอนหลักการ แค่ดูตัวอย่างเยอะ ๆ แล้ว pattern จะซึมเข้าไปเอง
+
+### Dataset Format: JSONL คืออะไร
+
+ข้อมูล SFT มักเก็บในรูปแบบ JSONL (JSON Lines) — ไฟล์ text ธรรมดาที่แต่ละบรรทัดคือ JSON object หนึ่งชุด แต่ละชุดคือตัวอย่างหนึ่งคู่
+
+```json
+{"messages": [
+  {"role": "system", "content": "คุณคือผู้ช่วยฝ่ายบริการลูกค้าของ Fairdee"},
+  {"role": "user", "content": "ต้องการยกเลิกประกันภัย"},
+  {"role": "assistant", "content": "ขอโทษที่ได้ยินนะคะ ขอสอบถามเหตุผลในการยกเลิกได้ไหมคะ เผื่อว่าเราจะสามารถช่วยแก้ปัญหาให้ได้ก่อนที่จะตัดสินใจ"}
+]}
+{"messages": [
+  {"role": "system", "content": "คุณคือผู้ช่วยฝ่ายบริการลูกค้าของ Fairdee"},
+  {"role": "user", "content": "ประกันรถยนต์คุ้มครองอะไรบ้าง"},
+  {"role": "assistant", "content": "ประกันรถยนต์ชั้น 1 ของเราคุ้มครอง 4 หัวข้อหลัก: 1) ความเสียหายต่อรถของคุณ..."}
+]}
+```
+
+แต่ละบรรทัดคือบทสนทนาหนึ่งบท โดย `system` คือ persona, `user` คือสิ่งที่ลูกค้าพิมพ์มา, `assistant` คือสิ่งที่คุณอยากให้ model ตอบ
+
+### Training Process และ Epochs
+
+เมื่อมี dataset แล้ว กระบวนการ training คือการให้ model อ่าน input, พยากรณ์ output, เปรียบเทียบกับ ideal output ที่คุณเตรียมมา, แล้วปรับ weights เพื่อให้การพยากรณ์ครั้งหน้าดีขึ้น วนซ้ำแบบนี้หลายรอบ
+
+**Epochs** คือจำนวนรอบที่ model เห็น dataset ทั้งหมด ถ้า epoch = 3 แปลว่า model จะอ่านข้อมูลทั้งหมดของคุณ 3 รอบ ตัวเลขนี้สำคัญมาก:
+
+- **น้อยเกินไป**: model ยังไม่ได้เรียนรู้เพียงพอ ยัง hallucinate หรือตอบผิด style
+- **มากเกินไป**: model จำ training data แบบ "ท่อง" โดยไม่เข้าใจจริง เรียกว่า overfitting — เจอ input ใหม่แล้วตอบพลาด
+- **ช่วงที่ดี**: โดยทั่วไปอยู่ที่ 3-5 epochs สำหรับ fine-tuning งาน
+
+> 💡 **Key insight:** SFT สอน model ว่า "ต้องตอบอะไร" แต่ไม่ได้สอนว่า "ตอบแบบนี้ดีกว่าแบบอื่นยังไง" นั่นคือขีดจำกัดของ SFT และเหตุผลที่มีวิธีอื่น ๆ ตามมา
+
+<!-- IMAGE: ภาพ training loop แบบง่าย: input → model prediction → compare with ideal → update weights → repeat -->
+
+---
+
+## Full Fine-tuning vs Parameter-Efficient Fine-tuning
+
+SFT คือแนวคิด แต่ยังมีคำถามสำคัญอีกข้อ: คุณจะปรับ weights ทุกตัวใน model หรือแค่บางส่วน?
+
+### Full Fine-tuning: Renovate ทั้งบ้าน
+
+Full fine-tuning คือการปรับ weights ทุกตัวในโมเดล ถ้า model มี 7 billion พารามิเตอร์ ก็ปรับทั้ง 7 พันล้านตัว
+
+ข้อดีคือผลลัพธ์อาจดีที่สุด เพราะ model มีอิสระปรับตัวได้เต็มที่ แต่ข้อเสียชัดมาก:
+
+- ต้องการ GPU memory มหาศาล (model 7B ต้องการ VRAM ราว 28-40 GB ขึ้นไป)
+- ค่า compute สูง (อาจหลายพันดอลลาร์ต่อ run)
+- ใช้เวลานาน
+- มีความเสี่ยง "catastrophic forgetting" — model อาจลืมความรู้เดิมบางส่วน
+
+เปรียบได้กับ renovate ทั้งบ้าน — ได้บ้านใหม่สวยงามแน่นอน แต่แพงและใช้เวลานาน ถ้าแค่อยากเปลี่ยน feel ห้องนั่งเล่น บางทีการทาสีใหม่แค่ห้องเดียวก็พอ
+
+### Parameter-Efficient Fine-tuning (PEFT): ทาสีแค่ห้องที่ต้องการ
+
+PEFT คือแนวคิดที่ว่า — แทนที่จะปรับ weights ทุกตัว ปรับแค่บางส่วนเล็ก ๆ แต่เลือกส่วนที่ "สำคัญ" อย่างชาญฉลาด ผลลัพธ์ใกล้เคียงกับ full fine-tuning แต่ใช้ทรัพยากรน้อยกว่ามาก
+
+LoRA คือ PEFT วิธีที่ได้รับความนิยมสูงสุดในตอนนี้
+
+| วิธี | Parameters ที่ปรับ | GPU ที่ต้องการ | ค่าใช้จ่าย (ประมาณ) |
+|------|-------------------|----------------|---------------------|
+| Full Fine-tuning | 100% | สูงมาก | $$$$$ |
+| LoRA | 0.1-1% | ปานกลาง | $$ |
+| QLoRA | 0.1-1% | ต่ำ | $ |
+
+<!-- IMAGE: ภาพเปรียบเทียบ full fine-tuning vs LoRA แบบ visual — เส้นสีแดงแสดง weights ที่ปรับ โดย full tune ปรับทุกเส้น แต่ LoRA ปรับแค่บางเส้น -->
+
+---
+
+## LoRA — Low-Rank Adaptation
+
+LoRA คือหัวใจของ fine-tuning สมัยใหม่ และแนวคิดของมันงดงามมาก
+
+### แนวคิดพื้นฐาน: Matrix Decomposition
+
+ใน neural network, weights เก็บอยู่ในรูปของ matrix — ตารางตัวเลขขนาดใหญ่ ตัวอย่างเช่น matrix ขนาด 4096 x 4096 มีตัวเลข 16.7 ล้านตัว
+
+Full fine-tuning บอกว่า "เราจะปรับตัวเลขทุกตัวใน matrix นี้"
+
+LoRA บอกว่า "เดี๋ยวก่อน — งานวิจัยพบว่าการเปลี่ยนแปลงที่เกิดขึ้นใน fine-tuning มักมี rank ต่ำ (low-rank) หมายความว่าเราสามารถแสดงการเปลี่ยนแปลงนั้นด้วย matrix เล็ก ๆ สองตัวแทน matrix ใหญ่ตัวเดียว"
+
+แทนที่จะปรับ matrix ขนาด 4096 x 4096 โดยตรง LoRA เพิ่ม matrix สองตัวเล็ก ๆ:
+- Matrix A: ขนาด 4096 x r
+- Matrix B: ขนาด r x 4096
+โดย r คือ "rank" ซึ่งมักอยู่ที่ 4-64
+
+เวลา forward pass, LoRA คำนวณ: `output = original_weight + (A × B) × scale`
+
+ผลคือ: แทนที่ต้องเรียนรู้ 16.7 ล้านตัวเลข LoRA เรียนรู้แค่ `4096 × r × 2` ตัวเลข ถ้า r = 16 นั่นคือ 131,072 ตัวเลข — น้อยกว่า 128 เท่า
+
+> 💡 **Key insight:** LoRA ไม่ได้ "ตัดทอน" คุณภาพ — มันตั้งสมมติฐานว่าการเปลี่ยนแปลงที่สำคัญจริง ๆ ใน fine-tuning มักมีโครงสร้างที่กระชับได้ ซึ่งงานวิจัยพิสูจน์แล้วว่าสมมติฐานนี้ถูกในส่วนใหญ่
+
+### Hyperparameters ของ LoRA ที่ต้องรู้
+
+**Rank (r)**: ขนาดของ matrix เล็ก ๆ ที่ LoRA เพิ่มเข้าไป
+- r สูง = เรียนรู้ได้มากกว่าแต่ใช้ memory มากขึ้น
+- r ต่ำ = ประหยัด memory แต่ capacity จำกัด
+- ค่าที่นิยม: 8, 16, 32 — เริ่มที่ 16 ก่อนเสมอ
+
+**Alpha (α)**: scaling factor ที่คุมว่า LoRA จะ "เชื่อ" ตัวเองแค่ไหนเทียบกับ original weights
+- มักตั้งที่ alpha = 2 × rank
+- ถ้า rank = 16, alpha = 32
+
+**Target modules**: LoRA ไม่จำเป็นต้องปรับทุก layer — คุณเลือกได้ว่าจะปรับ layer ไหน
+- สำหรับ attention layers: `q_proj, v_proj` เป็นจุดเริ่มต้นที่ดี
+- ปรับมากขึ้น = ดีขึ้น แต่ใช้ memory มากขึ้น
+
+**Dropout**: ป้องกัน overfitting ในส่วน LoRA โดยเฉพาะ ค่าปกติ 0.05-0.1
+
+<!-- IMAGE: ภาพ diagram แสดง original weight matrix ขนาดใหญ่ + LoRA matrix A และ B ขนาดเล็กกว่ามาก พร้อมสมการ W' = W + BA -->
+
+---
+
+## QLoRA — เมื่อ LoRA ยังแพงเกินไป
+
+LoRA ลดการใช้ GPU ได้มาก แต่ยังมีปัญหาอยู่: ตัว base model ยังต้องโหลดเข้า memory ด้วย model ขนาด 70B ยังต้องการ VRAM หลายสิบ GB แม้จะใช้ LoRA
+
+**QLoRA** แก้ปัญหานี้ด้วยการเพิ่มขั้นตอนหนึ่งก่อน: **Quantization**
+
+### Quantization คืออะไร
+
+ปกติ weights ใน model เก็บเป็นตัวเลขทศนิยม 16-bit (float16) หรือ 32-bit (float32) Quantization คือการแปลงตัวเลขเหล่านี้ให้มี precision น้อยลง เช่น 8-bit หรือ 4-bit
+
+เปรียบได้กับการบีบอัดภาพ JPEG — คุณสูญเสียรายละเอียดบางส่วน แต่ขนาดไฟล์เล็กลงมาก และถ้าทำอย่างชาญฉลาด คุณภาพที่มองเห็นแทบไม่ต่างกัน
+
+QLoRA ทำสองอย่างพร้อมกัน:
+1. Quantize base model เป็น 4-bit (ลด memory ที่ใช้โหลด model ลง 4 เท่า)
+2. ใช้ LoRA สำหรับส่วนที่จะ train (ซึ่งยังคง precision ปกติ)
+
+ผลคือ: คุณสามารถ fine-tune model ขนาด 70B บน GPU เดียวที่มี VRAM 48 GB ได้ (แทนที่ต้องใช้ 8 GPUs)
+
+### เปรียบเทียบค่าใช้จ่ายจริง (ตัวอย่าง Llama 3 8B)
+
+| วิธี | GPU ที่ต้องการ | เวลา (1,000 samples, 3 epochs) | ค่าใช้จ่ายประมาณ (AWS) |
+|------|----------------|-------------------------------|------------------------|
+| Full Fine-tuning | A100 80GB × 4 | ~6 ชั่วโมง | ~$120 |
+| LoRA | A100 40GB × 1 | ~3 ชั่วโมง | ~$15 |
+| QLoRA | RTX 3090 24GB × 1 | ~4 ชั่วโมง | ~$3-5 |
+
+ตัวเลขเหล่านี้เป็นการประมาณ แต่แสดงให้เห็นความแตกต่างที่ชัดเจน QLoRA ทำให้ fine-tuning เข้าถึงได้กว้างขึ้นมาก
+
+> 💡 **Key insight:** QLoRA ไม่ได้ดีกว่า LoRA ในแง่คุณภาพ — มันแค่ถูกกว่าและรันบน hardware ที่เล็กกว่าได้ ถ้ามี GPU เพียงพอ LoRA ปกติจะให้ผลลัพธ์ดีกว่าเล็กน้อย
+
+<!-- IMAGE: ภาพเปรียบเทียบขนาด model ก่อนและหลัง quantization แบบ visual bar chart -->
+
+---
+
+## ลองทำดู #1: Fine-tune ด้วย OpenAI API
+
+ถ้าคุณใช้ GPT-3.5-turbo หรือ GPT-4o-mini อยู่แล้ว OpenAI มี fine-tuning API ที่ง่ายมาก — ไม่ต้องจัดการ GPU เอง ไม่ต้องติดตั้งอะไรเพิ่ม แค่ upload data แล้วรอ
+
+> 🧪 **ลองทำดู:** Fine-tune GPT-3.5-turbo สำหรับงาน customer service ด้วย OpenAI API
+
+**ขั้นตอนที่ 1: เตรียม dataset**
+
+สร้างไฟล์ `training_data.jsonl`:
+
+```python
+import json
+
+# เตรียม training examples
+examples = [
+    {
+        "messages": [
+            {"role": "system", "content": "คุณคือ AI assistant ของบริษัทประกันภัย ตอบด้วยภาษาที่เป็นมิตรและกระชับ"},
+            {"role": "user", "content": "ขอเคลมประกันรถยนต์ทำยังไง"},
+            {"role": "assistant", "content": "การเคลมประกันรถยนต์มี 3 ขั้นตอนหลักครับ:\n\n1. แจ้งเหตุการณ์ผ่านแอปหรือโทร 02-xxx-xxxx ภายใน 24 ชั่วโมง\n2. ส่งรูปถ่ายความเสียหายอย่างน้อย 5 รูป\n3. รอประเมินความเสียหายภายใน 3 วันทำการ\n\nมีอะไรให้ช่วยเพิ่มเติมไหมครับ?"}
+        ]
+    },
+    {
+        "messages": [
+            {"role": "system", "content": "คุณคือ AI assistant ของบริษัทประกันภัย ตอบด้วยภาษาที่เป็นมิตรและกระชับ"},
+            {"role": "user", "content": "ประกันชั้น 1 กับ 2+ ต่างกันยังไง"},
+            {"role": "assistant", "content": "ความแตกต่างหลักคือ:\n\n**ชั้น 1** คุ้มครองครบทุกกรณี รวมถึงรถของคุณเองเวลาเกิดอุบัติเหตุ ไม่ว่าจะใครผิด\n\n**ชั้น 2+** คุ้มครองเฉพาะกรณีชนกับรถคันอื่น ไม่คุ้มครองถ้าชนสิ่งของหรือพลิกคว่ำคนเดียว แต่ราคาถูกกว่าประมาณ 40-50%\n\nถ้ารถใหม่หรือราคาสูง แนะนำชั้น 1 ครับ"}
+        ]
+    },
+    # เพิ่ม examples อีก 18-48 ชุดเพื่อผลลัพธ์ที่ดี
+]
+
+# บันทึกเป็น JSONL
+with open("training_data.jsonl", "w", encoding="utf-8") as f:
+    for example in examples:
+        f.write(json.dumps(example, ensure_ascii=False) + "\n")
+
+print(f"สร้างไฟล์สำเร็จ: {len(examples)} examples")
+```
+
+**ขั้นตอนที่ 2: Upload และสร้าง fine-tuning job**
+
+```python
+from openai import OpenAI
+
+client = OpenAI(api_key="your-api-key")  # หรือตั้ง OPENAI_API_KEY env variable
+
+# อัปโหลดไฟล์ training data
+print("กำลัง upload training data...")
+with open("training_data.jsonl", "rb") as f:
+    file_response = client.files.create(
+        file=f,
+        purpose="fine-tune"
+    )
+
+file_id = file_response.id
+print(f"Upload สำเร็จ File ID: {file_id}")
+
+# สร้าง fine-tuning job
+print("กำลังสร้าง fine-tuning job...")
+job = client.fine_tuning.jobs.create(
+    training_file=file_id,
+    model="gpt-4o-mini",  # หรือ gpt-4o
+    hyperparameters={
+        "n_epochs": 3,  # จำนวน epochs
+    }
+)
+
+job_id = job.id
+print(f"Job สร้างสำเร็จ: {job_id}")
+print(f"สถานะ: {job.status}")
+print("รอ email แจ้งเตือนเมื่อ fine-tuning เสร็จ (ปกติใช้เวลา 15-60 นาที)")
+```
+
+**ขั้นตอนที่ 3: ตรวจสอบสถานะและทดสอบ**
+
+```python
+# ตรวจสอบสถานะ job
+job_status = client.fine_tuning.jobs.retrieve(job_id)
+print(f"สถานะ: {job_status.status}")
+
+# เมื่อ status = "succeeded"
+if job_status.status == "succeeded":
+    fine_tuned_model = job_status.fine_tuned_model
+    print(f"Model ID: {fine_tuned_model}")  # เช่น ft:gpt-3.5-turbo-0613:company::xxxxx
+    
+    # ทดสอบ fine-tuned model
+    response = client.chat.completions.create(
+        model=fine_tuned_model,  # ใช้ model ที่ fine-tune แล้ว
+        messages=[
+            {"role": "system", "content": "คุณคือ AI assistant ของบริษัทประกันภัย"},
+            {"role": "user", "content": "เบี้ยประกันรถยนต์คำนวณยังไง"}
+        ]
+    )
+    
+    print("คำตอบจาก fine-tuned model:")
+    print(response.choices[0].message.content)
+```
+
+**ข้อจำกัดของวิธีนี้**: คุณได้ model ที่อยู่บน OpenAI infrastructure เท่านั้น ไม่สามารถนำ weights ออกมาใช้ที่อื่นได้ และยังต้องจ่ายค่า API ต่อไปทุกครั้งที่ใช้ แต่สำหรับการเริ่มต้น นี่คือวิธีที่ง่ายและเร็วที่สุด
+
+<!-- IMAGE: ภาพ screenshot ของ OpenAI platform แสดงหน้า fine-tuning dashboard พร้อมกราฟ training loss -->
+
+---
+
+## ลองทำดู #2: Fine-tune ด้วย Hugging Face + QLoRA
+
+สำหรับคนที่อยากใช้ open-source model (Llama, Mistral, Qwen) และต้องการ flexibility มากขึ้น Hugging Face + QLoRA คือเส้นทางที่คุ้มค่าที่สุด
+
+> 🧪 **ลองทำดู:** Fine-tune Llama 3.2 3B สำหรับตอบคำถามด้านกฎหมาย ด้วย QLoRA บน Google Colab (ฟรี)
+
+**ขั้นตอนที่ 0: ติดตั้ง dependencies**
+
+```python
+# รันใน Google Colab (เลือก GPU runtime: T4 เพียงพอ)
+!pip install -q transformers datasets peft trl bitsandbytes accelerate
+```
+
+**ขั้นตอนที่ 1: โหลด base model ด้วย 4-bit quantization**
+
+```python
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+
+# ชื่อ model จาก Hugging Face Hub
+model_name = "meta-llama/Llama-3.2-3B-Instruct"
+# (ต้องขอ access จาก Meta ก่อน หรือใช้ model ที่เปิดให้ free เช่น mistralai/Mistral-7B-Instruct-v0.3)
+
+# ตั้งค่า 4-bit quantization สำหรับ QLoRA
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,          # โหลด model เป็น 4-bit
+    bnb_4bit_quant_type="nf4",  # ประเภท quantization
+    bnb_4bit_compute_dtype=torch.float16,  # คำนวณด้วย float16
+)
+
+print("กำลังโหลด model (อาจใช้เวลา 2-3 นาที)...")
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    quantization_config=bnb_config,  # ใช้ 4-bit quantization
+    device_map="auto",               # กระจาย model ไปยัง GPU อัตโนมัติ
+)
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+tokenizer.pad_token = tokenizer.eos_token  # ตั้งค่า padding token
+
+print(f"โหลดสำเร็จ! Model size: {model.get_memory_footprint() / 1e9:.1f} GB")
+```
+
+**ขั้นตอนที่ 2: ตั้งค่า LoRA**
+
+```python
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+# เตรียม model สำหรับ fine-tuning
+model = prepare_model_for_kbit_training(model)
+
+# ตั้งค่า LoRA
+lora_config = LoraConfig(
+    r=16,                  # rank — เริ่มที่ 16
+    lora_alpha=32,         # alpha = 2 × rank เป็น rule of thumb ที่ดี
+    target_modules=[       # layers ที่จะปรับ
+        "q_proj",          # query projection ใน attention
+        "k_proj",          # key projection
+        "v_proj",          # value projection
+        "o_proj",          # output projection
+    ],
+    lora_dropout=0.05,     # ป้องกัน overfitting เล็กน้อย
+    bias="none",
+    task_type="CAUSAL_LM", # บอกว่าเป็น language model
+)
+
+# ใส่ LoRA เข้าไปใน model
+model = get_peft_model(model, lora_config)
+
+# ดูว่า train parameters กี่ %
+model.print_trainable_parameters()
+# output: trainable params: 5,242,880 || all params: 3,213,500,416 || trainable%: 0.16
+```
+
+**ขั้นตอนที่ 3: เตรียม dataset และ train**
+
+```python
+from datasets import Dataset
+from trl import SFTTrainer
+from transformers import TrainingArguments
+
+# ตัวอย่าง dataset (จริง ๆ ควรมีอย่างน้อย 50-200 examples)
+raw_data = [
+    {
+        "text": "<|begin_of_text|><|start_header_id|>system<|end_header_id|>\nคุณคือผู้เชี่ยวชาญด้านกฎหมายไทย<|eot_id|><|start_header_id|>user<|end_header_id|>\nสัญญาเช่าควรมีอะไรบ้าง<|eot_id|><|start_header_id|>assistant<|end_header_id|>\nสัญญาเช่าที่ดีควรระบุอย่างน้อย 6 ส่วนหลัก: 1) ข้อมูลคู่สัญญา ชื่อ-ที่อยู่ผู้ให้เช่าและผู้เช่า 2) รายละเอียดทรัพย์สิน ที่อยู่และสภาพห้องชัดเจน 3) ระยะเวลาเช่าและวันเริ่มต้น 4) ค่าเช่ารายเดือนและวันครบกำหนดชำระ 5) เงินประกันและเงื่อนไขคืน 6) ข้อห้ามและความรับผิดชอบของแต่ละฝ่าย<|eot_id|>"
+    },
+    # เพิ่ม examples อีก...
+]
+
+dataset = Dataset.from_list(raw_data)
+
+# ตั้งค่า training
+training_args = TrainingArguments(
+    output_dir="./fine-tuned-model",   # บันทึก model ที่นี่
+    num_train_epochs=3,                # train 3 รอบ
+    per_device_train_batch_size=2,     # 2 examples ต่อ GPU ต่อ step
+    gradient_accumulation_steps=4,    # accumulate 4 steps ก่อน update
+    learning_rate=2e-4,               # learning rate สำหรับ LoRA
+    fp16=True,                        # ใช้ float16 เพื่อประหยัด memory
+    logging_steps=10,                 # log ทุก 10 steps
+    save_strategy="epoch",            # บันทึก checkpoint ทุก epoch
+    warmup_ratio=0.03,                # warm up learning rate ช้า ๆ ช่วงแรก
+)
+
+# สร้าง trainer และ train
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=dataset,
+    args=training_args,
+    dataset_text_field="text",        # ชื่อ column ใน dataset
+    max_seq_length=2048,              # ความยาว sequence สูงสุด
+)
+
+print("เริ่ม training...")
+trainer.train()
+print("Training เสร็จสิ้น!")
+
+# บันทึก LoRA weights (ขนาดเล็กมาก ไม่กี่ร้อย MB)
+model.save_pretrained("./lora-weights")
+print("บันทึก LoRA weights สำเร็จ")
+```
+
+**สิ่งที่ต้องรู้เพิ่มเติม**: ไฟล์ที่บันทึกออกมาคือแค่ LoRA weights ไม่ใช่ model เต็ม ตอนใช้งานต้องโหลด base model + LoRA weights รวมกัน หรือ merge เป็น model เดียว
+
+<!-- IMAGE: ภาพ screenshot Google Colab แสดง training progress และ loss curve ที่ลดลง -->
+
+---
+
+## RLHF — เมื่อ "ถูก" ยังไม่พอ ต้องการ "ดี"
+
+SFT บอก model ว่า "ตอบอะไร" — แต่ไม่ได้บอกว่า "ตอบแบบนี้ดีกว่าแบบอื่นยังไง"
+
+ลองนึกถึงตัวอย่างนี้: คุณขอให้ model อธิบายเรื่องซับซ้อน model สามารถตอบได้หลายแบบ — บางแบบถูกต้องแต่ยาวเกิน, บางแบบกระชับแต่ขาดรายละเอียดสำคัญ, บางแบบใช้ศัพท์เทคนิคที่ผู้ใช้ไม่เข้าใจ SFT ไม่สามารถสอนความแตกต่างเหล่านี้ได้ดีนัก เพราะมันแค่เลียนแบบตัวอย่าง
+
+**RLHF — Reinforcement Learning from Human Feedback** คือวิธีที่สอน model ให้ "รู้จักว่าคำตอบไหนดีกว่า" โดยใช้ feedback จากมนุษย์จริง ๆ
+
+### ขั้นตอนของ RLHF
+
+**Phase 1: SFT ก่อน**
+เริ่มด้วย Supervised Fine-tuning ปกติ เพื่อให้ model รู้ว่ามันควรทำงานประเภทไหน นี่คือจุดเริ่มต้น
+
+**Phase 2: สร้าง Reward Model**
+นำ model จาก Phase 1 ไปสร้าง output หลาย ๆ แบบสำหรับ prompt เดียวกัน แล้วให้มนุษย์ rank ว่าคำตอบไหนดีที่สุด, รองลงมา, แย่ที่สุด
+
+จากข้อมูล ranking เหล่านี้ train model อีกตัวหนึ่งที่เรียกว่า **Reward Model** — model นี้เรียนรู้ที่จะ "ให้คะแนน" ว่าคำตอบดีแค่ไหน
+
+**Phase 3: Optimize ด้วย PPO**
+ใช้ algorithm ที่เรียกว่า PPO (Proximal Policy Optimization) ซึ่งเป็น reinforcement learning — สอน model ให้สร้างคำตอบที่ได้คะแนนสูงจาก Reward Model โดยไม่ "หลุด" จาก original model มากเกินไป
+
+> 💡 **Key insight:** RLHF คือวิธีที่ ChatGPT ถูก train ให้ตอบในแบบที่มนุษย์ชอบ — helpful, harmless, honest ไม่ใช่แค่ถูกต้องในเชิงข้อเท็จจริง แต่ดีในเชิงประสบการณ์ผู้ใช้
+
+### ทำไม RLHF ถึงยากและแพง
+
+- ต้องการมนุษย์ annotator จำนวนมากในการ rank คำตอบ
+- ต้อง train model สองตัว (policy + reward model) พร้อมกัน
+- PPO มี hyperparameters เยอะและ sensitive — ปรับผิดนิดเดียวก็พัง
+- เสี่ยง reward hacking — model อาจเรียนรู้ที่จะโกง reward model แทนที่จะตอบดีจริง ๆ
+
+สำหรับบริษัทส่วนใหญ่ ไม่จำเป็นต้องทำ RLHF เอง เพราะ model ที่ผ่าน RLHF มาแล้วมีให้ใช้ฟรี (Llama ที่ผ่าน instruction tuning, Mistral Instruct, ฯลฯ) การทำ SFT ทับบน model เหล่านี้มักเพียงพอ
+
+<!-- IMAGE: ภาพ flowchart แสดง 3 phases ของ RLHF: SFT → Reward Model Training → PPO Optimization -->
+
+---
+
+## DPO — RLHF ที่ไม่ต้องใช้ Reward Model
+
+ในปี 2023 นักวิจัยจาก Stanford เสนอวิธีที่เรียบง่ายกว่า RLHF มาก — **Direct Preference Optimization (DPO)**
+
+แนวคิดคือ: แทนที่จะ train reward model แยกก่อนแล้วค่อย optimize ด้วย reinforcement learning — ทำทุกอย่างในขั้นตอนเดียวได้เลย
+
+### วิธีการทำงานของ DPO
+
+DPO ต้องการ dataset แบบ "preference pairs" — แต่ละ example มีสาม component:
+- **prompt**: คำถามหรือ input
+- **chosen**: คำตอบที่มนุษย์ชอบมากกว่า
+- **rejected**: คำตอบที่มนุษย์ชอบน้อยกว่า
+
+ตัวอย่าง:
+
+```json
+{
+  "prompt": "อธิบายว่า machine learning คืออะไร",
+  "chosen": "Machine learning คือการให้คอมพิวเตอร์เรียนรู้จากข้อมูลโดยอัตโนมัติ เหมือนการที่เด็กเรียนรู้ว่า 'แมว' หน้าตาเป็นยังไงจากการเห็นแมวหลาย ๆ ตัว แทนที่จะต้องมีใครเขียนกฎว่าแมวต้องมีหู 2 ข้าง หนวด 4 เส้น...",
+  "rejected": "Machine learning เป็น subset ของ artificial intelligence ที่ใช้ statistical algorithms เพื่อทำ pattern recognition บน input data โดยไม่ต้อง explicitly program rules..."
+}
+```
+
+DPO ใช้ mathematical trick ที่ชาญฉลาด — แสดงให้เห็นว่า optimal policy ที่คุณต้องการสามารถ express ได้โดยตรงผ่าน log probability ของ reference model โดยไม่ต้อง train reward model แยก
+
+ผลคือ: train ง่ายกว่า RLHF มาก ใช้ memory น้อยกว่า และผลลัพธ์ใกล้เคียงกัน
+
+### เมื่อไหร่ควรใช้ DPO
+
+DPO เหมาะสำหรับ:
+- ต้องการ align model ให้ตอบในสไตล์ที่ต้องการ (formal/casual, concise/detailed)
+- มี feedback ว่าคำตอบไหนดีกว่าแต่ไม่มี budget สำหรับ full RLHF pipeline
+- ต้องการ safety alignment — สอนให้ model ปฏิเสธ harmful requests
+
+Pipeline จริงมักเป็น SFT → DPO: ทำ SFT ก่อนให้ model รู้ว่าต้องทำงานอะไร แล้วค่อย DPO เพื่อ align สไตล์และ behavior
+
+> 💡 **Key insight:** DPO กำลังกลายเป็น default สำหรับ alignment ใน open-source community เพราะง่ายกว่า RLHF มากแต่ได้ผลใกล้เคียงกัน model ยอดนิยมอย่าง Llama 3 Instruct ใช้ DPO เป็นส่วนหนึ่งของ training pipeline
+
+<!-- IMAGE: ภาพเปรียบเทียบ RLHF (3 steps, หลาย component) vs DPO (1 step, simple) แบบ side-by-side -->
+
+---
+
+## เลือกวิธีไหนดี — Decision Framework
+
+ถึงตอนนี้คุณรู้จักวิธีทั้งหมดแล้ว คำถามต่อมาคือ "แล้วฉันควรใช้อะไร?"
+
+คำตอบขึ้นอยู่กับ 4 ปัจจัย: สิ่งที่คุณต้องการ, GPU ที่มี, งบประมาณ, และ model ที่คุณใช้
+
+### Decision Tree
+
+```
+คุณใช้ OpenAI/Anthropic API อยู่แล้วหรือไม่?
+│
+├─ ใช่ → OpenAI Fine-tuning API (SFT)
+│         ง่าย เร็ว ไม่ต้องจัดการ infrastructure
+│         เหมาะถ้า: งบดี, ต้องการเร็ว, ไม่ต้องการ control weights
+│
+└─ ไม่ → ต้องการ open-source model ไหม?
+          │
+          ├─ ใช่ → มี GPU เพียงพอไหม?
+          │         │
+          │         ├─ ไม่มี (< 16 GB VRAM) → QLoRA
+          │         │   ใช้ Google Colab T4 (ฟรี) หรือ A10 (ถูก)
+          │         │   เหมาะสำหรับ: model 3B-13B
+          │         │
+          │         ├─ มีบ้าง (16-48 GB VRAM) → LoRA
+          │         │   เหมาะสำหรับ: model 7B-13B ด้วย quality ที่ดีขึ้น
+          │         │
+          │         └─ มีเยอะ (80+ GB VRAM) → Full Fine-tuning หรือ LoRA
+          │             ขึ้นกับว่างานต้องการ quality ระดับไหน
+          │
+          └─ ต้องการ align behavior/style → SFT ก่อน แล้ว DPO
+```
+
+### ตารางสรุปเลือกใช้วิธีไหน
+
+| สถานการณ์ | วิธีที่แนะนำ | เหตุผล |
+|-----------|-------------|--------|
+| ใช้ OpenAI API, ต้องการเร็ว | OpenAI Fine-tuning | ไม่ต้องจัดการอะไรเอง |
+| Open-source, GPU จำกัด | QLoRA | รันได้บน GPU ราคาถูก |
+| Open-source, GPU พอสมควร | LoRA | Quality ดีกว่า QLoRA เล็กน้อย |
+| ต้องการปรับ style/behavior | SFT + DPO | SFT สอนงาน, DPO align สไตล์ |
+| Budget ไม่จำกัด, quality สูงสุด | Full Fine-tuning | ปรับได้เต็มที่ทุก weight |
+| Alignment/Safety เป็นหลัก | RLHF หรือ DPO | ออกแบบมาสำหรับ preference learning |
+
+### คำแนะนำปฏิบัติ
+
+**เริ่มจากน้อยไปมากเสมอ**:
+1. ลอง few-shot prompting ก่อน
+2. ถ้าไม่พอ ลอง SFT ด้วย OpenAI API (ง่ายสุด)
+3. ถ้าต้องการ control มากขึ้น ย้ายไป QLoRA/LoRA
+4. DPO/RLHF เพิ่มเป็น phase สุดท้าย
+
+**Dataset ต้องมาก่อน method**:
+วิธีที่เลือกไม่สำคัญเท่า dataset ที่มีคุณภาพ model ที่ fine-tune ด้วย 100 examples ที่ดีมักดีกว่า model ที่ train ด้วย 1,000 examples ที่มีเสียงรบกวน
+
+> 💡 **Key insight:** ข้อผิดพลาดที่พบบ่อยที่สุดคือเลือก method ที่ "ล้ำ" เกินความต้องการ ถ้า QLoRA ให้ผลลัพธ์ที่ดีพอ ไม่มีเหตุผลต้องไปทำ Full Fine-tuning ที่แพงกว่า 10 เท่า
+
+<!-- IMAGE: ภาพ flowchart decision framework แบบสวยงาม สีชัดเจน สำหรับเลือก fine-tuning method -->
+
+---
+
+## สิ่งที่ต้องรู้เรื่อง Dataset ก่อนเริ่ม
+
+Fine-tuning ที่ล้มเหลวส่วนใหญ่ไม่ได้มาจากการเลือก method ผิด — มาจาก dataset ที่ไม่ดี
+
+### คุณภาพมาก่อนปริมาณ
+
+OpenAI เคยแนะนำว่า fine-tuning ที่ดีเริ่มต้นได้ที่ 50-100 examples ที่ quality สูง แต่บริษัทหลายแห่งพยายาม scrape ข้อมูลมาเยอะ ๆ โดยไม่กรอง ผลคือ model เรียนรู้ pattern ที่ไม่ต้องการด้วย
+
+**ตัวชี้วัด dataset ที่ดี**:
+- ทุก example เป็นคำตอบที่คุณภูมิใจจะให้ลูกค้าจริง ๆ
+- ครอบคลุม edge cases ที่สำคัญ ไม่ใช่แค่ case ง่าย ๆ
+- สไตล์สม่ำเสมอตลอด — ไม่ใช่บางชิ้น formal บางชิ้น casual
+- ไม่มีข้อมูลผิดพลาดหรือข้อมูลเก่า
+
+### จำนวน Examples ที่แนะนำ
+
+| งานที่ต้องการ | จำนวน Examples ขั้นต่ำ | จำนวน Ideal |
+|--------------|----------------------|-------------|
+| Style/Tone adjustment | 50-100 | 200-500 |
+| Domain knowledge | 200-500 | 1,000+ |
+| Complex reasoning patterns | 500-1,000 | 2,000+ |
+| Full behavior change | 1,000+ | 5,000+ |
+
+### Train/Validation Split
+
+อย่าลืม reserve ข้อมูลส่วนหนึ่งไว้เป็น validation set — ประมาณ 10-20% ใช้วัดว่า model กำลัง overfit หรือเปล่า ถ้า training loss ลงแต่ validation loss ขึ้น นั่นคือสัญญาณ overfit ชัดเจน
+
+> 💡 **Key insight:** ถ้าคุณมีเวลา 40 ชั่วโมงสำหรับ fine-tuning project ควรใช้ 30 ชั่วโมงกับการเตรียมและ curate data ใช้ 10 ชั่วโมงกับการ train และ evaluate ไม่ใช่กลับกัน
+
+<!-- IMAGE: ภาพ bar chart แสดงความสัมพันธ์ระหว่าง dataset quality vs quantity กับ model performance -->
+
+---
+
+## Evaluation: รู้ได้ยังไงว่า Fine-tuning ได้ผล
+
+หลังจาก train เสร็จ คำถามสำคัญคือ "ดีขึ้นจริงไหม?"
+
+### วิธี Evaluate ที่ใช้ได้จริง
+
+**1. Held-out Test Set**
+เตรียม examples ที่ไม่ได้ใส่ใน training set ไว้ตั้งแต่ต้น หลัง train แล้วทดสอบกับ examples เหล่านี้ เปรียบเทียบ output ของ fine-tuned model vs base model vs GPT-4
+
+**2. Human Evaluation**
+ให้คน 2-3 คนที่ไม่รู้ว่า output ไหนมาจาก model ไหน rank ว่าชอบ output ไหนมากกว่า blind comparison ไม่ bias ไปตาม expectation
+
+**3. Automated Metrics**
+สำหรับงานที่มี ground truth ชัดเจน (เช่น classification, extraction):
+- Accuracy, F1, Precision, Recall
+- สำหรับ text generation ใช้ BLEU หรือ ROUGE score (แต่มีข้อจำกัด)
+
+**4. LLM-as-Judge**
+ใช้ model ที่แข็งแกร่งกว่า (เช่น GPT-4) เป็น judge ตัดสินว่า output ดีแค่ไหนตาม criteria ที่กำหนด วิธีนี้ scale ได้ดีและ consistent แต่ต้องออกแบบ criteria ให้รอบคอบ
+
+**5. A/B Testing ใน Production**
+วิธีที่บอกความจริงได้ดีที่สุดในระยะยาว — deploy fine-tuned model ให้ผู้ใช้บางส่วน แล้วเปรียบเทียบ metrics จริง เช่น completion rate, user satisfaction, error rate
+
+<!-- IMAGE: ภาพ dashboard แสดง before/after metrics เปรียบเทียบ base model vs fine-tuned model -->
+
+---
+
+## ข้อผิดพลาดที่พบบ่อยและวิธีหลีกเลี่ยง
+
+จากประสบการณ์จริงของทีมที่ทำ fine-tuning มาแล้ว มีกับดักที่เจอบ่อยที่สุดดังนี้
+
+**1. Fine-tune ทั้งที่ prompting ยังไม่ดีพอ**
+Fine-tuning ไม่ใช่ยาแก้ prompt ที่ออกแบบมาไม่ดี ถ้า few-shot prompting ด้วยตัวอย่าง 10 ชุดให้ผลลัพธ์ 70% แล้ว fine-tuning อาจให้ 80% แต่ถ้า prompting ยังให้ผล 30% ปัญหาอาจอยู่ที่ task definition ไม่ใช่ model training
+
+**2. Dataset น้อยเกินไปหรือ low quality**
+50 examples แบบ "พอได้" แย่กว่า 30 examples ที่ดีมาก ใช้เวลา QA dataset มากกว่าที่คิดว่าจำเป็น
+
+**3. Train epochs มากเกินไป**
+overfit เกิดเร็วมากโดยเฉพาะกับ dataset เล็ก ๆ ดู validation loss และหยุดเมื่อมันเริ่มขึ้น
+
+**4. ไม่ทำ baseline comparison**
+วัด performance ของ base model ก่อน fine-tune เสมอ ไม่งั้นไม่รู้ว่า fine-tuning ดีขึ้นหรือแย่ลง
+
+**5. ลืมเรื่อง catastrophic forgetting**
+Full fine-tuning กับ dataset เล็กมากอาจทำให้ model "ลืม" ความสามารถเดิม ถ้า fine-tune เรื่อง customer service แต่ตอนทดสอบพบว่า model เขียน code ไม่ได้แล้ว นั่นคือสัญญาณ
+
+---
+
+## สรุป
+
+Fine-tuning ไม่ใช่คำสั่งเดียวที่ทำทุกอย่าง — มันคือกลุ่มของวิธีการที่แต่ละอันออกแบบมาสำหรับสถานการณ์ที่ต่างกัน
+
+**SFT** คือรากฐาน — สอน model ว่าต้องทำงานแบบไหน เหมาะสำหรับเกือบทุก use case ที่เริ่มต้น
+
+**LoRA และ QLoRA** คือ enabler — ทำให้ fine-tuning เข้าถึงได้โดยไม่ต้อง budget มหาศาล QLoRA โดยเฉพาะเปลี่ยนเกมในเรื่องความ accessible
+
+**RLHF และ DPO** คือ alignment layer — สอน model ว่าคำตอบไหน "ดีกว่า" ในสายตามนุษย์ ใช้หลังจาก SFT พื้นฐานทำงานได้แล้ว
+
+สิ่งที่สำคัญกว่าการเลือก method คือ dataset ที่มีคุณภาพ และการประเมินผลที่ซื่อสัตย์ fine-tuning ที่ดีที่สุดมาจากการ iterate อย่างรอบคอบ ไม่ใช่จาก method ที่ล้ำที่สุด
+
+แต่ fine-tuning ที่ดีเป็นแค่ครึ่งทาง อีกครึ่งหนึ่งคือการรู้ว่า model ทำงานได้ดีแค่ไหนหลัง deploy จริง บทถัดไปเรื่อง [LLM Observability](/building-with-ai/observability) จะพาคุณดูวิธีติดตาม monitor และ debug model ใน production — เพราะสิ่งที่คุณวัดไม่ได้ คุณปรับปรุงไม่ได้

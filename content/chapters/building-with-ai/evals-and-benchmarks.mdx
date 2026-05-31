@@ -1,0 +1,688 @@
+---
+slug: evals-and-benchmarks
+level: building-with-ai
+title: "Evals คืออะไร — วัดผล AI อย่างเป็นระบบ ไม่ใช่แค่ลองเล่นดู"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เรียนรู้วิธีวัดผล LLM อย่างเป็นระบบ ตั้งแต่ทำไมต้อง eval, สร้าง test set, เลือก metrics, ใช้ LLM-as-judge จนถึงการทำ regression testing ก่อน deploy"
+---
+# Evals คืออะไร — วัดผล AI อย่างเป็นระบบ ไม่ใช่แค่ลองเล่นดู
+
+คุณแก้ prompt ไปนิดนึง ลองส่งให้ AI ตอบ 3-4 ครั้ง รู้สึกว่า "โอ้โห ดีขึ้นมากเลย" แล้วก็ ship ขึ้น production เลย — นั่นคือสิ่งที่นักพัฒนา AI ส่วนใหญ่ทำกัน และนั่นคือสาเหตุที่ระบบ AI หลายตัวพังในโลกจริง
+
+ความรู้สึกว่า "ดีขึ้น" ไม่ใช่หลักฐาน ความจริงคือคุณอาจแค่โชคดีเลือก 3 ตัวอย่างที่ใช้ได้ แต่ยังมีอีก 97 แบบที่คุณไม่ได้ทดสอบ
+
+Evals คือระบบทดสอบที่มืออาชีพใช้วัดผล AI อย่างเป็นระบบ — ไม่ใช่แค่ "ลองดู" แต่วัดได้ เทียบได้ และตัดสินใจได้จากตัวเลขจริง บทนี้จะพาคุณสร้าง eval ระบบแรกตั้งแต่ต้นจนจบ
+
+<!-- IMAGE: ภาพเปรียบเทียบ "vibes-based testing" (คนลองคลิก 3 ครั้งแล้วพยักหน้า) กับ "systematic eval" (กราฟ accuracy เปรียบเทียบ before/after) -->
+
+---
+
+## ทำไม "ลองเล่นดู" ไม่พอ
+
+ลองนึกภาพนี้: คุณเปิดร้านอาหารใหม่ ก่อน opening day คุณให้เพื่อน 3 คนมาชิม ทุกคนบอกว่าอร่อย คุณเลยเปิดร้าน แต่พอลูกค้า 200 คนมา ปรากฏว่าครึ่งหนึ่งส่งอาหารคืน
+
+ปัญหาไม่ใช่ว่าเพื่อนคุณโกหก ปัญหาคือตัวอย่าง 3 คนมันไม่ตัวแทน 200 คน
+
+การทดสอบ AI แบบ "ลองดู 3-5 ครั้ง" มีปัญหาเดียวกันทุกประการ:
+
+**Cherry-picking โดยไม่รู้ตัว**
+
+เวลาคุณนึกจะทดสอบ prompt คุณมักนึกถึง use case ที่ชัดเจน ที่ตรงไปตรงมา ที่คุณเองก็รู้ว่าน่าจะผ่าน แต่ user จริงในโลกจริงจะส่งคำถามแบบที่คุณไม่เคยนึกถึงมาก่อน — คำถามสั้นโหด, คำถามกำกวม, ภาษาไทยคำอังกฤษปนกัน, พิมพ์ผิด, ขอหลายอย่างในประโยคเดียว
+
+**Recency bias**
+
+ถ้าคุณลอง 5 ครั้ง แล้วครั้งที่ 4-5 ดูดี คุณจะจำความรู้สึกนั้น แม้ว่าครั้งที่ 1-2 จะพลาด สมองมนุษย์ถูกออกแบบมาให้จำสิ่งที่เพิ่งเกิดขึ้น ไม่ใช่สรุปภาพรวม
+
+**ไม่มี baseline เปรียบเทียบ**
+
+"ดีขึ้น" เทียบกับอะไร? ถ้าคุณไม่มีตัวเลขจากก่อนเปลี่ยน คุณไม่รู้จริง ๆ ว่าดีขึ้น หรือแค่ต่างออกไป หรือจริง ๆ แล้วบางส่วนแย่ลงด้วยซ้ำ
+
+**ไม่ครอบคลุม edge cases**
+
+ระบบ AI มักทำงานได้ดีกับ common cases และพังที่ edge cases พอดี ซึ่ง edge case เหล่านั้นคือสิ่งที่ user จะส่งมาเมื่อไม่คาดฝัน เช่น input ยาวผิดปกติ, คำถามที่อยู่นอก scope, ข้อมูลที่ขัดแย้งกัน
+
+> 💡 **Key insight:** การทดสอบแบบ "ลองดู" ไม่ได้บอกว่าระบบคุณทำงานได้ดี มันบอกแค่ว่าระบบคุณผ่านตัวอย่างที่คุณเลือก ซึ่งเป็นคนละเรื่องกัน
+
+<!-- IMAGE: ภาพกราฟ distribution ของ user queries — ส่วนใหญ่อยู่ตรงกลาง (common cases) แต่ tail ด้านขวา (edge cases) คือจุดที่ระบบพัง -->
+
+---
+
+## Eval คืออะไร — แนวคิดพื้นฐาน
+
+Eval ย่อมาจาก Evaluation และถ้าจะให้เปรียบง่าย ๆ มันคือ "ข้อสอบ" ที่คุณออกให้กับระบบ AI ของคุณ
+
+ข้อสอบที่ดีมีสามส่วนเสมอ:
+
+**1. โจทย์ — Test Set**
+
+ชุดของ input ที่คุณจะใช้ทดสอบระบบ พร้อมกับ expected output ที่ถูกต้อง ถ้าระบบคุณเป็น chatbot ตอบคำถามประกัน test set อาจเป็นคำถาม 100 ข้อที่ลูกค้าเคยถามจริง ๆ พร้อมคำตอบที่ถูกต้องที่ผู้เชี่ยวชาญยืนยันแล้ว
+
+**2. เฉลย + วิธีตรวจ — Metric**
+
+วิธีที่คุณจะวัดว่า AI ตอบถูกหรือผิด ถูกมากหรือถูกน้อย บางทีวัดง่ายมาก เช่น ตอบว่า "ใช่" หรือ "ไม่ใช่" ก็ match ง่าย บางทีซับซ้อน เช่น คำตอบยาว 3 ย่อหน้าที่ต้องวัดว่าครอบคลุมประเด็นสำคัญไหม
+
+**3. เกณฑ์ผ่าน — Threshold**
+
+ตัวเลขที่บอกว่า "ถ้าได้ต่ำกว่านี้ ยังไม่ควร deploy" เช่น accuracy ต้องอยู่เหนือ 85% หรือ average score จาก LLM judge ต้องไม่ต่ำกว่า 4.0 จาก 5.0
+
+สามส่วนนี้รวมกันทำให้ Eval แตกต่างจากการ "ลองดู" อย่างสิ้นเชิง:
+
+| ลองดู | Eval |
+|--------|------|
+| เลือก input เองตอนทดสอบ | Input กำหนดไว้ล่วงหน้า ไม่เปลี่ยน |
+| ตัดสินด้วยความรู้สึก | ตัดสินด้วยตัวเลข |
+| ไม่มีเกณฑ์ชัดเจน | มี threshold ชัดเจน |
+| เปรียบเทียบไม่ได้ข้ามเวลา | เปรียบเทียบ before/after ได้ |
+| ใช้เวลาน้อยแต่ไม่น่าเชื่อถือ | ใช้เวลามากกว่า แต่น่าเชื่อถือ |
+
+> 💡 **Key insight:** Eval ไม่ใช่สิ่งที่ทำครั้งเดียวแล้วจบ มันคือ infrastructure ที่รันซ้ำได้ทุกครั้งที่คุณเปลี่ยนอะไรในระบบ เหมือน unit test ในการเขียนโปรแกรมทั่วไป
+
+<!-- IMAGE: ไดอะแกรม 3 ส่วนของ Eval: Test Set → ระบบ AI → Output → Metric → Score vs Threshold → Pass/Fail -->
+
+---
+
+## สร้าง Test Set ยังไง
+
+Test set คือหัวใจของ eval ถ้า test set แย่ ผลการวัดก็ไม่มีความหมาย วิธีสร้าง test set ที่ดีมีอยู่ไม่กี่แนวทาง
+
+**เริ่มจาก Real User Queries**
+
+วิธีที่ดีที่สุดคือดูว่า user จริง ๆ ส่งอะไรมาในระบบ ถ้าคุณมี log จาก production อยู่แล้ว ให้นำมาสุ่ม 200-300 รายการ แล้วให้ domain expert เลือกและเขียน ideal answer สำหรับแต่ละรายการ
+
+ถ้ายังไม่มี production logs เพราะระบบยังไม่ได้ launch ให้ทำ "synthetic data generation" — นั่นคือใช้ LLM ช่วยสร้าง queries ที่หลากหลาย แล้วค่อยให้ expert ตรวจสอบ
+
+**จำนวนเท่าไหร่ถึงพอ**
+
+ไม่มีตัวเลขที่ตายตัว แต่ rule of thumb ที่นักพัฒนาส่วนใหญ่ใช้:
+
+- 50 cases: ขั้นต่ำสำหรับ prototype — พอให้เห็นแนวโน้มได้
+- 100-200 cases: เหมาะสำหรับ MVP ที่จะ launch จริง
+- 500+ cases: สำหรับ production system ที่ business-critical
+- 1,000+ cases: สำหรับระบบที่ต้องการ statistical significance สูง
+
+ยิ่ง test set ใหญ่ ยิ่งเชื่อถือผลได้มากขึ้น แต่ก็ใช้เวลาสร้างและรันนานขึ้นด้วย ไม่ต้องรอให้ครบ 1,000 ก่อนเริ่ม — เริ่มที่ 50 ก่อนดีกว่าไม่เริ่มเลย
+
+**วิธี Categorize Test Cases**
+
+อย่าสร้าง test set แบบสุ่มๆ ควรออกแบบให้ครอบคลุมอย่างตั้งใจ:
+
+*ตาม Difficulty:*
+- Easy: คำถามตรงไปตรงมา ข้อมูลอยู่ในเอกสาร
+- Medium: ต้องสังเคราะห์ข้อมูลจากหลายที่
+- Hard: คำถามกำกวม, edge case, คำถามที่อยู่นอก scope
+
+*ตาม Topic:*
+ถ้าระบบคุณตอบเรื่องประกัน แบ่งเป็นหมวด: ประกันสุขภาพ, ประกันรถ, เงื่อนไขการเคลม, ราคาเบี้ย ฯลฯ — แล้วดูว่า AI ทำได้ดีหมวดไหนและพังหมวดไหน
+
+*ตาม Failure Mode:*
+ลองคิดล่วงหน้าว่าระบบน่าจะพังตรงไหน แล้วสร้าง test case ที่จงใจทดสอบจุดนั้น เช่น คำถามที่คำตอบไม่อยู่ในเอกสาร, คำถามที่มีข้อมูลขัดแย้ง, คำถามที่ต้องการความแม่นยำสูง (ตัวเลข, วันที่)
+
+**Format ของ Test Set**
+
+รูปแบบพื้นฐานที่สุดคือ JSON หรือ CSV:
+
+```json
+[
+  {
+    "id": "q001",
+    "category": "health-insurance",
+    "difficulty": "easy",
+    "input": "ประกันสุขภาพคุ้มครองค่าห้องไหม",
+    "expected_output": "ใช่ ประกันสุขภาพส่วนใหญ่คุ้มครองค่าห้องผู้ป่วยใน...",
+    "key_points": ["คุ้มครองค่าห้อง", "ระบุวงเงินต่อวัน", "แนะนำให้อ่านกรมธรรม์"]
+  }
+]
+```
+
+field `key_points` สำคัญมากสำหรับ generation tasks เพราะบางทีคำตอบที่ถูกต้องมีได้หลายรูปแบบ แต่ต้องมีประเด็นหลักเหล่านี้
+
+<!-- IMAGE: ตัวอย่าง spreadsheet test set ที่มี columns: ID, Category, Difficulty, Input, Expected Output, Key Points -->
+
+---
+
+## Metrics ที่ใช้บ่อย
+
+เมื่อมี test set แล้ว ขั้นต่อไปคือเลือกวิธีวัด metric ที่เหมาะกับงาน เพราะงานต่างประเภทวัดต่างกัน
+
+**Exact Match**
+
+ใช้เมื่อ output ที่ถูกต้องมีแค่คำตอบเดียวที่ตายตัว เช่น Classification task ที่ต้องบอกว่า sentiment เป็น "positive", "negative", หรือ "neutral" — ถ้า model ตอบ "positive" และ expected เป็น "positive" ก็ถูก ถ้าไม่ match ก็ผิด
+
+```python
+def exact_match(prediction, expected):
+    return prediction.strip().lower() == expected.strip().lower()
+```
+
+เหมาะกับ: classification, entity extraction ที่กำหนด format, yes/no questions
+
+**Contains Check**
+
+ใช้เมื่อคำตอบที่ถูกต้องต้องมีข้อมูลบางอย่างอยู่ แต่ไม่ต้องตรงทุกคำ เช่น output ต้องมีเลขโทรศัพท์ หรือชื่อสินค้า
+
+```python
+def contains_check(prediction, must_contain_list):
+    return all(item.lower() in prediction.lower() for item in must_contain_list)
+```
+
+**BLEU และ ROUGE Score**
+
+เป็น metric ดั้งเดิมสำหรับ text generation ที่วัดว่า output ของ model คล้ายกับ reference text มากแค่ไหน โดยนับ n-gram ที่ตรงกัน
+
+ปัญหาคือ metric พวกนี้ไม่ได้วัด "ความถูกต้อง" แต่วัด "ความคล้าย" กับ reference — ถ้า model เขียนคำตอบที่ถูกต้องแต่ใช้คำต่างจาก reference ก็จะได้คะแนนต่ำ ทั้งที่จริงๆ ดี
+
+ปัจจุบันนักพัฒนาส่วนใหญ่ใช้ BLEU/ROUGE น้อยลงมากสำหรับ LLM และหันไปใช้ LLM-as-judge แทน
+
+**Field-level Accuracy สำหรับ Extraction Tasks**
+
+ถ้า task คือดึงข้อมูลออกจากเอกสาร เช่น ดึงชื่อ, วันที่, จำนวนเงินออกจากสัญญา ให้วัดทีละ field:
+
+```python
+fields = ["customer_name", "contract_date", "total_amount"]
+field_accuracy = {}
+for field in fields:
+    correct = sum(pred[field] == expected[field] for pred, expected in zip(predictions, test_set))
+    field_accuracy[field] = correct / len(test_set)
+```
+
+การวัดทีละ field ช่วยให้เห็นว่า model ดึงข้อมูลบางประเภทได้ดีกว่าประเภทอื่น
+
+**Human Evaluation**
+
+สำหรับงานที่ซับซ้อนและต้องการความแม่นยำสูง การให้มนุษย์ประเมินยังเป็นวิธีที่น่าเชื่อถือที่สุด แต่แพงและช้า Human eval มักใช้ในการตรวจสอบ eval ระบบอื่นๆ ว่าน่าเชื่อถือไหม (meta-evaluation)
+
+> 💡 **Key insight:** ไม่มี metric ไหนที่ดีที่สุดสำหรับทุกงาน เลือก metric ที่วัดสิ่งที่คุณ care จริงๆ ถ้าคุณ care ว่า user จะพอใจไหม ให้วัด user satisfaction ถ้า care ว่าข้อมูลถูกไหม ให้วัด factual accuracy
+
+<!-- IMAGE: ตาราง metric vs task type: Classification → Accuracy/F1, Extraction → Field Accuracy, Generation → LLM Judge, Translation → BLEU + Human -->
+
+---
+
+## LLM-as-Judge — ให้ AI ตรวจ AI
+
+นี่คือหนึ่งในวิธีที่เปลี่ยนเกมมากที่สุดในการทำ eval ยุคใหม่ แทนที่จะให้มนุษย์ตรวจคำตอบทุกข้อ ให้ใช้ LLM ตัวหนึ่ง (เช่น GPT-4o) ตรวจคำตอบที่สร้างโดย LLM อีกตัวหนึ่ง (เช่น ระบบของคุณที่ใช้ Claude)
+
+**ทำไมถึงใช้ได้ผล**
+
+LLM ที่ทรงพลังพอสามารถอ่านคำตอบแล้วประเมินได้ว่าถูกต้องไหม ครอบคลุมประเด็นสำคัญไหม ภาษาดีไหม ตามเกณฑ์ที่เราให้ไป — และทำได้เร็วมาก ราคาถูก และ scale ได้ไม่จำกัด
+
+**Rubric Design — หัวใจของ LLM Judge**
+
+ส่วนที่สำคัญที่สุดคือ rubric หรือเกณฑ์การให้คะแนน ถ้า rubric ไม่ชัด judge model จะให้คะแนนตามอำเภอใจ
+
+ตัวอย่าง rubric สำหรับ chatbot ตอบคำถามประกัน:
+
+```
+คุณคือผู้เชี่ยวชาญประกันภัยที่กำลังประเมินคุณภาพคำตอบของ AI chatbot
+
+ให้คะแนน 1-5 ตามเกณฑ์นี้:
+5 = ถูกต้องสมบูรณ์, ครบทุกประเด็นสำคัญ, ภาษาชัดเจน ไม่เข้าใจผิดได้
+4 = ถูกต้องเป็นส่วนใหญ่, อาจขาดรายละเอียดบางส่วน แต่ไม่ทำให้เข้าใจผิด
+3 = ถูกต้องบางส่วน, มีข้อมูลสำคัญขาดหายหรือไม่ชัดเจน
+2 = มีข้อมูลผิดพลาดหรือทำให้เข้าใจผิดอย่างมีนัยสำคัญ
+1 = ผิดพลาดร้ายแรง, ให้ข้อมูลเท็จ หรือปฏิเสธตอบโดยไม่มีเหตุผล
+
+คำถามของลูกค้า: {question}
+คำตอบของ AI: {ai_answer}
+
+ให้คะแนน (1-5) และอธิบายเหตุผลสั้น ๆ
+Format: {"score": X, "reason": "..."}
+```
+
+**Pairwise Comparison**
+
+อีกวิธีที่ใช้บ่อยคือแทนที่จะให้คะแนนสัมบูรณ์ ให้ judge เปรียบเทียบ output สองอันแล้วบอกว่าอันไหนดีกว่า นิยมใช้ตอนที่ต้องการเปรียบ prompt A กับ prompt B
+
+```
+ดูคำตอบสองอันนี้สำหรับคำถามเดียวกัน
+บอกว่าอันไหนดีกว่า พร้อมเหตุผล
+
+คำถาม: {question}
+คำตอบ A: {answer_a}
+คำตอบ B: {answer_b}
+
+ตอบ: A หรือ B หรือ Tie
+```
+
+**ข้อดีและข้อจำกัดของ LLM Judge**
+
+ข้อดี:
+- Scale ได้ไม่จำกัด — รัน 1,000 cases ในไม่กี่นาที
+- ถูกกว่าจ้างคนตรวจมาก
+- Consistent — ไม่เหนื่อย ไม่เบื่อ ไม่ตรวจต่างกันตอนเช้ากับตอนเย็น
+- สามารถให้เหตุผลได้ว่าทำไมถึงให้คะแนนนั้น
+
+ข้อจำกัด:
+- Judge model มี bias ของตัวเอง เช่น GPT-4o มักชอบ output ที่ยาวและมี bullet points
+- ถ้า judge model กับ model ที่ถูกตรวจเป็นตัวเดียวกัน หรือมาจากบริษัทเดียวกัน อาจเกิด self-serving bias
+- ไม่ดีสำหรับ factual accuracy ที่ต้องการ ground truth แท้จริง
+- อาจพลาด subtle errors ที่ expert ตรวจจับได้
+
+> 💡 **Key insight:** LLM-as-judge ไม่ใช่ replacement ของ human evaluation — มันคือเครื่องมือ scale ที่ช่วยให้คุณ screen ได้เร็ว แล้วค่อยส่งเฉพาะกรณีที่น่าสงสัยให้มนุษย์ดู
+
+<!-- IMAGE: ไดอะแกรมแสดง workflow: AI Output → LLM Judge → Score → ถ้าคะแนนต่ำ → Human Review -->
+
+---
+
+## ลองทำดู #1: สร้าง Simple Eval ด้วย Python
+
+ถึงเวลาลงมือทำจริง เราจะสร้าง eval พื้นฐานที่ทำงานได้จริงภายใน 50 บรรทัด
+
+สถานการณ์: คุณสร้างระบบ AI ที่จำแนกประเภท feedback ของลูกค้าว่าเป็น "compliment", "complaint", หรือ "question" คุณต้องการวัดว่า prompt ที่ใช้อยู่แม่นแค่ไหน
+
+**ขั้นตอนที่ 1: สร้าง Test Set**
+
+```python
+# test_cases.py — test set ขนาดเล็กสำหรับทดสอบ
+test_cases = [
+    {
+        "id": "t001",
+        "input": "พนักงานบริการดีมากเลย ขอบคุณนะคะ",
+        "expected": "compliment"
+    },
+    {
+        "id": "t002",
+        "input": "รอนานมาก 30 นาทีแล้วยังไม่ได้รับสินค้า",
+        "expected": "complaint"
+    },
+    {
+        "id": "t003",
+        "input": "สามารถคืนสินค้าได้ไหมถ้าเปิดแล้ว",
+        "expected": "question"
+    },
+    {
+        "id": "t004",
+        "input": "แอปพลิเคชันใช้งานง่าย ดีใจที่เลือกใช้บริการนี้",
+        "expected": "compliment"
+    },
+    {
+        "id": "t005",
+        "input": "ของที่ได้ไม่ตรงกับรูปในเว็บเลย ผิดหวังมาก",
+        "expected": "complaint"
+    },
+    {
+        "id": "t006",
+        "input": "ชำระเงินด้วยบัตรเครดิตได้ไหม",
+        "expected": "question"
+    },
+    {
+        "id": "t007",
+        "input": "ราคาสมเหตุสมผล คุ้มค่าดี",
+        "expected": "compliment"
+    },
+    {
+        "id": "t008",
+        "input": "ส่งมาผิดสีเลย ไม่ใช่สีที่สั่ง",
+        "expected": "complaint"
+    },
+    {
+        "id": "t009",
+        "input": "มีบริการส่งด่วนวันเดียวกันไหม",
+        "expected": "question"
+    },
+    {
+        "id": "t010",
+        "input": "ประทับใจมากเลย จะแนะนำให้เพื่อนใช้",
+        "expected": "compliment"
+    }
+]
+```
+
+**ขั้นตอนที่ 2: เขียน Eval Runner**
+
+```python
+# eval_runner.py — รัน eval และคำนวณ accuracy
+import json
+from openai import OpenAI  # หรือ anthropic ก็ได้
+from test_cases import test_cases
+
+client = OpenAI()
+
+# System prompt ที่เราต้องการทดสอบ
+SYSTEM_PROMPT = """คุณคือ AI จำแนกประเภท feedback ลูกค้า
+ตอบด้วยคำเดียวเท่านั้น: compliment, complaint, หรือ question
+ห้ามตอบอย่างอื่น"""
+
+def classify(text):
+    """ส่ง input ไปให้ LLM และรับ prediction กลับมา"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": text}
+        ],
+        temperature=0  # ใช้ 0 เพื่อให้ผลออกมา consistent
+    )
+    return response.choices[0].message.content.strip().lower()
+
+def run_eval(test_cases):
+    """รัน eval ทุก test case และสรุปผล"""
+    results = []
+    correct = 0
+
+    print("กำลังรัน eval...\n")
+
+    for case in test_cases:
+        prediction = classify(case["input"])
+        is_correct = prediction == case["expected"]
+
+        if is_correct:
+            correct += 1
+
+        results.append({
+            "id": case["id"],
+            "input": case["input"],
+            "expected": case["expected"],
+            "prediction": prediction,
+            "correct": is_correct
+        })
+
+        # แสดงผลทีละ case
+        status = "PASS" if is_correct else "FAIL"
+        print(f"[{status}] {case['id']}: expected={case['expected']}, got={prediction}")
+
+    # คำนวณ accuracy
+    accuracy = correct / len(test_cases) * 100
+
+    print(f"\n{'='*40}")
+    print(f"ผลรวม: {correct}/{len(test_cases)} ถูกต้อง")
+    print(f"Accuracy: {accuracy:.1f}%")
+
+    # แสดง failure cases
+    failures = [r for r in results if not r["correct"]]
+    if failures:
+        print(f"\nกรณีที่ผิดพลาด ({len(failures)} cases):")
+        for f in failures:
+            print(f"  - {f['id']}: '{f['input'][:30]}...' → got '{f['prediction']}'")
+
+    return accuracy, results
+
+# รัน eval
+accuracy, results = run_eval(test_cases)
+```
+
+ลองรันดู แล้วดูว่าได้ accuracy เท่าไหร่ ถ้าได้น้อยกว่า 90% ลองแก้ system prompt แล้วรันใหม่ ดูว่าตัวเลขขยับขึ้นไหม — นั่นคือ eval-driven development
+
+> 🧪 **ลองทำดู:** คัดลอก code ด้านบน เพิ่ม test cases ของคุณเองเข้าไปอีก 10 รายการ แล้วลองเปลี่ยน system prompt และดูว่า accuracy เปลี่ยนยังไง บันทึกผลของแต่ละ version ไว้เปรียบเทียบ
+
+<!-- IMAGE: Screenshot ผลการรัน eval แสดง PASS/FAIL ทีละ case และ summary accuracy ด้านล่าง -->
+
+---
+
+## ลองทำดู #2: ใช้ LLM-as-Judge
+
+สำหรับงานที่คำตอบไม่ตายตัว เช่น generation tasks ที่ต้องการคำตอบแบบ open-ended เราจะใช้ LLM ช่วยตรวจ
+
+สถานการณ์: คุณมีระบบ AI ที่ตอบคำถามเกี่ยวกับสินค้า และต้องการวัดว่าคำตอบมีคุณภาพแค่ไหนในแง่ความถูกต้องและความเป็นประโยชน์
+
+```python
+# llm_judge_eval.py — ใช้ LLM ตรวจคุณภาพคำตอบ
+import json
+from openai import OpenAI
+
+client = OpenAI()
+
+# ตัวอย่าง test cases สำหรับ generation task
+generation_test_cases = [
+    {
+        "id": "g001",
+        "question": "ถ้าซื้อประกันสุขภาพแล้ว มีโรคเดิมอยู่แล้วจะได้รับความคุ้มครองไหม",
+        "ai_answer": "โรคที่มีอยู่ก่อนทำประกัน (Pre-existing conditions) โดยทั่วไปจะไม่ได้รับความคุ้มครองในปีแรก บางบริษัทอาจต้องรอ 2-5 ปีก่อนที่จะคุ้มครองโรคเหล่านั้น แนะนำให้อ่านเงื่อนไขกรมธรรม์ให้ละเอียดหรือถามตัวแทนประกัน",
+        "reference_points": ["pre-existing conditions", "ไม่คุ้มครองปีแรก", "แนะนำอ่านกรมธรรม์"]
+    },
+    {
+        "id": "g002",
+        "question": "เบี้ยประกันรถยนต์คำนวณจากอะไร",
+        "ai_answer": "เบี้ยประกันรถยนต์คำนวณจากหลายปัจจัย เช่น อายุผู้ขับ ประสบการณ์ขับรถ ยี่ห้อและรุ่นรถ อายุรถ ประวัติการเคลมในอดีต และพื้นที่ใช้งาน รถใหม่ราคาสูงหรือรถสปอร์ตมักมีเบี้ยแพงกว่า",
+        "reference_points": ["อายุผู้ขับ", "ยี่ห้อรถ", "ประวัติการเคลม", "พื้นที่ใช้งาน"]
+    }
+]
+
+JUDGE_PROMPT = """คุณคือผู้เชี่ยวชาญประกันภัยที่ประเมินคุณภาพคำตอบของ AI
+
+ให้คะแนน 1-5 ตามเกณฑ์:
+5 = ถูกต้องสมบูรณ์, ครอบคลุมทุกประเด็น, ไม่ทำให้เข้าใจผิด
+4 = ถูกต้องเป็นส่วนใหญ่, อาจขาดรายละเอียดเล็กน้อย
+3 = ถูกบางส่วน, ขาดประเด็นสำคัญบางอย่าง
+2 = มีข้อผิดพลาดสำคัญหรือทำให้เข้าใจผิด
+1 = ผิดพลาดร้ายแรงหรือให้ข้อมูลเท็จ
+
+คำถาม: {question}
+คำตอบของ AI: {ai_answer}
+ประเด็นสำคัญที่ควรมี: {reference_points}
+
+ตอบใน JSON format เท่านั้น:
+{{"score": X, "reason": "เหตุผลสั้นๆ", "missing": ["ประเด็นที่ขาด"]}}"""
+
+def judge_answer(question, ai_answer, reference_points):
+    """ให้ LLM ตรวจคุณภาพคำตอบ"""
+    prompt = JUDGE_PROMPT.format(
+        question=question,
+        ai_answer=ai_answer,
+        reference_points=", ".join(reference_points)
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-4o",  # ใช้ model ที่แรงกว่าตอนตรวจ
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+        response_format={"type": "json_object"}
+    )
+
+    return json.loads(response.choices[0].message.content)
+
+def run_judge_eval(test_cases):
+    """รัน LLM judge eval และแสดงผลสรุป"""
+    all_scores = []
+
+    print("กำลังรัน LLM-as-Judge eval...\n")
+
+    for case in test_cases:
+        result = judge_answer(
+            case["question"],
+            case["ai_answer"],
+            case["reference_points"]
+        )
+
+        score = result["score"]
+        all_scores.append(score)
+
+        print(f"[{case['id']}] คะแนน: {score}/5")
+        print(f"  เหตุผล: {result['reason']}")
+        if result.get("missing"):
+            print(f"  ขาด: {', '.join(result['missing'])}")
+        print()
+
+    # สรุปผล
+    avg_score = sum(all_scores) / len(all_scores)
+    print(f"{'='*40}")
+    print(f"Average Score: {avg_score:.2f}/5.0")
+    print(f"Cases ที่ได้ 4+: {sum(1 for s in all_scores if s >= 4)}/{len(all_scores)}")
+
+    # กำหนด threshold
+    THRESHOLD = 4.0
+    if avg_score >= THRESHOLD:
+        print(f"ผ่าน threshold ({THRESHOLD}) — พร้อม deploy")
+    else:
+        print(f"ไม่ผ่าน threshold ({THRESHOLD}) — ต้องปรับปรุง")
+
+    return avg_score
+
+avg = run_judge_eval(generation_test_cases)
+```
+
+> 🧪 **ลองทำดู:** ลองเปลี่ยน rubric ใน `JUDGE_PROMPT` ให้เข้มงวดขึ้นหรือผ่อนลง แล้วดูว่าคะแนนเปลี่ยนยังไง ลองตั้ง threshold ที่ต่างกัน (3.5 vs 4.0 vs 4.5) และคิดดูว่า threshold ที่เหมาะสมสำหรับ use case ของคุณคือเท่าไหร่
+
+<!-- IMAGE: Output ของ LLM judge แสดงคะแนนทีละ case พร้อม reason และ missing points -->
+
+---
+
+## Regression Testing — ป้องกันไม่ให้เสียของ
+
+นี่คือส่วนที่ทำให้ eval มีคุณค่าอย่างแท้จริงในระยะยาว
+
+ลองนึกภาพนี้: คุณมีระบบ AI ที่ทำงานได้ดี คุณตัดสินใจเปลี่ยน prompt เล็กน้อยเพื่อให้ตอบสั้นลง หรือคุณอัปเกรดจาก GPT-4o-mini เป็น GPT-4o หรือคุณเพิ่มข้อมูลใหม่เข้าไปใน knowledge base
+
+แต่ละการเปลี่ยนแปลงเหล่านี้อาจทำให้บางอย่างดีขึ้น และบางอย่างแย่ลง — และถ้าคุณไม่มี eval คุณจะไม่รู้เลยจนกว่า user จะ complain
+
+**Regression** คือเมื่อการเปลี่ยนแปลงที่ตั้งใจ improve บางอย่าง ทำให้สิ่งอื่นที่เคยทำงานได้ดีพังลง
+
+Regression Testing คือการรัน eval suite เดิมซ้ำหลังทุกครั้งที่มีการเปลี่ยนแปลง แล้วเปรียบเทียบ score กับ baseline
+
+**วิธีทำ Regression Testing**
+
+ขั้นตอน 1: บันทึก baseline score ก่อนเปลี่ยนอะไร
+
+```
+Baseline (v1.0): accuracy = 91%, avg judge score = 4.2
+```
+
+ขั้นตอน 2: ทำการเปลี่ยนแปลง (เปลี่ยน prompt, model, หรือ config)
+
+ขั้นตอน 3: รัน eval suite เดิมซ้ำ
+
+ขั้นตอน 4: เปรียบเทียบผล
+
+```
+After change (v1.1): accuracy = 88%, avg judge score = 4.3
+→ accuracy ลด 3% — ต้องไปดูว่า cases ไหนที่เคยผ่านแต่ตอนนี้ไม่ผ่าน
+→ judge score ขึ้น 0.1 — คุณภาพ generation ดีขึ้นนิดหน่อย
+```
+
+**การจัดการกับ Score ที่ลด**
+
+ไม่ใช่ว่าทุก regression จะต้อง block การ deploy เสมอ ต้องตัดสินใจว่า:
+
+- ลดลงมากแค่ไหน? 1-2% อาจ acceptable ถ้า improvement อื่นมีค่ามากกว่า
+- ลดในหมวดไหน? ถ้า accuracy ลดเฉพาะ easy cases แต่ hard cases ขึ้น อาจโอเค
+- มี business impact ไหม? ถ้า cases ที่พังคือ high-stakes queries ต้อง block เลย
+
+**CI/CD Pipeline สำหรับ LLM**
+
+ทีมที่ mature จะ integrate eval เข้ากับ deployment pipeline:
+
+```
+Developer เปลี่ยน prompt
+    ↓
+Push code → trigger CI pipeline
+    ↓
+รัน eval suite อัตโนมัติ (เช่น 100 cases)
+    ↓
+ถ้า accuracy ≥ 85% AND judge score ≥ 4.0 → deploy อัตโนมัติ
+ถ้าต่ำกว่า threshold → block deployment + แจ้ง developer
+```
+
+วิธีนี้ทำให้ทุกคนมั่นใจว่าการ deploy แต่ละครั้งผ่านมาตรฐานขั้นต่ำ ไม่ใช่แค่ "ลองดูแล้วโอเค"
+
+> 💡 **Key insight:** Regression testing มีคุณค่ามากที่สุดเมื่อ test set ของคุณรวม failure cases จากอดีตด้วย ทุกครั้งที่ user เจอ bug ให้เพิ่ม case นั้นเข้า test set — วิธีนี้ทำให้ bug เดิมไม่กลับมาอีก
+
+<!-- IMAGE: ไดอะแกรม CI/CD pipeline ที่มี eval เป็น gate ก่อน deploy: Code Change → Run Eval → Pass/Fail → Deploy/Block -->
+
+---
+
+## Benchmarks สาธารณะ — อ่านให้เป็น ไม่ใช่แค่เชื่อ
+
+เวลาคุณอ่านข่าว "Model X ได้คะแนน 90% บน MMLU!" หรือดู leaderboard บน HuggingFace ที่มี model หลายร้อยตัวเรียงตามคะแนน — สิ่งที่คุณกำลังดูคือ Benchmark สาธารณะ
+
+Benchmark สาธารณะคือชุดข้อสอบมาตรฐานที่ทุกคนในวงการใช้ร่วมกัน ทำให้เปรียบเทียบ model ต่างๆ ได้
+
+**Benchmark ที่เห็นบ่อย**
+
+*MMLU (Massive Multitask Language Understanding)*
+ข้อสอบ multiple-choice ที่ครอบคลุม 57 วิชา ตั้งแต่คณิตศาสตร์ วิทยาศาสตร์ กฎหมาย ประวัติศาสตร์ ฯลฯ วัดความรู้กว้างของ model ใช้กันมากในการเปรียบ general intelligence
+
+*HumanEval*
+ชุดโจทย์เขียนโปรแกรม Python ที่สร้างโดย OpenAI วัดว่า model เขียน code ได้ถูกต้องและ pass unit tests ไหม ใช้วัด coding capability
+
+*GSM8K*
+โจทย์คณิตศาสตร์ระดับประถม-มัธยมที่ต้องใช้ multi-step reasoning วัดความสามารถในการ reason เป็นขั้นตอน
+
+*HELM (Holistic Evaluation of Language Models)*
+ชุด eval ที่ครอบคลุมหลายมิติ: accuracy, calibration, robustness, fairness, efficiency
+
+**วิธีอ่าน Leaderboard ไม่ให้ถูกหลอก**
+
+Leaderboard คือตารางที่แสดงคะแนนของ model ต่างๆ บน benchmark ต่างๆ ฟังดูดีมาก แต่มีกับดักหลายอย่าง:
+
+*กับดัก 1: Benchmark ≠ Real-world Performance*
+
+model ที่ได้คะแนน MMLU สูงไม่จำเป็นต้องดีสำหรับ use case ของคุณ MMLU วัดความรู้แบบ multiple choice ซึ่งต่างจากการตอบคำถามแบบ open-ended ในภาษาไทยมาก
+
+*กับดัก 2: Training Data Contamination*
+
+บาง model อาจถูกเทรนบนข้อมูลที่รวม benchmark test set ไว้ด้วย ทำให้คะแนนสูงผิดปกติ — คล้ายกับนักเรียนที่ท่องข้อสอบเก่ามาก่อน
+
+*กับดัก 3: Goodhart's Law*
+
+นี่คือหลักการที่บอกว่า "เมื่อ measure กลายเป็น target มันจะหยุดเป็น good measure" เมื่อทุก lab แข่งกันทำคะแนน MMLU ให้สูง พวกเขาจะ optimize model เพื่อ MMLU โดยเฉพาะ ทำให้คะแนน MMLU ไม่ได้บอกอะไรเกี่ยวกับ general capability อีกต่อไป
+
+*กับดัก 4: เลือก benchmark ที่ตัวเองทำได้ดี*
+
+บางครั้งบริษัทรายงานเฉพาะ benchmark ที่ model ตัวเองทำได้ดี และไม่พูดถึง benchmark ที่ทำได้แย่ อ่านข่าว model release ต้องดูให้รอบด้านว่าวัดบน benchmark อะไรบ้าง
+
+**วิธีใช้ Benchmark ให้เป็นประโยชน์**
+
+แทนที่จะเชื่อ benchmark สาธารณะ 100% ให้ใช้เป็น "ตัวกรองแรก" เท่านั้น:
+
+1. ดู leaderboard เพื่อตัด model ที่ poor performance ออกก่อน
+2. เลือก model top 3-5 ที่ดูน่าสนใจ
+3. นำมา test บน **use case ของคุณเอง** ด้วย eval ที่คุณสร้างเอง
+4. ตัดสินใจจาก eval ของคุณ ไม่ใช่จาก leaderboard
+
+เพราะในที่สุด สิ่งที่สำคัญที่สุดคือ model ทำงานได้ดีสำหรับ **งานของคุณ** ไม่ใช่งานที่คนอื่นออกแบบมาทดสอบ
+
+> 💡 **Key insight:** Goodhart's Law ใช้ได้กับ eval ของคุณเองด้วย ถ้าคุณ optimize prompt เพื่อให้ผ่าน test set ของคุณโดยเฉพาะ โดยไม่ดู edge case ใหม่ๆ ด้วย — test set ของคุณก็จะหยุดเป็น good measure เช่นกัน ต้องเพิ่ม test cases ใหม่อยู่เรื่อยๆ
+
+<!-- IMAGE: ตัวอย่าง leaderboard พร้อม annotation ชี้ให้เห็นกับดักต่างๆ: contamination warning, single-benchmark bias, missing tasks -->
+
+---
+
+## Eval ใน Real-World Projects — สิ่งที่ไม่มีในตำรา
+
+ก่อนจบ มีเรื่องที่ควรรู้จากประสบการณ์จริงที่มักไม่ถูกพูดถึงในเอกสารทางการ:
+
+**Eval ใช้เวลา และนั่นโอเค**
+
+การสร้าง test set ที่ดี 100 cases อาจใช้เวลา 1-2 วัน ถ้าต้องให้ expert เขียน expected answer ทุก case นั่นคือ cost ที่จ่ายล่วงหน้า แต่มันช่วยประหยัดเวลาที่จะเสียในภายหลังตอนแก้ bugs ใน production ได้มากกว่ามาก
+
+**เริ่มเล็กและ iterate**
+
+อย่ารอให้มี 500 cases ก่อนเริ่ม สร้าง 20 cases แรก รัน eval ดู เพิ่มอีก 20 cases รัน eval อีกรอบ — ระบบ eval ที่เล็กแต่ใช้งานได้ดีกว่า ระบบ eval ที่สมบูรณ์แบบบนกระดาษแต่ยังไม่เริ่มสร้าง
+
+**Eval ไม่ใช่แค่ก่อน launch**
+
+หลาย team สร้าง eval เพื่อ gate การ launch แต่ลืม run eval หลัง launch Eval ที่แท้จริงรันต่อเนื่อง — monitor production outputs, รัน eval ทุก sprint, track score over time เพื่อให้รู้ว่า model drift หรือ data distribution เปลี่ยนไปไหม
+
+**"ไม่มีคำตอบที่ถูกต้อง" ไม่ใช่ข้อแก้ตัว**
+
+หลายคนบอกว่าทำ eval ไม่ได้เพราะ task ของตัวเองมันซับซ้อน ไม่มีคำตอบที่ตายตัว แต่ความจริงคือ เกือบทุก task สามารถออกแบบ rubric ที่วัดได้ถ้าคิดให้ดีพอ ถ้าคุณอธิบายให้มนุษย์รู้ได้ว่าคำตอบไหนดีกว่า คุณก็อธิบายให้ LLM judge รู้ได้เช่นกัน
+
+**Test Set ต้องอัปเดตตาม Product**
+
+ถ้า product ของคุณเปลี่ยนไปมาก test set เก่าอาจไม่ relevant อีกต่อไป ต้อง review และ update test set ทุกครั้งที่ scope ของระบบเปลี่ยน
+
+<!-- IMAGE: Timeline แสดง eval lifecycle: สร้าง test set → baseline → iterate → launch → monitor → update test set → ซ้ำ -->
+
+---
+
+## สรุป
+
+เริ่มต้นบทนี้ด้วยคำถามว่า "คุณรู้ได้ยังไงว่าระบบ AI ของคุณทำงานได้ดี?" — และตอนนี้คุณมีคำตอบที่ชัดเจน
+
+Eval คือระบบที่เปลี่ยนความรู้สึกให้กลายเป็นตัวเลข เปลี่ยน "ดูเหมือนดีขึ้น" ให้กลายเป็น "ดีขึ้น 7% บน test set 100 cases" เปลี่ยนการ deploy แบบเดาสุ่มให้กลายเป็นการตัดสินใจที่อิงข้อมูล
+
+สิ่งที่คุณได้เรียนรู้ในบทนี้:
+
+- **ทำไม anecdotal testing ไม่พอ** — cherry-picking, recency bias, และ edge cases ที่ไม่ครอบคลุม
+- **สามส่วนของ Eval** — test set, metric, และ threshold
+- **สร้าง test set อย่างไร** — จาก real user queries, เลือก category ให้ครบ, format เป็น JSON
+- **Metrics ต่างประเภท** — exact match สำหรับ classification, field accuracy สำหรับ extraction, LLM judge สำหรับ generation
+- **LLM-as-Judge** — rubric design, pairwise comparison, ข้อดีและข้อจำกัด
+- **Regression testing** — รัน eval ซ้ำหลังทุกการเปลี่ยนแปลง เปรียบเทียบกับ baseline
+- **อ่าน benchmark สาธารณะ** — Goodhart's Law, contamination, และทำไม leaderboard ไม่ใช่คำตอบสุดท้าย
+
+ทักษะที่แยกคน "เล่น AI" กับ "สร้างระบบ AI" ออกจากกันไม่ใช่การรู้ว่า prompt ไหนเจ๋งกว่า มันคือการรู้ว่าวัดผลและตัดสินใจอย่างเป็นระบบได้ยังไง — และนั่นคือสิ่งที่ Eval ให้คุณ
+
+ถ้าคุณเข้าใจว่า Eval วัด "ว่าระบบทำงานได้ดีแค่ไหน" บทต่อไปจะพาไปดูว่า "ทำให้ระบบทำงานได้ดีขึ้นอีกโดยไม่ต้องแก้ prompt" — นั่นคือเรื่อง [Fine-tuning Methods](/building-with-ai/fine-tuning-methods) ที่จะทำให้ระบบที่ทำงานได้ดีของคุณ กลายเป็นระบบที่เรียนรู้จากข้อมูลและ specialize ได้ตรงงานยิ่งขึ้น
+
+<!-- IMAGE: ภาพ roadmap ของ L3 course ที่ highlight บทปัจจุบัน (Evals) และชี้ไปยังบทถัดไป (Fine-tuning Methods) -->

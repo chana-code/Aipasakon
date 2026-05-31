@@ -1,0 +1,614 @@
+---
+slug: agents-and-orchestration
+level: building-with-ai
+title: "AI Agent คืออะไร — จาก Chatbot สู่ระบบที่คิดและลงมือทำเอง"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ AI Agent ตั้งแต่แนวคิด Observe-Think-Act loop, tool use, planning, memory จนถึงการออกแบบ multi-agent system และ orchestration patterns"
+---
+ลองนึกภาพนี้: คุณอยากรู้ว่าคู่แข่งในตลาดตั้งราคาสินค้าไว้ที่เท่าไหร่ คุณเปิด ChatGPT แล้วถามว่า "ช่วยหาราคาสินค้า X ของบริษัท A, B, C ให้หน่อย" — AI ตอบว่า "ขออภัย ฉันไม่มีข้อมูล real-time" คุณต้องออกไปเปิดเว็บเองทีละเจ้า คัดลอกตัวเลขมาใส่ Excel แล้วค่อยวิเคราะห์
+
+แต่ถ้าคุณมี AI Agent — มันจะรับโจทย์นั้น ออกไปค้นข้อมูลเอง เปรียบเทียบราคาเอง สรุปผลเอง แล้วส่ง report กลับมาให้คุณ โดยที่คุณไม่ต้องทำอะไรเลย
+
+นั่นคือความแตกต่างระหว่าง AI ที่ "ตอบ" กับ AI ที่ "ทำ"
+
+<!-- IMAGE: ภาพเปรียบเทียบ chatbot รับคำถาม-ตอบ vs agent รับเป้าหมาย-วางแผน-ลงมือทำ-ส่งผลลัพธ์ -->
+
+---
+
+## Chatbot กับ Agent — ต่างกันตรงไหนกันแน่
+
+ก่อนจะลงลึก ต้องเคลียร์ความเข้าใจผิดที่พบบ่อยที่สุดก่อน: หลายคนได้ยินคำว่า "Agent" แล้วนึกว่าเป็น ChatGPT เวอร์ชันฉลาดขึ้น — แต่จริง ๆ มันต่างกันในเชิงโครงสร้างเลย ไม่ใช่แค่ความฉลาด
+
+**Chatbot ทำงานแบบนี้:**
+
+1. รับ input จากคุณ
+2. ประมวลผล
+3. ส่ง output กลับ
+4. จบ
+
+ทุกครั้งที่คุณพิมพ์ใหม่ มันเริ่มต้นใหม่ มันไม่ได้ "ทำอะไร" ในโลกจริง — มันแค่สร้างข้อความตอบกลับ
+
+**Agent ทำงานแบบนี้:**
+
+1. รับ "เป้าหมาย" จากคุณ
+2. วางแผนว่าจะทำอะไรบ้างเพื่อบรรลุเป้าหมายนั้น
+3. ลงมือทำ — เรียกใช้เครื่องมือ, ค้นข้อมูล, รัน code, ส่ง request
+4. ตรวจสอบผลลัพธ์ว่าใกล้เป้าหมายหรือยัง
+5. ถ้ายังไม่ถึงเป้า — วางแผนใหม่ แล้วทำต่อ
+6. วนซ้ำจนงานเสร็จ
+
+วิธีที่ผมชอบอธิบายคือ: **ChatGPT คือที่ปรึกษาที่นั่งอยู่ในห้องประชุม** คุณถามได้ เขาตอบได้ แต่เขาไม่ลุกออกไปทำอะไร แค่ให้คำแนะนำ — **Agent คือพนักงานที่คุณมอบหมายงานได้** คุณบอกว่า "ช่วยจัดการเรื่องนี้" แล้วเขาก็ออกไปทำ โทรหาคน ส่ง email เช็คข้อมูล แล้วกลับมารายงานผล
+
+> 💡 **Key insight:** ความแตกต่างหลักไม่ใช่ว่า agent "ฉลาดกว่า" chatbot — แต่มัน "มี agency" มากกว่า คือมีความสามารถลงมือทำในโลกจริงได้ด้วยตัวเอง ไม่ใช่แค่พูด
+
+<!-- IMAGE: ไดอะแกรม chatbot loop (input → LLM → output) vs agent loop (goal → plan → act → observe → plan again) -->
+
+สังเกตว่าผมใช้คำว่า "เป้าหมาย" ไม่ใช่ "คำถาม" — นั่นคือกุญแจสำคัญ Agent รับ goal ไม่ใช่ query คุณไม่ได้ถามมัน คุณสั่งงานมัน
+
+---
+
+## Observe-Think-Act Loop — หัวใจของทุก Agent
+
+ถ้าจะเข้าใจ agent ให้ลึก ต้องเข้าใจ loop นี้ก่อน เพราะทุก agent ไม่ว่าจะเขียนด้วย framework อะไร ทำงานแบบนี้หมด:
+
+**Observe → Think → Act → Observe → Think → Act → ...**
+
+ฟังดูง่าย แต่ลองแตกรายละเอียดดู:
+
+**Observe (สังเกต):**
+Agent อ่านทุกอย่างที่เกี่ยวข้องกับสถานการณ์ปัจจุบัน — เป้าหมายที่ได้รับมา, ผลลัพธ์จาก tool ที่เพิ่งรัน, ประวัติการทำงานที่ผ่านมา, ข้อมูลใน memory ถ้ามี การ "observe" คือการรวบรวม context ทั้งหมดที่มีอยู่ตอนนั้น
+
+**Think (คิด):**
+นี่คือจุดที่ LLM เข้ามาทำงาน Agent ส่ง context ทั้งหมดเข้า model แล้วถามว่า "ตอนนี้ควรทำอะไรต่อ?" Model ประมวลผลแล้วตัดสินใจว่าจะเรียก tool อะไร หรือจะตอบว่างานเสร็จแล้ว
+
+**Act (ลงมือทำ):**
+ถ้า model บอกว่าต้องเรียก tool — agent ก็รัน tool นั้น เช่น ค้นหาข้อมูลใน Google, query database, ส่ง HTTP request, รัน Python code ผลลัพธ์ที่ได้จาก tool จะถูกนำกลับไปเป็น input ของรอบ Observe ถัดไป
+
+แล้ววนซ้ำ จนกระทั่ง model ตัดสินใจว่า "งานเสร็จแล้ว" หรือถึง limit ที่กำหนดไว้
+
+<!-- IMAGE: ไดอะแกรมวงกลม Observe-Think-Act พร้อมลูกศรวน และตัวอย่างข้อมูลในแต่ละขั้น -->
+
+ลองเอาตัวอย่างจริงมาใส่ใน loop นี้ สมมติ goal คือ "หาร้านอาหารญี่ปุ่นดี ๆ ใกล้ออฟฟิศ แล้วจองโต๊ะสำหรับ 4 คนมื้อเย็นวันนี้"
+
+- **Observe รอบ 1:** รับ goal + รู้ว่าออฟฟิศอยู่ที่ไหน + รู้ว่าวันนี้คือวันอะไร
+- **Think รอบ 1:** "ควร search หาร้านก่อน"
+- **Act รอบ 1:** เรียก search tool → ได้รายชื่อร้าน 10 ร้าน
+- **Observe รอบ 2:** เห็นรายชื่อร้าน 10 ร้าน + review + ระยะทาง
+- **Think รอบ 2:** "ควรกรอง top 3 แล้วเช็ค availability"
+- **Act รอบ 2:** เรียก tool เช็คการจอง → ร้าน A เต็ม, ร้าน B มีที่
+- **Observe รอบ 3:** ร้าน B มีที่ว่าง + rating ดี + ราคาสมเหตุสมผล
+- **Think รอบ 3:** "จองเลย"
+- **Act รอบ 3:** เรียก booking tool → จองสำเร็จ
+- **Think รอบ 4:** "งานเสร็จแล้ว ส่งสรุปให้ user"
+
+นี่คือสิ่งที่มนุษย์ทำอยู่ทุกวัน เราสังเกตสถานการณ์ คิด ลงมือ สังเกตผล แล้วปรับแผน Agent ทำแบบเดียวกัน แต่ทำได้เร็วกว่าและไม่เหนื่อย
+
+> 💡 **Key insight:** Observe-Think-Act ไม่ใช่แนวคิดใหม่ — มันคือ feedback loop พื้นฐานของการแก้ปัญหาของมนุษย์ ที่ถูกนำมา implement ใน software agent ความแตกต่างคือ LLM ทำให้ขั้น "Think" ฉลาดพอที่จะจัดการงานซับซ้อนได้
+
+---
+
+## Tool Use — อาวุธที่ทำให้ Agent ลงมือทำได้จริง
+
+ถ้า Observe-Think-Act คือโครงสร้าง tool use คือสิ่งที่ทำให้ "Act" มีพลังจริง ๆ
+
+Agent เพียวๆ ที่ไม่มี tool คือแค่ LLM ที่คุยกับตัวเอง มันคิดได้ แต่ทำอะไรในโลกจริงไม่ได้เลย Tool คือสะพานระหว่าง "การตัดสินใจของ LLM" กับ "การกระทำในระบบจริง"
+
+**Tool ทั่วไปที่ agent ใช้:**
+
+- **Web Search** — ค้นหาข้อมูล real-time จาก internet
+- **Code Execution** — รัน Python, JavaScript, SQL เพื่อประมวลผลข้อมูล
+- **Database Query** — ดึงข้อมูลจาก database ของบริษัท
+- **API Calls** — คุยกับบริการภายนอก เช่น Slack, Gmail, Salesforce
+- **File System** — อ่านและเขียนไฟล์
+- **Browser Automation** — เปิดเว็บ, คลิก, กรอกฟอร์ม
+- **Calendar/Email** — จัดการนัดหมาย, ส่งอีเมล
+
+<!-- IMAGE: ภาพ agent ตรงกลาง มีลูกศรออกไปหา tools ต่าง ๆ รอบข้าง เช่น web, code, database, email -->
+
+กลไกที่ LLM ใช้สั่ง tool เรียกว่า **Function Calling** — สรุปสั้น ๆ คือ คุณบอก model ล่วงหน้าว่ามี tool อะไรบ้าง model ส่ง JSON กลับมาว่า "ขอเรียก tool นี้ ด้วย parameter เหล่านี้" code ของคุณรัน tool จริง ๆ แล้วส่งผลลัพธ์กลับให้ model คิดต่อ จุดสำคัญคือ model ไม่ได้ "รัน" tool เอง — มันแค่ "ตัดสินใจ" code ของเราเป็นคนรัน รายละเอียดทั้ง 4 ขั้น พร้อมตัวอย่าง schema และโค้ดเต็ม อยู่ในบท [Function Calling](/building-with-ai/function-calling) ที่อ่านมาแล้ว ตรงนี้เราจะเอากลไกนั้นมาประกอบเป็น agent loop
+
+> 💡 **Key insight:** Function calling คือภาษากลางที่ LLM ใช้สื่อสารกับ code ของเรา model พูดว่า "ขอใช้ tool นี้" — code เราฟังและดำเนินการ มันเหมือนกับ model เป็น "สมอง" และ code เราเป็น "กล้ามเนื้อ"
+
+---
+
+## Planning — วิธีที่ Agent วางแผนก่อนลงมือ
+
+Tool use ทำให้ agent ลงมือได้ แต่ planning ทำให้มันลงมือได้อย่างฉลาด ไม่ใช่แค่ทำสุ่มสี่สุ่มห้า
+
+สมมติ goal คือ "วิเคราะห์ยอดขายปีที่แล้วของเรา เปรียบเทียบกับคู่แข่ง 3 ราย แล้วหาว่าเราควรโฟกัสตลาดไหน" — งานนี้ซับซ้อน ทำในขั้นเดียวไม่ได้ ต้องแตกเป็น sub-tasks
+
+Pattern ที่นิยมใช้มากที่สุดคือ **ReAct (Reasoning + Acting):**
+
+ก่อนจะ act ทุกครั้ง agent จะ reason ก่อน — คิดเสียงดัง ๆ ว่า "ตอนนี้รู้อะไรแล้ว, ต้องการอะไรเพิ่ม, ขั้นถัดไปควรทำอะไร" แล้วจึง act
+
+ใน ReAct loop มักมี 3 ส่วน:
+
+- **Thought:** "ฉันต้องดึงข้อมูลยอดขายปีที่แล้วก่อน แล้วค่อยหาข้อมูลคู่แข่ง"
+- **Action:** เรียก `query_sales_database(year=2024)`
+- **Observation:** "ได้ข้อมูลยอดขายรายไตรมาสแล้ว ตอนนี้ต้องหาข้อมูลคู่แข่ง"
+
+<!-- IMAGE: ไดอะแกรม ReAct loop แสดง Thought-Action-Observation วนซ้ำ พร้อมตัวอย่างข้อความในแต่ละขั้น -->
+
+อีก pattern ที่สำคัญคือ **Task Decomposition** — การแตกงานใหญ่เป็นงานย่อย ก่อนเริ่มทำ agent วางแผนทั้งหมดก่อนเลย:
+
+สมมติ goal คือ "หาตั๋วเครื่องบินราคาดีที่สุด กรุงเทพ-โตเกียว ปลายเดือนหน้า":
+
+```
+แผนงาน:
+1. ค้นหาตั๋วใน 3 เว็บหลัก (Thai Airways, AirAsia, Japan Airlines)
+2. กรองเฉพาะไฟล์ท morning departure (07:00-10:00)
+3. เปรียบเทียบราคา รวม baggage fee แล้ว
+4. ตรวจ review ของสายการบินที่ถูกที่สุด 2 อันดับ
+5. สรุปผลพร้อม recommendation
+```
+
+การวางแผนก่อนทำให้ agent ไม่วนเวียน ไม่ทำงานซ้ำ และไม่ลืมขั้นตอนสำคัญ
+
+> 💡 **Key insight:** Planning ใน agent ไม่ต่างจากการเขียน to-do list ก่อนทำงาน แต่ในกรณีของ agent มัน dynamic — ถ้าพบข้อมูลที่เปลี่ยนทิศ มันปรับแผนได้เองระหว่างทาง
+
+อีกเทคนิคที่ใช้คู่กับ planning คือ **Chain-of-Thought (CoT)** — การให้ model คิดเป็นขั้น ๆ ก่อนตอบ แทนที่จะตอบทันที เราบอก model ว่า "คิดทีละขั้นก่อน" ผลคือ reasoning แม่นขึ้นมาก โดยเฉพาะงานที่ซับซ้อน
+
+---
+
+## Memory — ทำไม Agent ต้องจำ
+
+ลองนึกภาพพนักงานที่จำงานที่ตัวเองทำไม่ได้เลย ทุกวันต้องสอนใหม่หมด — นั่นคือ agent ที่ไม่มี memory
+
+Memory ใน agent มี 3 ระดับ:
+
+**1. Short-term Memory (Conversation Context)**
+
+นี่คือสิ่งที่ agent "จำ" ในระหว่างการทำงานครั้งนั้น มันคือ messages ทั้งหมดใน conversation window — ทุกอย่างที่คุยกันมา, ทุก tool call, ทุก observation
+
+ปัญหาคือ context window มีขีดจำกัด ถ้างานยาวมาก ข้อมูลเก่า ๆ จะถูกตัดทิ้ง agent จะ "ลืม" สิ่งที่ทำไปในตอนต้น
+
+<!-- IMAGE: ภาพ context window เป็นถัง ข้อมูลไหลเข้า เมื่อเต็มข้อมูลเก่าล้นออก -->
+
+**2. Long-term Memory (Vector Store)**
+
+เพื่อแก้ปัญหา short-term limitation agent ที่ซับซ้อนจะมี external memory — โดยทั่วไปคือ vector database ที่เก็บข้อมูลสำคัญไว้
+
+เวลา agent ต้องการข้อมูลบางอย่าง มันค้นใน vector store ก่อน เหมือนมีสมุดโน้ตที่ค้นหาได้ด้วย semantic search — ถามว่า "เมื่อกี้คุยเรื่องอะไร" มันก็ดึงข้อมูลที่ใกล้เคียงกลับมาได้
+
+**3. Working Memory (Scratchpad)**
+
+ระหว่างทำงาน agent อาจต้องจดโน้ตชั่วคราว เช่น "สรุปที่รวบรวมมาจนถึงตอนนี้" หรือ "list ของร้านที่ตรวจแล้ว" เพื่อไม่ต้องย้อนไปอ่าน history ทั้งหมดทุกครั้ง
+
+> 💡 **Key insight:** Agent ที่ไม่มี memory ทำงานได้แค่ task เดียวจบในรอบเดียว ถ้าต้องทำงานข้ามวัน ข้ามเซสชัน หรืองานที่ต้องสะสมความรู้เรื่อย ๆ — memory คือ infrastructure ที่ขาดไม่ได้
+
+ยกตัวอย่างให้ชัดขึ้น: สมมติ agent ช่วย monitor ราคาหุ้นให้คุณทุกวัน
+
+- ไม่มี memory: ทุกวันต้องบอก agent ใหม่หมดว่าคุณสนใจหุ้นอะไร, threshold ที่จะแจ้งเตือนคือเท่าไหร่, ประวัติที่ผ่านมาเป็นยังไง
+- มี memory: agent จำ preference ของคุณ, จำว่าเมื่อวานราคาเป็นเท่าไหร่, เปรียบเทียบกับวันนี้ได้ทันที
+
+---
+
+## ลองทำดู #1: สร้าง Simple Agent ด้วย Python
+
+ถึงเวลาหยุดอ่านทฤษฎี มาดู agent จริง ๆ กัน โค้ดด้านล่างนี้คือ agent ง่าย ๆ ที่ใช้ OpenAI API + function calling เพื่อสร้าง loop จริง
+
+สิ่งที่ต้องมี: Python 3.9+, `pip install openai`, OpenAI API key
+
+```python
+import json
+import math
+from openai import OpenAI
+
+client = OpenAI()  # อ่าน API key จาก environment variable OPENAI_API_KEY
+
+# ---- นิยาม Tools ที่ agent จะใช้ ----
+
+def calculate(expression: str) -> str:
+    """รัน math expression และคืนค่าผลลัพธ์"""
+    try:
+        # ใช้ math module เพื่อความปลอดภัย ไม่ใช้ eval() ตรง ๆ
+        allowed = {k: v for k, v in math.__dict__.items() if not k.startswith("_")}
+        result = eval(expression, {"__builtins__": {}}, allowed)
+        return f"ผลลัพธ์ของ {expression} = {result}"
+    except Exception as e:
+        return f"คำนวณไม่ได้: {str(e)}"
+
+def search_web(query: str) -> str:
+    """จำลอง web search (ของจริงต้องต่อ Search API เช่น Tavily)"""
+    # Mock data สำหรับ demo
+    mock_results = {
+        "ราคาน้ำมัน": "ราคาน้ำมันดีเซลวันนี้ 29.94 บาท/ลิตร (ข้อมูล ณ วันนี้)",
+        "อัตราแลกเปลี่ยน": "1 USD = 35.2 THB (ข้อมูล ณ วันนี้)",
+        "ดัชนี SET": "SET Index ปิดที่ 1,387 จุด เพิ่มขึ้น 0.4%",
+    }
+    for key, value in mock_results.items():
+        if key in query:
+            return value
+    return f"ผลการค้นหา '{query}': ไม่พบข้อมูลใน mock database (ต่อ real API เพื่อผลจริง)"
+
+def get_current_time() -> str:
+    """ดึงเวลาปัจจุบัน"""
+    from datetime import datetime
+    now = datetime.now()
+    return f"วันและเวลาปัจจุบัน: {now.strftime('%A %d %B %Y เวลา %H:%M:%S')}"
+
+# ---- Map ชื่อ tool กับ function จริง ----
+TOOLS_FUNCTIONS = {
+    "calculate": calculate,
+    "search_web": search_web,
+    "get_current_time": get_current_time,
+}
+
+# ---- Schema ที่ส่งให้ model รู้จัก tools ----
+TOOLS_SCHEMA = [
+    {
+        "type": "function",
+        "function": {
+            "name": "calculate",
+            "description": "คำนวณ math expression เช่น '2 + 2', 'sqrt(144)', '15 * 8 / 3'",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "expression": {"type": "string", "description": "สมการที่ต้องการคำนวณ"}
+                },
+                "required": ["expression"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "search_web",
+            "description": "ค้นหาข้อมูลจาก internet เกี่ยวกับราคา ข่าว หรือข้อมูล real-time",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "สิ่งที่ต้องการค้นหา"}
+                },
+                "required": ["query"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_time",
+            "description": "ดึงวันและเวลาปัจจุบัน",
+            "parameters": {"type": "object", "properties": {}}
+        }
+    }
+]
+
+# ---- Agent Loop หลัก ----
+def run_agent(goal: str, max_iterations: int = 10) -> str:
+    """
+    รัน agent จนกว่างานจะเสร็จ หรือถึง max_iterations
+    """
+    print(f"\n{'='*50}")
+    print(f"เริ่มต้น Agent | Goal: {goal}")
+    print(f"{'='*50}\n")
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "คุณคือ AI assistant ที่ช่วยทำงานโดยใช้ tools ที่มีให้ "
+                "คิดเป็นขั้น ๆ ก่อนตัดสินใจใช้ tool ใด "
+                "เมื่องานเสร็จสมบูรณ์แล้ว ตอบสรุปผลชัดเจน"
+            )
+        },
+        {"role": "user", "content": goal}
+    ]
+
+    for iteration in range(max_iterations):
+        print(f"[รอบ {iteration + 1}] กำลังคิด...")
+
+        # ส่งให้ model ตัดสินใจ
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            tools=TOOLS_SCHEMA,
+            tool_choice="auto"  # model เลือกเองว่าจะใช้ tool หรือตอบตรง
+        )
+
+        message = response.choices[0].message
+        messages.append(message)  # เก็บ response เข้า history
+
+        # ถ้า model ไม่เรียก tool แสดงว่างานเสร็จแล้ว
+        if not message.tool_calls:
+            print(f"\n[เสร็จสิ้น] Model ตอบโดยไม่ต้องใช้ tool เพิ่ม")
+            return message.content
+
+        # ถ้า model เรียก tool — รัน tool แต่ละตัว
+        for tool_call in message.tool_calls:
+            tool_name = tool_call.function.name
+            tool_args = json.loads(tool_call.function.arguments)
+
+            print(f"[Tool] เรียก '{tool_name}' ด้วย args: {tool_args}")
+
+            # รัน function จริง
+            if tool_name in TOOLS_FUNCTIONS:
+                result = TOOLS_FUNCTIONS[tool_name](**tool_args)
+            else:
+                result = f"ไม่พบ tool '{tool_name}'"
+
+            print(f"[ผลลัพธ์] {result}")
+
+            # ส่งผลลัพธ์กลับให้ model
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": result
+            })
+
+    return "หยุดทำงาน: ถึงขีดจำกัดรอบการทำงานแล้ว"
+
+# ---- ทดสอบ ----
+if __name__ == "__main__":
+    result = run_agent(
+        "วันนี้วันอะไร? และถ้าฉันซื้อของ 3 ชิ้น ราคา 250 บาท 380 บาท และ 520 บาท "
+        "รวมทั้งหมดเท่าไหร่? มี VAT 7% ต้องจ่ายเพิ่มอีกเท่าไหร่?"
+    )
+    print(f"\nสรุปผล:\n{result}")
+```
+
+ลองรันโค้ดนี้แล้วดูสิ่งที่เกิดขึ้น — คุณจะเห็น agent เรียก `get_current_time` ก่อน แล้วเรียก `calculate` หลายรอบเพื่อรวมราคาและคำนวณ VAT Loop จริง ๆ ที่ model ตัดสินใจเองว่าต้องทำอะไรและเมื่อไหร่ที่งานเสร็จ
+
+> 🧪 **ลองทำดู:** แก้ goal ใน `run_agent(...)` เป็น task ที่คุณอยากให้ agent ทำ เช่น "ช่วยคำนวณว่าถ้าฉันออมเงิน 5,000 บาทต่อเดือน ดอกเบี้ย 3% ต่อปี จะมีเงินเท่าไหร่ในอีก 10 ปี?" แล้วดูว่า agent วางแผนและใช้ tool อย่างไร
+
+---
+
+## Multi-Agent Systems — เมื่อ Agent ตัวเดียวไม่พอ
+
+เมื่อ agent ตัวเดียวไม่พอสำหรับงานซับซ้อน เราสามารถจัดทีม agents ให้ทำงานร่วมกันได้ โดยมี pattern หลักสามแบบ ได้แก่ Supervisor-Worker ที่แบ่งงานแบบขนาน, Pipeline ที่ส่งต่องานแบบสายพาน, และ Debate ที่ agents โต้แย้งกันเพื่อได้คำตอบที่แข็งแกร่งกว่า
+
+แต่ละ pattern มี tradeoff เรื่องความเร็ว ค่าใช้จ่าย และความซับซ้อนที่ต่างกัน — multi-agent systems จะอธิบายลึกในบทที่ 10 อ่านต่อได้ที่ [Multi-Agent Systems](/building-with-ai/multi-agent-systems)
+
+> 💡 **Key insight:** Multi-agent ไม่ใช่แค่การเพิ่ม agents ให้มากขึ้น แต่คือการ design ทีมให้แต่ละส่วนทำในสิ่งที่ถนัด อย่า over-engineer ถ้า agent ตัวเดียวทำได้
+
+---
+
+## Orchestration Frameworks — เครื่องมือที่ช่วยประกอบ Agent
+
+เมื่อระบบซับซ้อนขึ้น มี framework ที่จัดการ boilerplate ให้แล้ว ไม่ว่าจะเป็น LangChain, CrewAI, AutoGen หรือ Claude Agent SDK แต่ละตัวมี tradeoff เรื่อง ecosystem, ความยืดหยุ่น และ multi-agent support ต่างกัน รายละเอียดและการเปรียบเทียบจะอยู่ใน [Multi-Agent Systems](/building-with-ai/multi-agent-systems)
+
+> 💡 **Key insight:** เลือก framework จาก use case ไม่ใช่จาก hype ถ้างานเรียบง่าย agent ตัวเดียว raw Python ก็พอ
+
+---
+
+## ความเสี่ยงและ Guardrails — สิ่งที่ Agent ทำผิดได้
+
+ถ้าพูดแต่เรื่องดีของ agent คงไม่ครบ agent มีความเสี่ยงที่ต้องรู้และออกแบบรับมือ
+
+**ความเสี่ยงที่ 1: Infinite Loop**
+
+Agent ไม่รู้ว่า "เสร็จแล้ว" หรือติดอยู่ในวงวน เรียก tool เดิมซ้ำ ๆ เพราะคิดว่าผลลัพธ์ยังไม่พอ นี่คือเหตุผลที่ `max_iterations` ในโค้ดข้างบนสำคัญมาก
+
+การป้องกัน: กำหนด max iterations, timeout, และ detect repeated actions
+
+**ความเสี่ยงที่ 2: Tool Misuse**
+
+Agent เรียก tool ผิด อาจเพราะ prompt ไม่ชัดหรือ tool description กำกวม เช่น agent เรียก `delete_file` แทน `read_file` — ถ้า tool นั้น destructive ผลอาจร้ายแรง
+
+การป้องกัน: Approval gate สำหรับ destructive actions — agent ต้องขออนุมัติจาก human ก่อนทำ action ที่ย้อนกลับไม่ได้
+
+**ความเสี่ยงที่ 3: ค่าใช้จ่ายบาน**
+
+Agent ที่วน loop นาน หรือ multi-agent ที่มี agents หลายตัวคุยกัน เรียก LLM หลายร้อยครั้ง ค่า API ชั่วโมงเดียวอาจเกินงบทั้งเดือน
+
+การป้องกัน: Budget limit — กำหนด max cost หรือ max API calls แล้วหยุดถ้าเกิน
+
+<!-- IMAGE: ภาพแสดง guardrail layers: budget limit, max iterations, approval gate, monitoring dashboard -->
+
+**ความเสี่ยงที่ 4: Hallucination แล้วนำไปสู่ Action ผิด**
+
+LLM อาจ hallucinate ข้อมูล แล้ว agent ก็เอาข้อมูลนั้นไปใช้ตัดสินใจ ยิ่งถ้า agent มี tool ที่ส่งผลกระทบโลกจริง (ส่ง email, โอนเงิน) ความผิดพลาดนี้แก้ยาก
+
+การป้องกัน: Verification step — ก่อน action สำคัญ ให้ agent ตรวจสอบข้อมูลจากแหล่งที่สอง
+
+**Human-in-the-Loop (HITL)**
+
+Pattern ที่ดีที่สุดสำหรับ production agent คือ HITL — ไม่ให้ agent autonomous 100% แต่มีจุดที่มนุษย์ต้อง review และอนุมัติก่อนทำต่อ
+
+```
+Agent ทำ research → สรุปผลให้ human → Human approve → Agent ดำเนินการต่อ
+```
+
+ยิ่ง stakes สูง ยิ่งต้องการ human ในจุดสำคัญ ไม่ใช่เรื่องที่ต้องอาย — เป็นเรื่องของ risk management
+
+> 💡 **Key insight:** Agent ที่ดีไม่ใช่ agent ที่ autonomous ที่สุด แต่คือ agent ที่ autonomous ในระดับที่เหมาะกับ risk ของงานนั้น งาน low-stakes autonomous ได้เลย งาน high-stakes ต้องมี checkpoint
+
+---
+
+## ลองทำดู #2: สร้าง Agent ด้วย Claude Agent SDK
+
+มาดูตัวอย่างอีก version หนึ่งด้วย Anthropic SDK สำหรับคนที่ใช้ Claude เป็นหลัก
+
+สิ่งที่ต้องมี: `pip install anthropic`, Anthropic API key
+
+```python
+import anthropic
+import json
+
+client = anthropic.Anthropic()  # อ่านจาก ANTHROPIC_API_KEY
+
+# ---- นิยาม Tools ----
+
+def get_word_count(text: str) -> str:
+    """นับจำนวนคำในข้อความ"""
+    words = text.split()
+    return f"ข้อความมีทั้งหมด {len(words)} คำ และ {len(text)} ตัวอักษร"
+
+def summarize_bullet_points(text: str, num_points: int = 3) -> str:
+    """จำลอง: แยกประเด็นสำคัญ (ของจริงอาจเรียก Claude อีกครั้ง)"""
+    # Mock: คืนค่าตัวอย่าง
+    return f"ประเด็นสำคัญ {num_points} ข้อ จากข้อความ:\n• ประเด็นที่ 1 (จำลอง)\n• ประเด็นที่ 2 (จำลอง)\n• ประเด็นที่ 3 (จำลอง)"
+
+def translate_to_english(thai_text: str) -> str:
+    """จำลอง translation tool"""
+    return f"[English translation of: '{thai_text[:50]}...'] (จำลอง — ของจริงต่อ Translation API)"
+
+TOOLS = [
+    {
+        "name": "get_word_count",
+        "description": "นับจำนวนคำและตัวอักษรในข้อความที่ให้มา",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string", "description": "ข้อความที่ต้องการนับ"}
+            },
+            "required": ["text"]
+        }
+    },
+    {
+        "name": "summarize_bullet_points",
+        "description": "แยกประเด็นสำคัญจากข้อความออกมาเป็น bullet points",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "text": {"type": "string", "description": "ข้อความที่ต้องการสรุป"},
+                "num_points": {"type": "integer", "description": "จำนวน bullet points ที่ต้องการ (default: 3)"}
+            },
+            "required": ["text"]
+        }
+    },
+    {
+        "name": "translate_to_english",
+        "description": "แปลข้อความภาษาไทยเป็นภาษาอังกฤษ",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "thai_text": {"type": "string", "description": "ข้อความภาษาไทยที่ต้องการแปล"}
+            },
+            "required": ["thai_text"]
+        }
+    }
+]
+
+TOOL_FUNCTIONS = {
+    "get_word_count": get_word_count,
+    "summarize_bullet_points": summarize_bullet_points,
+    "translate_to_english": translate_to_english,
+}
+
+# ---- Claude Agent Loop ----
+
+def run_claude_agent(goal: str, max_steps: int = 8):
+    """Agent loop ด้วย Anthropic SDK"""
+    print(f"\nGoal: {goal}\n{'='*50}")
+
+    messages = [{"role": "user", "content": goal}]
+
+    for step in range(max_steps):
+        response = client.messages.create(
+            model="claude-opus-4-5",
+            max_tokens=4096,
+            system=(
+                "คุณคือ assistant ที่ช่วยวิเคราะห์ข้อความ "
+                "ใช้ tools ที่มีให้เพื่อทำงานที่ได้รับมอบหมาย "
+                "เมื่อเสร็จสมบูรณ์ ตอบสรุปผลลัพธ์ทั้งหมดให้ชัดเจน"
+            ),
+            messages=messages,
+            tools=TOOLS
+        )
+
+        print(f"[Step {step+1}] Stop reason: {response.stop_reason}")
+
+        # หยุดถ้าไม่มี tool call
+        if response.stop_reason == "end_turn":
+            # ดึงข้อความตอบสุดท้าย
+            final_text = next(
+                (block.text for block in response.content if hasattr(block, "text")),
+                "ไม่มีข้อความตอบกลับ"
+            )
+            print(f"\nสรุปผล:\n{final_text}")
+            return final_text
+
+        # ประมวลผล tool calls
+        messages.append({"role": "assistant", "content": response.content})
+
+        tool_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                print(f"[Tool] {block.name}({block.input})")
+                func = TOOL_FUNCTIONS.get(block.name)
+                if func:
+                    result = func(**block.input)
+                else:
+                    result = f"ไม่พบ tool: {block.name}"
+                print(f"[Result] {result}")
+
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result
+                })
+
+        messages.append({"role": "user", "content": tool_results})
+
+    return "ถึง max steps แล้ว"
+
+# ---- ทดสอบ ----
+if __name__ == "__main__":
+    sample_text = """
+    ปัญญาประดิษฐ์กำลังเปลี่ยนแปลงวิธีที่เราทำงานในทุกอุตสาหกรรม
+    ตั้งแต่การแพทย์ที่ใช้ AI วินิจฉัยโรค ไปจนถึงการเงินที่ใช้ AI
+    วิเคราะห์ความเสี่ยง และการศึกษาที่ปรับหลักสูตรให้เหมาะกับผู้เรียน
+    แต่ละคน การเปลี่ยนแปลงนี้เกิดขึ้นเร็วกว่าที่หลายคนคาดไว้
+    """
+
+    run_claude_agent(
+        f"วิเคราะห์ข้อความนี้ให้ครบ: 1) นับจำนวนคำ 2) สรุปประเด็นสำคัญ 5 ข้อ "
+        f"3) แปลเป็นอังกฤษ\n\nข้อความ: {sample_text}"
+    )
+```
+
+> 🧪 **ลองทำดู:** เพิ่ม tool ใหม่เข้าไป เช่น `check_sentiment(text)` ที่ประเมินว่าข้อความนั้น positive/negative/neutral แล้วเพิ่มเข้าไปใน TOOLS และ TOOL_FUNCTIONS แล้วรัน goal ใหม่ที่รวม sentiment analysis ด้วย ลองสังเกตว่า agent เลือกเรียก tools ในลำดับไหน
+
+---
+
+## ตัวอย่างงานจริงที่ Agent เหมาะกว่า Chatbot
+
+ก่อนจะสรุป มาดูตัวอย่างจากโลกการทำงานจริงที่ agent เปลี่ยนเกม:
+
+**Sales Research Agent:**
+รับชื่อบริษัทที่ต้องการ pitch → ค้นข้อมูลบริษัทจากเว็บ → ดูประวัติ funding → เช็ค LinkedIn ของ decision makers → ค้นหา pain points ล่าสุด → สรุปเป็น brief ก่อน sales call พร้อม talking points
+
+งานนี้มนุษย์ทำได้ แต่ใช้เวลา 2-3 ชั่วโมงต่อบริษัท agent ทำได้ใน 5 นาที
+
+**Customer Support Agent:**
+รับ ticket ใหม่ → classify ประเภทปัญหา → ค้น knowledge base → ดึงประวัติ customer จาก CRM → ถ้าแก้ได้ → ตอบอัตโนมัติ → ถ้าซับซ้อน → escalate พร้อม summary ให้ human
+
+**Content Monitoring Agent:**
+Monitor social media → เมื่อ brand mention เกิดขึ้น → ประเมิน sentiment → ถ้า negative → alert ทีม PR พร้อม context → ถ้า positive → บันทึกสำหรับ testimonials
+
+**Financial Reconciliation Agent:**
+รับ bank statement → match กับ invoices ใน system → flag discrepancies → สร้าง reconciliation report → ส่งให้ accountant review
+
+<!-- IMAGE: ตาราง use cases เปรียบเทียบ "งานที่ chatbot ทำได้" vs "งานที่ต้องการ agent" -->
+
+pattern ร่วมของทุก use case เหล่านี้: มีหลายขั้นตอน, ต้องใช้ข้อมูลจากหลายแหล่ง, ต้องตัดสินใจระหว่างทาง, ผลลัพธ์ต้องทำอะไรบางอย่างในระบบจริง
+
+ถ้างานของคุณมีลักษณะเหล่านี้ — agent คือทิศทางที่ถูกต้อง
+
+---
+
+## สรุป
+
+เราเดินทางมาไกลในบทนี้ จาก chatbot ง่าย ๆ ที่แค่รับ-ตอบ สู่ agent ที่มี loop ของตัวเอง ใช้ tools ได้ วางแผนได้ จำได้ และทำงานเป็นทีมได้
+
+**สิ่งสำคัญที่ต้องจำ:**
+
+- **Agent คือ Observe-Think-Act loop** — สังเกต คิด ลงมือทำ วนซ้ำ จนเสร็จ
+- **Tool use** คือสะพานระหว่าง LLM กับโลกจริง ผ่าน function calling
+- **Planning** (ReAct, task decomposition) ทำให้ agent ไม่ทำงานสุ่มสี่สุ่มห้า
+- **Memory** (short-term, long-term, working) ทำให้ agent ทำงานต่อเนื่องข้ามเวลาได้
+- **Multi-agent** เหมาะกับงานใหญ่ที่ต้องการหลายความเชี่ยวชาญ
+- **Guardrails** ไม่ใช่ optional — budget limits, max iterations, approval gates คือ infrastructure ของ production agent
+
+Agent คือก้าวถัดไปจาก API call ธรรมดา — แทนที่คุณจะโทรหา AI ทุกครั้งที่ต้องการอะไร คุณมอบหมายงานให้ AI แล้วปล่อยให้มันทำ
+
+เมื่อ agent ของคุณทำงานได้แล้ว คำถามถัดมาคือจะทำให้มันเก่งขึ้นกับงานเฉพาะของคุณยังไง — ปรับ prompt ต่อไป หรือถึงเวลาลงทุน fine-tune model? **บทถัดไปเรื่อง [Fine-tuning vs Prompting](/building-with-ai/fine-tuning-vs-prompting)** จะพาไปดูว่าเมื่อไหร่ควรเลือกทางไหน และแต่ละทางคุ้มค่าแค่ไหน
+
+และเมื่อคุณเริ่มปรับระบบจริงจัง คำถามที่ตามมาคือ **คุณรู้ได้ยังไงว่า agent ทำงานได้ดีพอ?** จะ verify และ debug มันยังไงเมื่อมันวิ่งไป 10 ขั้นตอน — เรื่องนั้นเจาะลึกในบท [Evals](/building-with-ai/evals-and-benchmarks) ที่จะมาถึง เพราะถ้าสร้าง agent โดยไม่มี eval ที่ดี คุณกำลังบินโดยไม่มีเครื่องวัด
+
+---
+
+*บทนี้เป็นส่วนหนึ่งของ [Building with AI](/building-with-ai) — หลักสูตรสำหรับคนที่อยากสร้างระบบ AI จริง ไม่ใช่แค่ใช้งาน*

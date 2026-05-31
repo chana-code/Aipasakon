@@ -1,0 +1,656 @@
+---
+slug: fine-tuning-vs-prompting
+level: building-with-ai
+title: "Fine-tuning vs Prompting — เมื่อไหร่ควรสอน AI ใหม่ เมื่อไหร่แค่สั่งให้ดี"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจความแตกต่างระหว่าง prompting, few-shot learning, RAG, และ fine-tuning เมื่อไหร่ใช้วิธีไหน ข้อดีข้อเสีย ค่าใช้จ่าย และ decision framework สำหรับเลือกวิธีที่เหมาะกับปัญหา"
+---
+# Fine-tuning vs Prompting — เมื่อไหร่ควรสอน AI ใหม่ เมื่อไหร่แค่สั่งให้ดี
+
+ทีม customer success ของบริษัทคุณอยากให้ AI ตอบคำถามลูกค้าเป็นภาษาไทย ฟังดูง่ายมาก ลอง ChatGPT ก็ตอบได้ แต่ tone มันไม่ใช่ — ทางการเกินไป บางทีก็แข็งเกินไป ไม่ใช่เสียงของแบรนด์เลย ทุกคนในทีมเริ่มถามคำถามเดียวกัน: "เราควร fine-tune model เองไหม?"
+
+คำตอบคือ "it depends" — แต่ที่สำคัญกว่านั้นคือ "depends on อะไร?" บทนี้จะแกะคำถามนั้นให้ชัด ตั้งแต่ว่า fine-tuning คืออะไรจริง ๆ ทำงานอย่างไร ต่างจาก prompting อย่างไร และที่สำคัญที่สุด — จะรู้ได้อย่างไรว่าปัญหาของคุณต้องการวิธีไหน
+
+<!-- IMAGE: ภาพ spectrum ของการปรับแต่ง AI เรียงจากซ้ายไปขวา: Zero-shot → Few-shot → System Prompt → RAG → Fine-tuning → Train from scratch พร้อมไอคอนแต่ละขั้น -->
+
+---
+
+## Spectrum ของการปรับแต่ง AI — ไม่ได้มีแค่สองทาง
+
+ก่อนไปถึง fine-tuning กับ prompting ต้องเข้าใจก่อนว่าจริง ๆ แล้วมีตัวเลือกมากกว่านั้น และแต่ละตัวอยู่บน spectrum ที่ต่อเนื่องกัน ไม่ใช่แค่ขาวกับดำ
+
+ลองจินตนาการว่าคุณเพิ่งจ้างพนักงานใหม่มาทำงาน customer support มีหลายวิธีที่คุณจะ "ปรับ" ให้เขาทำงานได้ตามที่คุณต้องการ:
+
+**วิธีที่ 1 — แค่บอกงาน (Zero-shot prompt)**
+บอกเขาตรง ๆ ว่า "ช่วยตอบอีเมลลูกค้าให้หน่อย" ไม่ได้ให้ตัวอย่าง ไม่ได้ให้คู่มือ เขาจะใช้ความรู้และสามัญสำนึกของตัวเองทั้งหมด ได้ผลลัพธ์ที่ไม่แน่นอน บางครั้งดี บางครั้งก็ไม่ตรง
+
+**วิธีที่ 2 — ให้ตัวอย่าง (Few-shot prompt)**
+บอกงานพร้อมกับพูดว่า "อย่างเช่น ถ้าลูกค้าถามแบบนี้ เราตอบแบบนี้นะ" ให้ดูตัวอย่าง 3-5 ชิ้น เขาจะจับ pattern ได้ดีขึ้นมาก
+
+**วิธีที่ 3 — ให้คู่มือ (System prompt engineering)**
+เขียนคู่มือให้เขาอ่านก่อนทำงานทุกวัน — brand voice คืออะไร, ห้ามพูดอะไร, ลูกค้าของเราเป็นใคร, tone ของบริษัทเป็นอย่างไร ชัดเจนขึ้นมาก แต่คุณต้องเตรียมคู่มือให้ดี
+
+**วิธีที่ 4 — ส่งเข้าอบรมพร้อม reference materials (RAG)**
+แทนที่จะจำทุกอย่าง เขามีหน้าที่ค้นหาข้อมูลจากฐานความรู้ของบริษัทก่อนตอบทุกครั้ง รู้จักใช้ reference ข้อมูลจะถูกต้องเสมอ เพราะดึงมาจากแหล่งข้อมูลจริง
+
+**วิธีที่ 5 — ส่งเรียนหลักสูตรเฉพาะทาง (Fine-tuning)**
+ส่งเขาไปเรียนหลักสูตร 3 เดือนที่ออกแบบมาเฉพาะสำหรับบริษัทของคุณ หลังจบหลักสูตร เขาจะ "เป็น" คนของบริษัทโดยธรรมชาติ ไม่ต้องคอยบอกซ้ำ แต่ต้องลงทุนเวลาและเงินมาก
+
+**วิธีที่ 6 — สร้างคนใหม่ตั้งแต่ต้น (Train from scratch)**
+จ้างคนมาตั้งแต่ยังไม่รู้อะไรเลย แล้วสอนทุกอย่างด้วยตัวเอง ใช้ทรัพยากรมหาศาล บริษัทส่วนใหญ่ไม่เคยต้องทำแบบนี้
+
+ในโลกของ AI ทั้งหกวิธีนี้มีชื่อเรียกชัดเจน และแต่ละวิธีเหมาะกับสถานการณ์ที่ต่างกัน บทนี้จะโฟกัสที่วิธี 1-5 เพราะ Train from scratch ต้องการทีม research และงบ GPU นับร้อยล้านบาท ซึ่งเกินขอบเขตของทุกคนที่อ่านบทนี้
+
+> 💡 **Key insight:** คนส่วนใหญ่กระโดดไป fine-tuning เร็วเกินไป ทั้งที่จริง ๆ ปัญหา 80% แก้ได้ด้วย prompt ที่ดี การเข้าใจ spectrum นี้ช่วยประหยัดเวลาและเงินได้มาก
+
+<!-- IMAGE: ภาพเปรียบเทียบ "การจ้างพนักงานใหม่" กับแต่ละ method เป็น infographic แนวนอน -->
+
+---
+
+## Prompting — ทำไมควรเริ่มที่นี่เสมอ
+
+ก่อนคิดถึงวิธีอื่นใด ให้ลอง prompt ให้ดีที่สุดก่อน ฟังดูเรียบง่าย แต่หลายทีมข้ามขั้นตอนนี้ไปเพราะคิดว่าตัวเองลองแล้ว ทั้งที่ยังไม่ได้ลองจริง ๆ
+
+### Zero-shot Prompting
+
+วิธีที่ง่ายที่สุด — บอก AI ตรง ๆ ว่าให้ทำอะไร ไม่มีตัวอย่าง
+
+```
+ตอบคำถามลูกค้าด้านล่างเป็นภาษาไทย ใช้ tone ที่เป็นมิตรและเป็นกันเอง
+
+คำถามลูกค้า: สินค้าส่งถึงกี่วัน?
+```
+
+ใช้งานได้กับงานทั่วไป แต่ถ้าต้องการ output ที่เฉพาะเจาะจงกว่านี้ zero-shot มักยังไม่พอ
+
+### Few-shot Prompting
+
+ให้ตัวอย่างผลลัพธ์ที่ต้องการ 3-5 ชิ้น AI จะเรียนรู้ pattern จากตัวอย่างและทำตาม
+
+```
+ตอบคำถามลูกค้าตามสไตล์ในตัวอย่างด้านล่าง
+
+ตัวอย่างที่ 1:
+ลูกค้า: สินค้าส่งถึงกี่วัน?
+เรา: ขอบคุณที่ถามนะคะ สินค้าจะส่งถึงมือภายใน 2-3 วันทำการเลยค่ะ ถ้าสั่งก่อนเที่ยงวันนี้จะได้เร็วกว่านั้นด้วย!
+
+ตัวอย่างที่ 2:
+ลูกค้า: คืนสินค้าได้ไหม?
+เรา: ได้เลยค่ะ เรามีนโยบายคืนสินค้าภายใน 30 วันนับจากวันที่รับของ ไม่ต้องมีเหตุผลก็คืนได้นะคะ แค่ติดต่อมาที่นี่ได้เลย
+
+---
+ตอบคำถามนี้ตามสไตล์เดียวกัน:
+ลูกค้า: มีส่วนลดไหม?
+```
+
+ผลลัพธ์จะใกล้เคียง brand voice ของคุณมากขึ้นอย่างเห็นได้ชัด เพราะ AI มีตัวอย่างให้ยึดเหนี่ยว
+
+### Chain-of-Thought Prompting
+
+สำหรับงานที่ต้องการ reasoning ที่ดี ให้ AI "คิดออกเสียง" ก่อนตอบ
+
+```
+วิเคราะห์อีเมลลูกค้าด้านล่าง แล้วจำแนกว่าเป็นเรื่องอะไร
+คิดทีละขั้นตอน:
+1. ลูกค้าต้องการอะไร?
+2. มีความเร่งด่วนไหม?
+3. อยู่ในหมวดไหน? (ส่งของ / คืนสินค้า / ชำระเงิน / อื่น ๆ)
+4. สรุปหมวด
+
+อีเมล: [...]
+```
+
+Chain-of-thought ช่วยให้ accuracy ดีขึ้นมากสำหรับงานจำแนกประเภทและงานที่ต้องใช้เหตุผลหลายขั้นตอน
+
+### ข้อดีของ Prompting
+
+- **เร็วมาก** — ลองได้ทันที ปรับเปลี่ยนได้ภายในนาที
+- **ถูก** — ไม่มี upfront cost นอกจาก token ที่ใช้
+- **ยืดหยุ่น** — เปลี่ยน prompt ได้ทุกเมื่อโดยไม่ต้อง retrain
+- **ไม่ต้องการ dataset** — ไม่ต้องเตรียมข้อมูลฝึกสอน
+
+### ข้อเสียของ Prompting
+
+- **Token cost สูงถ้า prompt ยาว** — ถ้า system prompt ยาว 2,000 tokens และมี 10,000 requests ต่อวัน นั่นคือ 20 ล้าน tokens/วัน ค่าใช้จ่ายสะสมได้
+- **ไม่ consistent 100%** — AI บางครั้งออกนอก format แม้จะ prompt ไว้แล้ว
+- **Context window จำกัด** — ถ้าข้อมูลที่ต้องการมีมาก ใส่ใน prompt ได้ไม่หมด
+- **ไม่ได้เรียนรู้จริง** — ทุกครั้งที่ call API model เริ่มใหม่จากศูนย์
+
+> 💡 **Key insight:** ถ้ายังไม่ได้ลองเขียน system prompt ที่ดีพร้อม few-shot examples อย่าเพิ่งคิดถึง fine-tuning คนส่วนใหญ่ข้ามขั้นตอนนี้ไปแล้วเสียเวลาและเงินโดยเปล่าประโยชน์
+
+<!-- IMAGE: ภาพเปรียบเทียบ zero-shot vs few-shot vs chain-of-thought output side-by-side -->
+
+---
+
+## RAG — เพิ่มความรู้โดยไม่ต้อง Train
+
+[บท RAG](/building-with-ai/rag-retrieval-augmented-generation) ครอบคลุมเรื่องนี้แบบละเอียด แต่สำหรับบทนี้ต้องเข้าใจ concept หลัก: RAG คือการดึงข้อมูลที่เกี่ยวข้องมาใส่ใน context ก่อนที่ AI จะตอบ
+
+แทนที่จะฝัง knowledge ไว้ใน model โดยตรง (ซึ่งคือสิ่งที่ fine-tuning ทำ) RAG แยก knowledge ออกไปเก็บใน database แล้วดึงมาใช้ตอนที่ต้องการ
+
+**ใช้ RAG เมื่อ:**
+- ข้อมูลเปลี่ยนบ่อย เช่น ราคาสินค้า สต็อก นโยบายที่อัปเดตทุกเดือน
+- ต้องการ citation — บอกได้ว่าคำตอบมาจากเอกสารข้อ ไหน
+- มี private data ที่ไม่อยากส่งไป train กับ provider ภายนอก
+- Knowledge base ใหญ่มากจนใส่ใน context ไม่หมด
+
+**RAG ไม่ช่วยเรื่อง:**
+- Style และ tone — ถ้าอยากให้ model ตอบในสไตล์เฉพาะ RAG ไม่ได้แก้ปัญหานี้
+- Format ของ output — RAG ไม่ได้สอน model ว่าต้องตอบในรูปแบบไหน
+- ความเชี่ยวชาญในงาน specific — เช่น การจำแนก sentiment ของภาษาไทยเฉพาะกลุ่ม
+
+> 💡 **Key insight:** RAG = เพิ่ม knowledge, Fine-tuning = เปลี่ยน behavior สองอย่างนี้แก้ปัญหาคนละอย่าง และบ่อยครั้งต้องใช้ร่วมกัน
+
+<!-- IMAGE: ภาพ diagram แสดง RAG flow: Query → Search DB → Inject context → LLM → Answer เปรียบเทียบกับ Fine-tuned model flow -->
+
+---
+
+## Fine-tuning — สอน Model จริง ๆ
+
+ถึงเวลาเข้าใจกลไกจริง ๆ ของ fine-tuning เพราะถ้าไม่รู้ว่ามันทำงานอย่างไร จะเลือกใช้ไม่ถูก
+
+### มันเกิดอะไรขึ้นตอน Fine-tune?
+
+Model ภาษาขนาดใหญ่อย่าง GPT-4 ถูก pre-trained ด้วยข้อความมหาศาลจากอินเทอร์เน็ต — หนังสือ บทความ โค้ด บทสนทนา — หลายร้อยล้านล้านคำ กระบวนการนั้นกำหนด "weights" หรือพารามิเตอร์นับพันล้านตัวใน model ซึ่งเป็นตัวกำหนดว่า model จะตอบอะไร
+
+เมื่อ fine-tune คุณกำลัง **ปรับ weights เหล่านั้นบางส่วน** ด้วยชุดข้อมูลใหม่ที่คุณเตรียมให้ model ไม่ได้เรียนรู้จากศูนย์ แต่ปรับจากจุดที่มันรู้แล้ว เหมือนการ "เอียง" ความรู้ที่มีอยู่ให้ไปทางที่คุณต้องการ
+
+กระบวนการนี้เรียกว่า supervised fine-tuning — คุณให้ตัวอย่าง input-output คู่ที่ถูกต้องหลายร้อยถึงหลายพันคู่ model เรียนรู้ว่า "เมื่อได้รับ input แบบนี้ ควร output แบบนี้" แล้วปรับ weights ให้สอดคล้องกัน
+
+### ต้องเตรียมอะไรบ้าง?
+
+**1. Dataset ในรูป JSONL**
+
+Format มาตรฐานสำหรับ OpenAI fine-tuning คือ JSONL (JSON Lines) — แต่ละบรรทัดคือ training example หนึ่งชิ้นในรูป JSON
+
+```jsonl
+{"messages": [{"role": "system", "content": "คุณเป็น customer support ของ Fairdee ตอบภาษาไทยแบบเป็นกันเอง"}, {"role": "user", "content": "ซื้อประกันได้ที่ไหน?"}, {"role": "assistant", "content": "ซื้อได้เลยที่แอป Fairdee นะคะ กดที่เมนู 'ซื้อประกัน' แล้วเลือกแบบที่ต้องการได้เลย ไม่ถึง 5 นาทีก็เสร็จแล้ว!"}]}
+{"messages": [{"role": "system", "content": "คุณเป็น customer support ของ Fairdee ตอบภาษาไทยแบบเป็นกันเอง"}, {"role": "user", "content": "กรมธรรม์หายต้องทำยังไง?"}, {"role": "assistant", "content": "ไม่ต้องกังวลนะคะ กรมธรรม์ดิจิทัลของเราไม่มีวันหายค่ะ เข้าแอปแล้วกดที่ 'กรมธรรม์ของฉัน' เจอทุกฉบับเลย ถ้าเข้าแอปไม่ได้ติดต่อเราได้เลยค่ะ"}]}
+```
+
+**2. จำนวนตัวอย่าง**
+
+ไม่มีตัวเลขตายตัว แต่แนวทางทั่วไป:
+- **50-100 examples** — เห็นความเปลี่ยนแปลงเล็กน้อย เหมาะทดสอบ
+- **200-500 examples** — เห็นผลชัดเจน เหมาะงาน style/tone
+- **500-1,000+ examples** — สำหรับงาน classification หรืองานที่ต้องการ accuracy สูง
+- **1,000+ examples** — สำหรับ domain ที่ซับซ้อนมากหรือ task ที่ละเอียด
+
+คุณภาพสำคัญกว่าปริมาณ 200 examples ที่ดีให้ผลดีกว่า 1,000 examples ที่มีข้อมูลคุณภาพต่ำเสมอ
+
+**3. ค่าใช้จ่ายจริง (OpenAI, ณ ต้นปี 2026)**
+
+| รายการ | ราคา |
+|--------|------|
+| Training (GPT-4o mini) | ~$0.30 ต่อ 1M tokens |
+| Training (GPT-3.5 Turbo) | ~$0.008 ต่อ 1K tokens |
+| Inference (fine-tuned model) | สูงกว่า base model ประมาณ 2-4x |
+
+ตัวอย่าง: dataset 500 examples ที่แต่ละ example มี 200 tokens = 100,000 tokens = ~$0.80-$3 สำหรับ training ครั้งเดียว ไม่แพงมาก แต่ค่า inference ที่สูงขึ้นอาจสะสมได้ถ้ามี traffic สูง
+
+> 💡 **Key insight:** Fine-tuning ไม่แพงในการ train แต่อาจแพงในการ inference เพราะ fine-tuned model มักมี per-token cost สูงกว่า base model ต้องคิด lifetime cost ไม่ใช่แค่ training cost
+
+### Fine-tuning เหมาะกับอะไร?
+
+Fine-tuning ให้ผลดีที่สุดเมื่อ:
+
+- **ต้องการ style หรือ format เฉพาะ** — เช่น ตอบในรูปแบบ JSON เสมอ, ใช้ภาษาแบบเฉพาะ, มี tone ที่ consistent
+- **มีงาน classification ที่ซับซ้อน** — จำแนกข้อความเป็นหมวดที่ละเอียด เช่น 20 หมวด
+- **ต้องการ consistency สูงมาก** — งานที่ต้องการ output แบบ deterministic
+- **Prompt ยาวมากและรัน volume สูง** — fine-tune แล้วย่อ prompt ได้ ประหยัด token
+- **มี domain knowledge เฉพาะมาก** — ศัพท์เฉพาะ, convention ที่ไม่มีใน pre-training
+
+<!-- IMAGE: ภาพ before/after เปรียบเทียบ output ของ base model กับ fine-tuned model สำหรับ customer support task -->
+
+---
+
+## ลองทำดู #1: เปรียบเทียบ Prompting vs Fine-tuning
+
+มาดู scenario จริงที่หลายทีมเจอ: จำแนกอีเมลลูกค้าเป็น 5 หมวด ได้แก่ "ส่งของ", "คืนสินค้า", "ชำระเงิน", "บัญชีผู้ใช้", และ "อื่น ๆ"
+
+> 🧪 **ลองทำดู:** สร้างไฟล์ Python ชื่อ `classify_compare.py` แล้วลองรันทั้งสองวิธีด้านล่าง เปรียบเทียบผลลัพธ์ด้วยตัวเอง
+
+### วิธีที่ 1: Few-shot Prompting
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+# กำหนด few-shot examples ใน system prompt
+SYSTEM_PROMPT = """คุณเป็น AI จำแนกหมวดอีเมลลูกค้า
+ตอบด้วยหมวดเดียวเท่านั้น: ส่งของ / คืนสินค้า / ชำระเงิน / บัญชีผู้ใช้ / อื่นๆ
+
+ตัวอย่าง:
+อีเมล: "พัสดุยังไม่มาเลยสั่งมา 5 วันแล้ว" → ส่งของ
+อีเมล: "อยากคืนของที่ซื้อไปอาทิตย์ที่แล้ว" → คืนสินค้า
+อีเมล: "ถูกเก็บเงินสองครั้งทำไม?" → ชำระเงิน
+อีเมล: "ลืมรหัสผ่านเข้าไม่ได้" → บัญชีผู้ใช้
+อีเมล: "คุณมีสาขาที่เชียงใหม่ไหม?" → อื่นๆ"""
+
+def classify_with_prompt(email_text: str) -> str:
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"อีเมล: {email_text}"}
+        ],
+        temperature=0  # ลด randomness สำหรับ classification
+    )
+    return response.choices[0].message.content.strip()
+
+# ทดสอบ
+test_emails = [
+    "ของที่สั่งวันจันทร์ยังไม่ถึงเลยครับ",
+    "จะขอเปลี่ยนเบอร์โทรในบัญชีได้ไหม",
+    "ทำไมบัตรเครดิตถูกหักสองรอบ",
+]
+
+for email in test_emails:
+    result = classify_with_prompt(email)
+    print(f"อีเมล: {email}")
+    print(f"หมวด: {result}")
+    print("---")
+```
+
+### วิธีที่ 2: Fine-tuning (ต้องเตรียม dataset ก่อน)
+
+สมมติว่า fine-tune model เรียบร้อยแล้ว ได้ model ID เป็น `ft:gpt-4o-mini:org:classifier:abc123`
+
+```python
+def classify_with_finetuned(email_text: str) -> str:
+    response = client.chat.completions.create(
+        # ใช้ fine-tuned model แทน base model
+        model="ft:gpt-4o-mini:org:classifier:abc123",
+        messages=[
+            # system prompt สั้นมากเพราะ model รู้แล้ว
+            {"role": "system", "content": "จำแนกหมวดอีเมล"},
+            {"role": "user", "content": email_text}
+        ],
+        temperature=0
+    )
+    return response.choices[0].message.content.strip()
+```
+
+### เปรียบเทียบผลลัพธ์จริง
+
+| มิติ | Prompting (few-shot) | Fine-tuning |
+|------|---------------------|-------------|
+| Setup time | 30 นาที | 2-3 วัน (เตรียม dataset + train) |
+| Accuracy (200 test cases) | ~85-90% | ~92-97% |
+| Tokens ต่อ request | ~150-200 tokens | ~30-50 tokens |
+| Cost ต่อ 10,000 requests | ~$0.15-0.30 | ~$0.05-0.15 (inference ขึ้นกับ model) |
+| ยืดหยุ่นในการแก้ไข | แก้ได้ทันที | ต้อง retrain |
+| Consistency | ดี | ดีมาก |
+
+**ข้อสรุปจาก scenario นี้:** ถ้า volume ต่ำกว่า 10,000 requests/วัน prompting น่าจะคุ้มกว่า แต่ถ้า volume สูงและต้องการ accuracy สูงสุด fine-tuning ตอบโจทย์กว่า
+
+<!-- IMAGE: กราฟเปรียบเทียบ accuracy vs cost สำหรับทั้งสองวิธีใน email classification task -->
+
+---
+
+## Decision Framework — เมื่อไหร่ใช้วิธีไหน
+
+นี่คือ framework ที่ใช้ได้จริง ถามตัวเองทีละคำถามตามลำดับ:
+
+### คำถามที่ 1: ปัญหาแก้ได้ด้วย prompt ที่ดีไหม?
+
+ลองใช้เวลา 2-4 ชั่วโมงเขียน system prompt ที่ดีพร้อม few-shot examples ก่อน ถ้าผลลัพธ์ดีพอสำหรับ use case ของคุณ หยุดตรงนี้ ไม่ต้องทำอะไรเพิ่ม
+
+**ไปขั้นต่อไปถ้า:** prompt ดีที่สุดแล้วยัง miss cases สำคัญ หรือ inconsistent เกินยอมรับ
+
+### คำถามที่ 2: ปัญหาเกี่ยวกับ knowledge หรือ behavior?
+
+- **Knowledge** = AI ไม่รู้ข้อมูลที่ต้องใช้ (เช่น ข้อมูลบริษัท, นโยบายเฉพาะ, ข้อมูลที่เปลี่ยนบ่อย) → ใช้ **RAG**
+- **Behavior** = AI รู้ข้อมูลแต่ตอบผิด format หรือ tone หรือ style → พิจารณา **Fine-tuning**
+
+### คำถามที่ 3: ข้อมูลเปลี่ยนบ่อยแค่ไหน?
+
+- เปลี่ยนทุกวัน/อาทิตย์ → **RAG เสมอ** (fine-tune แล้วข้อมูล stale)
+- เปลี่ยนทุกเดือน/ไตรมาส → อาจ fine-tune ได้แต่ต้องวางแผน retrain
+- ข้อมูลนิ่ง ไม่ค่อยเปลี่ยน → fine-tuning ทำงานได้ดี
+
+### คำถามที่ 4: Volume และ cost เป็นปัจจัยไหม?
+
+- Volume ต่ำ (< 1,000 requests/วัน) → prompting คุ้มกว่าเสมอ
+- Volume กลาง (1,000-50,000/วัน) → ดู latency และ accuracy requirement
+- Volume สูง (> 50,000/วัน) + prompt ยาว → fine-tune เพื่อย่อ prompt อาจประหยัดได้มาก
+
+### คำถามที่ 5: มี dataset ที่ดีพอไหม?
+
+- ไม่มี examples เลย → เริ่ม prompt ก่อน เก็บ examples ระหว่างใช้งาน
+- มี 50-100 examples → ลอง fine-tune เพื่อดูว่าดีกว่าไหม
+- มี 200+ examples คุณภาพดี → fine-tuning น่าลงทุน
+
+### Decision Tree แบบรวดเร็ว
+
+```
+ปัญหาของคุณ
+│
+├── prompt ดีแล้วพอ? → ใช้ Prompting (จบ)
+│
+├── ต้องการ knowledge เฉพาะที่เปลี่ยนบ่อย?
+│   └── ใช้ RAG (+ prompting ที่ดี)
+│
+├── ต้องการ style/format/tone เฉพาะ?
+│   ├── มี examples 200+ คู่? → Fine-tuning
+│   └── ไม่มี → Few-shot prompting ก่อน สะสม examples
+│
+└── ต้องการทั้ง knowledge และ behavior?
+    └── RAG + Fine-tuned model (ซับซ้อนที่สุด ทำสุดท้าย)
+```
+
+> 💡 **Key insight:** ปัญหาส่วนใหญ่ในชีวิตจริงต้องการทั้ง knowledge และ behavior ที่ถูกต้อง solution ที่ดีที่สุดจึงมักเป็น RAG + fine-tuned model ไม่ใช่ทางใดทางหนึ่ง
+
+<!-- IMAGE: Flowchart decision tree แบบ visual สวยงาม ถามทีละคำถาม ลงท้ายด้วย method ที่แนะนำ -->
+
+---
+
+## ข้อผิดพลาดที่พบบ่อย
+
+ทีมที่เริ่มต้นกับ fine-tuning มักเจอข้อผิดพลาดชุดเดิม รู้ไว้ก่อนจะประหยัดเวลาได้มาก
+
+### ข้อผิดพลาดที่ 1: Fine-tune เร็วเกินไปโดยยังไม่ลอง prompt ดี ๆ
+
+นี่คือข้อผิดพลาดที่พบบ่อยที่สุด ทีมได้ยินว่า fine-tuning ให้ผลดีกว่า เลยรีบสร้าง dataset และ train โดยไม่เคยลองเขียน system prompt ที่ดีจริง ๆ สักครั้ง
+
+วิธีป้องกัน: กำหนดกฎให้ตัวเองว่า "ต้องใช้เวลาอย่างน้อย 1 วันกับ prompt engineering ก่อน ถึงจะคิดถึง fine-tuning ได้"
+
+### ข้อผิดพลาดที่ 2: Dataset น้อยเกินไปหรือคุณภาพต่ำ
+
+Fine-tune ด้วย examples 30 ชิ้นแล้วสงสัยว่าทำไมไม่ดีขึ้น หรือเตรียม dataset ด้วยการ generate โดย AI ล้วน ๆ โดยไม่มีคนตรวจสอบ
+
+dataset คุณภาพต่ำสอน model ผิดทาง และ model ที่ fine-tune ด้วยข้อมูลแย่จะแย่กว่า base model ที่ prompt ดี ๆ
+
+วิธีป้องกัน: เตรียม examples จาก real cases จริง ให้คนที่รู้เรื่องตรวจทุกชิ้น ถ้าไม่มี examples จริงพอ อย่าเพิ่งเริ่ม fine-tune
+
+### ข้อผิดพลาดที่ 3: Overfitting
+
+Model จำ training examples ได้แม่น แต่พอเจอ input แบบอื่นที่ไม่เคยเห็นก็ตอบผิดพลาด เรียกว่า overfitting — model เรียนรู้ "ตัวอย่าง" ไม่ใช่ "pattern"
+
+เกิดขึ้นเมื่อ training data น้อยเกินไป หรือ train epochs มากเกินไป
+
+วิธีป้องกัน: แบ่ง dataset เป็น train/validation split เสมอ ดู validation loss ถ้า validation loss เริ่มสูงขึ้นในขณะที่ training loss ลงแสดงว่า overfit แล้ว
+
+### ข้อผิดพลาดที่ 4: Fine-tune แล้วแต่ Knowledge ยังขาด
+
+Fine-tune model ให้ตอบในสไตล์บริษัทได้แล้ว แต่ลืมว่า model ยังไม่รู้ข้อมูลบริษัทจริง ๆ เลยตอบผิดเรื่องราคา, นโยบาย, รายละเอียดสินค้า
+
+นี่คือความเข้าใจผิดที่ว่า fine-tuning สอน knowledge — จริง ๆ มันเปลี่ยน behavior ไม่ใช่เพิ่ม knowledge
+
+วิธีป้องกัน: ถ้าต้องการทั้งสองอย่าง ต้องทำทั้ง fine-tuning (สำหรับ behavior) และ RAG (สำหรับ knowledge)
+
+### ข้อผิดพลาดที่ 5: ไม่วาง Evaluation ไว้ก่อน Train
+
+Train model แล้วดู output ด้วยตาเปล่าสักสิบชิ้น แล้วบอกว่า "ดูโอเค" โดยไม่มี evaluation set จริง
+
+วิธีป้องกัน: กันข้อมูล 100-200 examples ไว้เป็น test set ก่อนเริ่ม train วัด accuracy บน test set อย่างสม่ำเสมอ เปรียบเทียบ fine-tuned model กับ prompting บน test set เดียวกัน
+
+<!-- IMAGE: ภาพ checklist "Before You Fine-tune" แสดงขั้นตอนที่ต้องทำก่อน -->
+
+---
+
+## ลองทำดู #2: เตรียม Fine-tuning Dataset
+
+มาสร้าง dataset สำหรับ fine-tuning แบบ step-by-step ตั้งแต่เก็บ examples ไปจนถึง validate format
+
+> 🧪 **ลองทำดู:** รันโค้ดด้านล่างบนเครื่องของคุณ ใช้ตัวอย่างอีเมลลูกค้าจริงถ้ามี หรือสร้าง mock examples ขึ้นมาก่อน
+
+### Step 1: สร้าง JSONL Dataset
+
+```python
+import json
+from pathlib import Path
+
+# ตัวอย่าง training data สำหรับ customer support classifier
+# ในงานจริงควรมาจาก real customer emails ที่คนจำแนกไว้แล้ว
+training_examples = [
+    {
+        "messages": [
+            {
+                "role": "system",
+                "content": "จำแนกอีเมลลูกค้าเป็นหมวด: ส่งของ / คืนสินค้า / ชำระเงิน / บัญชีผู้ใช้ / อื่นๆ ตอบด้วยหมวดเดียวเท่านั้น"
+            },
+            {
+                "role": "user",
+                "content": "ของยังไม่มาเลยครับสั่งมา 1 อาทิตย์แล้ว"
+            },
+            {
+                "role": "assistant",
+                "content": "ส่งของ"
+            }
+        ]
+    },
+    {
+        "messages": [
+            {
+                "role": "system",
+                "content": "จำแนกอีเมลลูกค้าเป็นหมวด: ส่งของ / คืนสินค้า / ชำระเงิน / บัญชีผู้ใช้ / อื่นๆ ตอบด้วยหมวดเดียวเท่านั้น"
+            },
+            {
+                "role": "user",
+                "content": "บัตรถูกตัดไปแล้วแต่ออเดอร์ไม่ขึ้น"
+            },
+            {
+                "role": "assistant",
+                "content": "ชำระเงิน"
+            }
+        ]
+    },
+    {
+        "messages": [
+            {
+                "role": "system",
+                "content": "จำแนกอีเมลลูกค้าเป็นหมวด: ส่งของ / คืนสินค้า / ชำระเงิน / บัญชีผู้ใช้ / อื่นๆ ตอบด้วยหมวดเดียวเท่านั้น"
+            },
+            {
+                "role": "user",
+                "content": "อยากเปลี่ยนที่อยู่จัดส่งหลักได้ไหม"
+            },
+            {
+                "role": "assistant",
+                "content": "บัญชีผู้ใช้"
+            }
+        ]
+    }
+]
+
+# เขียนเป็น JSONL
+output_path = Path("training_data.jsonl")
+with open(output_path, "w", encoding="utf-8") as f:
+    for example in training_examples:
+        # แต่ละบรรทัด = หนึ่ง JSON object
+        f.write(json.dumps(example, ensure_ascii=False) + "\n")
+
+print(f"สร้างไฟล์ {output_path} สำเร็จ มี {len(training_examples)} examples")
+```
+
+### Step 2: Validate Format
+
+```python
+import json
+from openai import OpenAI
+
+client = OpenAI()
+
+def validate_jsonl(file_path: str) -> dict:
+    """ตรวจสอบ JSONL file ว่า format ถูกต้องก่อน upload"""
+    errors = []
+    warnings = []
+    valid_count = 0
+    total_tokens = 0
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        for line_num, line in enumerate(f, 1):
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                example = json.loads(line)
+            except json.JSONDecodeError as e:
+                errors.append(f"บรรทัด {line_num}: JSON ไม่ถูกต้อง — {e}")
+                continue
+
+            # ตรวจ structure
+            if "messages" not in example:
+                errors.append(f"บรรทัด {line_num}: ไม่มี 'messages' key")
+                continue
+
+            messages = example["messages"]
+            if len(messages) < 2:
+                errors.append(f"บรรทัด {line_num}: ต้องมีอย่างน้อย 2 messages")
+                continue
+
+            # ตรวจว่ามี assistant message
+            roles = [m.get("role") for m in messages]
+            if "assistant" not in roles:
+                errors.append(f"บรรทัด {line_num}: ต้องมี assistant message")
+                continue
+
+            # นับ token คร่าว ๆ (4 chars ≈ 1 token)
+            text = " ".join(m.get("content", "") for m in messages)
+            approx_tokens = len(text) // 4
+            total_tokens += approx_tokens
+
+            if approx_tokens > 4096:
+                warnings.append(f"บรรทัด {line_num}: ยาวมาก ({approx_tokens} tokens โดยประมาณ)")
+
+            valid_count += 1
+
+    return {
+        "valid_examples": valid_count,
+        "errors": errors,
+        "warnings": warnings,
+        "estimated_tokens": total_tokens,
+        "estimated_cost_usd": total_tokens / 1_000_000 * 0.30  # GPT-4o mini rate
+    }
+
+# รัน validation
+result = validate_jsonl("training_data.jsonl")
+print(f"Examples ที่ valid: {result['valid_examples']}")
+print(f"Errors: {len(result['errors'])}")
+for err in result['errors']:
+    print(f"  - {err}")
+print(f"Warnings: {len(result['warnings'])}")
+print(f"Token โดยประมาณ: {result['estimated_tokens']:,}")
+print(f"ค่าใช้จ่าย training โดยประมาณ: ${result['estimated_cost_usd']:.4f}")
+```
+
+### Step 3: Upload และเริ่ม Fine-tuning Job
+
+```python
+# Step 3a: Upload training file
+with open("training_data.jsonl", "rb") as f:
+    upload_response = client.files.create(
+        file=f,
+        purpose="fine-tune"
+    )
+file_id = upload_response.id
+print(f"File ID: {file_id}")
+
+# Step 3b: สร้าง fine-tuning job
+job = client.fine_tuning.jobs.create(
+    training_file=file_id,
+    model="gpt-4o-mini",  # หรือ gpt-3.5-turbo
+    hyperparameters={
+        "n_epochs": 3,  # จำนวนรอบที่ train ผ่าน dataset
+    }
+)
+print(f"Fine-tuning Job ID: {job.id}")
+print(f"Status: {job.status}")
+print("รอประมาณ 15-60 นาที ขึ้นกับขนาด dataset")
+
+# Step 3c: ตรวจสอบ status (รันซ้ำจนกว่าจะ succeeded)
+job_status = client.fine_tuning.jobs.retrieve(job.id)
+print(f"Status: {job_status.status}")
+if job_status.fine_tuned_model:
+    print(f"Fine-tuned Model ID: {job_status.fine_tuned_model}")
+```
+
+> 💡 **Key insight:** ลอง upload dataset ที่มีแค่ 10-20 examples ก่อนเพื่อตรวจ format ไม่ต้องรอ training จริง ประหยัดเวลาถ้า format มีปัญหา
+
+<!-- IMAGE: Screenshot ของ OpenAI dashboard แสดง fine-tuning job ที่กำลัง run พร้อม progress bar -->
+
+---
+
+## Cost-Benefit Analysis: เปรียบเทียบทั้งสามวิธี
+
+ตารางนี้ช่วยตัดสินใจอย่างเป็นระบบ ไม่ใช่แค่ direct cost แต่รวม hidden costs ด้วย
+
+| มิติ | Prompting | RAG | Fine-tuning |
+|------|-----------|-----|-------------|
+| **Upfront cost** | ต่ำมาก (เวลาเขียน prompt) | กลาง (ต้องสร้าง vector DB + pipeline) | สูง (dataset + training fee) |
+| **Per-request cost** | กลาง-สูง (ขึ้นกับความยาว prompt) | กลาง (prompt + retrieved chunks) | ต่ำ-กลาง (prompt สั้นลงได้) |
+| **Maintenance cost** | ต่ำ (แก้ prompt ได้ทันที) | กลาง (ต้องอัปเดต vector DB) | สูง (ต้อง retrain เมื่อข้อมูลเปลี่ยน) |
+| **Time to deploy** | ชั่วโมง | วัน-สัปดาห์ | สัปดาห์-เดือน |
+| **Flexibility** | สูงมาก | สูง | ต่ำ (เปลี่ยนต้อง retrain) |
+| **Accuracy potential** | ปานกลาง | ดี (สำหรับ factual tasks) | ดีมาก (สำหรับ pattern tasks) |
+| **Consistency** | ปานกลาง | ปานกลาง | สูง |
+| **เหมาะกับ knowledge ที่เปลี่ยนบ่อย** | ได้ (ใส่ใน prompt) | ดีที่สุด | ไม่เหมาะ |
+| **เหมาะกับ style/format เฉพาะ** | พอใช้ | ไม่ช่วย | ดีที่สุด |
+| **ทีมขนาดเล็ก 1-3 คน** | แนะนำ | แนะนำ (ถ้าจำเป็น) | ระวัง (maintenance สูง) |
+| **ทีมมีวิศวกร ML** | ได้ | ได้ | แนะนำ |
+
+### ตัวอย่าง Total Cost of Ownership (1 ปี)
+
+สมมติว่ารัน 10,000 requests/วัน = 3.65 ล้าน requests/ปี
+
+**วิธี Prompting (system prompt 500 tokens + user ~100 tokens = 600 tokens/request):**
+- Tokens/ปี: 3.65M × 600 = 2.19B tokens
+- ค่า input (GPT-4o mini $0.15/1M): ~$329/ปี
+- Development time: 40 ชั่วโมง × $50/ชั่วโมง = $2,000
+- Maintenance: 5 ชั่วโมง/เดือน × 12 × $50 = $3,000
+- **รวม: ~$5,329/ปี**
+
+**วิธี Fine-tuning (prompt สั้น 100 tokens/request + fine-tuned inference สูงกว่า 2x):**
+- Training: $50 (one-time, 500K tokens)
+- Tokens/ปี: 3.65M × 100 = 365M tokens × 2x cost = $109/ปี
+- Dataset preparation: 80 ชั่วโมง × $50 = $4,000
+- Retraining (quarterly): 4 × $50 = $200/ปี
+- Maintenance: 10 ชั่วโมง/เดือน × 12 × $50 = $6,000
+- **รวม: ~$10,359/ปี**
+
+ตัวเลขนี้ชัดเจนว่า — ที่ volume 10,000 requests/วัน prompting ยัง cost effective กว่าเมื่อรวม hidden costs ทั้งหมด Fine-tuning จะคุ้มขึ้นเมื่อ volume สูงมาก (100,000+ requests/วัน) หรือเมื่อ accuracy requirement สูงจนต้องลงทุน
+
+> 💡 **Key insight:** หลายทีม underestimate maintenance cost ของ fine-tuning ทุกครั้งที่ข้อมูล use case เปลี่ยน หรือ model base version อัปเดต ต้อง retrain ใหม่ ค่าใช้จ่ายจริงจึงสูงกว่าที่คิด
+
+<!-- IMAGE: กราฟแท่งเปรียบเทียบ Total Cost of Ownership ของทั้งสามวิธีใน 1 ปี แยกเป็น development, inference, maintenance -->
+
+---
+
+## กลับไปที่คำถามตอนต้น
+
+ทีมคุณอยากให้ AI ตอบลูกค้าเป็นภาษาไทยแบบ brand voice ของบริษัท ตอนนี้คุณมีเครื่องมือตัดสินใจแล้ว ลองถามทีละคำถาม:
+
+**คำถามที่ 1:** ลอง prompt ที่ดีแล้วยัง?
+ส่วนใหญ่ยังไม่เคยลองจริง ลองเขียน system prompt ที่บรรยาย brand voice ชัดเจน + few-shot examples 5 ชิ้นจาก real conversations ก่อน โอกาสสูงที่จะใช้ได้เลย
+
+**คำถามที่ 2:** ปัญหาหลักคือ knowledge หรือ behavior?
+ถ้าตอบผิดเรื่อง (ราคา นโยบาย ข้อมูลสินค้า) → RAG
+ถ้าตอบถูกเรื่องแต่เสียงไม่ใช่ → Fine-tuning
+
+**คำถามที่ 3:** Volume เท่าไหร่?
+ถ้าต่ำกว่า 1,000 request/วัน ประหยัดเวลาด้วย prompting ก่อน สะสม examples ระหว่างใช้งาน แล้วค่อย fine-tune เมื่อมีข้อมูลพอ
+
+สำหรับ scenario นี้ คำแนะนำคือ: เริ่มด้วย system prompt ที่ดี + RAG ดึงข้อมูลสินค้าและนโยบาย รอจน volume สูงพอหรือมี examples จริง 200+ ชิ้น แล้วค่อยพิจารณา fine-tune เพื่อ style consistency
+
+---
+
+## สรุป
+
+บทนี้ cover spectrum ทั้งหมดของการปรับแต่ง AI:
+
+**Prompting** คือจุดเริ่มต้นที่ถูกต้องเสมอ เร็ว ยืดหยุ่น เปลี่ยนได้ทันที 80% ของปัญหาแก้ได้ที่นี่ถ้าลงทุนเวลากับมันจริง ๆ
+
+**RAG** แก้ปัญหา knowledge — เพิ่มข้อมูลเข้า context โดยไม่ต้อง retrain model เหมาะที่สุดกับข้อมูลที่เปลี่ยนบ่อยหรือ private data
+
+**Fine-tuning** เปลี่ยน behavior ของ model — style, tone, format, consistency ลงทุนเวลาและเงินกว่าจะเริ่ม แต่ให้ผลที่ stable มาก เมื่อ volume สูงพอ cost per request อาจลดลงได้
+
+และที่สำคัญที่สุด: สามวิธีนี้ไม่ได้แข่งกัน solution ที่ดีที่สุดสำหรับงาน production ส่วนใหญ่คือการใช้ร่วมกัน ทั้ง prompting ที่ดี + RAG + fine-tuning เลือกใส่เฉพาะส่วนที่จำเป็น
+
+บทถัดไปจะพาคุณไปดูด้านที่หลายคนมองข้าม — [Prompt Injection และความปลอดภัยของ AI](/building-with-ai/prompt-injection-and-security) ไม่ว่าจะเลือกวิธีไหนจากบทนี้ ถ้าระบบของคุณรับ input จากผู้ใช้ภายนอก มีช่องโหว่ที่ต้องรู้ก่อน deploy จริง
+
+<!-- IMAGE: ภาพสรุป "เมื่อไหร่ใช้วิธีไหน" เป็น visual card สามช่อง: Prompting / RAG / Fine-tuning พร้อม bullet key use cases -->

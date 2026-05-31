@@ -1,251 +1,600 @@
 ---
 slug: the-ai-landscape-2026
 level: foundations
-title: "The AI Landscape in 2026"
+title: "แผนที่ AI ปี 2026 — ใครทำอะไร เลือกใช้ยังไง"
 status: reviewed
-prerequisites:
-  - what-is-an-llm
-  - what-is-deep-learning
-last_reviewed: 2026-05-18
-tldr: "ในปี 2026 อุตสาหกรรม AI ขับเคลื่อนโดย labs จำนวนน้อย (~10 องค์กร) ที่สามารถ train frontier model ระดับร้อยล้านดอลลาร์ขึ้นไปได้ ขณะที่ open-weight ecosystem (นำโดย Meta, Mistral, และ labs จีนเช่น DeepSeek/Qwen) ตามมาใกล้มากขึ้นเรื่อย ๆ. ตลาดแบ่งตามแกน \"closed/proprietary vs open-weight vs open-source\" และตาม category ของ capability (chat, reasoning, multimodal, coding, image/video/audio). สำหรับผู้ใช้ทั่วไป — โดยเฉพาะใน Thailand/SE Asia — การเข้าถึงส่วนใหญ่เกิดผ่าน API/app ของ Western labs โดยมี open-weight ที่ fine-tune สำหรับภาษาไทยเป็นทางเลือกที่กำลังเติบโต."
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "ทำความรู้จักผู้เล่นหลักในวงการ AI ปี 2026 ตั้งแต่ OpenAI, Anthropic, Google, Meta ไปถึง DeepSeek และ Qwen รวมทั้งเข้าใจความต่างระหว่าง closed model กับ open-weight และเลือกใช้ได้ตรงกับงาน"
 ---
+# แผนที่ AI ปี 2026 — ใครทำอะไร เลือกใช้ยังไง
 
-<section data-depth="surface">
+เปิด Google แล้วพิมพ์ "AI ดีที่สุด 2026" — คุณจะได้รายชื่อโมเดลมาสิบตัว ชื่อบริษัทมาสิบแห่ง และบทความที่แต่ละบทความบอกว่าตัวเองดีที่สุดไม่เหมือนกัน. ถ้ายังไม่รู้จักโครงสร้างของตลาด อ่านเท่าไรก็สับสน.
 
-## พูดสั้นๆ
+บทนี้คือแผนที่. ไม่ใช่การจัดอันดับว่าใครเก่งสุด — แต่เป็นการอธิบายว่าตลาด AI ตอนนี้มีโครงสร้างยังไง ใครเป็นใคร และสิ่งที่คุณเห็นบนข่าวทุกวันอยู่ตรงไหนของภาพใหญ่.
 
-ในปี 2026 อุตสาหกรรม AI ขับเคลื่อนโดย labs จำนวนน้อย (~10 องค์กร) ที่สามารถ train frontier model ระดับร้อยล้านดอลลาร์ขึ้นไปได้ ขณะที่ open-weight ecosystem (นำโดย Meta, Mistral, และ labs จีนเช่น DeepSeek/Qwen) ตามมาใกล้มากขึ้นเรื่อย ๆ. ตลาดแบ่งตามแกน "closed/proprietary vs open-weight vs open-source" และตาม category ของ capability (chat, reasoning, multimodal, coding, image/video/audio). สำหรับผู้ใช้ทั่วไป — โดยเฉพาะใน Thailand/SE Asia — การเข้าถึงส่วนใหญ่เกิดผ่าน API/app ของ Western labs โดยมี open-weight ที่ fine-tune สำหรับภาษาไทยเป็นทางเลือกที่กำลังเติบโต.
+ถ้าคุณเคยสงสัยว่า "ระหว่าง ChatGPT กับ Claude เลือกอันไหนดี" หรือ "open-source กับ open-weight ต่างกันยังไง" — บทนี้จะตอบคำถามเหล่านั้น และให้กรอบที่ใช้ได้กับทุกโมเดลที่ออกมาในอนาคตด้วย.
 
-**AI landscape ในปี 2026** ดูเหมือนตลาด smartphone ในช่วงต้นทศวรรษ 2010 — มี player หลักไม่กี่เจ้าที่แข่งกันที่ระดับ "frontier" (รุ่นเรือธง), มี ecosystem open-source ที่ตามมาใกล้ ๆ และมีผู้ใช้จำนวนมหาศาลที่ใช้ผลิตภัณฑ์ผ่าน app และ API.
+หมายเหตุก่อนเริ่ม: ข้อมูลในบทนี้สะท้อนสถานะต้นปี 2026. AI landscape เปลี่ยนเร็ว — ชื่อเวอร์ชันโมเดล ราคา และอันดับ benchmark จะล้าสมัยในไม่กี่เดือน. แต่ **โครงสร้างของ ecosystem** และ **หลักการเลือกใช้** ทนกว่ามาก. บทนี้โฟกัสที่สิ่งที่คงทน.
 
-**ผู้เล่นหลักฝั่งตะวันตก** มี 5 ราย:
-- **Anthropic** — สร้าง Claude. ก่อตั้งโดยอดีต OpenAI โฟกัสที่ AI safety
-- **OpenAI** — สร้าง GPT/ChatGPT. เป็นคนจุดกระแสรอบนี้ด้วย ChatGPT (พ.ย. 2022)
-- **Google DeepMind** — สร้าง Gemini. รวมตัว Google Brain + DeepMind ปี 2023
-- **Meta** — สร้าง Llama. ใช้กลยุทธ์ปล่อย model weights แบบ open
-- **Mistral AI** (ฝรั่งเศส) — counterweight ของยุโรป มีทั้ง open-weight และ proprietary
-
-**ผู้เล่นหลักฝั่งจีน** — ที่ต้องรู้:
-- **DeepSeek** — สร้างความฮือฮาด้วย DeepSeek-V3 และ DeepSeek-R1 (reasoning) ที่ train ได้ถูกอย่างน่าตกใจ
-- **Alibaba Qwen** — open-weight ที่แข็งและขนาดหลากหลาย
-- **อื่น ๆ:** Moonshot (Kimi), 01.AI (Yi), Baidu (Ernie)
-
-นอกจากนี้ **xAI** (Elon Musk) มี Grok ที่ผูกกับแพลตฟอร์ม X.
-
-**สิ่งที่ทุก lab แข่งกัน** ปัจจุบันคือ 3 มิติ:
-1. **Capability** — ตอบยากได้ไหม, เขียน code ได้ดีไหม, reason ได้ลึกแค่ไหน
-2. **Cost** — ราคาต่อ token ลดลงประมาณ 10 เท่าต่อปี
-3. **Access** — closed (เรียกผ่าน API), open-weight (ดาวน์โหลดมา run เองได้), หรือ open-source (โปร่งใสทั้งหมด)
-
-### Mental model
-นึก AI landscape ปี 2026 เป็น **2 ชั้น**:
-- **ชั้นบน (frontier)** — labs ไม่กี่แห่งที่มี compute ระดับ $100M-$1B ต่อรอบ train. แข่งกันที่ "ใครเก่งที่สุดในงานยากที่สุด"
-- **ชั้นล่าง (deployment)** — ทุกคนที่เหลือ. ใช้ frontier model ผ่าน API หรือใช้ open-weight ที่ลอกตามมาใกล้ ๆ เพื่อสร้าง product/feature
-
-ความรู้ที่ผู้เริ่มต้นต้องมีคือรู้ว่าใครอยู่ชั้นไหน และเลือกใช้อะไรเมื่อ. ไม่จำเป็นต้องจำชื่อ model ทุกเวอร์ชัน — เวอร์ชันเปลี่ยนทุก ๆ เดือน แต่ผู้เล่นและโครงสร้างตลาดเปลี่ยนช้ากว่ามาก.
+<!-- IMAGE: ภาพแผนที่ภูมิทัศน์ AI ปี 2026 แสดงเป็น 2 ชั้น ชั้นบนคือ "Frontier Labs" มีชื่อ OpenAI, Anthropic, Google DeepMind, Meta, Mistral, DeepSeek, Qwen วางเป็นวงกลม ชั้นล่างคือ "Users & Builders" มีลูกศรชี้ลงจาก frontier มีข้อความว่า "API / App / Open-weight"
+Style: infographic
+Text on image: "Frontier Labs" / "Users & Builders" / "API" / "Open-weight"
+-->
 
 ---
 
-</section>
+## ตลาด AI คือแข่งอะไรกัน
 
-<section data-depth="deeper">
+ก่อนจะรู้จักชื่อ ต้องเข้าใจก่อนว่า "แข่ง" อะไร.
 
-## ลึกขึ้นหน่อย
+ทุก lab ใหญ่กำลังแข่งกัน 3 อย่างพร้อมกัน. อย่างแรกคือ **capability** — โมเดลของฉันตอบคำถามยากได้ไหม เขียน code ได้ดีไหม ใช้งานกับรูปภาพหรือเสียงได้ไหม. อย่างที่สองคือ **ราคา** — capability ต่อดอลลาร์. ในปี 2026 ราคาต่อ token ลดลงประมาณ 10 เท่าต่อปี ทำให้สิ่งที่เมื่อสองปีก่อนแพงมากกลายเป็นถูกจนแทบไม่ต้องคิด. อย่างที่สามคือ **การเข้าถึง** — ใช้ผ่าน app, ผ่าน API, หรือดาวน์โหลดมา run บนเครื่องตัวเองได้เลย.
 
-### 2.1 The major labs (frontier model makers)
+สามมิตินี้สำคัญเพราะมันกำหนดว่าเหมาะกับคนแบบไหน — ผู้ใช้ทั่วไป นักพัฒนา หรือองค์กรที่ต้องการควบคุม.
 
-**Anthropic** (สหรัฐฯ, ก่อตั้ง 2021)
-- Flagship: **Claude** family. ณ ต้นปี 2026 ที่เป็นที่รู้จักคือ Claude 3.5 Sonnet, Claude 3 Opus (เวอร์ชันใหม่กว่านี้อาจมีแล้ว — ตรวจสอบ)
-- ก่อตั้งโดย Dario และ Daniela Amodei กับอดีตทีม OpenAI
-- จุดเด่น: focus เรื่อง **AI safety** และ alignment, พัฒนาเทคนิค Constitutional AI  และ RLAIF (Reinforcement Learning from AI Feedback)
-- ผลิตภัณฑ์: Claude (chat app), Claude API, **Claude Code** (CLI agent สำหรับ developer)
+### ตลาดมีสองชั้น
 
-**OpenAI** (สหรัฐฯ, ก่อตั้ง 2015)
-- Flagship: **GPT** family. รุ่นที่รู้จักกัน — GPT-4, GPT-4o (multimodal), และ **o-series** (o1, o3) สำหรับ reasoning
-- เป็นผู้จุดกระแส AI รอบปัจจุบันด้วย ChatGPT (เปิดตัว พ.ย. 2022) และ GPT-3 paper ก่อนหน้า 
-- **โครงสร้างองค์กรไม่ปกติ:** non-profit ที่มี for-profit subsidiary — เป็นประเด็นถกเถียงในวงการ
-- ผลิตภัณฑ์: ChatGPT, API, image gen (DALL-E), video gen (Sora)
+ลองนึกภาพตลาดมือถือในช่วงต้นทศวรรษ 2010 — มี Samsung กับ Apple อยู่ชั้นบน แข่งกันที่ flagship, และมีผู้ผลิตหลายเจ้าที่ใช้ Android มาสร้าง product ชั้นล่าง. AI ปี 2026 มีโครงสร้างคล้ายกันมาก.
 
-**Google DeepMind** (UK + US)
-- Flagship: **Gemini** family
-- เกิดจากการรวม Google Brain + DeepMind ในปี 2023 หลังการแข่งขันจาก ChatGPT
-- จุดเด่น: **multimodal native** — Gemini train แบบรับ text + image + audio + video ตั้งแต่ pretraining ไม่ใช่ติดทีหลัง
-- DeepMind ยังมีงานนอก LLM ที่สำคัญ: **AlphaFold** (โปรตีน), **AlphaGo/AlphaZero** (เกม), **AlphaProof** (math)
+ชั้นบนคือ "frontier labs" — บริษัทที่มี compute ระดับ $100 ล้าน ถึง $1,000 ล้านต่อรอบ training หนึ่งรอบ. มีไม่ถึง 10 แห่งในโลกที่ทำได้ระดับนี้. แข่งกันที่ "ใครเก่งสุดในงานที่ยากที่สุด".
 
-**Meta** (สหรัฐฯ)
-- Flagship: **Llama** family — เวอร์ชัน 3.x ณ training cutoff
-- กลยุทธ์: **open-weight** — ปล่อย weights ให้นักวิจัยและบริษัทดาวน์โหลดได้ภายใต้ Llama license (ไม่ใช่ open-source แท้ — มีข้อจำกัด เช่น บริษัทใหญ่มาก ๆ ต้องขอ license)
-- เป็น **open-weight family ที่สำคัญที่สุด** ในตลาด — เป็นจุดเริ่มของ fine-tune ส่วนใหญ่ในวงการ
+ชั้นล่างคือทุกคนที่เหลือ — นักพัฒนา บริษัท startup องค์กรขนาดใหญ่ — ที่ใช้โมเดลจากชั้นบนผ่าน API หรือเอา open-weight มาใช้สร้าง product และ feature ของตัวเอง.
 
-**Mistral AI** (ฝรั่งเศส, ก่อตั้ง 2023)
-- ผลิตทั้ง open-weight (Mistral 7B, Mixtral — mixture-of-experts) และ proprietary (Mistral Large)
-- เป็น **counterweight ของยุโรป** ต่อ labs อเมริกัน — สำคัญทั้งในเชิง ecosystem และ regulation
+คนที่อ่านบทนี้อยู่ที่ชั้นไหน? ส่วนใหญ่อยู่ชั้นล่าง — เป็น user หรือ builder ที่ใช้สิ่งที่ frontier labs สร้างขึ้น. ซึ่งหมายความว่าความรู้ที่ต้องมีไม่ใช่จำทุกเวอร์ชัน — เวอร์ชันเปลี่ยนทุกเดือน. ความรู้ที่ต้องมีคือรู้ว่าใครอยู่ชั้นไหน และเลือกใช้อะไรเมื่อไร.
 
-**xAI** (สหรัฐฯ, ก่อตั้งโดย Elon Musk, 2023)
-- Flagship: **Grok**
-- ผูกกับแพลตฟอร์ม X (Twitter); content policy หลวมกว่าค่ายอื่น
+การเปรียบกับมือถือนี้ใช้ได้ถึงจุดนึง — ส่วนที่ต่างคือในตลาดมือถือคุณซื้อแล้ว "เป็นเจ้าของ" เครื่อง แต่ใน AI ส่วนใหญ่คุณ "เช่า" ความสามารถผ่าน API ทุกครั้งที่ใช้.
 
-### 2.2 Chinese labs
-
-ในปี 2024-2025 labs จีนพิสูจน์ว่า open-weight สามารถสู้กับ closed Western models ได้:
-
-- **DeepSeek** — DeepSeek-V3 (general) และ **DeepSeek-R1** (reasoning) สร้างความฮือฮาเพราะ train ด้วย compute น้อยกว่าที่คาดมาก. ปล่อย weights และ paper รายละเอียดมากกว่าค่าย Western ส่วนใหญ่
-- **Alibaba Qwen** — Qwen3 family, ขนาดหลากหลาย (จาก mobile-friendly ถึง flagship), open-weight, มี multimodal version
-- **Moonshot AI** — Kimi, จุดเด่นที่ long-context window
-- **01.AI** — Yi models, ก่อตั้งโดย Kai-Fu Lee
-- **Baidu** — Ernie, ใช้ภายในและบาง API
-
-**ประเด็นที่ต้องรู้:** open-weight model จีนจำนวนมาก **competitive กับ Western** open-weight ในปี 2026 และในบางหมวด (reasoning ที่ราคาถูก, long context) เป็นผู้นำ.
-
-### 2.3 The closed vs open spectrum
-
-มี **3 ระดับ** ที่ต่างกันชัดเจน — อย่าสับสน:
-
-1. **Fully proprietary / API-only**
-   - ตัวอย่าง: Claude, GPT-4, Gemini
-   - ใช้ผ่าน API หรือ app ของผู้สร้างเท่านั้น
-   - **เห็น weights ไม่ได้, run บนเครื่องตัวเองไม่ได้**
-   - ข้อดี: capability สูง, ไม่ต้องดูแล infrastructure
-   - ข้อเสีย: lock-in, ราคาขึ้นอยู่กับผู้ให้บริการ, ส่งข้อมูลออก
-
-2. **Open-weight**
-   - ตัวอย่าง: Llama (Meta), Mistral, Qwen, DeepSeek
-   - ดาวน์โหลด weights มา run บนเครื่องตัวเองหรือ cloud ของตัวเองได้
-   - License แตกต่างกัน — บางอันใช้เชิงพาณิชย์ได้เลย, บางอันมีเงื่อนไข
-   - **สำคัญ: ไม่ได้ปล่อย training data หรือ training code ทั้งหมด** — reproduce ไม่ได้
-
-3. **Open-source (open everything)**
-   - ตัวอย่าง: **OLMo** (Allen AI), **Pythia** (EleutherAI), **BLOOM** (BigScience)
-   - เปิด weights + training data + training code + recipe
-   - มีน้อยมาก — เพราะ training data ใหญ่และเปิดยาก, recipe เป็น competitive advantage
-   - ใช้ส่วนใหญ่ในวิจัย ไม่ใช่ใน production
-
-**ความเข้าใจผิดที่พบบ่อย:** "open-weight" ถูกเรียกอย่างหลวม ๆ ว่า "open-source" ซึ่งไม่ตรงนิยามดั้งเดิม. คำว่า "open-weight" เกิดขึ้นมาเพื่อแยกความหมาย.
-
-### 2.4 Model categories by capability
-
-ปี 2026 model ไม่ใช่แค่ "chatbot" ทั่ว ๆ ไปอีกต่อไป — แตกตัวเป็นหลายหมวด:
-
-**Chat / Generalist** — ที่เห็นบ่อยที่สุด (Claude, ChatGPT, Gemini chat). General-purpose, ผ่าน SFT + RLHF แล้ว.
-
-**Reasoning models** — class ใหม่ที่ "คิดนานก่อนตอบ" โดยใช้ chain-of-thought ที่ฝึกมาเฉพาะ. ตัวอย่าง: OpenAI o1/o3, Claude reasoning mode, DeepSeek-R1. **ใช้ compute มากกว่า** ต่อคำตอบหนึ่งครั้ง แต่เก่งกว่ามากใน math, coding, logic. กำลังกลายเป็น standard สำหรับงานยาก.
-
-**Multimodal** — รับ image, audio, video เป็น input ได้. ส่วนใหญ่ของ flagship model ปี 2026 เป็น multimodal โดย default. text-only กลายเป็น legacy.
-
-**Coding-specialized** — Claude (เก่ง code เป็นพิเศษ), GPT-4 family, และ specialist ขนาดเล็กกว่าเช่น Codestral (Mistral), DeepSeek-Coder
-
-**Image generation** — DALL-E (OpenAI), Midjourney, Stable Diffusion (open-weight), Flux, Gemini image
-
-**Video generation** — Sora (OpenAI), Veo (Google), Runway, Kling (จีน)
-
-**Voice / Audio** — ElevenLabs (TTS), OpenAI voice modes, Suno (music generation)
-
-### 2.5 Scale and access reality
-
-**Cost ของ frontier training (รอบเดียว):** $100M-$1B+ ของ compute. มี &lt;10 องค์กรในโลกที่ทำได้.
-
-**Cost ของ inference (การใช้):** democratized — ผู้ใช้ทั่วไปจ่ายต่อการ query เพียงเศษเสี้ยวของเซ็นต์. นักพัฒนาที่มี GPU consumer-grade ก็ run open-weight model 7B-70B ได้.
-
-**การลดต่อ capability ต่อ dollar:** ประมาณ **10 เท่าต่อปี** — capability ที่เมื่อ 2 ปีก่อนเป็น frontier ตอนนี้ run บน laptop ได้.
-
-**Gap ระหว่าง closed กับ open:** ในปี 2023 ห่างหลายเดือนถึงปี. ในปี 2025-2026 ห่างไม่กี่เดือน ในบางหมวด open ตามทันหรือนำในด้าน cost-efficiency.
-
-### 2.6 Key trends as of early 2026
-
-1. **Agentic systems mainstream** — model + tools + memory + loops กลายเป็น default. ดู [agents](/building-with-ai/agents)
-2. **Reasoning models เป็น standard** สำหรับงานยาก (math, code, planning)
-3. **Cost compression** — capability-per-dollar ลด ~10x/ปี ทำให้ application class ใหม่ ๆ เป็นไปได้
-4. **Multimodal native** — text-only model กำลังกลายเป็น legacy
-5. **AI embedded ในทุก product** — IDE, browser, office suite, customer support, ฯลฯ ส่วนใหญ่มี AI integration
-6. **Regulation เริ่มชัด** — EU AI Act มีผลบังคับใช้, US มี executive orders, จีนมีกฎเฉพาะของตัวเอง, ไทย/อาเซียนกำลังพัฒนา framework
-7. **Safety/alignment เป็นประเด็นใน industry** — ไม่ใช่แค่ academic — labs ใหญ่ทุกแห่งมี safety team
-
-### 2.7 Where Thailand / SE Asia fits
-
-- **การใช้งานส่วนใหญ่ผ่าน Western models** — ChatGPT, Claude, Gemini ผ่าน API หรือ app
-- **คุณภาพภาษาไทย:** Frontier model ใช้ได้ดี แต่ **ภาษาอังกฤษยังเป็นภาษาที่แข็งที่สุด** ในทุกโมเดล. Tokenization ของภาษาไทยยัง inefficient กว่า (1 ตัวอักษรไทย ≈ 1-2 token vs 1 token ≈ 0.75 word ในอังกฤษ — ดู [tokenization-deep-dive](/advanced/tokenization-deep-dive))
-- **Open-weight model ที่ fine-tune สำหรับไทย** — มีโครงการในประเทศและภูมิภาคที่ควรรู้:
-  - **Typhoon** (SCB10X) — fine-tune จาก open-weight base เป็น Thai-optimized
-  - **SEA-LION** (AI Singapore) — focus ที่ภาษาอาเซียนหลายภาษา
-- **การพัฒนา frontier model ในประเทศ:** ค่อนข้างจำกัด — focus ส่วนใหญ่อยู่ที่ application layer และ fine-tuning, ไม่ใช่ pretrain ตัว base model จากศูนย์
-
-**สำหรับ developer ไทย:** เส้นทางที่ใช้ได้จริงคือ — (ก) ใช้ Western API สำหรับงานทั่วไป, (ข) ใช้ Thai-fine-tuned open-weight เมื่อต้องการ control/cost/data sovereignty.
-
-### 2.8 What this means for the learner
-
-- คนทั่วไปใช้ 1-3 models ต่อวัน. การเลือกอันไหนเป็นเรื่องของ taste มากกว่า capability — ที่ frontier โมเดลใกล้กันมาก
-- **อย่า lock-in** — API ของ labs ส่วนใหญ่คล้ายกัน, switching cost ต่ำ
-- ถ้าจะ build system serious ดู **open-weight ecosystem** ด้วย — เป็นที่ที่ deployment flexibility อยู่ (run on-prem, fine-tune, control cost)
-- จำชื่อ **lab + family** (เช่น "Anthropic Claude", "Meta Llama") พอ — เวอร์ชันเปลี่ยนเร็วเกินจะตามทัน
+> 💡 **Key insight:** ชื่อโมเดลเปลี่ยนเร็ว แต่โครงสร้างตลาดเปลี่ยนช้า. จำ **lab + family** (เช่น "Anthropic Claude", "Meta Llama") ไว้ก็พอ — เวอร์ชันจะอัปเดตเองในข่าว. สิ่งที่ทนกว่าคือความเข้าใจว่าแต่ละ lab ทำอะไร และทำไม.
 
 ---
 
-## Worked Examples
+## รู้จักผู้เล่นหลักฝั่งตะวันตก
 
-### Example 1: เลือกโมเดลสำหรับ chatbot ภาษาไทยภายในบริษัท
+<!-- IMAGE: ภาพ logo ของ 5 บริษัท AI ฝั่งตะวันตก — Anthropic, OpenAI, Google DeepMind, Meta, Mistral วางเรียงกัน มีชื่อโมเดล flagship ของแต่ละแห่งกำกับไว้ด้านล่าง ใช้สีของแต่ละบริษัท ดู clean และ professional
+Style: infographic
+Text on image: "Anthropic → Claude" / "OpenAI → GPT + o-series" / "Google DeepMind → Gemini" / "Meta → Llama" / "Mistral → Mistral"
+-->
 
-**สถานการณ์:** บริษัทอยากสร้าง internal chatbot ที่ตอบคำถามพนักงานเป็นภาษาไทย เน้น privacy (ข้อมูล HR).
+### Anthropic — สร้าง Claude
 
-**Options ตาม spectrum:**
-- **Closed API (Claude/GPT/Gemini)** — capability สูง ภาษาไทยดี แต่ข้อมูลออกจากองค์กร — ผิด requirement
-- **Open-weight (Llama 3 / Qwen)** — run on-prem ได้ ภาษาไทยพอใช้ — fine-tune เพิ่มได้
-- **Thai-fine-tuned open-weight (Typhoon)** — ภาษาไทยดีกว่า base open-weight, run on-prem ได้
+Anthropic ก่อตั้งในปี 2021 โดยทีมที่ออกมาจาก OpenAI. เหตุผลที่แยกออกมาไม่ใช่เรื่อง product — แต่เรื่อง philosophy ว่า AI ควรพัฒนายังไง. โมเดลหลักคือ **Claude** ซึ่งในปี 2026 มีชื่อเสียงเรื่องเขียน prose ที่อ่านแล้วเป็นธรรมชาติ เก่งงาน coding และมีความระวังในการตอบเรื่องที่ละเอียดอ่อน.
 
-**ทางเลือกที่สมเหตุสมผล:** Typhoon หรือ Qwen ที่ fine-tune ภาษาไทย run บน GPU ขององค์กร. แลกกับ capability ต่ำกว่า Claude/GPT แต่ได้ privacy ตามต้องการ.
+สิ่งที่ทำให้ Anthropic ต่างจากคนอื่นคือโฟกัสที่ **AI safety** เป็นหัวใจหลัก ไม่ใช่แค่ side project. พวกเขาพัฒนาเทคนิคที่เรียกว่า **Constitutional AI** — แทนที่จะสอน AI ว่าอะไรดีอะไรไม่ดีโดยให้มนุษย์ feedback ทุกคำตอบ (แบบที่ส่วนใหญ่ทำ), Constitutional AI ให้ AI ตรวจสอบตัวเองตามหลักการที่กำหนดไว้ล่วงหน้า เช่น "ตอบแบบนี้ทำร้ายใครไหม" "ตอบแบบนี้ซื่อสัตย์ไหม". วิธีนี้ scale ได้ดีกว่าเพราะไม่ต้องพึ่ง human rater ทุกขั้นตอน.
 
-### Example 2: ทำไม "ChatGPT vs Claude" ไม่ใช่คำถามที่มีคำตอบเดียว
+ผลิตภัณฑ์: Claude (chat app), Claude API สำหรับนักพัฒนา, Claude Code สำหรับงาน engineering.
 
-**ปัญหา:** มีคนถามว่า "ใช้ ChatGPT หรือ Claude ดี".
+### OpenAI — ผู้จุดกระแส
 
-**กรอบที่ถูก:** ขึ้นอยู่กับ category ของงาน:
-- **Coding:** Claude (Sonnet/Opus) มีชื่อเสียงเรื่องเก่ง code; o-series ของ OpenAI ก็แข็งใน reasoning
-- **Multimodal (รูป/วิดีโอ):** GPT-4o หรือ Gemini มักดีกว่า
-- **เขียนยาว ๆ / สไตล์:** Claude มักให้ prose ที่ดีกว่า ตามรีวิวของผู้ใช้
-- **Real-time web/search integration:** ขึ้นกับ feature ของ app ในขณะนั้น
+OpenAI คือบริษัทที่จุดกระแส AI รอบนี้ด้วย ChatGPT ในเดือนพฤศจิกายน 2022. ก่อนหน้านั้น AI เป็นเรื่องของนักวิจัยและบริษัทเทคใหญ่ — หลัง ChatGPT ออกมา ทุกคนเริ่มรู้จักและใช้งานได้จริง.
 
-**ข้อสรุป:** "ดีที่สุด" ไม่มี — เลือกตาม use case ไม่ใช่ตามชื่อ.
+โมเดลมีสองสาย. **GPT family** (GPT-4, GPT-4o) เป็นสายหลักสำหรับงานทั่วไปและ multimodal. **o-series** (o1, o3) เป็นสายใหม่สำหรับงานที่ต้องใช้เหตุผลเชิงลึก — math, coding, logic. o-series "คิดนานกว่า" ก่อนตอบ ซึ่งจะอธิบายเพิ่มในส่วน Reasoning models.
 
-### Example 3: open-weight ใช้ทำอะไรได้บ้างที่ closed ทำไม่ได้
+OpenAI มีโครงสร้างองค์กรที่ผิดปกติ — เริ่มเป็น non-profit แล้วเพิ่ม for-profit subsidiary เข้ามา ซึ่งกลายเป็นประเด็นถกเถียงในวงการเรื่อง mission กับ commercial pressure.
 
-**Use case:** บริษัท fintech อยาก fine-tune model ให้รู้จัก term เฉพาะของผลิตภัณฑ์ตัวเอง และ run แบบที่ inspect activations ได้ (เพื่อ audit).
+ผลิตภัณฑ์: ChatGPT, API, DALL-E (image gen), Sora (video gen).
 
-- **Closed API:** fine-tune ผ่าน API ของ vendor ได้บางส่วน — แต่ดู activation/weight ภายในไม่ได้, vendor ขึ้นราคาเมื่อไรก็ได้
-- **Open-weight (Llama/Qwen):** fine-tune เต็มที่, host เอง, inspect ภายในได้, audit compliance ง่ายกว่า
+### Google DeepMind — ยักษ์ที่มีทรัพยากรมากที่สุด
 
-นี่คือเหตุที่ open-weight ecosystem สำคัญ — ไม่ใช่เพราะมัน "เก่งกว่า" แต่เพราะมัน **ให้สิทธิ์ที่ closed ไม่ให้**.
+Google DeepMind เกิดจากการรวม Google Brain กับ DeepMind ในปี 2023 — หลังจาก ChatGPT มาเขย่าตลาด Search ที่ Google ครองมานาน. โมเดลหลักคือ **Gemini**.
 
----
+สิ่งที่ทำให้ Google มีข้อได้เปรียบที่คนอื่นมีได้ยากคือ **data** และ **infrastructure**. Google มีข้อมูลจาก Search, YouTube, Gmail, Maps มหาศาล และมี TPU (Tensor Processing Unit) ที่สร้างขึ้นมาเพื่องาน AI โดยเฉพาะ.
 
-## Common Misconceptions
+สิ่งที่ทำให้ Gemini ต่างจากโมเดลอื่นคือมัน **multimodal native** — สร้างมาให้รับ text, รูปภาพ, เสียง, และวิดีโอได้ตั้งแต่ต้น ไม่ใช่ติดความสามารถพวกนี้ทีหลัง. ความแตกต่างนี้มีผลต่อคุณภาพ เพราะโมเดลที่ "เข้าใจ" ความสัมพันธ์ระหว่าง modality ตั้งแต่ pretraining จะทำงานได้ดีกว่าการ patch ทีหลัง.
 
-1. **ความเข้าใจผิด:** "Open-source" และ "open-weight" คือสิ่งเดียวกัน
-   **ความจริง:** Open-weight ปล่อย weights แต่ไม่ได้ปล่อย training data + recipe ทั้งหมด. Open-source แท้ (OLMo, Pythia, BLOOM) ปล่อยทุกอย่างเพื่อ reproduce ได้. ในชีวิตจริง 99% ของ "open" model ที่เห็นคือ open-weight ไม่ใช่ open-source
+นอกจากนี้ DeepMind ยังมีผลงานสำคัญนอกวงการ LLM ที่เปลี่ยนโลก: **AlphaFold** (พยากรณ์โครงสร้างโปรตีน — ปัญหาชีววิทยาที่นักวิทยาศาสตร์ใช้เวลาหลายทศวรรษยังแก้ไม่ได้) และ **AlphaGo/AlphaZero** (ชนะแชมป์โลก Go ซึ่งครั้งนึงคิดว่าคอมพิวเตอร์ทำไม่ได้อีก 10 ปี).
 
-2. **ความเข้าใจผิด:** Frontier labs มีเทคโนโลยีลับที่ open-weight ตามไม่ทัน
-   **ความจริง:** Gap แคบลงเรื่อย ๆ. ปี 2025-2026 open-weight ที่ดีที่สุด (DeepSeek-R1, Llama, Qwen) สู้กับ closed flagship ได้ในหลายหมวด. ความได้เปรียบของ closed ส่วนใหญ่อยู่ที่ scale ของ inference infrastructure และ product polish ไม่ใช่ research moat
+สิ่งที่ทำให้ Google มีข้อได้เปรียบในระยะยาวที่คนอื่น replicate ได้ยากคือ **distribution** — Gemini ถูก embed ใน Android, Chrome, Gmail, Google Docs, Google Search ซึ่งมีผู้ใช้รวมกันหลายพันล้านคน. ไม่มี lab ใดที่มี distribution channel ขนาดนี้.
 
-3. **ความเข้าใจผิด:** AI lab ที่ใหญ่ที่สุด = โมเดลดีที่สุด
-   **ความจริง:** Quality ขึ้นอยู่กับ data + recipe + post-training (RLHF/SFT/RLAIF) ไม่ใช่ขนาดของ company. DeepSeek เป็นตัวอย่าง — lab ที่เล็กกว่า ทำ reasoning model ที่ระดับเดียวกับ frontier ของ OpenAI ด้วย compute น้อยกว่า
+สำหรับผู้ใช้ทั่วไป ความหมายคือ: ถ้าใช้ Google products อยู่แล้ว AI ของ Google จะ "อยู่ที่นั่น" โดยไม่ต้องไปหา. ถ้าอยากได้คุณภาพที่ fine-tuned กว่า — Claude หรือ ChatGPT ยังคุ้มค่าที่จะเปิดใช้แยก.
 
-4. **ความเข้าใจผิด:** ต้องเลือกใช้โมเดลตัวเดียวแล้วยึดติด
-   **ความจริง:** API ของ labs ส่วนใหญ่คล้ายกัน switching cost ต่ำ. มืออาชีพมักใช้หลายโมเดล match กับ category งาน — coding กับ Claude, multimodal กับ Gemini, ฯลฯ
+### Meta — เจ้าของ open-weight ที่ใหญ่ที่สุด
 
-5. **ความเข้าใจผิด:** Chinese model ใช้ไม่ได้/ไม่ปลอดภัย
-   **ความจริง:** Open-weight ของจีน (DeepSeek, Qwen) สามารถดาวน์โหลดมา run บน infrastructure ของตัวเอง ไม่ส่งข้อมูลไปจีน. คำถามเรื่องความปลอดภัยข้อมูลขึ้นกับ **deployment** ไม่ใช่ origin ของ weights
+Meta ไม่ขาย AI เป็น product หลัก — แต่ใช้กลยุทธ์ที่ฉลาดมาก: **ปล่อย weights ฟรี** ผ่าน **Llama family**. นักวิจัยและนักพัฒนาทั่วโลกดาวน์โหลดมาใช้ได้เลย (ภายใต้ Llama license).
 
----
+ทำไม Meta ทำแบบนี้ทั้งที่เสีย resource มหาศาล? เพราะตรรกะแตกต่างจากการขาย product. ยิ่ง Llama แพร่หลาย ยิ่งมีนักพัฒนาทั่วโลก build บน ecosystem ของ Meta ยิ่งทำให้ Meta มีอิทธิพลในวงการโดยไม่ต้องแข่งกับ OpenAI หรือ Anthropic โดยตรง. มันเหมือนที่ Google ปล่อย Android ฟรีเพื่อให้ Android ecosystem ใหญ่ขึ้น — ผลประโยชน์ของ Meta ไม่ได้อยู่ที่ขาย AI แต่อยู่ที่ครอง platform.
 
-## Self-Check
+Llama เป็นจุดเริ่มต้นของ fine-tune ส่วนใหญ่ในวงการ open-weight — ถ้าเห็นโมเดลใหม่ที่ "based on Llama" นั่นหมายความว่าคนนั้นเอา weights ของ Meta ไป fine-tune ใหม่สำหรับงานเฉพาะ.
 
-ลองตอบให้ได้โดยไม่ดูข้างบน:
+### Mistral — counterweight จากยุโรป
 
-1. **(Recall)** ระบุชื่อ lab ตะวันตก 4 แห่งและ flagship model family ของแต่ละแห่งได้ไหม?
-2. **(Recall)** ระบุชื่อ Chinese lab อย่างน้อย 2 แห่งที่ปล่อย open-weight model competitive ได้ไหม?
-3. **(Explain)** ความแตกต่างระหว่าง "open-weight" และ "open-source" คืออะไร — ทำไม Llama เรียกว่า open-weight ไม่ใช่ open-source?
-4. **(Apply)** บริษัทที่ต้องการ chatbot ภายในที่ใช้ข้อมูลลูกค้า เลือกระหว่าง (ก) Claude API (ข) Llama 3 fine-tune on-prem — ปัจจัยอะไรที่ทำให้เลือกอันไหน?
-5. **(Apply)** ทำไม reasoning model (เช่น o3, DeepSeek-R1) ถึง "แพงกว่าต่อ query" แต่ "เก่งกว่าในงานยาก"?
-6. **(Synthesize)** ถ้า cost ของ inference ลด 10 เท่าต่อปี ในอีก 3 ปีตลาด AI application จะเปลี่ยนยังไง — application class ใหม่อะไรที่จะเป็นไปได้?
+Mistral AI ก่อตั้งในฝรั่งเศสปี 2023 ทำทั้ง open-weight (Mistral 7B, Mixtral — ใช้ Mixture of Experts architecture ที่เปิด-ปิด "ผู้เชี่ยวชาญ" ต่างกันตามงาน แทนที่จะใช้ทั้ง network ทุกครั้ง ทำให้ประหยัด compute มากกว่า) และ proprietary (Mistral Large).
+
+สำคัญในแง่ที่เป็นตัวแทน European perspective ในโลก AI ที่ถูกครองโดยอเมริกาและจีน — ทั้งในเชิง ecosystem และ regulation. ยุโรปต้องการ AI option ที่ไม่ได้ถูกควบคุมจาก Big Tech อเมริกัน และ Mistral คือคำตอบที่ใกล้ที่สุดในตอนนี้. ในบริบทของ EU AI Act การมี European model ที่ใช้ได้จริงมี policy relevance มาก.
+
+Mixtral architecture (Mixture of Experts) เป็นอีกตัวอย่างที่แสดงว่า "model ที่ดีกว่า" ไม่ต้องหมายความว่า "ใหญ่กว่าและแพงกว่าเสมอ" — technique ที่ดีกว่าทำให้ได้ capability เทียบเท่าด้วย compute น้อยกว่า.
+
+### xAI — อีก player ที่ต้องรู้จัก
+
+xAI ก่อตั้งโดย Elon Musk ในปี 2023 มีโมเดล **Grok** ที่ผูกกับแพลตฟอร์ม X (Twitter เดิม). Content policy หลวมกว่าค่ายอื่น — ตอบหัวข้อที่ Claude หรือ ChatGPT มักปฏิเสธได้.
+
+ยังไม่ใช่ frontier leader ด้าน capability แต่มีฐานผู้ใช้ที่ไม่เล็กเพราะผูกกับ X ซึ่งมีผู้ใช้หลายร้อยล้านคน. การมี distribution ที่ใหญ่อยู่แล้วทำให้ xAI มีช่องทางเติบโตต่างจาก labs อื่นที่ต้องสร้าง user base ใหม่.
+
+> 💡 **Key insight:** ทุก lab มีข้อได้เปรียบต่างกัน. Google มีข้อได้เปรียบเรื่อง data และ compute. OpenAI มีข้อได้เปรียบเรื่อง brand และ distribution. Anthropic มีข้อได้เปรียบเรื่อง safety research. Meta มีข้อได้เปรียบเรื่อง community. ไม่มีใคร "ชนะ" ในทุกมิติ — ซึ่งเป็นข่าวดีสำหรับผู้ใช้เพราะการแข่งขันทำให้ทุกอย่างดีขึ้นเร็ว.
 
 ---
 
-</section>
+## labs จีนที่ไม่ควรมองข้าม
+
+<!-- IMAGE: ภาพเปรียบเทียบ cost-performance ระหว่าง Western frontier models กับ Chinese open-weight models ปี 2025-2026 แสดงเป็นกราฟ scatter plot แกน X คือ cost ต่อ million tokens (scale logarithmic) แกน Y คือ benchmark score มี label ชัดเจนสำหรับ DeepSeek-R1, Qwen3, Llama 3, Claude 3.5, GPT-4o พร้อม annotation ว่า "Chinese open-weight ตามมาใกล้มาก"
+Style: diagram
+Text on image: "Cost per million tokens" / "Capability score" / "Chinese open-weight ตามมาใกล้มาก"
+-->
+
+ถ้าคุณติดตามข่าว AI ในช่วงต้นปี 2025 คงเคยได้ยินชื่อ DeepSeek ที่ทำให้ราคาหุ้นบริษัทเทคสหรัฐฯ ร่วงพร้อมกันวันเดียว. นั่นไม่ใช่แค่ข่าวลือ — มันเป็นสัญญาณที่บอกว่า labs จากจีนไม่ใช่ผู้ตามอีกต่อไป.
+
+### DeepSeek — ช็อควงการด้วย efficiency
+
+ก่อนปี 2025 assumption ทั่วไปคือ frontier model ต้องใช้ compute มหาศาลในการ train — หลัก $100 ล้านขึ้นไป และต้องเป็นบริษัทขนาดใหญ่ถึงจะทำได้. DeepSeek พิสูจน์ว่า assumption นั้นอาจไม่ถูกต้อง.
+
+**DeepSeek-V3** (general purpose) competitive กับ frontier model ของ Western labs ในหลาย benchmark. **DeepSeek-R1** เป็น reasoning model ที่เก่งระดับเดียวกับ o1 ของ OpenAI — แต่ใช้ compute ในการ train น้อยกว่าหลายเท่าอย่างน่าตกใจ. วิธีที่ DeepSeek ทำได้รวมถึงเทคนิค optimization ใหม่หลายอย่าง และ architecture ที่ใช้ทรัพยากรได้มีประสิทธิภาพกว่า.
+
+สิ่งที่ทำให้ DeepSeek โดดเด่นไม่ใช่แค่ตัวโมเดล — แต่รวมถึงการที่พวกเขาปล่อย weights และ paper ที่มีรายละเอียดเยอะกว่า Western labs ส่วนใหญ่. วงการวิจัยทั่วโลกนำไปศึกษาต่อและ reproduce ได้.
+
+### Alibaba Qwen — หลากหลายและ open
+
+Qwen3 family ของ Alibaba มีหลายขนาด — ตั้งแต่ขนาดเล็กที่ run บน laptop ได้ไปจนถึง flagship ที่แข่งกับ Claude หรือ GPT-4 ได้. ทั้งหมดเป็น open-weight และมี multimodal version.
+
+ในบางหมวด Qwen ทำได้ดีกว่า Llama ในขนาดเดียวกัน — โดยเฉพาะในภาษาเอเชีย รวมถึงภาษาไทย เพราะ Alibaba มี training data ภาษาเอเชียที่มากกว่า Meta.
+
+### อื่น ๆ ที่ควรรู้
+
+**Moonshot AI** มี Kimi ที่จุดเด่นคือ long-context window — รับข้อความยาวมากได้ในครั้งเดียว. **01.AI** มี Yi models ก่อตั้งโดย Kai-Fu Lee. **Baidu** มี Ernie ใช้ภายในจีนและบาง API.
+
+ประเด็นที่สำคัญสำหรับการตัดสินใจใช้งาน: open-weight model จากจีนหลายตัวสามารถดาวน์โหลดมา run บน infrastructure ของตัวเองได้ ข้อมูลไม่ได้ส่งไปที่ไหนเลย. คำถามเรื่องความปลอดภัยข้อมูลขึ้นกับ **วิธี deploy** ไม่ใช่ origin ของ weights — ถ้า run บน server ของตัวเอง ข้อมูลก็ไม่ออกไปไหน ไม่ว่า weights จะมาจากจีนหรืออเมริกา.
+
+---
+
+## เข้าใจ spectrum: closed vs open-weight vs open-source
+
+นี่คือส่วนที่คนสับสนมากที่สุด — และสับสนเพราะคำถูกใช้ผิดในข่าวทุกวัน.
+
+<!-- IMAGE: ภาพ spectrum จากซ้ายไปขวา แสดง 3 ระดับ ซ้ายสุด "Fully Proprietary (API only)" กลางคือ "Open-weight (ดาวน์โหลดได้)" ขวาสุดคือ "Open-source (เปิดทุกอย่าง)" มีตัวอย่างโมเดลของแต่ละระดับ และมีตาราง 3 แถวด้านล่าง "เห็น weights ไหม" "ดู training data ไหม" "reproduce ได้ไหม" พร้อม checkmark และ x
+Style: diagram
+Text on image: "Closed/Proprietary" / "Open-weight" / "Open-source" / "Claude, GPT, Gemini" / "Llama, Qwen, DeepSeek" / "OLMo, Pythia, BLOOM"
+-->
+
+### ระดับที่ 1 — Fully Proprietary
+
+ตัวอย่าง: Claude, GPT-4, Gemini.
+
+ใช้ได้ผ่าน app หรือ API ของผู้สร้างเท่านั้น. ไม่มีทางดู weights ข้างใน ไม่มีทาง run บนเครื่องตัวเอง. ข้อมูลที่คุณส่งเข้าไปถูกประมวลผลบนเซิร์ฟเวอร์ของเขา.
+
+ข้อดี: capability สูงสุด, ไม่ต้องดูแล infrastructure, อัปเดตอัตโนมัติ, support ดี.
+ข้อเสีย: ราคาขึ้นอยู่กับผู้ให้บริการ, ข้อมูลออกจากองค์กร, ถ้า lab ปิดหรือเปลี่ยน policy กระทบทันที, fine-tune ได้จำกัด.
+
+### ระดับที่ 2 — Open-weight
+
+ตัวอย่าง: Llama (Meta), Mistral, Qwen, DeepSeek.
+
+ดาวน์โหลด weights มา run บนเครื่องตัวเองหรือ cloud ของตัวเองได้. License แตกต่างกัน — บางตัวใช้เชิงพาณิชย์ได้เลย บางตัวมีเงื่อนไขสำหรับบริษัทขนาดใหญ่.
+
+สิ่งที่สำคัญต้องเข้าใจ: **open-weight ไม่ได้แปลว่าปล่อย training data หรือ training code ทั้งหมด**. คุณได้ weights มาใช้ แต่ไม่รู้ว่าเขาใช้ข้อมูลอะไร train หรือ recipe ยังไง จึง reproduce ตั้งแต่ต้นไม่ได้. นี่ต่างจาก open-source จริง ๆ.
+
+ข้อดี: run on-prem ได้ ข้อมูลไม่ออก, fine-tune เต็มที่, control cost ได้, audit ภายในได้.
+ข้อเสีย: ต้องดูแล infrastructure เอง, capability ต่ำกว่า frontier closed model เล็กน้อย (gap แคบลงเรื่อย ๆ).
+
+### ระดับที่ 3 — Open-source (เปิดทุกอย่าง)
+
+ตัวอย่าง: OLMo (Allen AI), Pythia (EleutherAI), BLOOM (BigScience).
+
+เปิดทั้ง weights, training data, training code, และ recipe. Reproduce ได้ตั้งแต่ต้น ไม่ต้องเชื่อ lab ว่าทำจริงตามที่บอก. มีน้อยมากเพราะ training data ขนาดนั้นเปิดได้ยาก (ส่วนใหญ่มีลิขสิทธิ์) และ recipe คือ competitive advantage ที่ไม่มีใครอยากเปิด.
+
+ส่วนใหญ่ใช้ในวงวิจัย ไม่ใช่ production จริง.
+
+> 💡 **Key insight:** คำว่า "open-source" ถูกใช้อย่างหลวม ๆ ในข่าวเพื่อหมายถึง "open-weight" ทุกวัน. ในชีวิตจริง 99% ของโมเดลที่เรียกตัวเองว่า "open" คือ open-weight ไม่ใช่ open-source แท้. ถ้าจะต้องแยกให้ถูก: Llama คือ open-weight. OLMo คือ open-source. ความต่างไม่ใช่ semantic — มันมีผลต่อสิทธิ์ที่คุณได้จริง.
+
+### ลองทำดู
+
+เปิด [huggingface.co/models](https://huggingface.co/models) แล้วค้นหาคำว่า "Llama" — สังเกตว่ามีกี่พันโมเดลที่ขึ้นมา. แต่ละตัวคือการที่ใครบางคนหรือทีมไหนสักทีมเอา weights ของ Meta ไป fine-tune ใหม่สำหรับงานเฉพาะ — เช่น Thai language, code generation, medical Q&A. นั่นคือ ecosystem ที่ open-weight strategy ของ Meta สร้างขึ้นมาให้ฟรี.
+
+---
+
+## โมเดลไม่ได้มีแค่แบบ "chatbot" อีกแล้ว
+
+ปี 2026 โมเดล AI แตกตัวเป็นหลายหมวดตาม capability ที่ต่างกันชัดเจน. รู้จักหมวดเหล่านี้แล้วจะเลือกใช้ได้ตรงกับงานมากขึ้น.
+
+<!-- IMAGE: ภาพแสดง 6 category ของ AI model เป็น icon grid สวยงาม: Chat/Generalist (ฟองสนทนา), Reasoning (สมอง + gear), Multimodal (ตา + หู + ข้อความ), Coding (โค้ด bracket), Image Generation (รูปภาพ + แปรง), Video/Audio (ฟิล์ม + note เสียง) แต่ละ card มีตัวอย่างโมเดล 2-3 ตัว
+Style: infographic
+Text on image: "Chat" / "Reasoning" / "Multimodal" / "Coding" / "Image" / "Video/Audio"
+-->
+
+### Chat / Generalist — ที่เห็นบ่อยที่สุด
+
+Claude (chat), ChatGPT, Gemini chat — general-purpose ตอบได้กว้าง ผ่านกระบวนการ fine-tune เพื่อพูดคุยแล้ว. เหมาะกับงานส่วนใหญ่ที่ไม่ต้องการความเชี่ยวชาญพิเศษ เช่น สรุปเอกสาร เขียน email ช่วยคิด วิเคราะห์ข้อมูล.
+
+Chat model ที่เห็นใน app ต่าง ๆ ไม่ใช่ base model ดิบ — มันผ่านกระบวนการ **RLHF** (Reinforcement Learning from Human Feedback) แล้ว ทำให้ตอบในแบบที่มนุษย์ต้องการ ไม่ใช่แค่ predict text ต่อไปเฉย ๆ เหมือน base model.
+
+### Reasoning models — class ใหม่ที่ "คิดก่อนตอบ"
+
+นี่คือหมวดที่น่าสนใจที่สุดในปี 2024-2026 และกำลังเปลี่ยนวิธีที่คนใช้ AI ในงานยาก.
+
+Chat model ทั่วไปตอบทันทีเหมือนพิมพ์เร็ว ๆ. Reasoning model ทำงานต่างกัน — มัน **คิดเสียงดัง** ก่อน เดิน chain of thought ยาว ๆ ในหัว ลองแนวทางต่าง ๆ แก้ error ที่ตัวเองพบ แล้วค่อยสรุปคำตอบ. คุณอาจเห็นใน ChatGPT เป็นช่อง "Thinking..." ที่แสดงก่อนคำตอบ.
+
+กลไกที่ทำให้ reasoning model เก่งกว่า: การที่มันสร้าง intermediate steps เยอะขึ้นทำให้ข้อผิดพลาดแต่ละขั้นถูกตรวจสอบได้ก่อนที่จะส่งผลต่อขั้นถัดไป. เหมือนนักคณิตศาสตร์ที่ทำงานบนกระดาษมักผิดพลาดน้อยกว่าคนที่พยายามคำนวณในหัวทีเดียว.
+
+ผลลัพธ์ที่เห็นได้: เก่งขึ้นมากในงาน math, coding, logic, planning. แต่ใช้ compute มากกว่าต่อ query หนึ่งครั้ง จึงแพงกว่าและช้ากว่า.
+
+ตัวอย่าง: OpenAI o1 และ o3, Claude reasoning mode, DeepSeek-R1. Reasoning model กำลังกลายเป็น standard สำหรับงานยาก.
+
+> 💡 **Key insight:** ทำไม reasoning model "แพงกว่า"? เพราะมันสร้าง token มากกว่าต่อคำตอบหนึ่งครั้ง — ทุก token ที่ "คิด" ก็นับเป็นค่าใช้จ่าย. Chat model อาจสร้าง 200 token เพื่อตอบคำถามนึง แต่ reasoning model อาจสร้าง 2,000 token ในกระบวนการคิดก่อนจะได้คำตอบ 200 token เดิม. แพงกว่า 10 เท่า แต่แม่นกว่ามากสำหรับงานที่ซับซ้อน.
+
+### Multimodal — text-only กลายเป็น legacy
+
+Flagship model ส่วนใหญ่ในปี 2026 รับทั้ง text, รูปภาพ, เสียง, และวิดีโอได้. โมเดลที่รับได้แค่ text กำลังกลายเป็น legacy ทีละน้อย.
+
+ตัวอย่างในชีวิตจริง:
+- ถ่ายรูปใบเสร็จแล้วถาม "ค่าใช้จ่ายทั้งหมดเท่าไหร่" — นั่นคือ multimodal
+- อัปโหลดรูป chart แล้วถาม "อธิบาย trend ที่เห็นให้หน่อย" — multimodal
+- ส่งคลิปเสียงแล้วให้ถอดความ — multimodal
+
+GPT-4o และ Gemini เป็น multimodal native. Claude รับ image ได้เช่นกัน. ความต่างระหว่าง "multimodal native" กับ "multimodal patched" คือ native จะเข้าใจความสัมพันธ์ระหว่าง modality ได้ดีกว่า — เช่น อธิบายว่ารูปนี้สื่อถึงอารมณ์อะไร ไม่ใช่แค่บอกว่าเห็นอะไรในรูป.
+
+### Coding-specialized
+
+Claude มีชื่อเสียงเรื่อง code เป็นพิเศษในกลุ่มนักพัฒนา โดยเฉพาะ Claude Sonnet และ Opus ที่มักอยู่ต้น ๆ ของ coding benchmark. OpenAI o-series ก็แข็งใน coding + reasoning. Mistral มี Codestral สำหรับงาน code โดยเฉพาะ. DeepSeek-Coder เป็นอีกทางเลือกที่ราคาถูกมาก.
+
+### Image, Video, Audio generation
+
+**Image:** DALL-E (OpenAI), Midjourney, Stable Diffusion (open-weight), Flux, Gemini image.
+
+**Video:** Sora (OpenAI), Veo (Google), Runway, Kling (จีน). Video generation ก้าวหน้ามากในสองปีที่ผ่านมา — จากคลิปสั้นกระตุก ๆ มาเป็นนาทีกว่าที่ realism สูง.
+
+**Voice/Audio:** ElevenLabs สำหรับ text-to-speech ที่ฟังดูเป็นมนุษย์, Suno สำหรับ music generation จาก text prompt, OpenAI voice modes ที่สนทนาแบบ realtime ได้.
+
+หมวดเหล่านี้พัฒนาเร็วมาก — สิ่งที่ทำได้ในปี 2024 กับ 2026 ต่างกันมากพอที่บางคนในวงการบอกว่า "มันเหมือนพลิกทุกปี".
+
+---
+
+## ค่าใช้จ่ายในปี 2026 — ถูกกว่าที่คิด
+
+<!-- IMAGE: ภาพกราฟแสดง cost ต่อ million tokens ของ frontier models ลดลงตามเวลา ตั้งแต่ปี 2020 ถึง 2026 เส้นลงชันมาก ใช้ logarithmic scale แกน Y มี annotation ว่า "ลดประมาณ 10 เท่าต่อปี" และมี marker แสดงว่า 2022 capability อยู่ที่ไหน ตอนนี้ราคาแค่เท่าไหร่
+Style: diagram
+Text on image: "Cost per million tokens" / "Year" / "~10x per year reduction" / "2022 GPT-3 quality" / "2024 GPT-4 quality"
+-->
+
+ข้อมูลที่หลายคนยังไม่รู้: ค่าใช้จ่ายในการใช้ AI ลดลงประมาณ **10 เท่าต่อปี** ในช่วง 2022-2026.
+
+capability ที่ในปี 2022 ต้องจ่าย $10 ต่อ query ปัจจุบันอาจ $0.001 หรือน้อยกว่านั้น. สิ่งที่ 2 ปีก่อนทำให้ได้แค่ในโมเดลที่แพงที่สุด ตอนนี้ run บน laptop ได้จาก open-weight.
+
+ทำไมถึงลดได้ขนาดนี้? มีหลายปัจจัยพร้อมกัน — hardware ดีขึ้น, algorithm มีประสิทธิภาพขึ้น (DeepSeek เป็นตัวอย่าง), infrastructure scale ขึ้นทำให้ cost per inference ลด, และการแข่งขันจากหลาย provider กดราคาลง.
+
+**สำหรับผู้ใช้ทั่วไป** ความหมายคือ: ถ้าคุณใช้ ChatGPT Plus อยู่ที่ $20/เดือน — capability ที่ได้เพิ่มขึ้นทุกปีโดยราคาไม่เปลี่ยน. ถ้าคุณจ่ายเท่าเดิมในปีหน้า คุณน่าจะได้ model ที่ดีกว่าตอนนี้มาก.
+
+**สำหรับนักพัฒนา** นักพัฒนาที่มี GPU consumer-grade อย่าง NVIDIA RTX 4090 หรือ 3090 สามารถ run open-weight model ขนาด 7B-70B parameter ได้แล้ว — ไม่ต้องมี data center.
+
+**Gap ระหว่าง closed และ open-weight** ก็แคบลงเรื่อย ๆ. ในปี 2023 frontier closed models ดีกว่า open-weight ชัดเจน อาจต่างกันเป็นปี. ในปี 2025-2026 open-weight ที่ดีที่สุดอย่าง DeepSeek-R1 หรือ Qwen3 สู้ได้ในหลายหมวด — บางหมวดนำในเรื่อง cost-efficiency.
+
+**Cost ของ frontier training** (รอบเดียว) ยังสูงมาก — $100 ล้าน ถึง $1,000 ล้าน. แต่ cost ของ inference (การใช้) democratized — ผู้ใช้ทั่วไปจ่ายเศษเสี้ยวของเซ็นต์ต่อ query.
+
+ลองดูตัวเลขจริงเพื่อให้เห็นภาพ: ในปี 2026 GPT-4o (API) อยู่ที่ประมาณ $2.50 ต่อ 1 ล้าน input token. ถ้าคุณส่ง prompt ยาว 1,000 token (ประมาณ paragraph ครึ่ง) นั่นคือ $0.0025 หรือไม่ถึงสลึง. บทสนทนา ChatGPT ทั่วไปอาจใช้ 2,000-5,000 token รวม — ค่าใช้จ่าย API น้อยกว่า $0.02 ต่อบทสนทนา. ที่ $20/เดือน ของ ChatGPT Plus คุณได้บทสนทนาหลักร้อยถึงหลักพันต่อเดือน.
+
+เปรียบเทียบกับ 2022: GPT-3 Davinci ตอนออกใหม่อยู่ที่ $0.02 ต่อ 1,000 token — หรือ $20 ต่อ 1 ล้าน token. capability ในปี 2026 ดีกว่ามาก แต่ราคาต่อ token ลดลงหลาย 10 เท่า. นั่นคือ 10x per year ที่พูดถึง.
+
+### ลองทำดู
+
+เปิด [chat.openai.com](https://chat.openai.com) แล้วลองถามโจทย์ math หรือ coding ที่ค่อนข้างยาก ด้วย ChatGPT ปกติก่อน. จากนั้นถามคำถามเดิมโดยเปลี่ยนไปใช้โมเดล o1 หรือ o3 ถ้ามีใน account ของคุณ — สังเกตว่ามันแสดง "Thinking..." นานกว่า แต่คำตอบมักจะแม่นและอธิบายเหตุผลได้ดีกว่า. นั่นคือความต่างระหว่าง chat model กับ reasoning model ในชีวิตจริง และทำไมมันถึงแพงกว่า.
+
+---
+
+## Trends ปี 2026 ที่กำลังเปลี่ยนทุกอย่าง
+
+สิ่งที่เกิดขึ้นในปี 2026 ไม่ใช่แค่ "โมเดลดีขึ้น" — มีการเปลี่ยนโครงสร้างที่ใหญ่กว่านั้น.
+
+**Agentic systems กลายเป็น mainstream.** เดิม AI ตอบคำถามแล้วก็จบ. ตอนนี้ AI รัน tools, ค้นเว็บ, เขียน code, execute command ได้เอง, วน loop ทำงานหลายขั้นตอนโดยไม่ต้องให้มนุษย์สั่งทุกขั้น. เรียกว่า "agentic" — AI ที่ทำงานแบบมี agency ไม่ใช่แค่ตอบ.
+
+ตัวอย่างที่เห็นได้ชัด: GitHub Copilot ไม่ใช่แค่ suggest code ทีละบรรทัดแล้ว — มันเขียน function ทั้ง function รัน test และ fix error ได้เอง. Claude Computer Use สามารถควบคุม browser แทนมนุษย์ได้. AI agents ใน customer support สามารถค้นข้อมูลจาก database ตรวจสอบ policy และตอบลูกค้าได้โดยอัตโนมัติ. บทใน Level 3 จะลงลึกเรื่อง agent architecture มาก.
+
+**Reasoning model เป็น standard สำหรับงานยาก.** ในปี 2024 reasoning model เป็นของใหม่. ในปี 2026 ถ้าเป็นงานที่ต้องการความแม่นยำสูง เช่น วิเคราะห์สัญญากฎหมาย, debug code ที่มี bug ซ้อน, วางแผน project ที่มีหลาย dependency — reasoning model เริ่มเป็นตัวเลือก default แทน chat model ทั่วไป.
+
+**Multimodal native — ไม่ใช่ feature เพิ่ม.** Model ที่ดีที่สุดในปี 2026 ออกแบบมาให้รับทุก modality ตั้งแต่ต้น. Text-only model กลายเป็น legacy ทีละน้อย — คล้ายที่ smartphone ที่ไม่มีกล้องกลายเป็นของแปลกในปัจจุบัน. ถ้า model ใหม่ออกมาเป็น text-only ในปี 2026 นั่นเป็นสัญญาณที่ผิดปกติ.
+
+**AI embedded ในทุก product.** IDE (VS Code กับ Copilot, Cursor), browser (Copilot ใน Edge), office suite (Microsoft 365 Copilot, Google Workspace AI), customer support platform — AI อยู่ในเครื่องมือที่ใช้ทุกวันอยู่แล้ว โดยไม่ต้องเปิด ChatGPT แยก. นี่หมายความว่า "ใช้ AI เป็น" กำลังกลายเป็น prerequisite ของงานหลายอาชีพ ไม่ใช่แค่ bonus skill.
+
+ผลที่ตามมา: คนที่ไม่รู้จักกลไกของ AI มักใช้ embedded AI ได้ไม่เต็มประสิทธิภาพ — ได้แค่ "ขอให้ช่วย" แบบผิว ๆ แทนที่จะออกแบบ workflow ให้ AI ทำงานหนักแทนตัวเองได้จริง. นั่นคือเหตุที่ Level 2 ของ curriculum นี้จะให้ความสำคัญกับ "ใช้ AI ยังไง" มากกว่า "AI คืออะไร".
+
+**Cost compression เปิด application class ใหม่.** เมื่อ query ราคาเศษเสี้ยวของเซ็นต์ application ที่ไม่เคยเป็นไปได้ในเชิง economics ก็กลายเป็นไปได้ — เช่น AI ที่อ่านเอกสารทุกฉบับในองค์กรและตอบคำถามได้ทันที, AI ที่ monitor ทุก transaction แบบ realtime, AI tutor ที่สอนได้รายคน. Application class ใหม่เหล่านี้ไม่ได้อยู่แค่ใน Silicon Valley — บริษัทไทยขนาดกลางก็เข้าถึงได้แล้วด้วยราคาที่สมเหตุสมผล.
+
+**Regulation เริ่มมีฟัน.** EU AI Act มีผลบังคับใช้แล้วบางส่วน. สหรัฐฯ มี executive orders เรื่อง AI safety. จีนมีกฎเฉพาะเรื่อง generative AI. ไทยและอาเซียนกำลังพัฒนา framework. สิ่งที่เปลี่ยนคือ AI ไม่ใช่ wild west อีกต่อไป — มีข้อกำหนดสำหรับ "AI system ที่มีความเสี่ยงสูง" เช่น ใช้ใน healthcare, credit scoring, การจ้างงาน. Compliance จะกลายเป็นส่วนหนึ่งของการตัดสินใจเลือกโมเดลในองค์กรใหญ่.
+
+**Safety และ alignment เป็นประเด็นจริงในวงการ** — ไม่ใช่แค่ academic. Labs ใหญ่ทุกแห่งมี safety team และการ research เรื่องนี้ไม่ใช่ PR แต่เป็น engineering priority ที่ส่งผลต่อ product จริง. Constitutional AI ของ Anthropic และ RLHF ของ OpenAI เป็นเทคนิคที่เกิดจากความกังวลเรื่องนี้โดยตรง.
+
+---
+
+## ไทยและเอเชียตะวันออกเฉียงใต้อยู่ตรงไหน
+
+<!-- IMAGE: ภาพแสดง 3 ชั้นของ AI ecosystem ในไทย/SE Asia รูปแบบ diagram แนวตั้ง ชั้นบนสุด "Western Frontier Models" (Claude, GPT, Gemini) มีเมฆ cloud แสดง API ชั้นกลาง "Thai/SEA Fine-tuned Open-weight" (Typhoon by SCB10X, SEA-LION by AI Singapore) ชั้นล่างสุด "Thai Users & Applications" มีลูกศรสองทาง ระหว่างชั้น
+Style: infographic
+Text on image: "Western Frontier Models" / "Thai/SEA Fine-tuned" / "Thai Users & Applications" / "via API" / "run on-prem"
+-->
+
+การใช้งาน AI ส่วนใหญ่ในไทยและ SE Asia เกิดผ่าน Western models — ChatGPT, Claude, Gemini ผ่าน app หรือ API. Frontier model เหล่านี้ภาษาไทยได้ดีพอใช้งานได้จริงในงานส่วนใหญ่ แต่ยังมีข้อจำกัดที่ต้องรู้.
+
+**เรื่อง tokenization ภาษาไทย:** ถ้าคุณอ่านบทก่อนหน้า ([LLM คืออะไร](/foundations/what-is-an-llm)) คุณรู้แล้วว่า token คืออะไรและทำไมมันสำคัญ. ภาษาไทย 1 token มักจะเป็นแค่ 1-2 ตัวอักษร ขณะที่ภาษาอังกฤษ 1 token ≈ ¾ ของคำ.
+
+ผลในทางปฏิบัติ: พิมพ์ภาษาไทย 1 ประโยค กิน token มากกว่าภาษาอังกฤษ 1 ประโยคที่ความหมายเดียวกัน 2-3 เท่า — แปลว่าแพงกว่าและ context window หมดเร็วกว่า. ถ้าคุณเคยรู้สึกว่า AI ดูเหมือน "ลืม" บทสนทนาเร็วกว่าปกติเมื่อใช้ภาษาไทย นั่นเป็นส่วนหนึ่งของเหตุผล.
+
+สถานการณ์กำลังดีขึ้นเรื่อย ๆ เพราะ labs เริ่มให้ความสำคัญกับภาษาที่ไม่ใช่อังกฤษ แต่ยังเป็นเรื่องที่ควรรู้ในปี 2026.
+
+**Open-weight ที่ fine-tune สำหรับไทยและ SE Asia:**
+
+ถ้าต้องการ capability ภาษาไทยที่ดีกว่าหรือต้องการ run on-prem มีสองโปรเจกต์สำคัญ:
+
+- **Typhoon** (SCB10X) — fine-tune จาก open-weight base สำหรับภาษาไทยโดยเฉพาะ ทำโดยทีมวิจัยของ SCB. เหมาะกับองค์กรที่ต้องการ run บน server ของตัวเองและต้องการคุณภาพภาษาไทยที่ดี.
+- **SEA-LION** (AI Singapore) — focus ที่หลายภาษาในอาเซียนรวมทั้งไทย ทำโดย AI Singapore ซึ่งเป็น initiative ของรัฐบาลสิงคโปร์.
+
+สำหรับคนที่ต้องการ privacy หรือ data sovereignty — ใช้ Thai fine-tuned open-weight run บน infrastructure ของตัวเองคือเส้นทางที่ใช้งานได้จริง แม้ capability จะต่ำกว่า frontier model เล็กน้อย.
+
+**การพัฒนา frontier model ในประเทศ** ยังค่อนข้างจำกัด — focus หลักอยู่ที่ application layer และ fine-tuning ไม่ใช่การ pretrain model จากศูนย์. ซึ่งก็ไม่ใช่เรื่องผิด — การ pretrain ต้องการ compute หลักร้อยล้านดอลลาร์ ไม่มีเหตุผลที่ใครในภูมิภาคจะทำแทนที่จะ build บน open-weight ที่มีอยู่แล้ว. เส้นทางที่ใช้ได้จริงสำหรับนักพัฒนาไทยคือ (ก) ใช้ Western API สำหรับงานทั่วไป (ข) ใช้ Thai fine-tuned open-weight เมื่อต้องการ control, cost, หรือ data sovereignty.
+
+**คำถามที่เปิดอยู่:** จะมี frontier model จาก SE Asia เกิดขึ้นได้จริงไหม หรือภูมิภาคจะอยู่ที่ application layer ตลอดไป? ยังไม่มีคำตอบชัด แต่ pattern ที่เห็นบ่อยคือ ประเทศที่เข้าไปในวงการ AI ได้เร็วและลึกที่สุดคือประเทศที่มี engineer talent สูงและ policy ที่เอื้อต่อการ adopt — ไม่จำเป็นต้องสร้าง frontier model เองเพื่อได้ประโยชน์จาก AI.
+
+> 💡 **Key insight:** สำหรับผู้ใช้ทั่วไปในไทย ข้อจำกัดเรื่อง tokenization ภาษาไทยมีผลจริง แต่ไม่ใช่เหตุให้หลีกเลี่ยงการใช้ AI ภาษาไทย — มันหมายความว่าควรรู้ว่า context window หมดเร็วกว่าเมื่อใช้ภาษาไทย และอาจ split งานออกเป็นชิ้นเล็กกว่าเมื่อทำงานกับ document ยาว ๆ.
+
+---
+
+## เลือกใช้ยังไงในชีวิตจริง
+
+<!-- IMAGE: ภาพตาราง decision matrix สวยงาม แสดงการเลือกโมเดลตาม use case แถวคือประเภทงาน (Coding, Writing, Multimodal, Math/Logic, Privacy, Budget) คอลัมน์คือโมเดลหลัก มี checkmark และ dot แสดง fit
+Style: diagram
+Text on image: "Use Case" / "Claude" / "GPT-4o" / "Gemini" / "o3/R1" / "Open-weight"
+-->
+
+หลายคนถามว่า "ต้องใช้ ChatGPT หรือ Claude ดี" — นั่นไม่ใช่คำถามที่มีคำตอบเดียว. กรอบที่ถูกต้องกว่าคือ **เลือกตาม category ของงาน ไม่ใช่ตามชื่อ**.
+
+| งาน | ตัวเลือกที่มักได้ผลดี |
+|-----|----------------------|
+| Coding และ engineering | Claude (Sonnet/Opus), o-series ของ OpenAI |
+| เขียน prose ยาว ๆ | Claude มักให้ผลที่อ่านได้ดีกว่าในรีวิวผู้ใช้ |
+| Multimodal (รูป/วิดีโอ) | GPT-4o, Gemini |
+| Math, logic, planning ที่ซับซ้อน | o1, o3, DeepSeek-R1 |
+| งานที่ต้องการ privacy (on-prem) | Llama, Qwen, Typhoon — run เอง |
+| ค่าใช้จ่ายต่ำสุด | DeepSeek API, open-weight ขนาดเล็ก |
+| ภาษาไทย + privacy | Typhoon on-prem |
+
+**สิ่งที่ควรหลีกเลี่ยง:** lock-in กับ vendor ตัวเดียวโดยไม่มีเหตุผล. API ของ labs ส่วนใหญ่คล้ายกัน switching cost ต่ำ. มืออาชีพส่วนใหญ่ใช้หลายโมเดลตาม task — ไม่มีใครที่ "เก่งสุดในทุกงาน".
+
+**เรื่อง open-weight สำหรับคนที่จะ build จริงจัง:** ถ้าจะสร้าง system ที่ต้องการ fine-tune เต็มที่, run on-prem, inspect ภายใน, หรือ control cost ระยะยาว — ดู open-weight ecosystem ควบคู่กันไปด้วย เพราะมันให้สิทธิ์ที่ closed ไม่ให้: run on-prem ได้, fine-tune เต็มที่ได้, audit ภายในได้, ราคาไม่ผันผวนตาม vendor.
+
+**ข้อสังเกตที่หลายคนมองข้าม:** ราคาที่ถูกลงทุกปีไม่ได้แปลว่าคุณควรใช้โมเดลแพงที่สุดเสมอ. ในงานหลายอย่าง โมเดลขนาดเล็กที่ fast และ cheap ให้ user experience ที่ดีกว่าโมเดลใหญ่ที่ช้า เพราะ latency มีผลต่อการใช้งานจริง. "ดีที่สุด" ในบริบทของ product จริงมักหมายถึง "ดีพอ + เร็ว + ถูก" ไม่ใช่ "ดีสุดในทุก benchmark".
+
+> 💡 **Key insight:** "ดีที่สุด" ไม่มีคำตอบเดียวในโลก AI. คำถามที่ถูกต้องกว่าคือ "ดีที่สุดสำหรับงานอะไร ภายใต้ข้อจำกัดอะไร" — cost, privacy, capability, latency, และ flexibility ล้วนเป็นมิติที่ต้องพิจารณา และแต่ละ use case ให้น้ำหนักต่างกัน.
+
+---
+
+## ตัวอย่างจริง — เลือกโมเดลในสถานการณ์จริง
+
+<!-- IMAGE: ภาพ storyboard 2 scenarios แบบ comic strip ซ้ายคือ HR manager ที่บริษัทกำลังคิดเรื่อง privacy ขวาคือ startup founder ที่กำลังเลือกระหว่าง Claude กับ Gemini สำหรับ multimodal app แต่ละ panel มี thought bubble แสดงการตัดสินใจ
+Style: illustration
+Text on image: "Scenario 1: HR Chatbot" / "Scenario 2: Startup Multimodal App"
+-->
+
+### Scenario 1 — บริษัทอยากสร้าง HR chatbot ภาษาไทย
+
+สถานการณ์: บริษัทขนาดกลางอยากให้พนักงานถามนโยบาย HR ได้ตลอด 24 ชั่วโมง โดย chatbot ตอบเป็นภาษาไทย ข้อมูลมีทั้ง payroll policy, สวัสดิการ, และกฎวันหยุด. ข้อกำหนดหลักคือข้อมูลพนักงานต้องไม่ออกจากองค์กร.
+
+ลองดู options ตาม spectrum:
+
+**Option A — Claude API หรือ ChatGPT API:** capability สูง ภาษาไทยดี setup ง่าย. แต่ทุก query ที่ส่งไปรวมถึงเนื้อหานโยบาย HR จะถูกประมวลผลบนเซิร์ฟเวอร์ของ Anthropic หรือ OpenAI. ถ้า policy ของบริษัทห้ามส่ง HR data ออก — ตัดทิ้งทันที.
+
+**Option B — Llama 3 ที่ fine-tune ภาษาไทย run on-prem:** ข้อมูลไม่ออก ควบคุมได้เต็มที่ fine-tune ด้วยนโยบายของบริษัทได้. แต่ต้องมี GPU server, ต้องมีทีม maintain, และ capability ภาษาไทยต่ำกว่า Claude เล็กน้อย.
+
+**Option C — Typhoon (SCB10X) run on-prem:** ภาษาไทยดีกว่า Llama base เพราะ fine-tune เฉพาะ, ข้อมูลไม่ออก, capability เหมาะกับ Thai enterprise use case. เป็น sweet spot ระหว่าง privacy กับ quality ภาษาไทย.
+
+**การตัดสินใจ:** Option C หรือ B คือคำตอบที่ถูกตาม requirement. Option A ตัดออกเพราะ data sovereignty — ไม่ใช่เพราะ capability ต่ำกว่า แต่เพราะ deployment ไม่ตรง requirement.
+
+บทเรียน: เลือกโมเดลต้องเริ่มจาก constraint ก่อน capability.
+
+### Scenario 2 — นักพัฒนาต้องการ model สำหรับ app วิเคราะห์รูปสินค้า
+
+สถานการณ์: startup อีคอมเมิร์ซอยากสร้าง feature ที่ให้ผู้ใช้ถ่ายรูปสินค้า แล้ว AI บอกได้ว่าสินค้านี้เรียกว่าอะไร ราคาตลาดประมาณเท่าไหร่ และมีใขายที่ไหน. ต้องการ multimodal capability และงบ API ต่ำเพราะ startup.
+
+**Option A — GPT-4o:** multimodal แข็งมาก ราคาปานกลาง สำหรับ startup ที่ query เยอะราคาอาจเริ่มมีนัย.
+
+**Option B — Gemini 1.5 Flash:** multimodal native, ราคาต่ำกว่า GPT-4o มาก สำหรับ use case ที่ query volume สูง Gemini Flash มักเป็นตัวเลือกที่ cost-effective ที่สุดในปี 2026.
+
+**Option C — Qwen2-VL (open-weight multimodal) run บน cloud ของตัวเอง:** ดาวน์โหลดมา run เองได้ ราคา predictable ไม่ขึ้นกับ vendor แต่ต้องมี engineering effort setup.
+
+**การตัดสินใจ:** สำหรับ startup ในช่วงแรก Option B (Gemini Flash) มักดีที่สุด — setup เร็ว ราคาต่ำ quality ดีพอ. ถ้าเติบโตถึงระดับที่ API cost กลายเป็นส่วนสำคัญของ cost structure ค่อย evaluate Option C.
+
+บทเรียน: ในช่วง early stage "setup เร็ว + ราคาต่ำ" มักสำคัญกว่า "optimal quality" การ optimize ก่อนมี traction คือการเสียเวลา.
+
+### ลองทำดู
+
+ลองคิด use case ที่คุณอยากใช้ AI ในชีวิตจริง — ไม่ว่าจะเป็นงาน hobby หรือ business. แล้วถามตัวเองสามคำถามนี้:
+
+1. ข้อมูลที่ส่งเข้า AI มี sensitivity ขนาดไหน — ส่งออกจากองค์กรได้ไหม?
+2. งานนี้ต้องการ capability อะไร — chat ทั่วไป, reasoning ซับซ้อน, multimodal, หรือ coding?
+3. Budget คือเท่าไหร่ต่อเดือน และ query จะมีกี่ครั้ง?
+
+สามคำถามนี้จะ narrow down ตัวเลือกให้เหลือ 1-2 ตัวแทบทุกกรณี. ถ้าไม่รู้คำตอบข้อ 3 — เริ่มจาก free tier ของ ChatGPT หรือ Claude ก่อนแล้วค่อยประเมินจากการใช้จริง. อย่า over-optimize ก่อนรู้ว่า use case ทำงานได้จริง.
+
+หลังจากนั้น ลองเปิด ChatGPT และ Claude แล้วถาม use case ของคุณด้วย prompt เดียวกัน — สังเกตความแตกต่างของ tone, ความยาว, และ style ของคำตอบ. นั่นจะช่วยให้คุณรู้สึก "feel" ของแต่ละโมเดลได้มากกว่าการอ่าน benchmark ใด ๆ.
+
+---
+
+## กลไกข้างใน — ทำไม model แต่ละตัวถึงมีจุดแข็งต่างกัน
+
+ส่วนนี้ไม่จำเป็นต้องจำเพื่อใช้งาน แต่ถ้าอยากเข้าใจว่าทำไม Claude จึงเก่งงานเขียน ทำไม Gemini จึงเก่ง multimodal ทำไม o3 จึงแม่นกว่าใน math — คำตอบอยู่ในกระบวนการสร้างโมเดล.
+
+### Training ไม่ใช่แค่ "เรียนรู้จาก internet"
+
+ทุก LLM เริ่มจาก **pretraining** — อ่านข้อความจำนวนมหาศาลจากอินเทอร์เน็ต หนังสือ paper วิทยาศาสตร์ และแหล่งอื่น ๆ เพื่อเรียนรู้การ predict คำถัดไป. แต่ base model ที่ได้มาตรง ๆ ยังตอบได้ไม่ดี — มันรู้ภาษา แต่ยังไม่รู้จักว่าจะ "ช่วย" คนอย่างไร.
+
+ขั้นถัดมาคือ **fine-tuning และ post-training** ซึ่งเป็นที่ที่แต่ละ lab ทำต่างกัน และเป็นที่มาของความแตกต่างระหว่างโมเดล.
+
+**RLHF (Reinforcement Learning from Human Feedback)** คือกระบวนการที่ใช้กันมากที่สุด: ให้ model สร้างคำตอบหลายแบบ ให้มนุษย์เลือกว่าแบบไหนดีที่สุด แล้วฝึก model ให้ผลิตคำตอบในแบบที่มนุษย์ชอบมากขึ้น. ทำซ้ำหลายรอบจนได้ model ที่ตอบในลักษณะที่ "helpful" จริง ๆ. ChatGPT เกิดจากกระบวนการนี้ในช่วงแรก.
+
+ปัญหาของ RLHF คือ scale — ต้องมีมนุษย์มา rate คำตอบเป็นล้าน ๆ ตัวอย่าง แพงและช้า.
+
+**Constitutional AI (Anthropic)** เป็นทางเลือก: แทนที่จะพึ่ง human rater ทุกขั้น ให้ AI ตรวจสอบคำตอบของตัวเองตาม "หลักการ" (constitution) ที่กำหนดไว้ล่วงหน้า เช่น "คำตอบนี้ทำร้ายใครไหม" "คำตอบนี้ซื่อสัตย์ไหม" แล้ว AI ปรับปรุงคำตอบตามหลักการนั้น. วิธีนี้ scale ได้ดีกว่าและให้ consistency สูงกว่าในเรื่อง safety. นี่เป็นเหตุผลที่ Claude มักถูกมองว่า "รอบคอบ" กว่าในการตอบเรื่องละเอียดอ่อน.
+
+**Reasoning training (o1/o3, DeepSeek-R1)** ใช้วิธีที่แตกต่างออกไป: แทนที่จะ fine-tune ให้ตอบดี ๆ โดยตรง ฝึกให้ model "คิดทีละขั้น" ก่อนตอบ ผ่าน reinforcement learning จากผลลัพธ์ (ตอบถูกได้รางวัล ตอบผิดโดน penalty) ไม่ใช่จาก human rating โดยตรง. ผลลัพธ์คือ model ที่ "คิด" ได้ดีกว่าในงานที่ต้องการ logic หลายขั้น.
+
+**Multimodal pretraining (Gemini)** สร้าง model ให้เรียนรู้จาก text, รูป, เสียง, วิดีโอพร้อมกันตั้งแต่ต้น ทำให้ model "เข้าใจ" ความสัมพันธ์ระหว่าง modality ได้ดีกว่าการที่ text model ถูก patch ทีหลังให้รับรูป. เหมือนความต่างระหว่างคนที่เรียนรู้ภาษาที่สองตั้งแต่เด็กกับคนที่เรียนหลังโต — ทั้งคู่ใช้ภาษาได้ แต่คนแรกมักมี intuition ที่ธรรมชาติกว่า.
+
+> 💡 **Key insight:** ความแตกต่างระหว่างโมเดลไม่ได้อยู่แค่ที่ขนาดหรือ training data ที่เยอะกว่า — มันอยู่ที่ post-training technique ที่แต่ละ lab ใช้. RLHF, Constitutional AI, reasoning training, multimodal pretraining — เหล่านี้คือสิ่งที่เปลี่ยน base model ให้กลายเป็น product ที่เราใช้งาน. และนี่คือเหตุผลที่ lab เล็กกว่าอาจทำ model ที่เก่งกว่าในหมวดเฉพาะได้ ถ้า technique ดีกว่า.
+
+---
+
+## ความเข้าใจผิดที่พบบ่อย
+
+เวลาอ่านข่าว AI มีความเข้าใจผิดบางอย่างที่เห็นซ้ำบ่อยมากจนน่านำมาพูดตรง ๆ.
+
+**"open-source" กับ "open-weight" คือสิ่งเดียวกัน** — ไม่ใช่. open-weight ปล่อย weights แต่ไม่ได้ปล่อย training data และ recipe ทั้งหมด. open-source แท้ (OLMo, Pythia, BLOOM) ปล่อยทุกอย่างเพื่อ reproduce ได้จากศูนย์. ในข่าวที่เห็น 99% คือ open-weight.
+
+**"AI lab ที่ใหญ่ที่สุด = โมเดลดีที่สุด"** — ไม่ใช่. Quality ขึ้นอยู่กับ data, recipe, และ post-training technique ไม่ใช่ขนาดของบริษัท. DeepSeek คือตัวอย่างที่ lab เล็กกว่า ทำ reasoning model ระดับเดียวกับ frontier ของ OpenAI ด้วย compute น้อยกว่า.
+
+**"ต้องเลือก AI ตัวเดียวแล้วยึดติด"** — ไม่ต้อง. API ของ labs ส่วนใหญ่ structured คล้ายกัน switching cost ต่ำมาก. มืออาชีพมักใช้หลายโมเดล match กับ category งาน.
+
+**"Chinese model ใช้ไม่ได้เพราะข้อมูลจะรั่ว"** — ขึ้นกับ deployment. Open-weight model จากจีนที่ run บน infrastructure ของตัวเองไม่ส่งข้อมูลไปที่ไหนเลย. คำถามคือ "deploy ยังไง" ไม่ใช่ "weights มาจากไหน".
+
+**"Frontier labs มีเทคโนโลยีลับที่ open-weight ตามไม่ทัน"** — gap แคบลงเรื่อย ๆ. ในปี 2025-2026 open-weight ที่ดีที่สุดสู้กับ closed flagship ได้ในหลายหมวด. ความได้เปรียบของ closed ส่วนใหญ่อยู่ที่ scale ของ inference infrastructure และ product polish ไม่ใช่เทคโนโลยีพื้นฐานที่ต่างกันอย่างสิ้นเชิง.
+
+**"AI ฟรีกับ AI จ่ายเงินต่างกันนิดเดียว"** — จริงสำหรับงานง่าย ผิดสำหรับงานยาก. Free tier ของ ChatGPT และ Claude ใช้ model รุ่นเล็กกว่าหรือมี rate limit. สำหรับงานที่ต้องการ context window ใหญ่, reasoning model, หรือ multimodal — version ที่จ่ายเงินต่างกันเป็นคนละ league.
+
+**"คนที่ใช้ AI เก่งที่สุดคือคนที่รู้ prompt trick เยอะที่สุด"** — ไม่ใช่. คนที่ใช้ AI ได้ผลดีที่สุดมักเป็นคนที่ **เข้าใจว่า AI ทำงานยังไง** มากกว่าคนที่จำ trick เยอะ ๆ. เพราะเมื่อเข้าใจกลไก การปรับ prompt ใหม่เมื่อได้ผลลัพธ์ที่ไม่ดีเป็นเรื่องเป็นธรรมชาติ ไม่ต้องพึ่ง template สำเร็จรูป.
+
+---
+
+## scale ของ compute — ทำไมมีน้อยกว่า 10 บริษัทที่ทำ frontier model ได้
+
+คำถามที่หลายคนไม่ได้ถามแต่ควรถามคือ: ทำไมการ train frontier model ถึงยากขนาดนั้น ทำไมทุกคนไม่ทำเอง?
+
+คำตอบคือ **compute** — ทรัพยากรการประมวลผล.
+
+การ train frontier model รอบเดียวใช้ GPU หลายพันตัวรันต่อเนื่องเป็นเดือน ๆ. ค่าใช้จ่ายของ compute อย่างเดียวอยู่ที่ $100 ล้านขึ้นไป บางรุ่นถึง $1,000 ล้าน. นี่ยังไม่รวม data center, ทีม engineer, ค่าไฟฟ้า, และ research overhead.
+
+นึกภาพแบบนี้: เหมือนการแข่งขัน Formula 1 — ทีมที่แข่งได้มีไม่กี่ทีมในโลก เพราะต้องการงบประมาณและ engineering talent ระดับสูงมาก. ทีมที่เหลือทั้งหมด "ใช้รถที่ทีมอื่นทำ" — ไม่ว่าจะผ่าน API หรือ open-weight.
+
+การเปรียบ F1 นี้ใช้ได้แค่จุดนึง — ส่วนที่ต่างคือใน F1 ความรู้ของทีมชนะเป็นความลับ แต่ใน AI วงการวิจัยมีการ publish paper และ open-weight ที่ทำให้ความรู้กระจายได้เร็วกว่ามาก.
+
+**ทำไม inference (การใช้) ถึงถูกกว่า training มาก?** เพราะ training ต้องคำนวณ gradient เพื่อปรับ parameter หลายพันล้านตัวซ้ำแล้วซ้ำเล่า — ต้องการ high-bandwidth memory และ GPU ที่ทรงพลังมาก. Inference แค่ "ใช้" parameter ที่ train มาแล้ว — computation น้อยกว่ามาก และ scale ได้ด้วย hardware ที่ถูกกว่า.
+
+นี่คือเหตุผลที่ cost ของ inference ลดได้เร็วกว่า cost ของ training — และเป็นเหตุผลที่ "ใช้ AI" ถูกลงทุกปี แม้ว่า "สร้าง AI frontier model ใหม่" ยังแพงมากเท่าเดิม.
+
+**ผลต่อ ecosystem:** ราคา training ที่สูงสร้าง "moat" ที่กว้างมาก — ยากที่บริษัทใหม่จะเข้ามาแข่งในระดับ frontier. แต่ราคา inference ที่ต่ำทำให้ "ใช้" AI เป็น commodity ที่ทุกคนเข้าถึงได้. สองแรงนี้เคลื่อนไปพร้อมกัน — barriers to train สูงขึ้น ขณะที่ barriers to use ต่ำลง. นั่นแปลว่าคนที่ได้ประโยชน์จาก AI ปี 2026 ไม่ต้องเป็นคนที่มีเงินทำ frontier model — แต่คือคนที่รู้จักใช้ frontier model ที่มีอยู่ได้ดีที่สุด.
+
+<!-- IMAGE: ภาพ infographic แสดง scale comparison ระหว่าง training cost (รูปโรงงานขนาดใหญ่) กับ inference cost (รูปมือถือ) มี annotation ว่า training = $100M-$1B ต่อ run, inference = เศษเสี้ยวเซ็นต์ต่อ query มีลูกศรบอกว่า "คุณอยู่ตรงนี้" ชี้ที่ inference side
+Style: infographic
+Text on image: "Training: $100M-$1B per run" / "Inference: cents per million tokens" / "คุณอยู่ตรงนี้"
+-->
+
+ทำไมเรื่อง compute scale นี้สำคัญกับผู้ใช้ทั่วไปด้วย? เพราะมันอธิบายว่าทำไม AI ที่คุณเข้าถึงได้วันนี้จึงดีมากและถูกมาก — มันเป็นผลของการที่ frontier labs จ่าย cost ในการ train มหาศาล แล้วแบ่งต้นทุนนั้นผ่านผู้ใช้หลายล้านคน. คุณจ่าย $20/เดือน สำหรับ infrastructure ที่สร้างด้วยเงินพันล้านดอลลาร์.
+
+---
+
+## วิธีติดตาม AI landscape โดยไม่จม
+
+AI landscape เปลี่ยนเร็วจน "อ่านให้ครบ" เป็นไปไม่ได้. แต่มีวิธีที่ทำให้คุณ "อัปเดตพอ" โดยไม่ต้องเสียเวลาหลายชั่วโมงต่อวัน.
+
+**แหล่งที่เชื่อถือได้:** Blog ของ labs โดยตรง (blog.anthropic.com, openai.com/research, deepmind.google) เป็นแหล่งที่ถูกต้องที่สุด แต่อ่านยากเพราะเป็น technical. **Hugging Face Daily Papers** (huggingface.co/papers) รวม paper วันนั้น ๆ มาให้ — เหมาะถ้าอยากตามงาน research. สำหรับข่าวทั่วไปที่อ่านง่าย The Verge, Ars Technica, และ MIT Technology Review มักทำ fact-check ดีกว่า Forbes หรือ Medium บทความทั่วไปที่มักเขียนเร็วและ sensationalize.
+
+สำหรับคนที่ใช้ภาษาไทยเป็นหลัก: ระวัง "บทความแปล AI" ที่มักแปลผิดคำศัพท์ หรือเอา headline ฝรั่งมาเขียนใหม่โดยไม่เช็คข้อเท็จจริง. ถ้าเห็นข้อมูลที่ฟังดู dramatic มาก ("AI ตัวนี้เก่งกว่ามนุษย์แล้ว!") — ลองหา source ต้นฉบับก่อนเชื่อ.
+
+**สิ่งที่ควรสังเกตเมื่ออ่านข่าว:** ถ้าข่าวบอกว่า "โมเดลใหม่ดีกว่า GPT-4 X%!" ให้ถามว่าดีกว่าใน benchmark ไหน. Benchmark แต่ละตัว test สิ่งที่ต่างกัน — ดีใน math benchmark ไม่ได้แปลว่าดีใน writing หรือ Thai language.
+
+**สิ่งที่ไม่ต้องตามทุกอย่าง:** ชื่อ model เวอร์ชัน, ราคา exact per token, อันดับ leaderboard รายสัปดาห์, benchmark score ทุกตัว. สิ่งเหล่านี้เปลี่ยนเร็วและมักไม่กระทบการตัดสินใจในชีวิตจริงมากนัก. ตามเมื่อต้องตัดสินใจจริง ๆ ไม่ใช่ตามแบบ FOMO.
+
+**Pattern ที่น่าสังเกตเมื่ออ่านข่าว:** announcement ของ lab มักฟังดูดีกว่าความเป็นจริงในการใช้งานจริง เพราะ demo ถูกเลือกมาแสดงจุดแข็ง. รอดูรีวิวจากผู้ใช้จริงที่ใช้กับ task ที่คุณสนใจ — นั้นมีค่ากว่า benchmark number มาก.
+
+### ลองทำดู
+
+เปิด [lmarena.ai](https://lmarena.ai) (เดิมชื่อ Chatbot Arena) — เป็น platform ที่ให้คนทั่วไป battle test โมเดลแบบ blind: คุณส่ง prompt เดียวกันให้สองโมเดลพร้อมกันโดยไม่รู้ว่าคุยกับโมเดลไหน แล้ว vote ว่าตัวไหนตอบดีกว่า.
+
+ลองถามคำถามที่คุณสนใจจริง ๆ ในภาษาไทย — เช่น "สรุปข้อดีข้อเสียของการทำ freelance ในปี 2026" หรือโจทย์งานจริงที่คุณทำ — แล้วดูว่าโมเดลไหนให้ผลที่ตรงกับที่คุณต้องการ. ผลลัพธ์จากคนหลายแสนคนรวมกันเป็น ranking ที่ค่อนข้าง reliable กว่า benchmark ในห้องแล็บเพราะวัดจากการใช้งานจริงหลากหลาย task.
+
+---
+
+## สิ่งที่เปลี่ยนเร็ว vs สิ่งที่คงทน
+
+ก่อนจบบท ต้องพูดตรง ๆ เรื่องนี้: ข้อมูลในบทนี้จะล้าสมัยบางส่วนในไม่กี่เดือน.
+
+**สิ่งที่เปลี่ยนเร็ว** — ชื่อโมเดลเวอร์ชันล่าสุดของแต่ละ lab, อันดับ benchmark, ราคา inference ปัจจุบัน, สถานะ regulation ในแต่ละประเทศ, ว่าใคร "นำ" ในหมวดไหน.
+
+**สิ่งที่คงทนกว่า** — โครงสร้างของ ecosystem ว่ามีชั้นอะไรบ้าง, ความต่างระหว่าง closed/open-weight/open-source, logic ว่าทำไม cost ถึงลดทุกปี, หลักการเลือกใช้ตาม category, เหตุผลว่าทำไมแต่ละ lab ถึงทำสิ่งที่ทำ.
+
+บทนี้เน้นสิ่งที่คงทน. ส่วนที่เปลี่ยนเร็วคุณจะอัปเดตได้เองเมื่อมีแผนที่แล้ว.
+
+เวลาอ่านข่าว AI และเห็นชื่อโมเดลใหม่ — ถามสามคำถามนี้ก็พอ:
+
+1. **lab ไหนทำ** — แล้วรู้ว่า strategy ของเขาคืออะไร
+2. **closed หรือ open-weight** — แล้วรู้ว่า deployment option เป็นยังไง
+3. **capability หลักคืออะไร** — chat, reasoning, multimodal, หรือเฉพาะทาง
+
+แค่สามคำถามนี้ก็จัดวางในแผนที่ได้แล้ว ไม่ต้องจำทุก benchmark.
+
+สิ่งที่ทำให้กรอบนี้ทรงพลังกว่าการจำชื่อโมเดล: เมื่อโมเดลใหม่ชื่อ X ออกมาจาก lab ที่คุณไม่รู้จัก — คุณยังสามารถตัดสินใจได้ว่าจะลองใช้ไหมและเหมาะกับงานอะไร โดยไม่ต้องรอให้ใครสรุปให้. กรอบนี้ทำให้คุณ evaluate ได้เองแทนที่จะต้องพึ่งบทความรีวิว.
+
+---
+
+## คำถามที่ยังเปิดอยู่ในวงการ
+
+ก่อนสรุป มีคำถามบางอย่างที่ยังไม่มีคำตอบชัดในปี 2026 และเป็นเรื่องที่วงการถกเถียงกันอยู่. ไม่จำเป็นต้องมีคำตอบ แต่รู้ว่ามีคำถามนี้อยู่ทำให้เข้าใจ context ของข่าวที่อ่านได้ดีขึ้น.
+
+**Gap ระหว่าง open-weight และ closed จะแคบลงไปเรื่อย ๆ หรือจะเปิดกว้างขึ้นอีก?** ถ้า frontier labs เริ่มใช้ เทคนิคใหม่ที่ต้องการ compute จำนวนมากในขั้น post-training (เช่น massive RL หลาย iteration) gap อาจกลับมาเปิดได้. ถ้า efficiency improvement เดินหน้าต่อเหมือน DeepSeek gap ก็จะยิ่งแคบ.
+
+**Regulation จะ converge หรือ fragment?** EU AI Act, US frameworks, กฎของจีน, และ framework ที่ไทย/อาเซียนกำลังพัฒนา — ถ้า approach ต่างกันมาก model บางตัวอาจใช้ได้ในบางประเทศแต่ไม่ได้ในอีกประเทศ. นั่นจะส่งผลต่อ availability และ pricing ในแต่ละภูมิภาค.
+
+**จะมี frontier model จาก SE Asia ไหม?** รูปแบบที่เห็นบ่อยในเทคโนโลยีคือ ช่วงแรกภูมิภาคใช้ของที่ทำในอเมริกา จากนั้น localized version ออกมา แล้ว local players เริ่มสร้างเองในที่สุด. AI อาจเดินตาม pattern เดิม แต่ timeline ยังไม่ชัด.
+
+คำถามเหล่านี้จะมีคำตอบใน 2-3 ปีข้างหน้า และเมื่อเข้าใจโครงสร้างของ ecosystem แล้ว คุณจะติดตามคำตอบเหล่านั้นได้ด้วยตัวเอง.
+
+สิ่งที่น่าสนใจเกี่ยวกับ AI landscape ในปี 2026 คือมันอยู่ใน "middle of history" — ยังไม่ settle เหมือน internet ในปี 2010 ที่โครงสร้างชัดแล้ว แต่ก็ไม่ฉาบฉวยเหมือน hype cycle สั้น ๆ. คนที่เข้าใจโครงสร้างตอนนี้มีโอกาสที่จะ navigate ได้ดีกว่าคนที่รอให้ settle ก่อนแล้วค่อยเริ่มเรียนรู้.
+
+---
+
+## สรุป — แผนที่ที่ใช้ได้จริง
+
+<!-- IMAGE: ภาพ mind map สวยงาม สรุป AI landscape 2026 ศูนย์กลางคือ "AI Landscape 2026" แตกออกเป็น 4 สาขา: "ผู้เล่นหลัก" (Anthropic, OpenAI, Google, Meta, DeepSeek, Qwen), "Spectrum" (Closed → Open-weight → Open-source), "Model Types" (Chat, Reasoning, Multimodal, Coding, Image/Video/Audio), "Thailand/SEA" (Western API, Typhoon, SEA-LION)
+Style: diagram
+Text on image: "AI Landscape 2026" / "ผู้เล่นหลัก" / "Spectrum" / "Model Types" / "Thailand/SEA"
+-->
+
+ในปี 2026 ตลาด AI มีโครงสร้างที่ชัดเจน: frontier labs ไม่กี่แห่งแข่งกันที่ capability สูงสุด ขณะที่ open-weight ecosystem ตามมาใกล้เรื่อย ๆ และราคาลดลงประมาณ 10 เท่าต่อปี.
+
+**สิ่งที่คุณรู้จากบทนี้:**
+
+- **ผู้เล่นหลัก:** Anthropic (Claude), OpenAI (GPT + o-series), Google DeepMind (Gemini), Meta (Llama), Mistral, DeepSeek (R1), Alibaba Qwen. แต่ละแห่งมีจุดแข็งและ strategy ต่างกัน ไม่มีใครครองทุกมิติ
+- **สามระดับ access:** Closed/proprietary (ใช้ผ่าน API เท่านั้น), open-weight (ดาวน์โหลด weights มา run เองได้), open-source (เปิดทุกอย่างเพื่อ reproduce ได้) — ความต่างนี้กำหนดสิทธิ์จริง
+- **Model categories:** chat, reasoning (คิดก่อนตอบ), multimodal, coding, image/video/audio — เลือกตาม task ไม่ใช่ตามชื่อ
+- **Post-training technique:** สิ่งที่ทำให้ model ต่างกันคือ RLHF, Constitutional AI, reasoning training, multimodal pretraining — ไม่ใช่แค่ขนาด
+- **Cost:** ลด ~10x ต่อปีใน inference ขณะที่ training ยังแพงมาก — barriers to train สูง barriers to use ต่ำ
+- **ไทย/SEA:** ใช้ผ่าน Western API ได้ดี, Thai fine-tuned open-weight (Typhoon, SEA-LION) สำหรับ on-prem, ระวังเรื่อง tokenization ภาษาไทยที่กิน context เร็วกว่า
+
+สำหรับผู้ใช้ทั่วไปในไทย: ChatGPT, Claude, หรือ Gemini ผ่าน app ครอบคลุมงานส่วนใหญ่ได้ดี. สำหรับคนที่ต้องการ control มากขึ้น — open-weight อย่าง Llama, Qwen, หรือ Typhoon คือทางเลือกที่ใช้ได้จริง. และเมื่อโมเดลใหม่ออกมา — ถามสามคำถาม: lab ไหน, closed หรือ open-weight, capability หลักคืออะไร.
+
+---
+
+## ก้าวต่อไป — Level 2 เริ่มต้นที่นี่
+
+คุณเพิ่งจบ Level 1 แล้ว. นั่นไม่ใช่เรื่องเล็กน้อย.
+
+Level 1 มีทั้งหมด 9 บท และแต่ละบทไม่ใช่แค่ "ข้อมูลเพิ่ม" — มันวางพื้นฐานที่ต่อกันเป็นระบบ. บทนี้เป็นบทสุดท้ายของ Level 1 เพราะมันเชื่อม "กลไกของ AI" กับ "โลกจริงที่ AI อยู่" เข้าด้วยกัน.
+
+ลองดูว่าคุณได้อะไรจาก Level 1 นี้บ้าง:
+
+คุณรู้แล้วว่า AI ไม่ใช่ "ระบบที่คิดเหมือนมนุษย์" แต่คือสมการคณิตศาสตร์ที่ทำสิ่งเดียวซ้ำกัน: รับข้อความ คำนวณ เดาคำถัดไป. ความเข้าใจนี้ทำให้คุณไม่ประหลาดใจกับทั้งความสามารถที่น่าทึ่งและข้อผิดพลาดที่น่าตกใจของ AI. มันยังทำให้คุณคาดเดาได้ว่างานประเภทไหน AI น่าจะทำได้ดี และงานประเภทไหนควรระวัง.
+
+คุณรู้แล้วว่า LLM ทำงานยังไง — token คืออะไร, embedding คืออะไร, training ทำให้สมการ "เรียนรู้" ได้ยังไง. กลไกเหล่านี้ไม่ใช่แค่ความรู้ทางทฤษฎี — มันอธิบายว่าทำไม AI ถึงเก่งบางงานและผิดพลาดบางงาน. และทำไมการเข้าใจ context window และ tokenization ภาษาไทยจึงมีผลต่อการใช้งานจริงของคุณ.
+
+และตอนนี้คุณมีแผนที่ของวงการ — รู้ว่าใครทำอะไร ทำไม เลือกใช้อะไรเมื่อไร และ spectrum ระหว่าง closed กับ open-weight หมายความว่าอะไรในทางปฏิบัติ.
+
+ความรู้เหล่านี้ทำงานเงียบ ๆ ในหัวตลอดเวลา — ทุกครั้งที่เห็นข่าว AI ใหม่ ทุกครั้งที่เลือกโมเดล ทุกครั้งที่เจอผลลัพธ์แปลก ๆ จาก AI. ไม่ต้องคิดนาน เพราะกรอบมีอยู่แล้ว.
+
+**Level 2 คือการเปลี่ยนจาก "เข้าใจ" เป็น "ใช้เป็น".**
+
+ถ้า Level 1 คือการอ่านแผนที่ก่อนออกเดินทาง Level 2 คือการออกเดินจริง. คุณจะได้เรียนรู้ว่า prompt ที่ดีต่างจาก prompt แย่ยังไงและทำไม, context window คืออะไรและส่งผลต่อการใช้งานจริงยังไง, hallucination เกิดจากอะไรและป้องกันได้ยังไง, และวิธีที่มืออาชีพออกแบบ workflow กับ AI ให้ได้งานจริง ๆ ไม่ใช่แค่ "ถามแล้วหวัง".
+
+บทแรกของ Level 2 จะพาคุณดูกระบวนการที่เกิดขึ้น เวลาคุณส่งข้อความไปและ AI ตอบกลับมา — ตั้งแต่ต้นจนจบ. การเข้าใจกระบวนการนั้นไม่ใช่แค่ความรู้เพิ่มเติม แต่เป็นสิ่งที่จะทำให้ทุกการใช้งาน AI ของคุณต่างออกไปตั้งแต่นั้น.
+
+ถ้าคุณเดิน Level 1 มาครบแล้ว — ยินดีด้วย. คุณมีความเข้าใจที่ลึกกว่าคนส่วนใหญ่ที่ใช้ AI ทุกวัน. ความแตกต่างระหว่าง "ใช้ AI" กับ "ใช้ AI ได้ผล" คือสิ่งที่ Level 2 จะสร้างขึ้นจากพื้นฐานที่คุณวางไว้แล้วตรงนี้.
+
+---
+
+*อ่านต่อ: [AI ตอบสนองยังไง — กระบวนการจาก prompt ถึงคำตอบ](../using-ai/how-llms-respond)*
+
+---
+
+> **หมายเหตุสำหรับผู้อ่าน:** ข้อมูลในบทนี้สะท้อนสถานะต้นปี 2026. ชื่อโมเดลและอันดับ capability จะเปลี่ยนแปลง แต่โครงสร้างและหลักการที่อธิบายไว้จะยังใช้งานได้. ถ้าพบว่าข้อมูลใดล้าสมัย — ใช้กรอบ "lab ไหน, closed หรือ open-weight, capability หลักคืออะไร" เพื่อจัดวางโมเดลใหม่ในแผนที่ได้เอง.
+>
+> *อัปเดตล่าสุด: 2026-05-22*

@@ -1,0 +1,876 @@
+---
+slug: function-calling
+level: building-with-ai
+title: "Function Calling — ให้ AI เรียกใช้ฟังก์ชันในระบบของคุณ"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ Function Calling ตั้งแต่แนวคิด วิธี define tools, ส่ง function schema ให้ LLM, parse tool calls, execute แล้วส่งผลกลับ จนถึง parallel function calling"
+---
+# Function Calling — ให้ AI เรียกใช้ฟังก์ชันในระบบของคุณ
+
+ลองนึกภาพว่าคุณพิมพ์ใน ChatGPT ว่า "ช่วยจองตั๋วเครื่องบินไปเชียงใหม่วันศุกร์นี้ราคาถูกสุดให้หน่อย" แล้วได้คำตอบกลับมาว่า "ผมไม่สามารถจองตั๋วให้ได้โดยตรง แต่ขอแนะนำขั้นตอนดังนี้..." ทำไมถึงเป็นแบบนั้น? ในเมื่อมันฉลาดขนาดนี้ ทำไมถึงทำสิ่งง่าย ๆ อย่างการค้นหาเที่ยวบินไม่ได้?
+
+คำตอบอยู่ที่ธรรมชาติพื้นฐานของ LLM ที่หลายคนยังไม่รู้ — และ Function Calling คือกลไกที่เปลี่ยนแปลงข้อจำกัดนั้นทั้งหมด
+
+<!-- IMAGE: diagram showing ChatGPT chat interface with user asking to book a flight, and the AI responding that it cannot — then showing the same request but now connected to real systems through function calling -->
+
+---
+
+## ทำไม LLM ถึงทำอะไรจริง ๆ ในโลกไม่ได้
+
+ถ้าจะเข้าใจ Function Calling คุณต้องเข้าใจก่อนว่า LLM ทำงานยังไง
+
+LLM คือเครื่องแปลง "ข้อความ" ให้เป็น "ข้อความ" — text in, text out เท่านั้น ไม่มีมากกว่านั้น มันไม่มีการเชื่อมต่ออินเทอร์เน็ต ไม่มี database ไม่มี API ภายนอก ไม่มีความสามารถในการ "กระทำ" อะไรในโลกจริงด้วยตัวเอง ทุกอย่างที่มันรู้มาจากการ train ล่วงหน้า ซึ่งมี cutoff date — หลังจากวันนั้นมันไม่รู้ว่าเกิดอะไรขึ้นในโลก
+
+เหมือนกับนักวิชาการที่เก่งมาก ๆ คนหนึ่ง อ่านหนังสือมาทั้งชีวิต แต่ถูกขังไว้ในห้องที่ไม่มีหน้าต่าง ไม่มีโทรศัพท์ ไม่มีทางออก คุณถามอะไรเขาได้ เขาตอบได้อย่างฉลาด แต่ถ้าคุณบอกให้เขา "กรุณาโอนเงินให้ฉัน 500 บาท" เขาก็ทำไม่ได้ เพราะเขาไม่มีเครื่องมือและไม่ได้เชื่อมต่อกับระบบธนาคารใด ๆ
+
+> 💡 **Key insight:** LLM ไม่ได้โง่หรือขี้เกียจ มันแค่ถูกออกแบบให้สร้างข้อความเท่านั้น การกระทำใด ๆ ในโลกจริงต้องผ่านโค้ดภายนอกเสมอ
+
+ปัญหาคือแอปพลิเคชัน AI ที่มีประโยชน์จริง ๆ มักต้องการ:
+- ดึงข้อมูล real-time (ราคาหุ้น, สภาพอากาศ, สินค้าคงเหลือ)
+- เขียนข้อมูลลงในระบบ (สร้าง ticket, อัปเดต CRM, ส่ง email)
+- คำนวณสิ่งที่ LLM ทำได้ไม่ดี (คณิตศาสตร์ซับซ้อน, การจัดเรียงข้อมูล)
+- เรียกใช้ external API (แผนที่, การชำระเงิน, SMS)
+
+Function Calling คือกลไกที่ทำให้สิ่งเหล่านั้นเป็นไปได้ โดยไม่ต้องทำลายธรรมชาติของ LLM
+
+<!-- IMAGE: simple diagram — left side shows LLM as a brain in a box with "text in, text out" label; right side shows LLM connected to external tools through function calling -->
+
+---
+
+## Function Calling ทำงานยังไง — 4 ขั้นตอน
+
+แนวคิดหลักของ Function Calling ไม่ซับซ้อนเลย มันคือการให้ LLM "บอก" เราว่าอยากเรียก function อะไร แล้วเราไปเรียกให้ แล้วเอาผลลัพธ์กลับมาบอก LLM
+
+แบ่งออกเป็น 4 ขั้นตอนชัดเจน:
+
+**ขั้นที่ 1 — Define Tools**
+คุณบอก LLM ล่วงหน้าว่ามี function อะไรในระบบของคุณบ้าง แต่ละ function ทำอะไร รับ parameter อะไร สิ่งนี้เรียกว่า "tool definition" หรือ "function schema"
+
+**ขั้นที่ 2 — LLM เลือก Function + Arguments**
+เมื่อ user ถามอะไรบางอย่าง LLM จะอ่าน tool definitions ที่คุณให้ไว้ แล้วตัดสินใจว่าควรเรียก function ไหน และควรส่ง argument อะไร แทนที่จะตอบเป็นข้อความ มันจะ "ตอบ" ว่า "ผมอยากเรียก function X ด้วย argument Y"
+
+**ขั้นที่ 3 — เราเรียก Function จริง**
+โค้ดของเราอ่าน response ของ LLM เห็นว่ามันอยากเรียก function อะไร ก็ไปเรียก function นั้นจริง ๆ ในระบบของเรา (เรียก API, query database, ฯลฯ)
+
+**ขั้นที่ 4 — ส่ง Result กลับให้ LLM**
+เราเอาผลลัพธ์จาก function ส่งกลับไปให้ LLM แล้ว LLM ก็ใช้ข้อมูลนั้นสร้างคำตอบสุดท้ายที่เป็นภาษาธรรมชาติให้ user
+
+```
+User: "อากาศกรุงเทพวันนี้เป็นยังไง?"
+         │
+         ▼
+┌─────────────────────────────────────┐
+│         LLM (ขั้นที่ 2)             │
+│  "ฉันควรเรียก get_weather()         │
+│   ด้วย city='Bangkok'"              │
+└─────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
+│       โค้ดของเรา (ขั้นที่ 3)        │
+│  get_weather(city="Bangkok")        │
+│  → เรียก Weather API จริง           │
+│  → ได้ผล: {"temp": 34, "condition": │
+│    "sunny", "humidity": 78}         │
+└─────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
+│         LLM (ขั้นที่ 4)             │
+│  "วันนี้กรุงเทพอากาศร้อน 34°C      │
+│   แดดออก ความชื้น 78% ควรพกน้ำ      │
+│   เยอะ ๆ ด้วยนะครับ"                │
+└─────────────────────────────────────┘
+         │
+         ▼
+User เห็นคำตอบ
+```
+
+> 💡 **Key insight:** LLM ไม่ได้เรียก function เอง มันแค่ "บอก" ว่าอยากเรียกอะไร โค้ดของคุณต่างหากที่ไปเรียก function จริง ๆ ความแตกต่างนี้สำคัญมาก เพราะคุณยังคงควบคุมได้ 100% ว่าจะอนุญาตให้ทำอะไรได้บ้าง
+
+<!-- IMAGE: flowchart of the 4-step process with arrows: User Message → LLM decides tool → Your code runs tool → Result back to LLM → Final answer to user -->
+
+---
+
+## Define Tools — เขียน Function Schema
+
+ก่อนที่ LLM จะเรียก function ได้ มันต้องรู้ก่อนว่ามี function อะไรบ้าง นั่นคือหน้าที่ของ "tool definition"
+
+Tool definition เขียนในรูปแบบ JSON Schema ซึ่งมีโครงสร้างดังนี้:
+
+```python
+{
+    "name": "ชื่อฟังก์ชัน",           # ชื่อที่ LLM จะใช้เรียก
+    "description": "คำอธิบาย",        # LLM อ่านอันนี้เพื่อตัดสินใจว่าจะใช้เมื่อไหร่
+    "parameters": {                    # JSON Schema ของ arguments
+        "type": "object",
+        "properties": {
+            "param_name": {
+                "type": "string",      # หรือ number, boolean, array
+                "description": "อธิบาย parameter นี้"
+            }
+        },
+        "required": ["param_name"]     # parameters ที่จำเป็นต้องมี
+    }
+}
+```
+
+**ตัวอย่างที่ 1: get_weather**
+
+```python
+get_weather_tool = {
+    "name": "get_weather",
+    "description": "ดึงข้อมูลสภาพอากาศปัจจุบันของเมืองที่ระบุ "
+                   "ใช้เมื่อ user ถามเกี่ยวกับอากาศหรืออุณหภูมิ",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "city": {
+                "type": "string",
+                "description": "ชื่อเมืองเป็นภาษาอังกฤษ เช่น Bangkok, Chiang Mai"
+            },
+            "unit": {
+                "type": "string",
+                "enum": ["celsius", "fahrenheit"],
+                "description": "หน่วยอุณหภูมิ ค่า default คือ celsius"
+            }
+        },
+        "required": ["city"]
+    }
+}
+```
+
+**ตัวอย่างที่ 2: search_products**
+
+```python
+search_products_tool = {
+    "name": "search_products",
+    "description": "ค้นหาสินค้าในฐานข้อมูลร้านค้า "
+                   "ใช้เมื่อ user ถามว่ามีสินค้าอะไรบ้าง หรือต้องการค้นหาสินค้าตาม keyword",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "query": {
+                "type": "string",
+                "description": "คำค้นหา เช่น 'กระเป๋าหนัง' หรือ 'รองเท้ากีฬา'"
+            },
+            "max_price": {
+                "type": "number",
+                "description": "ราคาสูงสุด (บาท) ถ้าไม่ระบุจะค้นหาทุกราคา"
+            },
+            "category": {
+                "type": "string",
+                "description": "หมวดหมู่สินค้า เช่น 'เสื้อผ้า', 'อิเล็กทรอนิกส์'"
+            }
+        },
+        "required": ["query"]
+    }
+}
+```
+
+**ตัวอย่างที่ 3: send_email**
+
+```python
+send_email_tool = {
+    "name": "send_email",
+    "description": "ส่งอีเมลไปยังผู้รับที่ระบุ "
+                   "ใช้เมื่อ user ต้องการส่งอีเมลหรือแจ้งเตือนใครบางคน",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "to": {
+                "type": "string",
+                "description": "อีเมลผู้รับ"
+            },
+            "subject": {
+                "type": "string",
+                "description": "หัวเรื่องอีเมล"
+            },
+            "body": {
+                "type": "string",
+                "description": "เนื้อหาอีเมล"
+            }
+        },
+        "required": ["to", "subject", "body"]
+    }
+}
+```
+
+### ทำไม Description สำคัญที่สุด
+
+หลายคนมองข้าม description แล้วเขียนสั้น ๆ ว่า "get weather data" แต่นั่นเป็นความผิดพลาดใหญ่
+
+LLM ตัดสินใจว่าจะเรียก function ไหนโดยอาศัย description ทั้งหมด มันไม่ได้ "รู้" ว่า function ทำอะไรจากชื่อ — มันอ่าน description แล้วใช้ความเข้าใจภาษาธรรมชาติตัดสินใจ
+
+Description ที่ดีต้องบอก:
+1. Function นี้ทำอะไร (what)
+2. ส่งคืนข้อมูลอะไร (returns)
+3. ควรใช้ในสถานการณ์แบบไหน (when to use)
+4. ข้อจำกัดมีไหม (limitations)
+
+> 💡 **Key insight:** เขียน description ของ tool เหมือนกับคุณกำลังอธิบายให้เพื่อนร่วมงานใหม่ฟัง ยิ่งชัดเจนมากเท่าไหร่ LLM ก็ยิ่งเลือก function ได้ถูกต้องมากขึ้นเท่านั้น
+
+<!-- IMAGE: two-panel comparison showing a vague tool description (bad) vs a detailed description (good), with arrows showing how LLM would struggle with the vague one -->
+
+---
+
+## ลองทำดู #1: Function Calling กับ OpenAI
+
+มาลองเขียน code จริงกัน ตัวอย่างนี้จะทำ weather chatbot ง่าย ๆ ที่ใช้ Function Calling ดึงข้อมูลอากาศ
+
+> 🧪 **ลองทำดู:** คุณต้องมี OpenAI API key ก่อน ถ้ายังไม่มีสมัครได้ที่ platform.openai.com แล้วติดตั้ง library ด้วย `pip install openai`
+
+```python
+import json
+from openai import OpenAI
+
+client = OpenAI()  # ใช้ OPENAI_API_KEY environment variable
+
+# ─── ขั้นที่ 1: กำหนด Tool ─────────────────────────────────────────────────
+
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": (
+                "ดึงข้อมูลสภาพอากาศปัจจุบันของเมืองที่ระบุ "
+                "ใช้เมื่อ user ถามเกี่ยวกับอากาศ อุณหภูมิ "
+                "หรือควรแต่งตัวยังไงในวันนี้"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "city": {
+                        "type": "string",
+                        "description": "ชื่อเมืองเป็นภาษาอังกฤษ เช่น Bangkok"
+                    },
+                    "unit": {
+                        "type": "string",
+                        "enum": ["celsius", "fahrenheit"],
+                        "description": "หน่วยอุณหภูมิ"
+                    }
+                },
+                "required": ["city"]
+            }
+        }
+    }
+]
+
+# ─── ฟังก์ชันจริงที่จะเรียก ─────────────────────────────────────────────────
+# ในโลกจริงนี่จะเรียก Weather API เช่น OpenWeatherMap
+# แต่เพื่อความง่ายเราจำลองผลลัพธ์ไว้ก่อน
+
+def get_weather(city: str, unit: str = "celsius") -> dict:
+    """จำลองการเรียก Weather API"""
+    # ในโลกจริง: requests.get(f"https://api.openweathermap.org/...")
+    fake_data = {
+        "Bangkok": {"temp": 34, "condition": "sunny", "humidity": 78},
+        "Chiang Mai": {"temp": 28, "condition": "partly cloudy", "humidity": 65},
+        "Phuket": {"temp": 31, "condition": "thunderstorm", "humidity": 85},
+    }
+    
+    weather = fake_data.get(city, {"temp": 25, "condition": "unknown", "humidity": 60})
+    
+    if unit == "fahrenheit":
+        weather["temp"] = round(weather["temp"] * 9/5 + 32, 1)
+    
+    return {
+        "city": city,
+        "temperature": weather["temp"],
+        "unit": unit,
+        "condition": weather["condition"],
+        "humidity": weather["humidity"]
+    }
+
+# ─── ขั้นที่ 2 และ 3: ส่ง request และ parse tool call ──────────────────────
+
+def chat_with_tools(user_message: str) -> str:
+    messages = [
+        {"role": "user", "content": user_message}
+    ]
+    
+    # ส่ง message พร้อม tools ให้ LLM
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"  # ให้ LLM ตัดสินใจเองว่าจะใช้ tool ไหม
+    )
+    
+    message = response.choices[0].message
+    
+    # เช็คว่า LLM อยากเรียก tool ไหม
+    if message.tool_calls:
+        # เพิ่ม assistant message ที่มี tool_calls เข้าไปใน history
+        messages.append(message)
+        
+        # วนลูปทุก tool call (อาจมีมากกว่า 1 ถ้าเป็น parallel)
+        for tool_call in message.tool_calls:
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
+            
+            print(f"[DEBUG] LLM เรียก: {function_name}({function_args})")
+            
+            # ─── ขั้นที่ 3: เรียก function จริง ─────────────────────────
+            if function_name == "get_weather":
+                result = get_weather(**function_args)
+            else:
+                result = {"error": f"ไม่รู้จัก function: {function_name}"}
+            
+            # ─── ขั้นที่ 4: ส่ง result กลับให้ LLM ──────────────────────
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": json.dumps(result, ensure_ascii=False)
+            })
+        
+        # เรียก LLM อีกรอบพร้อม tool results
+        final_response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages
+        )
+        return final_response.choices[0].message.content
+    
+    # ถ้า LLM ไม่เรียก tool ก็ return คำตอบตรง ๆ
+    return message.content
+
+# ─── ทดสอบ ──────────────────────────────────────────────────────────────────
+
+questions = [
+    "อากาศกรุงเทพวันนี้เป็นยังไง?",
+    "เชียงใหม่กับภูเก็ตอากาศต่างกันไหม?",
+    "วันนี้ควรใส่แจ็คเก็ตไปทำงานไหม?"
+]
+
+for q in questions:
+    print(f"\nUser: {q}")
+    print(f"AI: {chat_with_tools(q)}")
+    print("-" * 50)
+```
+
+เมื่อรันโค้ดนี้ คุณจะเห็น `[DEBUG]` line แสดงให้เห็นว่า LLM ตัดสินใจเรียก function อะไรด้วย argument อะไร — นั่นคือ Function Calling ในแอคชัน
+
+สังเกตขั้นตอนที่น่าสนใจ: ถามว่า "ควรใส่แจ็คเก็ตไหม" — LLM ไม่ได้รับคำถามว่า "บอกอุณหภูมิ" แต่มันเข้าใจว่าต้องรู้อากาศก่อนถึงจะตอบได้ แล้วก็เรียก `get_weather` เอง นั่นคือความสามารถ reasoning ของ LLM ที่ทำงานร่วมกับ Function Calling
+
+<!-- IMAGE: terminal screenshot showing the debug output of tool calls being made, followed by the final natural language response -->
+
+---
+
+## ลองทำดู #2: Function Calling กับ Anthropic Claude
+
+Anthropic ใช้ API ในรูปแบบที่ต่างออกไปเล็กน้อย แต่แนวคิดเหมือนกันทุกอย่าง มาดูความแตกต่างกัน
+
+> 🧪 **ลองทำดู:** ต้องมี Anthropic API key ติดตั้งด้วย `pip install anthropic`
+
+```python
+import json
+import anthropic
+
+client = anthropic.Anthropic()  # ใช้ ANTHROPIC_API_KEY environment variable
+
+# ─── ขั้นที่ 1: Define Tools (format ต่างจาก OpenAI นิดหน่อย) ───────────────
+
+tools = [
+    {
+        "name": "get_weather",
+        "description": (
+            "ดึงข้อมูลสภาพอากาศปัจจุบันของเมืองที่ระบุ "
+            "ใช้เมื่อ user ถามเกี่ยวกับอากาศหรืออุณหภูมิ"
+        ),
+        # Claude ใช้ "input_schema" แทน "parameters"
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string",
+                    "description": "ชื่อเมืองเป็นภาษาอังกฤษ"
+                },
+                "unit": {
+                    "type": "string",
+                    "enum": ["celsius", "fahrenheit"],
+                    "description": "หน่วยอุณหภูมิ"
+                }
+            },
+            "required": ["city"]
+        }
+    }
+]
+
+def get_weather(city: str, unit: str = "celsius") -> dict:
+    """ฟังก์ชันเดิม — ไม่ต้องเปลี่ยน"""
+    fake_data = {
+        "Bangkok": {"temp": 34, "condition": "sunny", "humidity": 78},
+        "Chiang Mai": {"temp": 28, "condition": "partly cloudy", "humidity": 65},
+    }
+    weather = fake_data.get(city, {"temp": 25, "condition": "unknown", "humidity": 60})
+    return {"city": city, "temperature": weather["temp"],
+            "condition": weather["condition"], "unit": unit}
+
+def chat_with_claude(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+    
+    response = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=1024,
+        tools=tools,
+        messages=messages
+    )
+    
+    # Claude ใช้ stop_reason="tool_use" แทน tool_calls
+    if response.stop_reason == "tool_use":
+        # เพิ่ม assistant message เข้า history
+        messages.append({"role": "assistant", "content": response.content})
+        
+        tool_results = []
+        
+        for block in response.content:
+            # Claude ส่ง content blocks — เช็คหา tool_use blocks
+            if block.type == "tool_use":
+                print(f"[DEBUG] Claude เรียก: {block.name}({block.input})")
+                
+                # เรียก function จริง
+                if block.name == "get_weather":
+                    result = get_weather(**block.input)
+                else:
+                    result = {"error": "ไม่รู้จัก function"}
+                
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,  # ต้อง match กับ id ของ tool_use block
+                    "content": json.dumps(result, ensure_ascii=False)
+                })
+        
+        # ส่ง tool results กลับ — Claude ใช้ role "user" สำหรับ tool results
+        messages.append({"role": "user", "content": tool_results})
+        
+        # เรียก Claude อีกรอบ
+        final_response = client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=1024,
+            tools=tools,
+            messages=messages
+        )
+        return final_response.content[0].text
+    
+    return response.content[0].text
+
+# ทดสอบ
+print(chat_with_claude("อากาศกรุงเทพวันนี้เป็นยังไง?"))
+```
+
+### ตารางเปรียบเทียบ OpenAI vs Anthropic
+
+| สิ่งที่ต่างกัน | OpenAI | Anthropic Claude |
+|---|---|---|
+| Key ใน tool definition | `parameters` | `input_schema` |
+| สัญญาณว่าต้องการเรียก tool | `message.tool_calls` ไม่ใช่ None | `stop_reason == "tool_use"` |
+| ดึง arguments | `json.loads(tool_call.function.arguments)` | `block.input` (เป็น dict แล้ว) |
+| ส่ง tool result กลับ | role: `"tool"` | role: `"user"` พร้อม `tool_result` block |
+| ตำแหน่ง tool result | เป็น message แยก | เป็น list ใน content |
+
+> 💡 **Key insight:** แม้ format จะต่างกัน แต่ logic หลักเหมือนกันทุกอย่าง ถ้าเข้าใจ concept แล้ว การ switch ระหว่าง provider แค่เปลี่ยน field names เท่านั้น
+
+<!-- IMAGE: side-by-side code comparison showing OpenAI vs Anthropic tool definition format and tool result format -->
+
+---
+
+## Parallel Function Calling
+
+บางครั้ง user ถามคำถามเดียว แต่ต้องการข้อมูลจากหลายแหล่ง เช่น:
+
+"เปรียบเทียบอากาศกรุงเทพ เชียงใหม่ และภูเก็ตให้หน่อย"
+
+ถ้าเรียก function ทีละเมืองจะช้ามาก แทนที่จะรอ Bangkok → ได้ผล → Chiang Mai → ได้ผล → Phuket → ได้ผล LLM สมัยใหม่สามารถส่ง tool calls หลายอันพร้อมกันในครั้งเดียว — นั่นคือ Parallel Function Calling
+
+ลองดู response จาก OpenAI เมื่อ LLM ตัดสินใจเรียก 3 functions พร้อมกัน:
+
+```python
+# ตัวอย่าง message.tool_calls ที่ LLM ส่งกลับมา (parallel)
+[
+    ToolCall(id="call_abc", function=Function(
+        name="get_weather",
+        arguments='{"city": "Bangkok"}'
+    )),
+    ToolCall(id="call_def", function=Function(
+        name="get_weather",
+        arguments='{"city": "Chiang Mai"}'
+    )),
+    ToolCall(id="call_ghi", function=Function(
+        name="get_weather",
+        arguments='{"city": "Phuket"}'
+    ))
+]
+```
+
+โค้ดที่ handle parallel tool calls อย่างถูกต้อง:
+
+```python
+import asyncio
+import json
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI()
+
+async def execute_tool(tool_call) -> dict:
+    """เรียก function จาก tool call หนึ่ง ๆ"""
+    function_name = tool_call.function.name
+    function_args = json.loads(tool_call.function.arguments)
+    
+    if function_name == "get_weather":
+        # ในโลกจริงนี่จะเป็น async HTTP call
+        result = get_weather(**function_args)
+    else:
+        result = {"error": f"Unknown function: {function_name}"}
+    
+    return {
+        "role": "tool",
+        "tool_call_id": tool_call.id,
+        "content": json.dumps(result, ensure_ascii=False)
+    }
+
+async def chat_parallel(user_message: str) -> str:
+    messages = [{"role": "user", "content": user_message}]
+    
+    response = await client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        tools=tools,
+        tool_choice="auto"
+    )
+    
+    message = response.choices[0].message
+    
+    if message.tool_calls:
+        messages.append(message)
+        
+        # เรียก functions ทั้งหมดพร้อมกัน ไม่ต้องรอทีละอัน
+        tool_results = await asyncio.gather(
+            *[execute_tool(tc) for tc in message.tool_calls]
+        )
+        
+        messages.extend(tool_results)
+        
+        # ขอคำตอบสุดท้ายจาก LLM
+        final = await client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages
+        )
+        return final.choices[0].message.content
+    
+    return message.content
+
+# ทดสอบ parallel
+import asyncio
+result = asyncio.run(chat_parallel(
+    "เปรียบเทียบอากาศกรุงเทพ เชียงใหม่ และภูเก็ตให้หน่อย"
+))
+print(result)
+```
+
+ความแตกต่างด้านประสิทธิภาพชัดมาก:
+- **Sequential (ทีละอัน):** 3 API calls × 200ms = ~600ms
+- **Parallel (พร้อมกัน):** max(200ms, 200ms, 200ms) = ~200ms
+
+ประหยัดเวลาได้ 3 เท่าทันที และยิ่งมี tool calls มาก ประโยชน์ยิ่งชัดเจน
+
+> 💡 **Key insight:** LLM ส่ง parallel tool calls มาในครั้งเดียว โค้ดของคุณต้องวนลูปให้ครบทุก call และส่ง results กลับ **ทั้งหมด** ก่อนจะขอคำตอบสุดท้าย ถ้าส่งกลับแค่บางอัน LLM จะ confused
+
+<!-- IMAGE: timeline diagram showing sequential tool calls (one after another, 600ms total) vs parallel tool calls (all at once, 200ms total) -->
+
+---
+
+## Tool Choice — บังคับหรือปล่อยให้ LLM เลือก
+
+ในตัวอย่างที่ผ่านมาเราใช้ `tool_choice="auto"` ซึ่งหมายความว่า LLM ตัดสินใจเองว่าจะเรียก tool ไหม แต่คุณสามารถควบคุมได้มากกว่านั้น
+
+**`tool_choice="auto"` (ค่า default)**
+LLM ตัดสินใจเองทั้งหมด บางครั้งเรียก tool บางครั้งตอบตรง ๆ โดยไม่เรียก เหมาะกับ chatbot ทั่วไปที่ต้องการให้ LLM ยืดหยุ่น
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=messages,
+    tools=tools,
+    tool_choice="auto"  # ← ปล่อยให้ LLM ตัดสินใจ
+)
+```
+
+**`tool_choice="required"`**
+บังคับให้ LLM ต้องเรียก tool อย่างน้อยหนึ่งอัน ไม่ว่าคำถามจะเป็นอะไรก็ตาม ใช้เมื่อคุณออกแบบ pipeline ที่ต้องการข้อมูลจาก tool เสมอ เช่น ระบบ report ที่ต้อง query database ทุกครั้ง
+
+```python
+tool_choice="required"  # ← ต้องเรียก tool เสมอ
+```
+
+**`tool_choice="none"`**
+ห้ามเรียก tool เลย LLM จะตอบจากความรู้ตัวเองเท่านั้น ใช้เมื่อคุณอยู่ใน phase สรุปผลและมีข้อมูลครบแล้ว ไม่ต้องการให้เรียก tool เพิ่ม
+
+```python
+tool_choice="none"  # ← ห้ามเรียก tool
+```
+
+**ระบุ function เฉพาะเจาะจง**
+บังคับให้ LLM เรียก function นี้ function เดียวเท่านั้น ใช้เมื่อคุณรู้แน่ ๆ ว่าต้องการข้อมูลอะไรและไม่ต้องการให้ LLM เลือกผิด
+
+```python
+# OpenAI format
+tool_choice={"type": "function", "function": {"name": "get_weather"}}
+```
+
+### เมื่อไหร่ใช้อะไร
+
+| สถานการณ์ | tool_choice ที่เหมาะ |
+|---|---|
+| Chatbot ทั่วไป ยืดหยุ่น | `auto` |
+| Pipeline ที่ต้อง query ข้อมูลเสมอ | `required` |
+| Phase สรุปผล มีข้อมูลครบแล้ว | `none` |
+| ต้องการผล structured จาก function เฉพาะ | ระบุชื่อ function |
+| A/B testing ว่า function ไหนให้ผลดีกว่า | ระบุชื่อ function |
+
+> 💡 **Key insight:** `tool_choice="required"` มีประโยชน์มากสำหรับ structured data extraction — คุณ define function ที่มี output schema ที่ต้องการ แล้วบังคับให้ LLM "เรียก" function นั้น ผลคือคุณได้ข้อมูลในรูปแบบ JSON ที่คาดเดาได้เสมอ ไม่ใช่ free text
+
+<!-- IMAGE: decision tree diagram: "Do I always need tool data?" → yes: required | "Do I already have all data?" → yes: none | "Normal chat?" → auto | "Need specific output?" → name specific function -->
+
+---
+
+## Error Handling และ Edge Cases
+
+ในโลกจริง Function Calling มีหลายจุดที่ผิดพลาดได้ ถ้าไม่ handle ให้ดี แอปจะ crash หรือให้คำตอบผิด
+
+### 1. LLM ส่ง Arguments ผิด Type
+
+LLM อาจส่ง `max_price` เป็น string `"500"` แทนที่จะเป็น number `500` ต้อง validate ก่อนเสมอ:
+
+```python
+def safe_execute_tool(function_name: str, function_args: dict) -> dict:
+    try:
+        if function_name == "search_products":
+            # Validate และ coerce types
+            query = str(function_args.get("query", ""))
+            max_price = function_args.get("max_price")
+            
+            if max_price is not None:
+                max_price = float(max_price)  # แปลงจาก string ถ้าจำเป็น
+            
+            if not query.strip():
+                return {"error": "query ต้องไม่ว่าง"}
+            
+            return search_products(query=query, max_price=max_price)
+        
+        return {"error": f"ไม่รู้จัก function: {function_name}"}
+    
+    except ValueError as e:
+        return {"error": f"argument type ผิด: {str(e)}"}
+    except Exception as e:
+        return {"error": f"เกิดข้อผิดพลาด: {str(e)}"}
+```
+
+### 2. Function Timeout
+
+External API อาจช้าหรือไม่ตอบ ต้องตั้ง timeout:
+
+```python
+import httpx
+import asyncio
+
+async def get_weather_with_timeout(city: str) -> dict:
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as http_client:
+            response = await http_client.get(
+                f"https://api.weather.com/current",
+                params={"city": city}
+            )
+            return response.json()
+    except httpx.TimeoutException:
+        return {
+            "error": "timeout",
+            "message": f"ดึงข้อมูลอากาศของ {city} ไม่สำเร็จ กรุณาลองใหม่"
+        }
+    except httpx.HTTPError as e:
+        return {"error": "http_error", "message": str(e)}
+```
+
+### 3. LLM เรียก Function ที่ไม่มีอยู่
+
+LLM อาจ hallucinate ชื่อ function ที่ไม่ได้ define ไว้ ต้องมี fallback:
+
+```python
+AVAILABLE_FUNCTIONS = {
+    "get_weather": get_weather,
+    "search_products": search_products,
+    "send_email": send_email,
+}
+
+def dispatch_function(function_name: str, function_args: dict) -> dict:
+    func = AVAILABLE_FUNCTIONS.get(function_name)
+    
+    if func is None:
+        # Log ไว้เพื่อ debug — LLM hallucinated function name
+        print(f"[WARNING] LLM เรียก unknown function: {function_name}")
+        return {
+            "error": "function_not_found",
+            "available": list(AVAILABLE_FUNCTIONS.keys())
+        }
+    
+    return safe_execute_tool(function_name, function_args)
+```
+
+### 4. ส่ง Error กลับให้ LLM อย่างถูกต้อง
+
+เมื่อ function ผิดพลาด อย่าหยุด — ส่ง error กลับให้ LLM แล้วให้มันตัดสินใจว่าจะบอก user ยังไง:
+
+```python
+# ถ้า function ให้ผล error
+result = dispatch_function(function_name, function_args)
+
+# ส่งกลับ LLM เหมือนปกติ — ทั้ง success และ error
+messages.append({
+    "role": "tool",
+    "tool_call_id": tool_call.id,
+    "content": json.dumps(result, ensure_ascii=False)
+})
+
+# LLM จะอ่าน error message และตอบ user อย่างเหมาะสม
+# เช่น "ขออภัยค่ะ ขณะนี้ระบบดึงข้อมูลอากาศไม่ได้ กรุณาลองใหม่ในอีกสักครู่"
+```
+
+> 💡 **Key insight:** อย่า crash แอปเมื่อ function ผิดพลาด ส่ง error message กลับให้ LLM แทน แล้ว LLM จะช่วยแปลง technical error เป็นคำตอบที่ user-friendly ให้เอง
+
+<!-- IMAGE: error handling flow diagram showing: function error → error dict → send back to LLM → LLM generates friendly error message for user -->
+
+---
+
+## Best Practices — ทำให้ Function Calling ทำงานได้ดีในโลกจริง
+
+หลังจากเข้าใจ mechanics แล้ว ต่อไปนี้คือสิ่งที่นักพัฒนาที่มีประสบการณ์รู้ว่าควรทำ:
+
+### 1. Description ต้องชัดเจนและครอบคลุม
+
+Description ที่ดีคือ investment ที่คุ้มค่าที่สุดใน Function Calling ใช้เวลาเขียนให้ดี
+
+```python
+# ❌ ไม่ดี — สั้นเกินไป ไม่มีบริบท
+"description": "search products"
+
+# ✓ ดี — บอกว่าทำอะไร ใช้เมื่อไหร่ ส่งคืนอะไร
+"description": (
+    "ค้นหาสินค้าในฐานข้อมูลร้านค้าออนไลน์ของเรา "
+    "ใช้เมื่อ user ต้องการหาสินค้า ถามว่ามีสินค้าอะไร หรือต้องการกรองสินค้าตาม keyword ราคา หรือหมวดหมู่ "
+    "ส่งคืน list ของสินค้าที่ match พร้อม ชื่อ ราคา และสถานะสต็อก "
+    "หมายเหตุ: ค้นหาได้เฉพาะสินค้าในร้านของเราเท่านั้น ไม่ใช่สินค้าจากร้านอื่น"
+)
+```
+
+### 2. อย่ามี Tools เยอะเกินไป
+
+LLM มีข้อจำกัดเรื่อง context window และความสามารถในการเลือกจาก options จำนวนมาก
+
+- **น้อยกว่า 10 tools:** ทำงานได้ดีมาก
+- **10–20 tools:** ยังโอเค แต่ description ต้องชัดมาก
+- **มากกว่า 20 tools:** เริ่มมีปัญหา LLM เลือกผิดบ่อยขึ้น
+
+ถ้าต้องการ tools เยอะ ให้พิจารณา dynamic tool loading — โหลด tools ที่เกี่ยวข้องกับ context เท่านั้น แทนที่จะโหลดทุกอย่างพร้อมกัน
+
+### 3. Validate Arguments ก่อน Execute เสมอ
+
+อย่าเชื่อ arguments ที่ LLM ส่งมา 100% ตรวจสอบทุกครั้งก่อน execute:
+
+```python
+def validate_send_email_args(args: dict) -> tuple[bool, str]:
+    """ตรวจสอบ arguments ก่อนส่ง email จริง"""
+    if not args.get("to"):
+        return False, "ไม่มีผู้รับ"
+    if "@" not in args.get("to", ""):
+        return False, "อีเมลผู้รับไม่ถูกต้อง"
+    if not args.get("subject"):
+        return False, "ไม่มีหัวเรื่อง"
+    if not args.get("body"):
+        return False, "ไม่มีเนื้อหา"
+    return True, ""
+```
+
+### 4. Log ทุก Tool Call
+
+เมื่อแอป production มีปัญหา คุณต้องรู้ว่า LLM เรียก function อะไรด้วย argument อะไร
+
+```python
+import logging
+from datetime import datetime
+
+def log_tool_call(function_name: str, args: dict, result: dict, duration_ms: float):
+    logging.info({
+        "event": "tool_call",
+        "timestamp": datetime.utcnow().isoformat(),
+        "function": function_name,
+        "args": args,
+        "result_keys": list(result.keys()),
+        "success": "error" not in result,
+        "duration_ms": duration_ms
+    })
+```
+
+### 5. Tools ที่ Destructive ต้องมี Confirmation
+
+ถ้า tool สามารถ "ทำลาย" ข้อมูลหรือส่งผลกระทบที่ย้อนกลับไม่ได้ ต้องมีขั้นตอน confirm จาก user ก่อน:
+
+```python
+# แทนที่จะ execute การส่ง email ทันที
+# ให้ return preview แล้วขอ confirm ก่อน
+
+def preview_email(to: str, subject: str, body: str) -> dict:
+    """แสดง preview แทนที่จะส่งจริง"""
+    return {
+        "action": "email_preview",
+        "to": to,
+        "subject": subject,
+        "body_preview": body[:200] + "..." if len(body) > 200 else body,
+        "requires_confirmation": True,
+        "message": "กรุณายืนยันก่อนส่งอีเมล"
+    }
+
+# tools ที่ destructive มากกว่า: ลบข้อมูล, โอนเงิน, ยกเลิก subscription
+# ควร require 2-step confirmation เสมอ
+```
+
+### 6. ออกแบบ Tools ให้เป็น Idempotent เมื่อเป็นไปได้
+
+Idempotent หมายความว่าเรียกซ้ำกี่ครั้งก็ได้ผลเหมือนกัน — เรียก `get_weather` ซ้ำ 10 ครั้งก็ไม่มีผลเสีย แต่ `send_email` ถ้าเรียกซ้ำจะส่งอีเมลซ้ำ Tools ที่ write ข้อมูลควรมีการ check idempotency key:
+
+```python
+def create_order(product_id: str, quantity: int, idempotency_key: str) -> dict:
+    """สร้าง order — ถ้า key ซ้ำจะ return order เดิม ไม่สร้างใหม่"""
+    existing = db.find_order_by_key(idempotency_key)
+    if existing:
+        return {"order_id": existing.id, "status": "already_exists"}
+    
+    new_order = db.create_order(product_id, quantity, idempotency_key)
+    return {"order_id": new_order.id, "status": "created"}
+```
+
+<!-- IMAGE: checklist-style illustration of the 6 best practices with icons -->
+
+---
+
+## สรุป
+
+Function Calling เปลี่ยน LLM จากนักวิชาการที่ถูกขังในห้องให้กลายเป็นผู้ช่วยที่เชื่อมต่อกับโลกจริงได้
+
+สิ่งที่ต้องจำ:
+
+- **LLM ไม่ได้เรียก function เอง** — มันแค่บอกว่าอยากเรียกอะไร โค้ดของคุณเป็นคนเรียก
+- **4 ขั้นตอนหลัก:** Define tools → LLM เลือก function + args → เราเรียกจริง → ส่งผลกลับให้ LLM
+- **Description คือหัวใจ** — เขียนให้ชัด ให้ LLM เลือก function ได้ถูกต้อง
+- **Parallel calling** ช่วยให้เร็วขึ้นมากเมื่อต้องเรียกหลาย functions พร้อมกัน
+- **Error handling** สำคัญมาก อย่าให้ function crash โดยไม่มี fallback
+- **Tools ที่ destructive** ต้องมี confirmation ก่อน execute เสมอ
+
+---
+
+ตอนนี้คุณรู้แล้วว่าจะให้ LLM "กระทำ" ในโลกจริงได้ยังไง แต่มีอีกปัญหาหนึ่งที่ยังรออยู่
+
+ลองนึกดู: ถ้าคุณมีเอกสาร 10,000 หน้า แล้วอยากให้ LLM ตอบคำถามจากเนื้อหาทั้งหมดนั้น คุณจะส่งเอกสารทั้งหมดเข้า LLM ทุกครั้งที่ user ถามได้ไหม? ไม่ได้แน่นอน — ทั้งช้า ทั้งแพง และ context window ไม่พอ
+
+ทางออกคือต้องให้ LLM "เข้าใจความหมาย" ของข้อมูล ค้นหาเฉพาะส่วนที่เกี่ยวข้อง แล้วส่งเฉพาะส่วนนั้นเท่านั้น และนั่นคือสิ่งที่ Embeddings ทำ — บทถัดไปจะอธิบายว่ามันทำงานยังไง และทำไมมันถึงเป็นหัวใจของระบบ RAG ที่ทำให้ AI ตอบคำถามจากเอกสารของคุณได้

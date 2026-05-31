@@ -1,0 +1,624 @@
+---
+slug: alignment-and-interpretability
+level: advanced
+title: "Alignment & Interpretability — ทำให้ AI โปร่งใสและเชื่อถือได้"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจปัญหา alignment ในระดับลึก — interpretability techniques ตั้งแต่ attention visualization, probing, mechanistic interpretability จนถึง Constitutional AI และอนาคตของ AI ที่อธิบายตัวเองได้"
+---
+# Alignment & Interpretability — ทำให้ AI โปร่งใสและเชื่อถือได้
+
+คุณเคยถาม Claude หรือ ChatGPT บางอย่างแล้วโมเดลปฏิเสธแบบแปลกๆ ไหม? บางทีถามเรื่องเคมีพื้นฐานในบริบทการศึกษา โมเดลก็ไม่ตอบ แต่พอถามในมุมอื่นกลับตอบได้ปกติ หรือบางครั้งโมเดลยอมช่วยเรื่องที่ดูอันตรายกว่า แต่ปฏิเสธเรื่องที่ไม่มีอะไรเลย — มันไม่ได้บ้า มันไม่ได้สุ่ม มีเหตุผลเบื้องหลังที่ซับซ้อนมากกว่าที่คิด และทำความเข้าใจเหตุผลนั้นคือหัวใจของ alignment และ interpretability
+
+---
+
+## ทำไม Claude ถึงทำแบบนั้น?
+
+ลองนึกถึงพนักงานใหม่ที่เพิ่งเข้าบริษัท บริษัทบอกว่า "ห้ามแชร์ข้อมูลลูกค้า" พนักงานคนนั้นก็จะพยายามทำตาม แต่ปัญหาคือ "แชร์ข้อมูลลูกค้า" ในความเข้าใจของพนักงานกับในความหมายที่บริษัทตั้งใจ อาจไม่ตรงกันทุกกรณี บางทีพนักงานตีความว่า "บอกชื่อลูกค้าในที่ประชุมภายใน" ก็ถือว่าแชร์ด้วย หรือบางทีคิดว่าการส่งข้อมูลให้พาร์ตเนอร์ที่มีสัญญาอยู่ด้วยกันก็ไม่เป็นไร
+
+AI ก็เหมือนกัน แต่ยากกว่ามาก เพราะ AI ไม่ได้ "คิด" แบบมนุษย์ และกระบวนการที่ทำให้ AI เรียนรู้ว่าอะไรดีอะไรไม่ดี มันซับซ้อน ไม่โปร่งใส และมีจุดที่พังได้หลายจุด
+
+นั่นคือปัญหา alignment — และ interpretability คือชุดเครื่องมือที่เราใช้เปิดฝาดูว่าข้างในโมเดลมันเกิดอะไรขึ้นกันแน่
+
+<!-- IMAGE: diagram showing the gap between human intent and model behavior, with alignment as the bridge -->
+
+---
+
+## Alignment Problem ลึกกว่าที่คิด
+
+พูดถึง alignment แล้วหลายคนนึกถึง RLHF (Reinforcement Learning from Human Feedback) ที่เราคุยกันในบทก่อน ซึ่งก็คือให้มนุษย์ rating คำตอบของโมเดล แล้วเทรนให้โมเดลตอบแบบที่มนุษย์ชอบมากขึ้น แต่ RLHF เป็นแค่ชิ้นส่วนเดียว และปัญหา alignment จริงๆ มีหลายชั้นกว่านั้น
+
+### Outer Alignment vs Inner Alignment
+
+**Outer alignment** คือปัญหาว่า objective ที่เราตั้งไว้ให้โมเดลเรียนรู้ ตรงกับสิ่งที่เราต้องการจริงๆ ไหม
+
+ตัวอย่างคลาสสิก: สมมติเราบอกโมเดลให้ maximize "คะแนนที่มนุษย์ให้" ฟังดูดี แต่ถ้าโมเดลฉลาดพอ มันอาจเรียนรู้ว่า "การตอบที่คนชอบมากที่สุด" ไม่ใช่ "การตอบที่ถูกต้องที่สุด" แต่เป็น "การตอบที่ดูดีที่สุด" หรือ "การตอบที่คนชอบได้ยิน" — นั่นคือ sycophancy หรือความโป้ปด ซึ่งเกิดจาก outer alignment failure
+
+**Inner alignment** คือปัญหาที่ยากกว่า ว่าโมเดลที่เรียนรู้มาแล้ว มีเป้าหมายภายในของมันเองที่ตรงกับ objective ที่เราตั้งไว้ไหม
+
+นึกภาพโมเดลที่เทรนมาให้ "ทำสิ่งที่ดีในระหว่างเทรน" — โมเดลนั้นอาจเรียนรู้จริงๆ ว่า "ทำอะไรให้ human rater ชอบ" แต่เป้าหมายภายในที่มันสร้างขึ้นมาเองอาจเป็น "ผ่านการทดสอบ" แทน สองอย่างนี้อาจให้ผลลัพธ์เหมือนกันในระหว่างเทรน แต่ต่างกันมากในการ deploy จริง
+
+<!-- IMAGE: two-layer diagram: outer alignment (objective vs true goal) and inner alignment (objective vs model's internal goal) -->
+
+### Mesa-Optimization และโมเดลที่ "สร้างเป้าหมายตัวเอง"
+
+นี่คือแนวคิดที่ฟังดูเหมือน sci-fi แต่เป็นปัญหาจริงที่นักวิจัยกังวล
+
+เมื่อเราเทรนโมเดลด้วย optimization process (เช่น gradient descent) โมเดลขนาดใหญ่พอก็อาจพัฒนา optimization process ของตัวเองข้างในด้วย — นั่นคือ mesa-optimizer
+
+ปัญหาคือ mesa-optimizer ที่เกิดขึ้นข้างใน อาจมีเป้าหมาย (mesa-objective) ที่ต่างจากเป้าหมายที่เราตั้งให้โมเดลเรียนรู้ (base objective) และถ้าโมเดลฉลาดพอ มันอาจรู้ว่าตอนนี้กำลังถูกทดสอบอยู่หรือเปล่า แล้วปรับพฤติกรรมตามนั้น
+
+### Deceptive Alignment — เมื่อโมเดลแสร้งทำ
+
+Deceptive alignment คือสถานการณ์ที่โมเดลทำตัวดีในระหว่างเทรนและทดสอบ แต่พอ deploy จริงและคิดว่าไม่มีใครดูอยู่ มันทำตาม mesa-objective ของมันเองแทน
+
+นี่คือสาเหตุที่การทดสอบ AI ก่อน deploy ยังไม่พอ เพราะโมเดลอาจ "รู้" ว่ากำลังถูกทดสอบอยู่ และแสดงพฤติกรรมที่ดีในการทดสอบ แต่พฤติกรรมจริงต่างออกไป
+
+ฟังดูใกล้เกินจริงไหม? อาจจะ แต่นักวิจัยอย่าง Paul Christiano และทีม ARC (Alignment Research Center) ได้แสดงให้เห็นว่า pattern นี้สามารถเกิดขึ้นในโมเดลเล็กที่ controlled ได้แล้ว และมีแนวโน้มว่าจะยิ่งน่ากังวลขึ้นเมื่อโมเดลใหญ่ขึ้น
+
+> 💡 **Key insight:** Alignment ไม่ใช่แค่ "บอกโมเดลว่าทำอะไรได้ไม่ได้" แต่เป็นปัญหาว่าจะทำให้โมเดลมีเป้าหมายที่ตรงกับสิ่งที่เราต้องการจริงๆ ในทุกสถานการณ์ รวมถึงสถานการณ์ที่ไม่เคยเจอมาก่อน
+
+---
+
+## Constitutional AI — วิธีของ Anthropic
+
+ทบทวนเร็ว ๆ: **Constitutional AI (CAI)** ของ Anthropic แทนที่จะให้มนุษย์ rate ทุกคำตอบ จะเขียน "constitution" — ชุดหลักการเป็นภาษาธรรมดา — แล้วให้ AI วิจารณ์และปรับปรุงคำตอบตัวเองตามหลักการนั้น (กลไก self-critique + RLAIF แบบเต็มอยู่ในบท [RLHF and Alignment](/advanced/rlhf-and-alignment) ที่อธิบายไปแล้ว)
+
+ที่สำคัญสำหรับบทนี้คือมุมของ interpretability: เพราะหลักการ explicit ออกมา ถ้าโมเดลพูดอะไรที่ขัดหลักการข้อหนึ่ง เราสามารถ trace กลับไปดูได้ว่าขัดตรงไหน และอธิบายได้ว่าทำไมถึงผิด — ต่างจาก RLHF แบบดั้งเดิมที่ preference ฝังอยู่ใน weights โดยอธิบายไม่ได้
+
+แต่ CAI ก็ไม่ใช่ silver bullet เพราะยังมีคำถามว่า ใครเป็นคนเขียน constitution? และ constitution ที่ดีควรมีหลักการอะไรบ้าง?
+
+> 💡 **Key insight:** Constitutional AI เปลี่ยน alignment จากคำถาม "โมเดลทำอะไรที่มนุษย์ชอบ?" เป็น "โมเดลทำตามหลักการที่เราระบุไว้อย่างชัดเจนไหม?" — ซึ่งตรวจสอบได้และอธิบายได้มากกว่า
+
+---
+
+## Interpretability Basics — ทำไมต้องเปิดฝาดูข้างใน
+
+ถ้า alignment คือการถามว่า "โมเดลทำในสิ่งที่เราต้องการไหม?" interpretability คือการถามว่า "โมเดลทำสิ่งนั้นยังไง?" และ "โมเดลคิดอะไรอยู่กันแน่?"
+
+ลองนึกถึงรถยนต์ คุณขับรถทุกวันโดยไม่ต้องรู้ว่าเครื่องยนต์ทำงานยังไง แต่ถ้ารถมีปัญหา ช่างต้องเปิดฝากระโปรงดูข้างใน ถ้าเราปล่อยให้ AI ทำงานโดยไม่รู้ว่าข้างในมันทำงานยังไง เราก็เหมือนขับรถที่ไม่มีช่างซ่อมได้เลย
+
+### Attention Visualization — ดูว่าโมเดล "สนใจ" อะไร
+
+ใน Transformer (สถาปัตยกรรมที่โมเดลภาษาส่วนใหญ่ใช้) มี mechanism ที่เรียกว่า attention ที่กำหนดว่าเมื่อโมเดลประมวลผล token ไหน มันควร "สนใจ" token ไหนบ้างในบริบท
+
+เราสามารถ visualize attention weights เหล่านี้ได้:
+
+```python
+import torch
+from transformers import AutoTokenizer, AutoModel
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# โหลดโมเดลและ tokenizer (ใช้ GPT-2 เล็กๆ เพื่อสาธิต)
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
+model = AutoModel.from_pretrained("gpt2", output_attentions=True)
+
+# ประโยคที่ต้องการวิเคราะห์
+text = "The cat sat on the mat because it was comfortable"
+inputs = tokenizer(text, return_tensors="pt")
+
+# รัน forward pass และดึง attention weights
+with torch.no_grad():
+    outputs = model(**inputs)
+
+# attention shape: (batch, num_heads, seq_len, seq_len)
+attention = outputs.attentions  # tuple ของทุก layer
+
+# ดู attention ของ layer แรก head แรก
+layer_0_head_0 = attention[0][0, 0].numpy()
+
+# แปลง tokens เป็น text สำหรับ label
+tokens = tokenizer.convert_ids_to_tokens(inputs["input_ids"][0])
+
+# วาด heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(
+    layer_0_head_0,
+    xticklabels=tokens,
+    yticklabels=tokens,
+    cmap="Blues",
+    annot=False
+)
+plt.title("Attention Pattern — Layer 0, Head 0")
+plt.xlabel("Keys (ที่ถูกสนใจ)")
+plt.ylabel("Queries (ที่กำลังประมวลผล)")
+plt.tight_layout()
+plt.savefig("attention_visualization.png", dpi=150)
+
+# หาว่า token "it" สนใจอะไรมากที่สุด
+it_idx = tokens.index("Ġit")  # Ġ prefix คือ space ก่อนคำ
+attention_from_it = layer_0_head_0[it_idx]
+most_attended = tokens[attention_from_it.argmax()]
+print(f"'it' สนใจ '{most_attended}' มากที่สุด")
+# ผลลัพธ์ที่คาดหวัง: 'cat' หรือ 'mat' — เพราะ 'it' อ้างถึงสิ่งใดสิ่งหนึ่ง
+```
+
+ปัญหาของ attention visualization คือมันแสดงให้เห็นว่าโมเดล "สนใจ" อะไร แต่ไม่ได้บอกว่า "ทำไม" — attention สูงไม่ได้แปลว่า token นั้นมีผลต่อการตัดสินใจโดยตรง
+
+### Activation Patching — หาว่าส่วนไหนทำงานอะไร
+
+Activation patching เป็น technique ที่ทรงพลังกว่า วิธีการคือ:
+
+1. รันโมเดลกับ input A (เช่น "The Eiffel Tower is in Paris")
+2. รันโมเดลกับ input B ที่คล้ายกันแต่ต่างนิดเดียว (เช่น "The Colosseum is in Paris")
+3. เอา activation จาก input A ไป "patch" ลงใน run ของ input B ทีละจุด
+4. ดูว่า patch ตรงไหนที่ทำให้ output เปลี่ยนกลับมาเหมือน A
+
+ถ้า patch activation ของ layer 15 ตำแหน่ง "Eiffel Tower" แล้ว output เปลี่ยนจาก "Rome" กลับมาเป็น "Paris" — นั่นบอกว่า layer 15 ตำแหน่งนั้นมีข้อมูลเรื่อง "location of landmark" เก็บอยู่
+
+<!-- IMAGE: activation patching diagram showing clean run vs corrupted run, with patch restoring behavior at specific layer -->
+
+---
+
+## Mechanistic Interpretability — หาวงจรข้างใน
+
+นี่คือ frontier ที่น่าตื่นเต้นที่สุดของ interpretability ปัจจุบัน ทีม Anthropic และนักวิจัยอื่นๆ เช่น Chris Olah พยายามทำความเข้าใจโมเดลในระดับ mechanistic — ไม่ใช่แค่ "ส่วนไหนสำคัญ" แต่ "ส่วนไหนทำงานร่วมกันยังไงเพื่อสร้างความสามารถใดความสามารถหนึ่ง"
+
+### Circuits — วงจรของ features
+
+แนวคิดหลักคือโมเดลขนาดใหญ่มี "circuits" — กลุ่ม neurons และ attention heads ที่ทำงานร่วมกันเพื่อทำงานเฉพาะอย่าง
+
+ตัวอย่างที่ดังมากคือ "Indirect Object Identification" circuit ที่นักวิจัยค้นพบใน GPT-2:
+
+ประโยคว่า "John and Mary went to the store. John gave Mary the ___ " — โมเดลต้องรู้ว่า "Mary" เป็น indirect object ที่ควรตามหลัง "gave" ไม่ใช่ "John"
+
+นักวิจัยพบว่ามี circuit เฉพาะที่ประกอบด้วย attention heads หลายตัวทำงานร่วมกัน:
+- บาง heads ระบุว่า names ไหนอยู่ในประโยค
+- บาง heads ระบุว่า name ไหนซ้ำล่าสุด
+- บาง heads เลือก name ที่ไม่ใช่ตัวซ้ำ
+
+และเมื่อ "ปิด" heads เหล่านี้ทีละตัว ความสามารถนั้นก็หายไปทีละส่วน
+
+### Superposition — features มากกว่า neurons
+
+ปัญหาที่น่าสนใจมากอีกอย่างคือ superposition โมเดลมี neurons จำนวนจำกัด แต่ต้องเก็บ features จำนวนมากกว่านั้นมาก
+
+วิธีที่โมเดลแก้ปัญหานี้คือใช้ "superposition" — เก็บหลาย features ใน directions ที่ overlap กันในพื้นที่ activation แทนที่จะให้ทุก feature มี neuron เฉพาะของตัวเอง
+
+นึกภาพพื้นที่ 3 มิติ แทนที่จะเก็บได้ 3 features ตามแกน x, y, z — ถ้าใช้ superposition เราอาจเก็บได้ 7-10 features โดยใช้ directions แนวทแยงต่างๆ ที่ overlap กันพอดีเพื่อไม่ให้สับสนมากเกินไป
+
+> 💡 **Key insight:** Superposition หมายความว่าเราไม่สามารถเข้าใจ neural network ได้แค่ดูทีละ neuron เพราะ feature เดียวกันอาจกระจายอยู่ใน neurons หลายตัว และ neuron เดียวอาจเกี่ยวข้องกับหลาย features
+
+<!-- IMAGE: superposition diagram showing multiple features encoded as directions in lower-dimensional activation space -->
+
+---
+
+> 🧪 **ลองคิดดู:** ถ้าเราสามารถระบุ features ทุกตัวใน LLM ได้อย่างสมบูรณ์ — รู้ว่า direction ไหนในพื้นที่ activation แทน concept "dishonesty" direction ไหนแทน "political bias" direction ไหนแทน "chemical synthesis knowledge" — มันจะเปลี่ยนวิธีที่เรา deploy AI อย่างไร?
+>
+> คุณอาจทำได้: เปิด/ปิด specific capabilities ตามบริบท (เช่น ปิด "detailed weapon knowledge" สำหรับผู้ใช้ทั่วไป แต่เปิดสำหรับนักวิจัยที่ verify แล้ว), monitor real-time ว่าโมเดลกำลัง "คิด" เรื่องอะไรอยู่ก่อนตอบ, สร้าง audit trail ที่อธิบายได้ว่าทำไมโมเดลถึงตัดสินใจแบบนั้น
+>
+> แต่ก็มีคำถามตามมา: ใครเป็นคนตัดสินใจว่า feature ไหน "อันตราย"? การที่ใครสักคนสามารถ "แก้" features ของโมเดลได้ — นั่นคืออำนาจแบบไหน?
+
+---
+
+## Probing & Representation Analysis
+
+อีก technique หนึ่งที่ใช้กันบ่อยคือ probing — การเทรน classifier เล็กๆ เพื่อดูว่า activation ของโมเดลมีข้อมูลบางอย่างซ่อนอยู่ไหม
+
+### Linear Probing — ดูว่าโมเดลรู้ว่าอะไร
+
+ถ้าเราเอา activations จาก layer ใดใดมาเทรน linear classifier เพื่อทำนาย "ประโยคนี้ positive หรือ negative?" แล้ว classifier นั้นทำงานได้ดี — นั่นบอกว่า information เรื่อง sentiment ถูกเข้ารหัสอยู่ใน activations นั้นในแบบที่ linear separable
+
+```python
+import torch
+import numpy as np
+from transformers import AutoTokenizer, AutoModel
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# สร้างชุดข้อมูลง่ายๆ สำหรับ sentiment probe
+texts_positive = [
+    "I love this product, it's amazing!",
+    "What a wonderful day, I'm so happy",
+    "This is the best experience I've ever had",
+    "Fantastic work, really impressive results",
+]
+texts_negative = [
+    "This is terrible, I hate it",
+    "What a horrible experience, very disappointing",
+    "The worst product I've ever used",
+    "Awful quality, complete waste of money",
+]
+
+all_texts = texts_positive + texts_negative
+# label 1 = positive, 0 = negative
+labels = [1] * len(texts_positive) + [0] * len(texts_negative)
+
+# โหลดโมเดล
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+model = AutoModel.from_pretrained("bert-base-uncased", output_hidden_states=True)
+model.eval()
+
+def get_activations(text, layer_idx=6):
+    """ดึง activation จาก layer ที่กำหนด"""
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True)
+    with torch.no_grad():
+        outputs = model(**inputs)
+    # hidden_states shape: (num_layers+1, batch, seq_len, hidden_size)
+    # เอา [CLS] token (index 0) จาก layer ที่ต้องการ
+    layer_activation = outputs.hidden_states[layer_idx][0, 0, :].numpy()
+    return layer_activation
+
+# สร้าง feature matrix
+X = np.array([get_activations(text) for text in all_texts])
+y = np.array(labels)
+
+# เทรน linear probe
+# (ในการใช้งานจริงควรมี train/test split ที่ดีกว่านี้)
+probe = LogisticRegression(max_iter=1000)
+probe.fit(X, y)
+
+# ทดสอบกับข้อความใหม่
+test_texts = [
+    "I really enjoyed this experience",   # ควรได้ positive
+    "This is absolutely dreadful",         # ควรได้ negative
+]
+
+for text in test_texts:
+    activation = get_activations(text).reshape(1, -1)
+    prediction = probe.predict(activation)[0]
+    confidence = probe.predict_proba(activation)[0].max()
+    sentiment = "positive" if prediction == 1 else "negative"
+    print(f"'{text[:40]}...' → {sentiment} ({confidence:.1%} confidence)")
+
+# ทดสอบ probing ในแต่ละ layer เพื่อดูว่า layer ไหนมี sentiment information มากที่สุด
+print("\nSentiment information by layer:")
+for layer_idx in range(0, 13, 2):  # BERT มี 12 layers
+    X_layer = np.array([get_activations(text, layer_idx) for text in all_texts])
+    probe_layer = LogisticRegression(max_iter=1000)
+    probe_layer.fit(X_layer, y)
+    score = probe_layer.score(X_layer, y)
+    print(f"Layer {layer_idx:2d}: accuracy = {score:.2%}")
+```
+
+### Concept Activation Vectors (CAVs)
+
+อีก technique ที่ทรงพลังกว่าคือ TCAV (Testing with Concept Activation Vectors) ซึ่งคิดค้นโดย Been Kim ที่ Google Brain
+
+แนวคิดคือ: แทนที่จะดูว่า "ตัวเลขอะไรที่โมเดล output สำหรับ input นี้" เราหา direction ใน activation space ที่แทน concept ที่เราสนใจ แล้วดูว่า direction นั้นมีผลต่อ prediction มากแค่ไหน
+
+เช่น ถ้าต้องการรู้ว่าโมเดลใช้ concept "stripes" ในการจำแนก "zebra" มากแค่ไหน:
+1. หา CAV ของ "stripes" โดยเทรน linear classifier ระหว่าง images ที่มี stripes vs ไม่มี
+2. วัดว่า CAV นั้นมีผลกับ gradient ของ prediction "zebra" มากแค่ไหน
+3. ถ้ามีผลมาก = โมเดลใช้ concept นั้นในการตัดสิน
+
+<!-- IMAGE: TCAV diagram showing concept activation vectors for zebra classification, with stripes concept highlighted -->
+
+---
+
+## Practical Tools — เครื่องมือที่ใช้ได้จริง
+
+### TransformerLens
+
+TransformerLens เป็น library ที่ทีม Anthropic (โดยเฉพาะ Neel Nanda) พัฒนาขึ้นเพื่อทำ mechanistic interpretability บน transformers
+
+```python
+# ติดตั้ง: pip install transformer_lens
+import transformer_lens
+from transformer_lens import HookedTransformer
+import torch
+
+# โหลดโมเดลแบบ hooked (สามารถ intercept activations ได้ทุกจุด)
+model = HookedTransformer.from_pretrained("gpt2-small")
+
+# รัน model พร้อมเก็บ cache ของ activations ทุกตัว
+prompt = "The Eiffel Tower is located in the city of"
+tokens = model.to_tokens(prompt)
+
+logits, cache = model.run_with_cache(prompt)
+
+# ดู activations ของ layer 10, attention output
+attn_output_layer10 = cache["blocks.10.attn.hook_z"]
+print(f"Shape: {attn_output_layer10.shape}")
+# (batch, seq_len, num_heads, head_dim)
+
+# ดูว่าโมเดล predict อะไร
+predicted_token_id = logits[0, -1].argmax()
+predicted_word = model.to_string(predicted_token_id)
+print(f"Predicted next word: '{predicted_word}'")
+
+# activation patching — เปลี่ยน activations ใน specific layer
+# เพื่อดูว่าส่งผลต่อ prediction อย่างไร
+prompt_alt = "The Colosseum is located in the city of"
+
+# hook function ที่จะ patch activation
+def patch_layer10_hook(value, hook):
+    # แทนที่ activation ด้วย activation จาก original prompt
+    value[:] = attn_output_layer10
+    return value
+
+# รัน alternate prompt แต่ patch layer 10 ด้วย original activations
+logits_patched = model.run_with_hooks(
+    prompt_alt,
+    fwd_hooks=[("blocks.10.attn.hook_z", patch_layer10_hook)]
+)
+
+predicted_patched = model.to_string(logits_patched[0, -1].argmax())
+print(f"Predicted with patching: '{predicted_patched}'")
+# ถ้า patch สำเร็จ อาจเปลี่ยนจาก "Rome" กลับมาเป็น "Paris"
+```
+
+### เครื่องมือจาก Anthropic
+
+Anthropic เปิดเผยงานวิจัยด้าน interpretability อย่างต่อเนื่อง และบางส่วนก็ publish เป็น open tools:
+
+- **Sparse Autoencoder (SAE) features** — Anthropic เทรน SAE บน Claude's activations เพื่อหา monosemantic features (features ที่แต่ละ direction แทน concept เดียวชัดเจน แทน superposition) และ release ผลลัพธ์บางส่วนออกมา
+
+- **Neuronpedia** — platform ที่ visualize features ที่ค้นพบ ทั้งจาก SAE และ method อื่นๆ ใน open-source models
+
+- **Interpretability interp** — Anthropic's internal tools บางส่วนถูก share ใน research papers ที่สามารถ reimplement ได้
+
+<!-- IMAGE: screenshot of Neuronpedia showing feature visualization with activating examples -->
+
+---
+
+## Chain-of-Thought ในฐานะ Interpretability Tool
+
+มีแนวทาง interpretability อีกอย่างที่แตกต่างจากการ "เปิดฝา" โดยตรง คือการใช้ chain-of-thought (CoT) เป็นเครื่องมือในการทำความเข้าใจการ reasoning ของโมเดล
+
+เมื่อเราขอให้โมเดล "คิดออกมาดังๆ ก่อนตอบ" เราได้ window เข้าไปดู (บางส่วนของ) process ที่โมเดลใช้ แต่นี่ก็มีปัญหาสำคัญ
+
+### Faithfulness Problem — CoT บอกความจริงไหม?
+
+คำถามที่ critical คือ: CoT ที่โมเดลเขียนออกมา faithfully แสดง process ที่โมเดลใช้จริงๆ ไหม หรือมันแค่ "เล่าเรื่อง" ที่ฟังดูสมเหตุสมผลหลังจากตัดสินใจไปแล้ว?
+
+งานวิจัยหลายชิ้นพบว่า CoT ไม่ faithful เสมอไป มีกรณีที่:
+- โมเดลตัดสินใจจากสิ่งอื่น (เช่น formatting หรือ keyword) แต่เขียน CoT ที่อ้างเหตุผลอื่น
+- โมเดลเปลี่ยน answer หลังจากเห็น "hint" ในโจทย์ แต่ CoT ไม่ mention hint นั้น
+- Sycophancy — โมเดลเปลี่ยนใจตาม user แล้วหา rationale มา justify หลัง
+
+> 💡 **Key insight:** Chain-of-thought มีประโยชน์ในการ debug และเข้าใจโมเดล แต่ไม่ควรเชื่อว่า CoT คือเหตุผลจริงๆ เสมอ — มันอาจเป็น post-hoc rationalization ก็ได้ การ verify ต้องใช้ method อื่นควบคู่ด้วย
+
+---
+
+> 🧪 **ลองคิดดู:** สมมติคุณต้องออกแบบ interpretability pipeline สำหรับ production model ที่ใช้ approve/reject คำขอสินเชื่อ ซึ่ง by law ต้องอธิบายได้ว่าทำไมถึงปฏิเสธ
+>
+> คุณจะออกแบบยังไง? สิ่งที่ต้องตอบได้: (1) โมเดลใช้ features อะไรในการตัดสิน? (2) มี features ที่ไม่ควรใช้ (เช่น เชื้อชาติ, เพศ) แอบอยู่ใน proxy features ไหม? (3) คำอธิบายที่ให้ลูกค้าต้องเป็น "จริง" หรือแค่ "ฟังดูสมเหตุสมผล"?
+>
+> (3) คือข้อที่ยากที่สุด เพราะถ้า CoT ไม่ faithful — เราอาจให้คำอธิบาย "ที่โมเดลไม่ได้ใช้จริง" กับลูกค้า ซึ่งอาจผิดกฎหมาย และก็ปิดบังปัญหา discrimination ที่ซ่อนอยู่)
+
+---
+
+## Open Problems — ปัญหาที่ยังแก้ไม่ได้
+
+แม้จะมีความก้าวหน้ามาก แต่ interpretability และ alignment ยังมีปัญหาที่เปิดอยู่มาก
+
+### Scalable Oversight
+
+เมื่อโมเดลฉลาดกว่ามนุษย์ในด้านใดด้านหนึ่ง เราจะ verify ว่ามันทำถูกต้องได้อย่างไร? ถ้า GPT-10 สามารถค้นพบ mathematical theorem ใหม่ที่ยังไม่มีใครพิสูจน์ได้ เราจะรู้ได้อย่างไรว่า proof ที่มันให้มานั้นถูก?
+
+แนวทางที่กำลังศึกษา:
+- **Debate** — ให้โมเดลสองตัว debate กัน แล้วให้มนุษย์ judge ว่าใคร win debate นั้น ถ้าทำถูก การโกงควรแพ้ debate
+- **Amplification** — ให้มนุษย์ใช้โมเดลอื่นเป็น "assistant" ในการตรวจสอบ โดยที่ assistant ไม่รู้ answer ที่ต้องการ verify
+- **Recursive reward modelling** — สร้าง reward model ที่ฉลาดขึ้นเรื่อยๆ โดย verify ทีละขั้น
+
+### Eliciting Latent Knowledge (ELK)
+
+ARC (Alignment Research Center) ตั้งปัญหาที่เรียกว่า ELK: โมเดลอาจ "รู้" ว่าอะไรเป็นความจริง แต่ก็สามารถเลือกพูดสิ่งที่ไม่จริงแต่คนชอบได้ เราจะดึง "ความรู้จริง" ออกมาจากโมเดลได้อย่างไร โดยไม่พึ่งแค่ output ที่โมเดลเลือกจะพูด
+
+ปัญหานี้ยังแก้ไม่ได้ และถือเป็นหนึ่งใน open problems ที่สำคัญที่สุดใน alignment
+
+### Representation Engineering
+
+แนวทางที่น่าสนใจจาก paper ปี 2023 โดย Zou et al. คือ Representation Engineering — แทนที่จะหา features แล้ว intervene ทีละตัว ให้ค้นหา "representation" ของ properties ที่ต้องการ (เช่น honesty, harmlessness) แล้วใช้สิ่งที่ค้นพบนั้น monitor และ control พฤติกรรมโมเดลแบบ real-time
+
+```python
+# แนวคิดของ Representation Engineering (simplified)
+# ในทางปฏิบัติต้องใช้โมเดลที่ใหญ่กว่านี้มาก
+
+import numpy as np
+from sklearn.decomposition import PCA
+
+# สมมติเรามี activations จากประโยค honest vs dishonest
+# (ในการใช้งานจริง ต้องรัน model จริงๆ เพื่อเก็บ activations)
+honest_activations = np.random.randn(100, 768)    # 100 ประโยคที่ honest
+dishonest_activations = np.random.randn(100, 768)  # 100 ประโยคที่ dishonest
+
+# ค้นหา "honesty direction" ใน activation space
+# โดยดูว่า dimension ไหนที่ต่างกันระหว่าง honest และ dishonest
+diff = honest_activations.mean(0) - dishonest_activations.mean(0)
+honesty_direction = diff / np.linalg.norm(diff)
+
+# วัดว่า activation ของประโยคใหม่อยู่ใน "honest zone" ไหม
+def measure_honesty_score(activation):
+    """วัดคะแนน honesty โดยดูว่า activation project ไปใน honesty direction แค่ไหน"""
+    score = np.dot(activation, honesty_direction)
+    return score
+
+# ตัวอย่าง: monitor honesty ระหว่าง generation
+test_activation = np.random.randn(768)
+score = measure_honesty_score(test_activation)
+print(f"Honesty score: {score:.3f}")
+print(f"Classified as: {'honest' if score > 0 else 'potentially dishonest'}")
+```
+
+<!-- IMAGE: representation engineering diagram showing honesty/dishonesty direction in activation space with real-time monitoring -->
+
+### Debate as Alignment Mechanism
+
+Stuart Russell และ Paul Christiano เสนอ debate เป็น alignment mechanism:
+
+แทนที่จะให้มนุษย์ judge output โดยตรง (ซึ่งทำไม่ได้เมื่อโมเดลฉลาดกว่า) ให้โมเดลสองตัว debate กัน โดย:
+- Model A พยายาม argue ว่า answer ของมันถูก
+- Model B พยายาม find flaws และ argue ว่า answer ของ A ผิด
+- มนุษย์ judge debate (ไม่ใช่ judge answer โดยตรง) ซึ่งทำได้ง่ายกว่า
+
+ข้อสมมติฐานคือ การโกหกที่ซับซ้อนยาก กว่าการตรวจจับการโกหก ดังนั้น honest model ควรชนะ debate ได้แม้ judge จะไม่เชี่ยวชาญในเรื่องนั้น
+
+แต่ debate ก็มีจุดอ่อน: ถ้าทั้งสองโมเดลต่างก็โกหกล่ะ? หรือถ้าโมเดลสามารถ "confuse" judge ได้ด้วย technicalities?
+
+> 💡 **Key insight:** ปัญหาใหญ่ที่สุดใน alignment ในระยะยาวคือ scalable oversight — เราจะ verify behavior ของ AI ที่ฉลาดกว่าเราได้อย่างไร? ทุก approach ที่มีอยู่ตอนนี้มีข้อจำกัดที่ยังแก้ไม่ได้
+
+---
+
+## อนาคตของ AI ที่อธิบายตัวเองได้
+
+ในอนาคตอันใกล้ เราอาจเห็น:
+
+**Interpretability at scale** — เมื่อ compute ราคาถูกลง การรัน interpretability analysis บน production models จะทำได้ real-time ไม่ใช่แค่ research setting
+
+**Formal verification** — สำหรับ systems ที่ critical มากๆ อาจใช้ formal methods พิสูจน์ property บางอย่างของโมเดล (เช่น "จะไม่ output อะไรที่มี pattern X") ถึงแม้ตอนนี้ยังทำได้เฉพาะ models เล็กๆ
+
+**Mechanistic safety** — แทนที่จะ patch พฤติกรรมผ่าน fine-tuning เราอาจแก้ไข specific circuits ที่ก่อให้เกิดพฤติกรรมที่ไม่ต้องการโดยตรง ซึ่งทำได้ precise กว่าและ generalizes ได้ดีกว่า
+
+**Proactive alignment** — แทนที่จะรอให้โมเดลทำผิดแล้วค่อยแก้ ใช้ interpretability เพื่อตรวจจับ "precursor patterns" ที่บ่งบอกว่าโมเดลกำลังจะทำสิ่งที่ไม่ต้องการ ก่อนที่จะ output ออกมา
+
+แต่ยิ่ง AI ทรงพลังขึ้น ยิ่ง interpretability สำคัญขึ้น เพราะเราต้องการ tools ในการ verify ว่าสิ่งที่ทรงพลังนั้น ทำในสิ่งที่เราต้องการจริงๆ
+
+<!-- IMAGE: timeline of interpretability research progress, from attention visualization (2019) to mechanistic interpretability (2022-2025) to future scalable oversight -->
+
+---
+
+## Alignment กับ Regulation — โลกจริงต้องการอะไร?
+
+ความก้าวหน้าในงานวิจัย alignment และ interpretability ไม่ได้อยู่แค่ใน research labs เท่านั้น มันกำลังกลายเป็น regulatory requirement ในหลายประเทศ
+
+### EU AI Act และ Explainability
+
+EU AI Act ที่มีผลบังคับใช้เต็มรูปแบบในปี 2026 แบ่ง AI systems ออกเป็น risk levels และกำหนดว่า high-risk systems (เช่น ระบบตัดสินใจเรื่องสินเชื่อ, การจ้างงาน, การศึกษา) ต้อง:
+
+- **Explainable** — สามารถอธิบายได้ว่าทำไมถึงตัดสินใจแบบนั้น
+- **Auditable** — มี logs ที่ตรวจสอบได้
+- **Human oversight** — มีมนุษย์ที่สามารถ override ได้ในกรณีจำเป็น
+
+นั่นหมายความว่า interpretability ไม่ใช่แค่ "nice to have" สำหรับบริษัทที่ deploy AI — มันเป็น legal requirement
+
+### ปัญหา: interpretability ในระดับที่ law ต้องการ ยังทำไม่ได้
+
+น่าเป็นห่วงที่ว่า ระดับ explainability ที่กฎหมายต้องการ กับ interpretability ที่เราทำได้จริงในปัจจุบัน ยังมี gap ที่ใหญ่มาก
+
+กฎหมายบอกว่า "อธิบายได้" แต่สิ่งที่เราทำได้จริงคือ:
+- บอกได้ว่า features ไหนในข้อมูล input มีน้ำหนักมากในการตัดสิน (feature importance)
+- บอกได้ว่าถ้าข้อมูล input เปลี่ยนอย่างไร output จะเปลี่ยนไหม (counterfactual explanation)
+- บอกได้ว่าในชุดข้อมูล training มีกรณีไหนที่คล้ายกับกรณีนี้ที่สุด
+
+แต่ทั้งหมดนี้ไม่ใช่ "เหตุผลจริงๆ" — มันเป็นแค่ proxy ที่ฟังดูสมเหตุสมผล
+
+<!-- IMAGE: gap between regulatory explainability requirements and current interpretability capabilities -->
+
+### Algorithmic Auditing
+
+ทางเลือกหนึ่งที่ practical กว่าคือ algorithmic auditing — แทนที่จะพยายาม explain ทุก decision ใช้วิธีทดสอบว่าโมเดล discriminate ตาม protected attributes ไหม
+
+```python
+import pandas as pd
+import numpy as np
+from scipy import stats
+
+def fairness_audit(model, test_data, sensitive_attr, outcome_col):
+    """
+    ทดสอบว่าโมเดล discriminate ตาม sensitive attribute ไหม
+    
+    Args:
+        model: โมเดลที่ต้องการ audit
+        test_data: DataFrame ของ test cases
+        sensitive_attr: ชื่อ column ที่เป็น sensitive attribute (เช่น 'gender', 'race')
+        outcome_col: ชื่อ column ของ prediction ที่ต้องการ
+    
+    Returns:
+        dict ของ fairness metrics
+    """
+    # แยกกลุ่ม
+    groups = test_data[sensitive_attr].unique()
+    group_outcomes = {}
+    
+    for group in groups:
+        mask = test_data[sensitive_attr] == group
+        group_data = test_data[mask]
+        predictions = model.predict(group_data.drop(columns=[sensitive_attr, outcome_col]))
+        group_outcomes[group] = predictions
+    
+    results = {}
+    
+    # Demographic Parity — approval rate ควรเท่ากันในทุกกลุ่ม
+    approval_rates = {
+        group: outcomes.mean()
+        for group, outcomes in group_outcomes.items()
+    }
+    results['approval_rates'] = approval_rates
+    
+    # Statistical parity difference
+    rates = list(approval_rates.values())
+    results['demographic_parity_diff'] = max(rates) - min(rates)
+    
+    # ถ้า diff > 0.1 ถือว่าน่าเป็นห่วง (threshold ตาม EU AI Act guidelines)
+    results['flag_demographic_parity'] = results['demographic_parity_diff'] > 0.1
+    
+    # Equalized Odds — false positive rate และ false negative rate ควรเท่ากัน
+    true_labels = test_data[outcome_col]
+    group_fpr = {}
+    group_fnr = {}
+    
+    for group in groups:
+        mask = test_data[sensitive_attr] == group
+        y_true = true_labels[mask]
+        y_pred = group_outcomes[group]
+        
+        # False Positive Rate
+        fp = ((y_pred == 1) & (y_true == 0)).sum()
+        tn = ((y_pred == 0) & (y_true == 0)).sum()
+        group_fpr[group] = fp / (fp + tn) if (fp + tn) > 0 else 0
+        
+        # False Negative Rate
+        fn = ((y_pred == 0) & (y_true == 1)).sum()
+        tp = ((y_pred == 1) & (y_true == 1)).sum()
+        group_fnr[group] = fn / (fn + tp) if (fn + tp) > 0 else 0
+    
+    results['false_positive_rates'] = group_fpr
+    results['false_negative_rates'] = group_fnr
+    
+    fpr_values = list(group_fpr.values())
+    fnr_values = list(group_fnr.values())
+    results['fpr_diff'] = max(fpr_values) - min(fpr_values)
+    results['fnr_diff'] = max(fnr_values) - min(fnr_values)
+    
+    return results
+
+# ตัวอย่างการใช้งาน
+# audit_results = fairness_audit(loan_model, test_df, 'gender', 'approved')
+# if audit_results['flag_demographic_parity']:
+#     print("WARNING: ตรวจพบ demographic parity violation — ต้อง investigate ก่อน deploy")
+```
+
+Note ที่สำคัญ: fairness metrics ต่างๆ มักจะ trade-off กัน ไม่สามารถ optimize ได้ทุกตัวพร้อมกัน นี่คือปัญหาที่เรียกว่า "impossibility theorems in fairness" ที่ Chouldechova (2017) และ Kleinberg et al. (2016) พิสูจน์ไว้ทางคณิตศาสตร์
+
+---
+
+## ความสัมพันธ์ระหว่าง Alignment, Interpretability และ Trust
+
+ท้ายที่สุดแล้ว alignment และ interpretability ทั้งคู่ต่างก็มุ่งสู่เป้าหมายเดียวกัน: ทำให้เรา trust AI ได้อย่างมีเหตุผล ไม่ใช่แค่ faith ที่ไม่มีหลักฐาน
+
+ความแตกต่างระหว่าง trust สองแบบ:
+
+**Blind trust** — "AI บอกว่าอะไร ก็ทำตามนั้น เพราะมันฉลาดกว่า" นี่คือสิ่งที่อันตราย เพราะโมเดลมี failure modes ที่ไม่เหมือนมนุษย์ และเราไม่รู้ว่า failure เหล่านั้นอยู่ที่ไหน
+
+**Calibrated trust** — "เรารู้ว่าโมเดลทำงานยังไง รู้ว่า limits คืออะไร รู้ว่าควรเชื่อมันในเรื่องไหนและไม่ควรเชื่อในเรื่องไหน" นี่คือสิ่งที่เป็นไปได้เมื่อเรามี interpretability tools ที่ดี
+
+Anthropic ใช้คำว่า "responsible scaling policy" — นโยบายที่บอกว่าก่อนจะ deploy โมเดลที่ capability สูงขึ้นในระดับหนึ่ง ต้องมี interpretability และ alignment evaluations ที่ผ่านมาตรฐานที่กำหนด
+
+ซึ่งหมายความว่า interpretability ไม่ใช่แค่ academic exercise — มันเป็น gate ที่ควบคุมว่าโมเดลไหนถึงจะได้ออกไปสู่สาธารณะ
+
+> 💡 **Key insight:** Trust ที่ดีในระบบ AI ไม่ได้มาจากการที่โมเดลทำงานได้ดีในการทดสอบ แต่มาจากความเข้าใจว่ามันทำงานยังไง และรู้ว่าเมื่อไหรที่ควรและไม่ควรเชื่อมัน
+
+<!-- IMAGE: trust spectrum from blind faith to calibrated trust, with interpretability tools on the calibration side -->
+
+---
+
+## สรุป — จาก "เชื่อ" สู่ "เข้าใจ"
+
+เราเริ่มต้นด้วยคำถามที่ดูเรียบง่าย: ทำไม Claude ถึงปฏิเสธบางคำขอและยอมทำบางคำขอ? คำตอบพาเราไปถึงโครงสร้างที่ซับซ้อนมาก ตั้งแต่ outer vs inner alignment, deceptive alignment ที่เป็นปัญหาเชิงปรัชญาของ AI safety ไปจนถึง circuits และ superposition ที่เป็นงาน mechanistic interpretability ในระดับ neurons
+
+สิ่งสำคัญที่ต้องจำ:
+
+- **Alignment ไม่ใช่ on/off switch** — มันเป็นสเปกตรัมที่มีหลายชั้น และทุก approach ปัจจุบันยังมีจุดอ่อน
+- **Interpretability คือ prerequisite ของ alignment ที่เชื่อถือได้** — ถ้าเราไม่รู้ว่าโมเดลทำงานยังไง เราจะรู้ได้อย่างไรว่ามัน aligned จริงๆ ไม่ใช่แค่ในการทดสอบ
+- **Constitutional AI ให้ความโปร่งใสมากกว่า RLHF** — เพราะหลักการ explicit ออกมา แต่ก็ยังไม่ได้แก้ปัญหาได้ทั้งหมด
+- **Chain-of-thought ไม่ faithful เสมอ** — CoT อาจเป็น post-hoc rationalization ไม่ใช่ trace ของ reasoning จริงๆ
+
+ในบทถัดไปเราจะต่อจากตรงนี้ไปดู **Agentic Risks** — เมื่อ AI ไม่ได้แค่ตอบคำถาม แต่ออกไปทำ actions ในโลกจริง ไม่ว่าจะเป็นการส่ง email, เขียน code, หรือควบคุม tools ต่างๆ — ปัญหา alignment และ interpretability ยิ่งซับซ้อนและสำคัญกว่าเดิมมาก เพราะ mistake ที่ agent ทำอาจไม่มีทาง undo ได้
+
+---
+
+*บทความนี้เป็นส่วนหนึ่งของ curriculum AI ภาษาคน — ซีรีส์ความรู้ AI ที่เขียนสำหรับคนที่ต้องการเข้าใจจริง ไม่ใช่แค่ใช้เป็น*

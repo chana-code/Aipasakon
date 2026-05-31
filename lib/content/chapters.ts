@@ -19,7 +19,11 @@ async function readChapterFile(level: Level, file: string): Promise<Chapter> {
   if (fm.level !== level) {
     throw new Error(`chapter ${fm.slug} has level "${fm.level}" but lives in /${level}/`);
   }
-  return { ...fm, body: content };
+  // Authoring annotations like `<!-- IMAGE: ... -->` are HTML comments, which MDX
+  // cannot parse (it expects JSX). Strip them before handing the body to MDXRemote.
+  // They remain in the source files as image-generation placeholders.
+  const body = content.replace(/<!--[\s\S]*?-->/g, '');
+  return { ...fm, body };
 }
 
 export async function loadAllChapters(): Promise<Chapter[]> {

@@ -1,258 +1,573 @@
 ---
 slug: types-of-ai
 level: foundations
-title: "Types of AI"
+title: "AI มีกี่ประเภท — แผนที่จำแนก AI ที่ทุกคนควรรู้"
 status: reviewed
-prerequisites:
-  - what-is-ai
-  - history-of-ai
-last_reviewed: 2026-05-18
-tldr: "\"AI\" ไม่ใช่สิ่งเดียว — เป็นกลุ่มของเทคโนโลยีหลายแบบที่จำแนกได้หลายแกน. แกนสำคัญคือ (1) **ขอบเขตของความสามารถ** (narrow / general / super), (2) **วิธีการ** (symbolic / statistical / hybrid), (3) **ประเภทของ output** (discriminative / generative), และ (4) **paradigm การเรียน** (supervised / unsupervised / reinforcement / self-supervised). ระบบจริงมักเป็นการผสมหลายแกนพร้อมกัน — เช่น ChatGPT คือ narrow + statistical + generative + self-supervised pretraining + RLHF."
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "AI ไม่ใช่สิ่งเดียว — มีหลายประเภท หลายวิธีการ และหลายวิธีเรียน บทนี้จำแนก AI ผ่าน 4 แกน พร้อมอธิบายกลไกข้างในที่ทำให้แต่ละแบบทำงานต่างกัน รวมถึง Agentic AI ที่กำลังเปลี่ยนวิธีที่คนใช้งาน AI ในปี 2026"
 ---
+# AI มีกี่ประเภท — แผนที่จำแนก AI ที่ทุกคนควรรู้
 
-<section data-depth="surface">
+ถ้าคุณเคยเถียงกับใครเรื่อง "AI จะมาแทนที่งานคนไหม" แล้วรู้สึกว่าคุยกันไม่ค่อยรู้เรื่อง — ไม่ใช่เพราะอีกฝั่งโง่. เป็นเพราะคนละคนกำลังพูดถึง AI คนละตัว โดยที่ไม่รู้ตัว.
 
-## พูดสั้นๆ
+ChatGPT, ระบบกรอง spam ใน Gmail, ตัวจำแนกภาพมะเร็งในโรงพยาบาล, AlphaGo ที่ชนะแชมป์โลก Go — ทั้งหมดเรียกตัวเองว่า "AI" เหมือนกัน แต่กลไกข้างใน, สิ่งที่ทำได้, และขีดจำกัด ต่างกันอย่างสิ้นเชิง.
 
-"AI" ไม่ใช่สิ่งเดียว — เป็นกลุ่มของเทคโนโลยีหลายแบบที่จำแนกได้หลายแกน. แกนสำคัญคือ (1) **ขอบเขตของความสามารถ** (narrow / general / super), (2) **วิธีการ** (symbolic / statistical / hybrid), (3) **ประเภทของ output** (discriminative / generative), และ (4) **paradigm การเรียน** (supervised / unsupervised / reinforcement / self-supervised). ระบบจริงมักเป็นการผสมหลายแกนพร้อมกัน — เช่น ChatGPT คือ narrow + statistical + generative + self-supervised pretraining + RLHF.
+บทนี้จะให้ **แผนที่** สำหรับแยกแยะ AI แต่ละประเภท ไม่ใช่เพื่อให้จำชื่อได้ แต่เพื่อให้คิดกับ AI ได้ถูกทิศ
 
-เวลาเราพูดถึง "AI" ในชีวิตประจำวัน เรามักหมายถึงคนละสิ่งกัน. AI ที่อยู่ในเครื่องคิดเลขของ Google Photos ที่ตรวจหาหน้าคน, AI ที่อยู่หลัง Siri, AI ที่ชนะ Go ของ DeepMind, และ ChatGPT — ทั้งหมดเรียก "AI" ทั้งสิ้น แต่กลไกข้างใน, ความสามารถ, และข้อจำกัด ต่างกันอย่างมาก.
-
-การมี **taxonomy** (ระบบจำแนกประเภท) ช่วยให้เราเหตุผลกับ AI ได้แม่นขึ้น — ไม่ใช่แค่เรื่องเชิงวิชาการ แต่เพราะ AI แต่ละแบบมีจุดแข็ง จุดอ่อน และวิธีใช้ที่ต่างกัน. ถ้าเรารวมทั้งหมดไว้เป็น "AI" คำเดียว เราจะคุยกันไม่รู้เรื่อง — เช่น คำถาม "AI จะมาแทนที่มนุษย์ไหม" จะตอบไม่ได้ เพราะคำว่า "AI" ในคำถามไม่ชัด.
-
-ในบทนี้เราจะมอง AI ผ่าน 4 แกนหลัก:
-
-1. **ขอบเขต (Scope):** ทำเรื่องเดียว vs ทำได้ทุกเรื่องแบบมนุษย์ vs เหนือมนุษย์
-2. **วิธีการ (Approach):** เขียน rule ด้วยมือ vs เรียนจาก data vs ผสม
-3. **Output:** จำแนกประเภท (discriminative) vs สร้างของใหม่ (generative)
-4. **วิธีเรียน (Learning paradigm):** มีตัวอย่างกับเฉลย vs ไม่มีเฉลย vs เรียนจาก reward vs สร้างเฉลยให้ตัวเอง
-
-ระบบจริงมักเป็น **จุดตัดของหลายแกน** — เช่น ChatGPT เป็น "Narrow + Statistical + Generative + Self-supervised pretraining". การคิดเป็นจุดตัดแบบนี้ช่วยให้เข้าใจระบบใหม่ ๆ ได้เร็วขึ้น.
-
-### Mental model
-
-นึกถึง AI taxonomy เป็น **ระบบพิกัด** ไม่ใช่ **ตู้แบ่งช่อง**. AI system หนึ่งไม่ได้อยู่ใน "ช่อง" เดียว — มันมีพิกัดบนหลายแกนพร้อมกัน. ChatGPT มีพิกัดบนแกน "ขอบเขต" ที่ narrow, บนแกน "วิธีการ" ที่ statistical, บนแกน "output" ที่ generative และอื่น ๆ.
-
-**ผลตามมา 3 ข้อ:**
-1. ระบบ AI สองตัวที่ดูคล้ายกันจาก outside (เช่น ทั้งคู่ใช้ neural network) อาจมีพิกัดต่างกันบนแกนสำคัญและพฤติกรรมต่างกันมาก
-2. การถามว่า "นี่คือ AI ประเภทอะไร" คำตอบที่ดีต้องระบุพิกัดบนหลายแกน — ไม่ใช่คำเดียว
-3. taxonomy นี้ **ไม่ใช่ความจริงสัมบูรณ์** — เป็นเครื่องมือ. ระบบจริงบางตัว blur boundary ระหว่างแกน (ดู section สุดท้าย)
+<!-- IMAGE: ภาพ infographic แสดง "AI หลายหน้า" — มีไอคอน ChatGPT, Gmail, หุ่นยนต์โรงงาน, กล้องวงจรปิด และโดรน เรียงกัน ด้านล่างมีคำว่า "ทั้งหมดเรียกว่า AI — แต่กลไกข้างในต่างกันอย่างสิ้นเชิง"
+Style: infographic
+Text on image: "AI มีหลายรูปแบบ — ไม่ใช่สิ่งเดียวกัน"
+-->
 
 ---
 
-</section>
+## ทำไมต้องแยกแยะ AI
 
-<section data-depth="deeper">
+ก่อนลงรายละเอียด ขอตั้งคำถามสั้น ๆ ก่อน: คุณถามว่า "AI ฉลาดแค่ไหน" — คำถามนี้ตอบได้ไหม?
 
-## ลึกขึ้นหน่อย
+ตอบยาก. เพราะ "AI" ในคำถามไม่ชัด.
 
-### 2.1 By Capability Scope — ขอบเขตของความสามารถ
+ถ้าถามว่า "ChatGPT ฉลาดแค่ไหนในการสรุปเอกสาร" — ตอบได้ และตอบได้ค่อนข้างละเอียด. ถ้าถามว่า "ระบบตรวจ X-ray ฉลาดแค่ไหนในการหาก้อนเนื้อ" — ก็ตอบได้อีกแบบหนึ่ง. แต่ถามรวมกันว่า "AI ฉลาดแค่ไหน" — เหมือนถามว่า "ยานพาหนะไปได้ไกลแค่ไหน" โดยไม่บอกว่าพูดถึงเรือดำน้ำ, รถยนต์, หรือจักรยาน.
 
-แกนนี้ถามว่า AI ทำอะไรได้บ้าง เทียบกับมนุษย์.
+เครื่องมือแยกแยะที่เราจะใช้เรียกว่า **taxonomy** — ระบบพิกัดสำหรับจำแนก AI ผ่าน 4 แกน:
 
-**Narrow AI (Artificial Narrow Intelligence, ANI)** — บางครั้งเรียก "Weak AI"
-ออกแบบมาทำงานเฉพาะอย่าง. มากกว่า 99% ของ AI ที่มีอยู่ปี 2026 อยู่ในกลุ่มนี้.
-- ตัวอย่าง: Stockfish (เล่นหมากรุก), Google Translate (แปลภาษา), image classifier ที่ตรวจมะเร็งใน X-ray
-- **LLM อย่าง GPT-4, Claude ก็เป็น Narrow AI** — แม้จะดูเหมือนทำได้หลายอย่าง แต่ทุก task ที่มันทำคือ **next-token prediction** เท่านั้น. ความหลากหลายเกิดจากการที่ next-token prediction ครอบคลุม task หลายแบบในระดับ output ไม่ใช่เพราะมีหลายระบบย่อย
-- ข้อจำกัดสำคัญ: ไม่ generalize ออกไปนอก distribution ของสิ่งที่ training data ครอบคลุม
+1. **ขอบเขต** — ทำเรื่องเดียวหรือทำได้ทุกเรื่อง
+2. **วิธีการ** — เขียน rule เอง หรือเรียนจาก data
+3. **ประเภท output** — จำแนกของที่มีอยู่ หรือสร้างของใหม่
+4. **วิธีเรียน** — เรียนจาก signal แบบไหน
 
-**General AI (Artificial General Intelligence, AGI)** — บางครั้งเรียก "Strong AI"
-สมมุติฐาน: AI ที่ทำงานทาง cognitive ได้ในระดับมนุษย์ **ในทุกโดเมน**. ยังไม่มีจริงในปี 2026.
-- คุณสมบัติที่คนคาดหวัง: เรียนรู้งานใหม่จากตัวอย่างน้อย ๆ, transfer ความรู้ข้ามโดเมน, มี common sense, วางแผนระยะยาว, มี meta-cognition
-- มีถกเถียงในวงการว่า LLM ปัจจุบันเป็น "ก้าวสู่ AGI" หรือเป็น "ทางตัน" — ยังไม่มีฉันทามติ ดู  ที่ตั้งคำถามว่า foundation model อยู่ตรงไหนใน spectrum นี้
-- คำว่า "AGI" เองยังนิยามไม่ลงตัว — บางคนนิยามด้วย task บางคนนิยามด้วย capability บางคนนิยามด้วยผลทางเศรษฐกิจ
+สิ่งสำคัญ: **ระบบ AI หนึ่งตัวมีพิกัดบนทุกแกนพร้อมกัน** ไม่ใช่เลือกแค่แกนเดียว. ChatGPT เป็น narrow ในแกนขอบเขต, statistical ในแกนวิธีการ, generative ในแกน output, และใช้หลายวิธีเรียนพร้อมกัน.
 
-**Superintelligence (Artificial Superintelligence, ASI)**
-สมมุติฐาน: AI ที่เหนือมนุษย์ในทุกโดเมน. เป็นเรื่อง speculative — อยู่ในขอบเขตของ AI safety และปรัชญา.
-- ดู [ai-safety-overview](/advanced/ai-safety-overview) สำหรับ implication ทางความปลอดภัย
-- สำหรับ Level 1 รู้แค่ว่า ASI เป็น hypothetical และเป็นแรงผลักของงานวิจัย alignment
-
-```mermaid
-graph LR
-    A[AI by Scope] --> B[Narrow AI / ANI]
-    A --> C[General AI / AGI]
-    A --> D[Superintelligence / ASI]
-    B --> B1[Stockfish, Translate, ChatGPT]
-    C --> C1[Hypothetical — human-level<br/>across all domains]
-    D --> D1[Hypothetical — beyond human]
-```
-
-### 2.2 By Approach — วิธีการสร้าง intelligence
-
-แกนนี้ถามว่า AI ได้ "ความฉลาด" มาจากไหน.
-
-**Symbolic AI** (บางครั้งเรียก GOFAI — "Good Old-Fashioned AI")
-มนุษย์เขียน rule, logic, และ knowledge representation ลงไปในระบบโดยตรง.
-- ตัวอย่าง: expert system สำหรับวินิจฉัยโรค (MYCIN), planner ใน robotics แบบเก่า, theorem prover, rule-based chatbot ยุคแรก
-- จุดแข็ง: อธิบายได้ (interpretable), reasoning step ชัดเจน, ตรวจสอบความถูกต้องได้
-- จุดอ่อน: brittle — เจอ input ที่ไม่ได้คาดไว้แล้วล้ม, scale ไม่ได้กับ knowledge ที่ซับซ้อนเชิงผิวเผิน (เช่น perception, ภาษาธรรมชาติ)
-- ครองวงการ AI ตั้งแต่ 1950s ถึง ~1990s ดูบริบทใน [history-of-ai](/foundations/history-of-ai)
-
-**Statistical / Machine Learning AI**
-ระบบ **เรียน pattern จาก data** แทนที่จะถูกเขียน rule ตรง ๆ.
-- ตัวอย่าง: spam classifier, recommendation system, image recognition, LLM ทุกตัว
-- จุดแข็ง: scale กับ data ได้, จัดการ input ที่หลากหลายและ noisy ได้, ทำงาน perception ได้ดีกว่า symbolic มาก
-- จุดอ่อน: อธิบายได้ยาก (โดยเฉพาะ deep learning), ต้องการ data จำนวนมาก, อาจเรียน bias จาก data, generalize นอก distribution ไม่ดี
-- ครองวงการ AI ตั้งแต่ ~2010 เป็นต้นมา (เร่งโดย deep learning ตั้งแต่ AlexNet 2012)
-
-**Hybrid / Neuro-symbolic AI**
-ผสมสองแบบเข้าด้วยกัน — ใช้ neural network สำหรับ perception/intuition และ symbolic component สำหรับ logical reasoning.
-- ตัวอย่าง: AlphaGeometry (DeepMind 2024) ผสม LLM กับ symbolic theorem prover, retrieval-augmented generation (RAG) แบบกว้าง ๆ ก็ถือเป็น hybrid (LLM + symbolic retrieval)
-- เป็นพื้นที่วิจัยที่ active — มีสมมติฐานว่าทางขึ้น AGI อาจต้องผ่าน hybrid ไม่ใช่ pure neural
-
-ดู Russell & Norvig  เพื่อภาพรวมประวัติศาสตร์ของทั้งสาม approach.
-
-### 2.3 By Output Type — Discriminative vs Generative
-
-แกนนี้ถามว่า model **ผลิตอะไร**.
-
-**Discriminative models** — เรียน "เส้นแบ่ง" ระหว่างประเภท
-- เป้าหมาย: ได้ input → ทำนาย label หรือค่า. เรียน $P(y \mid x)$ (probability ของ label เมื่อมี input)
-- ตัวอย่าง: spam vs not-spam classifier, dog vs cat image classifier, sentiment analysis, ตัวทำนายราคาบ้าน
-- intuition: model "วาดเส้นแบ่ง" ในพื้นที่ของ input — input ใหม่ตกข้างไหน ก็เป็นประเภทนั้น
-- จุดแข็ง: efficient สำหรับงาน classification, ต้องการ data น้อยกว่า generative ที่จะได้ accuracy ดี
-
-**Generative models** — เรียน "การกระจาย" ของ data
-- เป้าหมาย: เรียน distribution ของ data $P(x)$ หรือ $P(x \mid y)$ — สามารถ **สร้างตัวอย่างใหม่** ที่ดูเหมือนมาจาก distribution นั้น
-- ตัวอย่าง: LLM (สร้าง text), Stable Diffusion / DALL-E (สร้างภาพ), audio generation, GAN
-- intuition: model เรียน "หน้าตา" ของ data ทั้งหมด แล้ว sample ออกมาเป็นตัวอย่างใหม่ที่หน้าตาคล้าย training data
-- จุดแข็ง: ทำงานที่ open-ended ได้ (เขียน, วาด, แต่ง), อาจเรียน representation ที่ดีกว่า discriminative ในบาง task
-- จุดอ่อน: training ยากกว่า, evaluate ยากกว่า (เพราะไม่มี ground truth ที่ชัด), อาจ **hallucinate** (ดู [hallucination](/using-ai/hallucination))
-
-ดู Goodfellow et al.  บทที่ 20 สำหรับการเปรียบเทียบเชิง formal.
-
-**สำคัญ:** model ตัวเดียวกันบางครั้งทำได้ทั้งสองแบบ. LLM เป็น generative model แต่ใช้ทำ classification ก็ได้ (เช่น ถามว่า "email นี้เป็น spam หรือไม่" คือใช้ generative model มาทำงาน discriminative).
-
-### 2.4 By Learning Paradigm — วิธีการเรียน
-
-แกนนี้ถามว่า model เรียนจาก **signal แบบไหน**. รายละเอียดเต็มอยู่ใน [what-is-machine-learning](/foundations/what-is-machine-learning) — ที่นี่เป็น preview.
-
-**Supervised learning** — เรียนจาก labeled examples
-- มี (input, correct output) เป็นคู่ ๆ — model เรียนจาก mapping
-- ตัวอย่าง: ภาพหมา → label "หมา", email → label "spam/not-spam", ภาษาอังกฤษ → ภาษาไทย (machine translation แบบ supervised)
-- ใช้กว้างที่สุดในงาน production
-
-**Unsupervised learning** — เรียน structure จาก unlabeled data
-- ไม่มี label — model หา pattern เอง เช่น cluster, dimensionality reduction
-- ตัวอย่าง: K-means clustering (จัดกลุ่มลูกค้า), PCA, topic modeling
-- ใช้ในงาน exploratory analysis, anomaly detection
-
-**Reinforcement learning (RL)** — เรียนจาก reward signal ผ่านการ interaction
-- agent ทำ action → environment ให้ reward → agent ปรับ policy ให้ reward สะสมสูงขึ้น
-- ตัวอย่าง: AlphaGo (เล่น Go), robotics, game playing, RLHF ที่ใช้ฝึก ChatGPT/Claude (ดู [rlhf-and-rlaif](/advanced/rlhf-and-rlaif))
-- ต่างจาก supervised ตรงที่ไม่มี "เฉลยที่ถูก" — มีแค่ "ผลตอบแทน"
-
-**Self-supervised learning** — สร้าง label จาก structure ของ data เอง
-- ไม่มีคนติด label แต่ model **สร้าง prediction task ขึ้นมาเอง** จาก data เปล่า ๆ
-- ตัวอย่างที่สำคัญที่สุด: **next-token prediction ใน LLM** — input คือ text บางส่วน, label คือ token ถัดไปใน text เดิม. ไม่ต้องมีคนติด label — data เปล่าทำหน้าที่ทั้งคู่
-- เป็นเหตุผลที่ LLM scale ได้ — สามารถใช้ text ทั้ง internet เป็น training data โดยไม่ต้องจ้าง annotator
-- เทคนิคนี้ปลดล็อก foundation model ยุคปัจจุบัน 
-
-```mermaid
-graph TD
-    L[Learning Paradigm] --> S[Supervised]
-    L --> U[Unsupervised]
-    L --> R[Reinforcement]
-    L --> SS[Self-supervised]
-    S --> S1["labeled pairs<br/>(input, output)"]
-    U --> U1["no labels<br/>find structure"]
-    R --> R1["reward signal<br/>from environment"]
-    SS --> SS1["labels created<br/>from data structure<br/>(LLM pretraining)"]
-```
-
-### 2.5 Putting It Together — ตัวอย่างจัดประเภท ChatGPT
-
-ChatGPT เป็นจุดตัดของหลายแกน:
-
-| แกน | พิกัด |
-|---|---|
-| Scope | **Narrow AI** — ทำ next-token prediction เป็นหลัก แม้จะดูเหมือนทำได้หลายอย่าง |
-| Approach | **Statistical/ML** — เรียนจาก data ทั้งหมด ไม่มี hand-coded rule |
-| Output | **Generative** — สร้าง text ใหม่ ไม่ใช่แค่ classify |
-| Learning (stage 1) | **Self-supervised pretraining** — next-token prediction บน text ขนาด trillion-token |
-| Learning (stage 2) | **Supervised fine-tuning (SFT)** — เรียนจาก (instruction, response) ที่มนุษย์เขียน |
-| Learning (stage 3) | **Reinforcement learning (RLHF)** — ปรับให้ตรงกับ human preference |
-
-นี่คือเหตุผลที่ taxonomy หลายมิติมีประโยชน์ — ระบบเดียว ChatGPT แตะ 4 paradigm การเรียน, ใช้ approach statistical ล้วน, output แบบ generative, อยู่ในกลุ่ม narrow. ถ้าเรามอง ChatGPT แค่ว่า "generative AI" หรือ "LLM" จะพลาด structure ภายในนี้.
-
-ลองอีกตัวอย่าง — **AlphaGo:**
-- Scope: Narrow (เล่น Go), Approach: Statistical (deep neural network), Output: Discriminative (เลือก move ที่ดีที่สุด, ไม่ได้ generate game), Learning: Supervised (จากเกมมนุษย์) + Reinforcement (self-play)
-
-และ **Google Translate ยุคก่อน 2016:**
-- Scope: Narrow, Approach: Statistical (statistical machine translation, ไม่ใช่ neural), Output: Generative (สร้าง text แปล), Learning: Supervised (parallel corpus)
-
-### 2.6 Taxonomy เป็นเครื่องมือ ไม่ใช่กฎ
-
-ระบบจริง blur boundary บ่อยมาก:
-- **Discriminative vs generative** ของ LLM — LLM เป็น generative แต่ใช้ทำงาน classification ก็ได้
-- **Narrow vs general** — LLM ตัวใหญ่ทำงานหลายชนิดได้ดีเกินคาด คนถกเถียงว่า "ยังถือเป็น narrow อยู่ไหม"
-- **Symbolic vs statistical** — modern agentic system ผสม LLM (statistical) กับ tool/code execution (symbolic) — เป็น hybrid โดยปริยาย
-- **Self-supervised vs unsupervised** — บางตำราจัด self-supervised ภายใต้ unsupervised; บางตำราแยก. ทั้งสองมุมมองมีเหตุผล
-
-จุดประสงค์ของ taxonomy คือ **ช่วยให้เหตุผลกับระบบใหม่ ๆ ได้เร็ว** ไม่ใช่บังคับให้ทุกระบบเข้าช่อง. เวลาเจอ AI system ใหม่ ลองถาม 4 คำถามนี้ — Scope? Approach? Output type? Learning paradigm? — แล้วจะได้ภาพที่หลายมิติแทนคำอธิบายแบนเดียว.
+> 💡 **Key insight:** taxonomy ไม่ใช่ตู้แบ่งช่อง มันเป็นระบบพิกัด. AI หนึ่งตัวมีตำแหน่งบนหลายแกนพร้อมกัน และเข้าใจตำแหน่งนั้นคือเข้าใจ AI ตัวนั้น.
 
 ---
 
-## Worked Examples
+## แกนที่ 1 — ทำอะไรได้บ้าง เทียบกับมนุษย์
 
-### Example 1: จัดประเภท Stable Diffusion
-**ระบบ:** Stable Diffusion (text-to-image generator)
-- **Scope:** Narrow AI — ทำ image generation จาก text เป็นหลัก
-- **Approach:** Statistical — deep neural network (diffusion model), ไม่มี hand-coded rule
-- **Output:** Generative — สร้างภาพใหม่
-- **Learning paradigm:** Self-supervised pretraining (เรียนจาก (image, caption) คู่ ๆ ที่ scrape มาจาก internet — เป็น self-supervised เพราะ caption-image pair ใช้แทน label)
+แกนนี้ถามว่า AI ตัวนั้นมีขอบเขตของความสามารถกว้างแค่ไหน เทียบกับสิ่งที่มนุษย์ทำได้.
 
-จุดสังเกต: แม้ Stable Diffusion กับ ChatGPT จะอยู่ใน "generative AI" เหมือนกัน แต่ architecture (diffusion vs autoregressive transformer) ต่างกันมาก.
+<!-- IMAGE: ภาพ spectrum แนวนอน จากซ้ายไปขวา — ซ้ายสุดคือ "Narrow AI" (ไอคอนจุดเล็กในงานเดียว), กลางคือ "AGI" (ไอคอนมนุษย์หลายงาน), ขวาสุดคือ "ASI" (ไอคอนเหนือมนุษย์) มีลูกศรชี้ที่ "Narrow AI" พร้อมป้าย "คุณอยู่ตรงนี้ ในปี 2026"
+Style: diagram
+Text on image: "Narrow AI / ANI" | "General AI / AGI" | "Superintelligence / ASI" | "AI ที่มีอยู่จริงในปี 2026"
+-->
 
-### Example 2: จัดประเภท Spam Filter ของ Gmail
-**ระบบ:** Gmail spam classifier
-- **Scope:** Narrow AI — ตัดสิน spam vs not-spam
-- **Approach:** Statistical (modern) — เป็น neural network ที่เรียนจาก label จากผู้ใช้กดปุ่ม "Report spam"
-- **Output:** Discriminative — ทำนาย label เท่านั้น
-- **Learning paradigm:** Supervised — มี (email, label) คู่กันชัดเจน
+### Narrow AI — ทำงานเดียวได้ดีมาก
 
-ในยุคก่อน 2010 spam filter เคยเป็น symbolic AI (rule-based, regex match) — เปลี่ยนมาเป็น statistical เพราะ spammer ปรับ pattern เร็วเกินกว่าจะเขียน rule ตามทัน.
+นึกถึงช่างเชี่ยวชาญที่ทำงานเดียวมาทั้งชีวิต — ฝีมือดีเยี่ยม แต่ออกนอกขอบเขตนั้นไม่ได้. นี่คือ Narrow AI หรือที่วงการเรียกว่า **ANI** (Artificial Narrow Intelligence).
 
-### Example 3: ตอบคำถาม "AI จะแทนที่งานมนุษย์ไหม"
-คำถามนี้ตอบไม่ได้ถ้าไม่ระบุ "AI ประเภทไหน":
-- Narrow AI **กำลังแทนที่งานบางส่วน** อยู่แล้ว — เช่น email triage, image tagging, basic translation, first-draft writing
-- AGI **ยังไม่มี** — การถามว่าจะ "แทนที่" เร็วแค่ไหน เท่ากับถามว่า AGI จะมาเมื่อไหร่ ซึ่งเป็นคำถามเปิดที่มีฉันทามติต่ำมาก
-- ASI **เป็น speculative** — ถ้าเกิด implication กว้างกว่าแค่ "แทนที่งาน" มาก
+ตัวอย่างที่คุณรู้จักดี:
+- Stockfish — โปรแกรมหมากรุกที่ชนะแชมป์โลก แต่ถามว่า "วันนี้อากาศเป็นยังไง" ไม่ได้
+- ระบบแนะนำหนัง Netflix — รู้ว่าคุณน่าจะชอบหนังเรื่องอะไร แต่ไม่รู้ว่าคุณกินข้าวเช้าหรือยัง
+- ตัวกรอง spam ของ Gmail — จำแนก email ได้แม่นมาก แต่ทำอะไรอื่นไม่ได้เลย
+- ระบบ OCR ของธนาคารไทยที่อ่าน QR code — เก่งมาก แต่ถามมันว่า "ยอดนี้ตรงกับ invoice ไหม" ทำไม่ได้
+- ระบบแนะนำ playlist ของ Spotify — รู้ว่าอารมณ์ตอนนี้ต้องการเพลงแบบไหน แต่ถามให้มันเล่นเพลงที่ไม่มีใน catalog ไม่ได้
 
-นี่คือเหตุผลที่ taxonomy สำคัญ — ทำให้แยกคำถามที่ตอบได้วันนี้ ออกจากคำถามที่ยังไม่มีคำตอบ.
+**และ ChatGPT, Claude, Gemini ก็เป็น Narrow AI ทั้งหมด**
 
----
+ข้อนี้หลายคนแปลกใจ. ChatGPT คุยได้ทุกเรื่อง เขียนโค้ดได้ แต่งกวีได้ วิเคราะห์ spreadsheet ได้ — ดูเหมือนทำได้ทุกอย่าง จะ narrow ได้ยังไง?
 
-## Common Misconceptions
+กุญแจอยู่ที่คำว่า "ทำงานเดียว" — ChatGPT ทำงานเดียวคือ **ทายว่าคำต่อไปน่าจะเป็นอะไร** (next-token prediction). ที่ดูเหมือนทำได้ทุกเรื่องเป็นเพราะงานนั้นครอบคลุม output หลายรูปแบบ ไม่ใช่เพราะมีหลายระบบย่อยภายใน. มันเหมือนช่างที่ใช้ค้อนได้ในงานหลายประเภท — แต่ก็ยังเป็นค้อนอยู่นั่นเอง.
 
-1. **ความเข้าใจผิด:** ChatGPT เป็น General AI (AGI) แล้ว เพราะมันคุยได้ทุกเรื่อง
-   **ความจริง:** ChatGPT เป็น **Narrow AI** ที่ทำงานเดียวคือ next-token prediction. ที่ดูเหมือน "ทำได้ทุกเรื่อง" เพราะ next-token prediction ครอบคลุม output หลายรูปแบบ ไม่ใช่เพราะมีหลายระบบย่อยภายใน. AGI ต้องการ generalization, transfer, common sense, และ planning ในระดับที่ LLM ปัจจุบันยังทำได้ไม่ดี
+ข้อจำกัดสำคัญของ Narrow AI: ถ้าถาม input ที่ต่างจากสิ่งที่เรียนมา ผลลัพธ์จะไม่ดี. Stockfish ไม่สามารถใช้ประสบการณ์หมากรุกไปช่วยเล่น Go. ChatGPT ไม่สามารถใช้ความรู้ภาษาไทยไปช่วยขับรถ.
 
-2. **ความเข้าใจผิด:** Generative AI = AI ที่สร้าง content เท่านั้น discriminative AI ตายแล้ว
-   **ความจริง:** Discriminative model ยังเป็นกระดูกสันหลังของ production AI ส่วนใหญ่ — fraud detection, recommendation, search ranking, medical imaging classifier ฯลฯ. Generative AI ได้ความสนใจมากเพราะ LLM แต่งานจำแนกประเภทยังเป็นงาน mainstream
+**ความเข้าใจผิดที่พบบ่อย:** หลายคนเห็นว่า ChatGPT ตอบคำถามเรื่องกฎหมาย ตามด้วยเรื่องอาหาร แล้วก็เรื่องโค้ด ก็สรุปว่านี่คือ AGI แล้ว. ยังไม่ใช่. งานทุกอย่างที่ ChatGPT ทำยังผ่านกลไกเดียวคือ "ทายคำต่อไป" — มันไม่ได้มีระบบความเข้าใจแยกสำหรับกฎหมาย, อาหาร, หรือโค้ด. AGI ต้องเรียนงานใหม่จากตัวอย่างน้อยมากและ transfer ความรู้ข้ามสาขาได้จริง ซึ่ง LLM ปัจจุบันยังทำได้ไม่ดีในหลายสถานการณ์.
 
-3. **ความเข้าใจผิด:** Symbolic AI ตายแล้ว แทนที่ด้วย deep learning ทั้งหมด
-   **ความจริง:** Symbolic component ยังอยู่ในระบบ AI สมัยใหม่ — RAG ใช้ retrieval แบบ symbolic, agent ใช้ tool/code execution แบบ symbolic, formal verifier ยังเป็น symbolic ล้วน. Trend จริงคือ **hybrid** — neural สำหรับ perception, symbolic สำหรับ reasoning ที่ต้องเชื่อถือได้
+> 💡 **Key insight:** ที่ ChatGPT ดูเหมือน "ทำได้ทุกเรื่อง" ไม่ใช่เพราะมัน general — เป็นเพราะ next-token prediction มีขอบเขตที่กว้างมากในระดับ output. แต่ถามให้มันทำอะไรที่ออกนอกข้อความ เช่น จดจำบทสนทนาระหว่าง session หรือควบคุมคอมพิวเตอร์ มันทำไม่ได้เองโดยธรรมชาติ
 
-4. **ความเข้าใจผิด:** Self-supervised learning เป็นแค่ unsupervised แบบเปลี่ยนชื่อ
-   **ความจริง:** ต่างกันที่ **มี label หรือไม่ในการ training**. Unsupervised ไม่มี label เลย — เรียน structure ของ data (เช่น cluster). Self-supervised **มี label** แต่ label ถูก derive จาก data เอง (เช่น token ถัดไปเป็น label ของ token ก่อนหน้า). การมี label ทำให้ใช้ machinery ของ supervised learning ได้ — นี่คือเหตุผลที่ LLM pretraining ทำงานได้ดี
+### AGI — ยังเป็นแค่สมมติฐาน
 
-5. **ความเข้าใจผิด:** AI หนึ่งระบบเลือกได้ paradigm เดียว
-   **ความจริง:** ระบบใหญ่ ๆ ใช้หลาย paradigm พร้อมกัน — ChatGPT ใช้ self-supervised pretraining, supervised fine-tuning, **และ** reinforcement learning ใน pipeline เดียว. แต่ละ stage แก้ปัญหาคนละด้าน
+**AGI** (Artificial General Intelligence) คือ AI ที่ทำงาน cognitive ได้ในระดับมนุษย์ในทุกโดเมน — เรียนงานใหม่จากตัวอย่างน้อย, ใช้ความรู้ข้ามสาขา, มี common sense, วางแผนระยะยาว.
 
----
+ในปี 2026 AGI **ยังไม่มีอยู่จริง**. มีถกเถียงในวงการว่า LLM รุ่นใหม่ ๆ เป็น "ก้าวสู่ AGI" หรือ "ยังห่างมาก" แต่ไม่มีใครบอกได้ชัดเจน เพราะแม้แต่คำนิยาม "AGI คืออะไร" ก็ยังตกลงกันไม่ได้ในวงวิชาการ.
 
-## Self-Check
+เวลาสื่อเขียนว่า "AI กำลังจะเทียบเท่ามนุษย์" มักหมายถึง AGI — ซึ่งเป็นเรื่องที่ยังอยู่ในขั้นทฤษฎีและการถกเถียง ไม่ใช่ผลิตภัณฑ์ที่ใกล้จะออกมา. ถ้าอ่านข่าวแล้วรู้สึกว่า "AI กำลังจะฉลาดเท่าคน" แล้วกังวล — หยุดก่อน แล้วถามว่าคนเขียนข่าวนั้นหมายถึง Narrow AI ที่มีอยู่จริง หรือ AGI ที่เป็นแค่การคาดเดา
 
-ลองตอบให้ได้โดยไม่ดูข้างบน:
+### ASI — ยิ่งห่างกว่านั้น
 
-1. **(Recall)** ANI, AGI, ASI ย่อมาจากอะไร และต่างกันยังไง?
-2. **(Recall)** Discriminative และ Generative model ต่างกันที่จุดไหนเชิง intuition?
-3. **(Explain)** ทำไม LLM อย่าง ChatGPT ถึงยังถือว่าเป็น Narrow AI แม้จะดูเหมือนทำได้ทุกเรื่อง?
-4. **(Apply)** ลองจัดประเภท Google Photos face recognition ตาม 4 แกน (Scope, Approach, Output, Learning paradigm)
-5. **(Apply)** ถ้าจะสร้างระบบ "ตรวจหา fraud transaction ใน online banking" — ควรเป็น discriminative หรือ generative? supervised หรือ unsupervised? เพราะอะไร?
-6. **(Synthesize)** ทำไม Self-supervised learning ถึงเป็น "ตัวปลดล็อก" ของยุค LLM — ถ้าไม่มี paradigm นี้ ปัจจุบันจะเป็นยังไง?
+**ASI** (Artificial Superintelligence) คือ AI ที่เหนือมนุษย์ในทุกโดเมน — เป็นหัวข้อที่นักวิจัยด้าน AI safety ถกเถียงกัน แต่ยังอยู่ในขอบเขตของการคาดการณ์และปรัชญา ไม่ใช่วิศวกรรม.
+
+สำหรับบทนี้ รู้ไว้แค่ว่า ASI เป็น hypothetical และยังไม่มีทาง roadmap ที่ชัดเจนไปถึงตรงนั้น.
+
+**ทำไมเรื่อง AGI/ASI ถึงสำคัญที่ต้องรู้แม้จะยังไม่มี?** เพราะสื่อและคนในวงการ AI มักพูดถึงสองเรื่องนี้ปะปนกับ Narrow AI ที่มีอยู่จริง โดยไม่แยกให้ชัด. ผลคือคนทั่วไปที่ไม่รู้ taxonomy มักรู้สึกว่า "AI ตอนนี้ใกล้จะ AGI แล้ว" ซึ่งทำให้เกิดทั้งความกลัวเกินจริงและความคาดหวังเกินจริง. รู้ว่าอะไรมีจริงและอะไรยังเป็นสมมติฐาน คือทักษะพื้นฐานที่ทำให้คุณอ่านข่าว AI ได้อย่างมีวิจารณญาณ.
+
+<!-- IMAGE: ภาพ "3 คำถามก่อนเชื่อข่าว AI" — infographic แสดง flowchart: ข่าว AI เข้ามา → ถาม "พูดถึง AI ประเภทอะไร?" → ถ้า Narrow AI = มีอยู่จริง ตรวจสอบได้, ถ้า AGI/ASI = ยังเป็นสมมติฐาน ใช้วิจารณญาณ
+Style: infographic
+Text on image: "Narrow AI = ของจริง" | "AGI = สมมติฐาน" | "ASI = ยิ่งห่างออกไป"
+-->
 
 ---
 
-</section>
+## แกนที่ 2 — ความฉลาดมาจากไหน
+
+แกนนี้ถามว่า AI "เก่งขึ้น" มาได้ยังไง — ผ่านกฎที่คนเขียน หรือผ่านการเรียนจากข้อมูล?
+
+<!-- IMAGE: ภาพเปรียบเทียบสองคอลัมน์ — ซ้าย "Symbolic AI" มีภาพหนังสือกฎหมายหนา ๆ พร้อม bullet points "คนเขียน rule", "ตรวจสอบได้", "brittle" — ขวา "Statistical AI" มีภาพกราฟ data พร้อม bullet points "เรียนจาก data", "ยืดหยุ่น", "อธิบายยาก"
+Style: comparison
+Text on image: "Symbolic AI — เขียนกฎเอง" | "Statistical AI — เรียนจากข้อมูล"
+-->
+
+ความต่างหลักของแกนนี้สรุปสั้น ๆ ได้ว่า: **Symbolic AI** คือมนุษย์เขียนกฎลงในระบบโดยตรง (เช่น "ถ้าทำรายการเกิน 5 ครั้งใน 10 นาที ให้บล็อกบัญชี") — อธิบายได้ทุกขั้นตอนแต่ brittle เจอ input แปลก ๆ แล้วพัง. ส่วน **Statistical AI** ปล่อยให้ระบบค้นหา pattern เองจากข้อมูล (เช่น ตัวกรอง spam ที่เรียนจากอีเมลที่คนกด report) — ยืดหยุ่นและ scale ได้ แต่อธิบายเหตุผลได้ยาก. LLM ทุกตัวเป็น Statistical AI.
+
+เราเจาะลึกความต่างนี้ — รวมถึงว่าทำไม symbolic ถึงไม่ตาย และคำถาม "ใครเขียนกฎ" ที่ใช้แยกสองแบบ — ไปแล้วในบท [AI คืออะไร](/foundations/what-is-ai). ตรงนี้แค่เอามาวางเป็นหนึ่งในแกนของแผนที่.
+
+### Hybrid — เมื่อผสมสองแบบแล้วได้อะไรที่ดีกว่า
+
+ระบบ AI ที่น่าสนใจที่สุดในปี 2026 มักไม่ใช่ pure symbolic หรือ pure statistical — มันผสมทั้งสองแบบ. ความคิดหลักคือ: ให้ Statistical AI จัดการส่วนที่ต้องการ **ความยืดหยุ่น** (เข้าใจภาษา, จำแนกภาพ) และให้ Symbolic AI จัดการส่วนที่ต้องการ **ความแม่นยำที่ตรวจสอบได้** (การคำนวณ, logic ที่ต้องถูก 100%).
+
+ตัวอย่างที่เห็นชัด:
+
+**AlphaGeometry (DeepMind, 2024)** — พิสูจน์โจทย์เรขาคณิตระดับ olympiad ได้. วิธีที่ใช้คือ: LLM สร้าง "ไอเดีย" ว่าควรลองวิธีไหน, แล้ว symbolic theorem prover ตรวจสอบว่าไอเดียนั้นถูกต้องจริงทางคณิตศาสตร์. Statistical AI ให้ intuition, Symbolic AI ให้ความแม่นยำ.
+
+**ChatGPT กับ Web Search** — เวลา ChatGPT ค้นเว็บให้คุณ มันผสม LLM (statistical) กับ search engine ที่ทำ index แบบ symbolic. LLM ไม่ได้ "รู้" ข่าวล่าสุด แต่มันสั่งให้ search tool หาข้อมูล แล้วเอาผลที่ได้มาสรุปต่อ.
+
+**RAG (Retrieval-Augmented Generation)** — เทคนิคที่บริษัทไทยหลายแห่งใช้สร้าง chatbot ฝ่าย HR หรือ helpdesk. แทนที่จะให้ LLM "จำ" เนื้อหา policy ทั้งหมด ระบบจะดึง (retrieve) เอกสารที่เกี่ยวข้องมาก่อน แล้วให้ LLM อ่านและตอบจากข้อมูลนั้น. ส่วน retrieve เป็น symbolic, ส่วนตอบเป็น statistical.
+
+**ระบบนำร่องในรถยนต์** — ใช้ neural network (statistical) ในการมองเห็นและตีความถนน, แต่ใช้ rule-based system (symbolic) สำหรับการตัดสินใจขั้นสุดท้ายบางอย่างเช่น "เมื่อเข้าใกล้คนเดินถนน ลดความเร็วทันที" ซึ่งต้องเชื่อถือได้ 100%.
+
+**ความเข้าใจผิดที่พบบ่อย:** หลายคนคิดว่า Symbolic AI "ตายแล้ว" ถูก deep learning แทนที่ทั้งหมด. ความจริงคือ Symbolic AI ยังอยู่ในระบบสมัยใหม่หลายตัว แค่มักซ่อนอยู่เบื้องหลัง. ถ้าคุณเห็น AI ที่ "คำนวณเลขแม่น 100%" หรือ "ค้นหาข้อมูลจาก database ได้เสมอ" — ส่วนนั้นมักเป็น symbolic component ที่ทำงานร่วมกับ statistical AI.
+
+> 💡 **Key insight:** Symbolic AI ไม่ได้ "ตาย" แล้ว มันยังอยู่ในระบบ AI สมัยใหม่หลายตัว แค่มักซ่อนอยู่ในส่วน reasoning ที่ต้องการความแม่นยำสูง ในขณะที่ Statistical AI รับงาน perception และภาษา. ระบบที่น่าเชื่อถือที่สุดในปี 2026 มักเป็น hybrid ที่ออกแบบอย่างรอบคอบ ไม่ใช่ pure statistical อย่างเดียว.
+
+<!-- IMAGE: ภาพ diagram แสดง Hybrid AI — มีสองกล่อง "Statistical AI" (ซ้าย) และ "Symbolic AI" (ขวา) เชื่อมกันด้วยลูกศรสองทาง ด้านล่างมีตัวอย่าง: AlphaGeometry, RAG, ChatGPT + Web Search แต่ละตัวมีลูกศรชี้ว่าส่วนไหนเป็น statistical และส่วนไหนเป็น symbolic
+Style: diagram
+Text on image: "Statistical AI — เรียนรู้จาก data" | "Symbolic AI — logic ที่ตรวจสอบได้" | "Hybrid = เอาข้อดีของทั้งสอง"
+-->
+
+### ลองทำดู — แยกแยะ Symbolic กับ Statistical
+
+ลองนึกถึง AI tools ที่คุณใช้ในชีวิตประจำวัน แล้วตอบคำถามนี้กับแต่ละตัว:
+
+**คำถามทดสอบ:** "ถ้า input เปลี่ยนไปนิดหน่อย AI นี้ยังทำงานได้ไหม?"
+
+- ถ้า **ยังทำงานได้ดี** แม้ input จะแปลก ๆ หรือไม่สมบูรณ์ = น่าจะ Statistical
+- ถ้า **พังหรือตอบผิดทันที** เมื่อ input ออกนอกรูปแบบที่คาดไว้ = น่าจะ Symbolic
+
+ลองทดสอบกับ:
+1. **ระบบค้นหาใน e-commerce** — ลองพิมพ์ชื่อสินค้าผิดสะกด แล้วดูว่าหาเจอไหม
+2. **Auto-correct บนมือถือ** — ลองพิมพ์คำที่ไม่มีในพจนานุกรม แล้วดูว่ามันแก้หรือปล่อยผ่าน
+3. **Chatbot ของธนาคาร** — ลองถามนอกหัวข้อ เช่น chatbot ของธนาคารถามเรื่องอาหาร แล้วดูว่ามันตอบอะไร
+
+ไม่มีคำตอบที่ผิดถูก — แค่ฝึกสังเกต pattern ของระบบที่เจอในชีวิตจริง.
+
+เมื่อทำ exercise นี้บ่อย ๆ คุณจะเริ่มเห็น pattern ที่น่าสนใจ: AI ยุคเก่าส่วนใหญ่ที่ "ทำงานตาม flow ที่วางไว้" มักเป็น Symbolic, AI ยุคใหม่ที่ "ยืดหยุ่นกว่า แต่บางทีก็ตอบแปลก ๆ" มักเป็น Statistical หรือ Hybrid. การสังเกตความ brittle กับความ flexible นี้คือวิธีง่ายที่สุดในการแยกสองแบบโดยไม่ต้องรู้ technical detail ลึก.
+
+---
+
+## แกนที่ 3 — สร้างของใหม่หรือแค่จัดประเภท
+
+แกนนี้ถามว่า เมื่อ AI "ทำงาน" มันผลิตอะไรออกมา — ตัดสินว่าสิ่งที่มีอยู่เป็นอะไร หรือสร้างสิ่งใหม่ขึ้นมา?
+
+<!-- IMAGE: ภาพเปรียบเทียบสองคอลัมน์ — ซ้าย "Discriminative" มีภาพอีเมลที่มีป้ายติด "spam / not spam" — ขวา "Generative" มีภาพ text ที่กำลังถูกสร้างขึ้นทีละคำ
+Style: comparison
+Text on image: "Discriminative — จัดประเภทของที่มีอยู่" | "Generative — สร้างของใหม่"
+-->
+
+### Discriminative — วาดเส้นแบ่ง
+
+**Discriminative model** เรียนที่จะ "วาดเส้นแบ่ง" ระหว่างประเภท. มัน input รับข้อมูลเข้า แล้วบอกว่า "นี่คืออะไร" หรือ "น่าจะเป็นค่าเท่าไหร่"
+
+ตัวอย่าง:
+- อีเมลชิ้นนี้ = spam หรือ not spam?
+- ภาพ X-ray นี้ = มีก้อนเนื้อหรือไม่?
+- ราคาบ้านหลังนี้น่าจะอยู่ที่เท่าไหร่?
+- รีวิวนี้ sentiment positive หรือ negative?
+- ลูกค้าคนนี้จะเลิกใช้บริการ (churn) ภายใน 3 เดือนไหม?
+- ภาพถ่ายสินค้านี้มีตำหนิหรือไม่? (ระบบ QC ในโรงงานผลิต)
+
+กลไกข้างใน: model เรียน **เส้นแบ่ง** ใน "พื้นที่" ของข้อมูล — input ใหม่ตกข้างไหนของเส้น ก็เป็นประเภทนั้น.
+
+ตรงนี้บางครั้งจะเห็นสูตรคณิตศาสตร์เขียนว่า **P(y|x)** ซึ่งอ่านว่า "ความน่าจะเป็นของ y เมื่อรู้ x" — ฟังดูน่ากลัว แต่แปลงเป็นภาษาปกติได้ง่ายมาก: ถ้า x คืออีเมลที่คุณส่งเข้ามา และ y คือ "spam" หรือ "ไม่ใช่ spam" — สูตรนี้แค่บอกว่า "โอกาสที่อีเมลชิ้นนี้จะเป็น spam คือเท่าไหร่" ไม่ต้องจำสูตร แค่รู้ว่ามันถาม "ของที่มีอยู่นี้เป็นอะไร" ก็พอ.
+
+จุดแข็ง: ทำงาน classification ได้ดี ใช้ข้อมูลน้อยกว่า generative. งานส่วนใหญ่ที่ทำเงินได้ในปัจจุบัน เช่น fraud detection, credit scoring, medical imaging — ยังเป็น discriminative เป็นหลัก.
+
+**ความเข้าใจผิดที่พบบ่อย:** หลายคนคิดว่า Generative AI "ดีกว่า" Discriminative เพราะฟังดูล้ำกว่า. ในความจริง สองแบบนี้ตอบโจทย์ต่างกัน — ถ้าต้องการ "ตัดสิน" ให้ใช้ discriminative, ถ้าต้องการ "สร้าง" ให้ใช้ generative. ไม่มีแบบไหนดีกว่าแบบไหนในทุกสถานการณ์. ถ้าธนาคารต้องการระบบตรวจ fraud อย่างแม่นยำ — discriminative classifier พิเศษที่ถูก train กับ transaction data ของธนาคารนั้น มักดีกว่า ChatGPT มาก แม้ ChatGPT จะดูฉลาดกว่า.
+
+### Generative — สร้างตัวอย่างใหม่
+
+**Generative model** เรียน "หน้าตา" ของข้อมูลทั้งหมด แล้ว **สร้างตัวอย่างใหม่** ที่หน้าตาคล้ายกับสิ่งที่เรียนมา.
+
+ตัวอย่าง:
+- ChatGPT เขียนอีเมลตอบกลับ (สร้าง text ใหม่)
+- Midjourney วาดภาพจากคำอธิบาย (สร้างภาพใหม่)
+- Suno แต่งเพลง (สร้างเสียงใหม่)
+- Adobe Firefly ปรับรูปภาพสินค้าสำหรับงานโฆษณา (ที่เอเจนซี่ไทยหลายเจ้าเริ่มใช้งานจริงในปี 2025-2026)
+- Kling หรือ Runway สร้างคลิปวิดีโอจากภาพนิ่ง (ที่ทีม content creator ไทยทดลองใช้ในการสร้าง short video)
+
+กลไก: ถ้า Discriminative model เรียนว่า "ข้อมูลนี้อยู่ประเภทไหน", Generative model เรียนว่า "ข้อมูลประเภทนี้หน้าตาเป็นยังไง" — แล้ว sample ออกมาให้ได้ของใหม่ที่หน้าตาใกล้เคียง.
+
+จุดอ่อน: training ซับซ้อนกว่า, evaluate ยากกว่า (ไม่มีคำตอบที่ถูกผิดชัด), และมีความเสี่ยง hallucinate — พูดสิ่งที่ฟังดูสมเหตุสมผลแต่ผิดข้อเท็จจริง (เรื่องนี้อธิบายละเอียดใน[บท hallucination](#)).
+
+**ข้อสำคัญ:** model ตัวเดียวกันทำได้ทั้งสองแบบ. ChatGPT เป็น Generative model แต่ใช้ถามว่า "อีเมลนี้เป็น spam ไหม" ก็ได้ — มันจะตอบ "ใช่" หรือ "ไม่ใช่" ซึ่งคือการทำงาน Discriminative ผ่าน Generative mechanism.
+
+<!-- IMAGE: ภาพ "งานที่ AI แต่ละแบบถนัด" — ตาราง 2 คอลัมน์: Discriminative (fraud detection, credit scoring, medical imaging, spam filter) และ Generative (เขียน content, สร้างภาพ, แต่งเพลง, สร้างวิดีโอ) พร้อมไอคอนแต่ละงาน
+Style: infographic
+Text on image: "Discriminative — ตัดสิน" | "Generative — สร้าง"
+-->
+
+### ลองทำดู — สังเกต discriminative vs generative ในงานเดียว
+
+เปิด ChatGPT หรือ Claude แล้วลองสองคำสั่งนี้:
+
+**คำสั่งที่ 1 (Discriminative mode):** "อ่านอีเมลนี้แล้วบอกว่าเป็น spam หรือไม่ — [วางตัวอย่างอีเมล]"
+
+**คำสั่งที่ 2 (Generative mode):** "เขียนอีเมลตอบรับสมัครงานให้หน่อย"
+
+สังเกตว่าคำสั่งแรก AI จะตอบแบบ "ตัดสิน" แต่คำสั่งที่สอง AI จะ "สร้าง" — โมเดลเดียวกัน แต่ทำงานต่างกันตาม task ที่ได้รับ.
+
+ต่อมาลองทดสอบ discriminative classifier จริง ๆ: ไปที่ HuggingFace แล้วค้นหา "sentiment analysis" แล้วใส่ประโยคภาษาอังกฤษ — เช่น "This product is amazing" vs "This product is terrible." สังเกตว่ามันตอบแค่ "POSITIVE" หรือ "NEGATIVE" พร้อม confidence — ไม่สร้างข้อความใหม่เลย. นี่คือ discriminative classifier ล้วน ๆ ที่ต่างจาก LLM อย่างชัดเจน.
+
+---
+
+## แกนที่ 4 — เรียนจาก signal แบบไหน
+
+แกนนี้สำคัญมากเพราะอธิบายว่า **ทำไม AI แต่ละตัวถึงต้องการข้อมูลต่างกัน** และทำไม LLM ถึง scale ได้ขนาดนั้น
+
+<!-- IMAGE: ภาพ diagram แสดง 4 วิธีเรียน เรียงเป็นสี่เหลี่ยม — แต่ละช่องมีชื่อ (Supervised, Unsupervised, Reinforcement, Self-supervised) พร้อมไอคอนเล็ก ๆ แทนแต่ละแบบ
+Style: diagram
+Text on image: "Supervised" | "Unsupervised" | "Reinforcement" | "Self-supervised"
+-->
+
+AI เรียนรู้จาก signal ได้หลายแบบ. ในบทนี้เราดูแค่ระดับ "แผนที่" ว่ามีกี่แบบและต่างกันตรงไหน — ส่วนกลไกการเรียนรู้เต็ม ๆ อยู่ในบท [Machine Learning คืออะไร](/foundations/what-is-machine-learning) ที่จะมาถึง:
+
+- **Supervised** — เรียนจากตัวอย่างพร้อมเฉลย. ดูคู่ (input, output) หลายล้านคู่ เช่น (ภาพ → label "หมา") หรือ (email → "spam") แล้วเรียน mapping. จุดจำกัด: ต้องมีคนติด label ซึ่งใช้เงินและเวลามาก.
+- **Unsupervised** — ไม่มีเฉลย. ปล่อยให้ model หา structure เอง เช่น แบ่งลูกค้าเป็นกลุ่ม (cluster) หรือหา transaction ที่ผิดปกติ. ใช้กับงาน exploratory.
+- **Reinforcement Learning (RL)** — เรียนจากผลของการกระทำ: ทำ action → ได้ reward หรือ penalty → ปรับพฤติกรรม. ยังใช้ปรับ ChatGPT ในขั้นที่เรียกว่า **RLHF** (Reinforcement Learning from Human Feedback) ซึ่งทำให้มันตอบสุภาพและ "อ่านรู้เรื่อง" ขึ้น.
+- **Self-supervised** — สร้าง label จาก data เอง. ตัวอย่างที่ชัดที่สุดคือ **next-token prediction** ของ LLM: เอาข้อความมาซ่อนคำสุดท้าย ให้ model ทาย แล้วเฉลยคือคำจริงในข้อความนั้นเอง. ทำซ้ำหลายพันล้านครั้งกับ text ทั้งอินเทอร์เน็ต โดยไม่ต้องมีคนติด label เลย — นี่คือเหตุผลที่ LLM scale ได้ขนาดนั้น.
+
+> 💡 **Key insight:** สี่วิธีนี้ไม่ใช่ทางเลือกแบบ "เลือกอันเดียว" — ChatGPT ใช้ทั้ง self-supervised, supervised, และ RL ในขั้นตอนต่างกันของ pipeline เดียว. กลไก gradient descent ที่อยู่เบื้องหลังทั้งหมดนี้ อยู่ในบท [โมเดลเรียนรู้ยังไง](/foundations/how-models-learn) ส่วนรายละเอียด next-token prediction อยู่ในบท [LLM คืออะไร](/foundations/what-is-an-llm).
+
+<!-- IMAGE: ภาพ diagram แสดง "Self-supervised learning loop" — มีประโยคที่ถูกซ่อนคำสุดท้าย model ทาย เปรียบเทียบกับ text จริง คำนวณ error แล้วปรับ parameter วนซ้ำ
+Style: diagram
+Text on image: "Input: 'วันนี้อากาศดี มาออกกำลัง ___'" | "Model ทาย: 'กาย'" | "เฉลยจาก text จริง: 'กาย'" | "ทำซ้ำหลายพันล้านครั้ง"
+-->
+
+---
+
+## รวมทุกแกน — ChatGPT คือ AI ประเภทอะไรกันแน่
+
+ถึงตรงนี้คุณมีเครื่องมือครบแล้ว ลองจัดประเภท ChatGPT ตาม 4 แกน:
+
+| แกน | พิกัดของ ChatGPT |
+|-----|-----------------|
+| ขอบเขต | **Narrow AI** — ทำ next-token prediction เป็นหลัก แม้ดูเหมือนทำได้ทุกเรื่อง |
+| วิธีการ | **Statistical** — เรียนจาก data ทั้งหมด ไม่มี hand-coded rule |
+| Output | **Generative** — สร้าง text ใหม่ ไม่ใช่แค่จำแนก |
+| วิธีเรียน (ขั้น 1) | **Self-supervised pretraining** — next-token prediction บน text ระดับ trillion token |
+| วิธีเรียน (ขั้น 2) | **Supervised fine-tuning** — เรียนจาก (คำสั่ง, คำตอบ) ที่มนุษย์เขียน |
+| วิธีเรียน (ขั้น 3) | **RLHF** — ปรับให้ตอบในแบบที่คนชอบ |
+
+ChatGPT ใช้ 3 paradigm การเรียนใน pipeline เดียว แต่ละขั้นแก้ปัญหาคนละด้าน: self-supervised สร้างความรู้ขั้นพื้นฐาน, supervised fine-tuning สอนให้ "ตอบคำสั่ง", RLHF ปรับน้ำเสียงและทัศนคติ.
+
+ถ้าเรียก ChatGPT แค่ว่า "generative AI" หรือ "LLM" — ถูก แต่ไม่ครบ. Structure ภายในที่ซับซ้อนนี้อธิบายว่าทำไมมันตอบได้ดีขนาดนี้ และทำไมมันยังพลาดในบางงานที่คุณคาดว่าจะทำได้.
+
+ลองจัดประเภท AI อื่นด้วย: **AlphaGo** = Narrow + Statistical + Discriminative (ประเมินว่า move ไหนดีที่สุด ไม่ได้ generate เกม) + เรียนทั้งจากเกมมนุษย์และ self-play. **Google Translate** = Narrow + Statistical + Generative (สร้าง text แปล). สังเกตว่า AlphaGo เป็น Discriminative ทั้งที่มันเล่นเกม เพราะมันตัดสินว่า "move นี้ดีแค่ไหน" แล้วเลือก ไม่ได้ generate sequence แบบ LLM — นี่คือประโยชน์ของ taxonomy: มันบอกว่ากลไกจริง ๆ คืออะไร ไม่ใช่แค่ดูว่า output ดูเหมือนอะไร.
+
+ลองอีกตัวอย่างที่ใกล้ชิดกับคนไทยมากขึ้น: **Lazada/Shopee recommendation engine** = Narrow (แนะนำสินค้าเท่านั้น) + Statistical (เรียนจาก click, purchase, dwell time) + Discriminative (ประเมินว่าสินค้าชิ้นนี้น่าจะถูกใจคุณแค่ไหน ไม่ได้ "สร้าง" สินค้าใหม่) + Supervised + Reinforcement (ปรับจาก click และซื้อจริงหรือไม่). สังเกตว่ามันมี profile ที่แตกต่างจาก ChatGPT อย่างสิ้นเชิง แม้ทั้งคู่จะเป็น "AI" เหมือนกัน.
+
+<!-- IMAGE: ภาพ "เปรียบเทียบ taxonomy ของ ChatGPT vs AlphaGo vs Recommendation Engine" — ตาราง 3 แถว 5 คอลัมน์ (AI name, Scope, Approach, Output, Learning) แต่ละ cell มีข้อมูลสั้น ๆ สีต่างกันตาม category
+Style: comparison
+Text on image: "ChatGPT" | "AlphaGo" | "Shopee Rec" | "Narrow" | "Statistical" | "Generative" | "Discriminative"
+-->
+
+### ลองทำดู — จัดประเภท AI ที่คุณใช้ประจำ
+
+เลือก AI tool ที่คุณใช้อยู่ (เช่น Grammarly, Google Translate, Midjourney, หรือ Copilot ใน Office) แล้วลองตอบ 4 คำถามนี้:
+
+1. **ขอบเขต:** มันทำงานเดียวหรือหลายงาน? ถ้าถามนอกหัวข้อ มันตอบได้ไหม?
+2. **วิธีการ:** มันน่าจะเรียนจาก data หรือมีคนเขียน rule ให้? (hint: ถ้า "ฉลาดขึ้นจาก feedback" = statistical)
+3. **Output:** มันจำแนก/ทำนาย หรือสร้างของใหม่?
+4. **วิธีเรียน:** มันต้องการ label จากคน หรือเรียนได้จาก data ดิบ?
+
+ไม่มีคำตอบที่ผิดถูก — แค่ฝึกคิดเป็นระบบพิกัด.
+
+---
+
+## Agentic AI — ประเภทที่กำลังเปลี่ยนทุกอย่างในปี 2026
+
+ถ้าสี่แกนข้างต้นเป็นเครื่องมือหลัก มีหมวดหนึ่งที่กำลังเกิดขึ้นในปี 2025-2026 ที่ต้องพูดถึงแยก: **Agentic AI** หรือที่บางคนเรียกว่า "AI ที่ใช้ tool"
+
+Agentic AI ไม่ใช่ประเภทใหม่ในแง่ "แกนที่ 5" — มันยังเป็น Narrow AI, Statistical, Generative เหมือนเดิม. แต่มันเพิ่มความสามารถที่ LLM ล้วน ๆ ไม่มี: **ความสามารถทำงานหลายขั้นตอนโดยอัตโนมัติ โดยใช้ tool ภายนอก**
+
+<!-- IMAGE: ภาพเปรียบเทียบ "LLM ธรรมดา vs Agentic AI" — ซ้าย LLM รับ prompt ออก text, ขวา Agentic AI มี loop: รับ task → วางแผน → เลือก tool (ค้นเว็บ / รัน code / ส่งอีเมล) → ดูผล → ทำขั้นต่อไป จนถึง goal
+Style: diagram
+Text on image: "LLM ธรรมดา: input → output" | "Agentic AI: task → plan → act → observe → repeat"
+-->
+
+### LLM ธรรมดากับ Agentic AI ต่างกันยังไง
+
+ลองนึกถึงสองสถานการณ์:
+
+**สถานการณ์ที่ 1:** คุณถาม ChatGPT ว่า "หาตั๋วเครื่องบินกรุงเทพ-เชียงใหม่ราคาถูกที่สุดในสัปดาห์หน้าให้หน่อย"
+
+ChatGPT ตอบได้ว่า "คุณควรลองดูที่ AirAsia, Nok Air หรือ Lion Air ซึ่งมักมีราคาถูก" แต่มันทำไม่ได้คือ: เปิดเว็บ, ค้นหาจริง, เปรียบเทียบราคา, และบอกคุณว่า "วันอังคารหน้า Nok Air ราคา 890 บาท"
+
+**สถานการณ์ที่ 2:** Agentic AI ที่มี tool สำหรับค้นเว็บ ทำได้: เปิด query, ดึงข้อมูลจากหลายแหล่ง, เปรียบเทียบ, สรุปผล — แล้วบอกคุณว่าเจออะไร
+
+ความต่างคือ LLM ธรรมดา **ทำงานรอบเดียว** (รับ input → คาย output) ส่วน Agentic AI **วนซ้ำหลายรอบ** และ **ใช้ tool ภายนอก** เช่น:
+- ค้นหาเว็บ
+- รัน Python code
+- อ่านและเขียนไฟล์
+- ส่งอีเมลหรือเรียก API
+- ใช้เครื่องคิดเลข (เพราะ LLM เองไม่เก่งเรื่องตัวเลข)
+
+### Hybrid ข้างในของ Agentic AI
+
+สิ่งที่น่าสนใจคือ Agentic AI เป็น hybrid โดยธรรมชาติ — มันผสม Statistical LLM เข้ากับ Symbolic tools. เมื่อ Claude ใช้ Python interpreter เพื่อคำนวณ compound interest ให้คุณ:
+
+- **ส่วน Statistical (LLM):** เข้าใจ intent ของคุณ, เขียน Python code ที่ถูกต้อง, อธิบายผลลัพธ์เป็นภาษาคน
+- **ส่วน Symbolic (Python runtime):** รัน code จริง ๆ และได้ตัวเลขที่ถูกต้องทางคณิตศาสตร์
+
+ถ้าใช้แค่ LLM อย่างเดียว — มันอาจคำนวณผิด เพราะ next-token prediction ไม่ได้ออกแบบมาเพื่อความแม่นยำทางตัวเลข. แต่เมื่อให้ LLM เขียนโค้ดแล้วให้ Python รันต่อ — ผลลัพธ์ถูก 100%. นี่คือ hybrid ที่ทรงพลัง: Statistical AI จัดการ language และ reasoning, Symbolic AI จัดการ execution ที่ต้องแม่นยำ.
+
+### ทำไมนี่ถึงสำคัญ
+
+ความสำคัญของ Agentic AI ไม่ได้อยู่ที่เทคโนโลยีใหม่ — มันยังเป็น LLM เหมือนเดิม. ความสำคัญอยู่ที่ **งานที่ทำได้เพิ่มขึ้นอย่างมาก**
+
+LLM ธรรมดา: "ช่วยเขียน email สรุปการประชุมได้"
+Agentic AI: "อ่าน Zoom transcript จากไฟล์ที่แชร์มา, ดึงข้อมูลผู้เข้าร่วมจาก calendar, เขียน email สรุป, แล้ว draft ส่งพร้อมให้คุณ approve ก่อนกด send"
+
+ตัวอย่างจากงานจริงในประเทศไทยปี 2026:
+- ทีม Customer Success ของ startup fintech ใช้ Agentic AI เปิด Zendesk ticket → อ่านประวัติลูกค้า → เสนอ draft reply ที่ personalized ให้พนักงาน review แค่ 30 วินาทีก่อนส่ง
+- บริษัทอสังหาริมทรัพย์ใช้ Agentic AI รับ lead จาก Line → ดึงข้อมูลโครงการที่น่าสนใจ → schedule appointment → ส่ง confirmation ไปในทีเดียว
+- นักบัญชีในบริษัท SME ใช้ Agentic AI ที่อ่าน invoice PDF → สกัดข้อมูล → match กับ purchase order → flagging ความแตกต่างให้นักบัญชีตรวจสอบ แทนที่จะต้องนั่งเปิดไฟล์เองทีละใบ
+
+ข้อควรระวังที่ต้องรู้เมื่อใช้ Agentic AI ในองค์กร: เพราะมัน "ทำงานจริง" ไม่ใช่แค่ "ตอบคำถาม" ความผิดพลาดจึงมีผลจริง. ถ้า LLM ธรรมดา hallucinate แล้วบอกว่า "กรุงเทพอยู่ในมาเลเซีย" คุณอ่านแล้วรู้ว่าผิดทันที. แต่ถ้า Agentic AI hallucinate แล้วส่งอีเมลผิด หรือกรอก data ผิดลงฐานข้อมูล — ผลกระทบเป็นจริงก่อนที่คุณจะรู้. นี่คือเหตุผลที่ workflow ที่ดีต้องมี human checkpoint ในจุดสำคัญ ไม่ใช่ปล่อยให้ agent ทำงานอัตโนมัติ 100% ตั้งแต่วันแรก.
+
+> 💡 **Key insight:** Agentic AI ไม่ใช่ AI ประเภทใหม่ในแง่ taxonomy — แต่เป็น "mode การทำงาน" ใหม่ของ LLM ที่เปลี่ยนจาก "ตอบคำถาม" เป็น "ทำงาน". ความเสี่ยงก็ใหญ่ขึ้นตาม: เมื่อ AI มีสิทธิ์กด send email จริง ๆ การ hallucinate ก็ส่งผลจริง ๆ
+
+<!-- IMAGE: ภาพ timeline แสดง "LLM → Agentic AI evolution" — ปี 2020-2022: LLM ล้วน (แค่ตอบ), ปี 2023: LLM + tools (ค้นเว็บได้), ปี 2024: multi-step agents, ปี 2025-2026: agentic workflows ใน enterprise มีลูกศรชี้ที่ปี 2026 ว่า "คุณอยู่ตรงนี้"
+Style: diagram
+Text on image: "LLM ธรรมดา" | "LLM + Tools" | "Multi-step Agent" | "Enterprise Workflows"
+-->
+
+---
+
+## ความรู้นี้เปลี่ยนวิธีใช้ AI ยังไง
+
+taxonomy ไม่ใช่แค่ความรู้เชิงวิชาการ — มันเปลี่ยนวิธีที่คุณตัดสินใจเลือกและใช้เครื่องมือได้จริง
+
+ลองจินตนาการสถานการณ์นี้: ผู้จัดการฝ่าย HR บริษัทหนึ่งอยากใช้ AI ช่วยคัดเรซูเม่. เธอเลือกใช้ ChatGPT เพราะ "ฉลาดที่สุด". ผลลัพธ์: ช้า, แพง (เสีย token ทุกครั้ง), และตอบไม่สม่ำเสมอในแต่ละรอบ.
+
+ถ้าเธอรู้ taxonomy ก็จะเข้าใจว่างานนี้ต้องการ discriminative classifier ไม่ใช่ generative LLM — เพราะเธอต้องการ "คัดใช่/ไม่ใช่" ไม่ใช่ "เขียนอะไรใหม่". ระบบที่ถูกกว่า เร็วกว่า และแม่นกว่า มีอยู่แล้ว ถ้าเธอรู้ว่าต้องมองหาอะไร.
+
+<!-- IMAGE: ภาพ "4 สถานการณ์ เลือก AI ให้ถูก" — infographic แสดงตาราง: งาน vs AI ที่ควรใช้ เช่น "จำแนก feedback ลูกค้า → discriminative classifier หรือ LLM ถาม yes/no", "เขียน content → generative LLM", "ทำงานหลายขั้นตอนอัตโนมัติ → agentic AI"
+Style: infographic
+Text on image: "เลือก AI ให้ตรงงาน"
+-->
+
+### เมื่อ discriminative vs generative บอกว่าควรใช้อะไร
+
+ถ้าคุณต้องการ **คำตอบเดียวที่แม่นยำสูง** (fraud หรือไม่, positive หรือ negative) — discriminative classifier มักดีกว่า generative LLM เพราะถูกออกแบบมาทำงานนั้น, เร็วกว่า, ถูกกว่า, และ confident score ตีความได้ชัดกว่า
+
+ถ้าคุณต้องการ **output ที่ยืดหยุ่น** (เขียน draft email, สรุปข้อมูล, แปลภาษา, ตอบคำถามที่ซับซ้อน) — generative LLM คือสิ่งที่คุณต้องการ
+
+ถ้าคุณต้องการ **ทำงานหลายขั้นตอนโดยอัตโนมัติ** และงานแต่ละขั้นต้องใช้ข้อมูลจากโลกภายนอก — agentic AI
+
+### เมื่อรู้ว่า supervised ต้องการ label คุณจะ
+
+- ถามผู้ขาย AI solution ว่า "model ถูก train มากับ data อะไร" ก่อนซื้อ
+- ตระหนักว่า fine-tuning model ให้ทำงานในธุรกิจคุณต้องการ labeled data จาก domain ของคุณ ไม่ใช่แค่ data ทั่วไป
+- เข้าใจว่าทำไม AI สำหรับ Thai language ยังต้องการงานและเงินลงทุนในการสร้าง training data ภาษาไทยคุณภาพสูง
+- เมื่อ AI ที่ซื้อมา "ทำงานได้ไม่ดีในบริบทของเรา" — อาจไม่ใช่เพราะ model แย่ แต่เพราะ training data ที่ใช้ไม่ match กับ domain ของคุณ
+
+### เมื่อรู้ว่า LLM เป็น narrow AI คุณจะ
+
+- หยุดแปลกใจที่ ChatGPT "โง่" ในบางเรื่องที่ดูง่าย
+- ไม่คาดหวังให้มันรู้ว่าคุณคุยกันเมื่อวานว่าอะไร (ถ้าไม่ได้ใช้ memory feature)
+- เข้าใจว่าทำไมการ prompt ที่ชัดเจนถึงสำคัญ — เพราะมันทำงานแค่กับ input ที่ได้รับในรอบนั้น
+
+### เมื่อรู้ว่า agentic AI ทำงานหลายขั้นตอน คุณจะ
+
+- ระวังมากขึ้นก่อนให้ permission ใด ๆ กับ AI agent เช่น การเข้าถึง email หรือ calendar
+- ออกแบบ workflow ที่มี human approval checkpoint ในจุดที่ผิดพลาดแล้วมีผลจริง
+- เริ่มมองหาว่างานซ้ำ ๆ ในที่ทำงานอะไรบ้างที่เข้าข่ายให้ agent ทำแทนได้
+
+> 💡 **Key insight:** ความรู้เรื่อง taxonomy ไม่ใช่ general knowledge — มันเป็น practical framework สำหรับการตัดสินใจ ว่าจะเลือก AI ไหน, ตั้งความคาดหวังยังไง, และรู้ว่าเมื่อไหรต้องระวัง
+
+### ลองทำดู — เลือก AI ให้ถูกสำหรับงานจริง
+
+ลองนึกถึงงานในชีวิตประจำวันหรืองานในที่ทำงาน 3 อย่าง แล้วลองจับคู่กับ AI ที่น่าจะเหมาะที่สุดโดยใช้ taxonomy:
+
+**ขั้นที่ 1:** เขียนงานออกมา เช่น "จำแนก feedback จากลูกค้าว่า positive หรือ negative", "แปล Terms and Conditions จากอังกฤษเป็นไทย", "สร้าง draft อีเมลสรุปการประชุมรายสัปดาห์"
+
+**ขั้นที่ 2:** ถามตัวเองว่างานนั้นต้องการ "ตัดสิน" (discriminative) หรือ "สร้าง" (generative)? ต้องการ "ทำรอบเดียว" หรือ "หลายขั้นตอน" (agentic)?
+
+**ขั้นที่ 3:** ลองค้นหาว่ามี AI tool ที่ถูกออกแบบมาเฉพาะสำหรับงานนั้นไหม (เช่น sentiment analysis API สำหรับงาน classify feedback) เปรียบกับการใช้ ChatGPT ทั่วไป — ราคา ความเร็ว และความแม่นต่างกันไหม?
+
+ไม่มีคำตอบที่ถูกผิด — แค่ฝึกคิดก่อนเลือกว่า "AI ไหนเหมาะกับงานนี้จริง ๆ" ไม่ใช่ใช้ ChatGPT กับทุกอย่างเพราะคุ้นเคย.
+
+---
+
+## คำถามที่พบบ่อย
+
+หลังอ่านมาถึงตรงนี้ หลายคนมักมีคำถามชุดเดิม ลองตอบให้ครบ:
+
+**"ChatGPT 4o กับ o3 ต่างกันยังไงในแง่ taxonomy?"**
+
+ทั้งคู่ยังเป็น Narrow AI + Statistical + Generative เหมือนกัน. ความต่างหลักอยู่ที่วิธีเรียนรู้เพิ่มเติม: o3 ถูก train ให้ "คิดยาวขึ้น" ก่อนตอบผ่าน reinforcement learning เพิ่มเติม. ในแง่ taxonomy ยังเป็น narrow + statistical แต่มี reasoning loop เพิ่มเข้ามาก่อนที่จะ generate output สุดท้าย.
+
+**"AI ที่วาดภาพได้กับ AI ที่เขียนข้อความได้ต่างกันไหม?"**
+
+ต่างกันในแง่ architecture และ training data แต่ทั้งคู่อยู่ใน Generative + Statistical + Narrow เหมือนกัน. Midjourney/Stable Diffusion ใช้ diffusion model ซึ่งเป็น generative architecture คนละแบบกับ transformer ของ LLM แต่หลักการ "เรียนจาก data แล้วสร้างของใหม่" เหมือนกัน.
+
+**"ทำไม AI ถึงตอบคำถามเดิมต่างกันในแต่ละครั้ง?"**
+
+เพราะ generative model มีความสุ่ม (randomness) อยู่ในกระบวนการ generate. เวลา LLM เลือก token ถัดไป มันไม่ได้เลือกแค่ token ที่มี probability สูงสุดเสมอไป — มันสุ่มตาม probability distribution เพื่อให้ output หลากหลาย. นี่เรียกว่า temperature. ถ้าตั้ง temperature = 0 มันจะตอบเหมือนเดิมทุกครั้ง แต่อาจจำเจ.
+
+**"AI จะเขียนแทนมนุษย์ได้ทั้งหมดไหม?"**
+
+ขึ้นกับว่า "เขียน" หมายถึงอะไร. ถ้าหมายถึงงานเขียนที่ต้องการ pattern ที่มีใน training data — ทำได้ดีมากแล้ว. ถ้าหมายถึงงานที่ต้องการประสบการณ์จริงเฉพาะตัว (เช่น memoir, investigative journalism ที่ต้องสัมภาษณ์คน) หรืองานที่ต้องการ accountability — AI ยังทำแทนได้ยาก. ในระดับ Narrow AI ปัจจุบัน มันเขียน **ตาม pattern** ได้ดี แต่ไม่ได้ **รู้จริง** ในแบบที่มนุษย์รู้จริง.
+
+**"ทำไม Google Translate ยังแปลผิดบางครั้งทั้งที่ใช้ Statistical AI?"**
+
+Statistical AI เรียนได้ดีแค่ไหนขึ้นอยู่กับ: (1) ปริมาณ training data, (2) คุณภาพ data, และ (3) ความซับซ้อนของงาน. ภาษาไทยมี training data น้อยกว่าภาษาอังกฤษมาก ทำให้แปลไทย-อังกฤษด้อยกว่าฝรั่งเศส-อังกฤษ. นอกจากนี้ การแปลต้องการ context ที่กว้างกว่าแค่ประโยคเดียว ซึ่งยังเป็นจุดอ่อนของ model ที่มี context window จำกัด.
+
+**"Siri/Google Assistant/Alexa เป็น AGI ไหม?"**
+
+ไม่. ทั้งหมดเป็น Narrow AI — ออกแบบมาทำงานเฉพาะ เช่น ตั้งนาฬิกา, เปิดเพลง, ค้นข้อมูล. แม้จะฟังดู "ฉลาด" แต่ถ้าถามออกนอก domain ที่ออกแบบมา มักตอบผิดหรือไม่เข้าใจ. หลังปี 2023 หลายเจ้าเริ่ม integrate LLM เข้าไปทำให้ตอบได้กว้างขึ้น แต่ยังเป็น Narrow ในแง่ที่มีข้อจำกัดเฉพาะตัว.
+
+**"ถ้า AI ยังเป็นแค่ Narrow ทำไมถึงเอามาแทนที่งานได้?"**
+
+เพราะงานหลายอย่างของมนุษย์ก็เป็น "narrow" ในทางปฏิบัติ — กรอก form, ตรวจสะกดคำ, จำแนกรูปภาพตามหมวด, แปลข้อความ, สรุปอีเมล. งานเหล่านี้ไม่ต้องการ AGI แค่ต้องการ narrow AI ที่แม่นพอ. ข้อจำกัดของ AI ไม่ได้อยู่ที่ "ไม่ general พอ" แต่อยู่ที่ว่า "narrow ในมิติที่งานต้องการหรือเปล่า". Narrow AI ที่แม่นใน task เดียวสามารถแทนที่งาน narrow นั้นได้ทั้งหมด แม้จะ "โง่" ในทุกมิติอื่น.
+
+**"AI ภาษาไทยด้อยกว่าภาษาอังกฤษมากไหม และจะดีขึ้นไหม?"**
+
+ด้อยกว่าจริง แต่กำลังปิดช่องว่างเร็ว. สาเหตุหลักคือ training data ภาษาไทยบน internet มีน้อยกว่าภาษาอังกฤษมาก (ภาษาอังกฤษมีสัดส่วนประมาณ 50%+ ของ Common Crawl corpus ขณะที่ไทยมีไม่ถึง 1%). ในแง่ taxonomy หมายความว่า self-supervised pretraining สำหรับภาษาไทยมี training data น้อยกว่า ทำให้ pattern ที่เรียนได้ตื้นกว่า. แต่ตั้งแต่ปี 2024 เป็นต้นมา หลายทีมในไทยและในต่างประเทศลงทุนสร้าง Thai dataset และ fine-tune model ใหม่ — ช่องว่างนี้กำลังลดลงอย่างชัดเจน.
+
+<!-- IMAGE: ภาพ "FAQ AI Types" — infographic รูป speech bubble 4 อัน แต่ละอันมีคำถาม-คำตอบสั้น ๆ เกี่ยวกับ taxonomy ออกแบบให้ scannable และเข้าใจได้เร็ว
+Style: infographic
+Text on image: "ChatGPT = Narrow AI" | "Midjourney = Generative" | "Siri = ยังเป็น Narrow" | "AGI = ยังไม่มี"
+-->
+
+---
+
+## สิ่งที่ taxonomy บอกไม่ได้ — และทำไมนั่นไม่ใช่ปัญหา
+
+taxonomy ที่เรามีมีจุดที่ blur และ overlap — และนั่นเป็นเรื่องปกติมาก เครื่องมือดีไม่ได้แปลว่าต้องตอบทุกคำถามได้ชัดเจน.
+
+**LLM เป็น narrow หรือ general?** ยังถกเถียงกันอยู่. LLM ขนาดใหญ่ทำงานหลายชนิดได้ดีเกินที่ใครคาดในปี 2020 แต่ยังขาด common sense, long-term planning, และ transfer ข้ามโดเมนบางประเภท. ตอบว่า narrow ก็ไม่ครบ ตอบว่า general ก็ไม่ถูก. นี่ไม่ใช่จุดอ่อนของ taxonomy — มันคือสัญญาณที่บอกว่าระบบนั้นน่าสนใจและซับซ้อนพอที่จะไม่เข้าช่องใดช่องหนึ่ง.
+
+**Discriminative กับ Generative** ก็ไม่ได้แยกชัดเสมอ. LLM เป็น generative แต่ใช้ทำงาน discriminative ได้ และ model บางตัวถูกออกแบบมาทำทั้งสองพร้อมกัน.
+
+**Self-supervised กับ Unsupervised** บางตำราจัดให้เป็นกลุ่มเดียวกัน บางตำราแยก. ทั้งสองมุมมองมีเหตุผล.
+
+สิ่งที่สำคัญ: เวลา taxonomy "ตอบไม่ได้" ชัดเจน นั่นคือสัญญาณว่า **ระบบนั้นกำลังทำอะไรบางอย่างที่น่าสนใจ** — มักเป็นการ combine หลายแนวทางเข้าด้วยกัน ซึ่งเป็น trend ของวงการในปัจจุบัน. ความสามารถในการ "อยู่กับความ blur" นี้คือทักษะที่ทำให้คุณคิดเรื่อง AI ได้ดีกว่าคนที่ต้องการคำตอบชัดเจนเสมอ.
+
+taxonomy มีไว้เพื่อ **ช่วยให้เหตุผลได้เร็วขึ้น** ไม่ใช่บังคับให้ทุกระบบเข้าช่อง. เวลาเจอ AI tool ใหม่ ลองถาม 4 คำถาม: ขอบเขต? วิธีการ? output type? วิธีเรียน? — แล้วจะเห็นภาพชัดขึ้นกว่าอ่านสโลแกนในหน้า product.
+
+มีสิ่งหนึ่งที่ taxonomy นี้ไม่ได้วัด: **คุณภาพ** ของ AI ตัวนั้น. ChatGPT กับ LLM ที่พัฒนาเองในบริษัทเล็ก ๆ อาจมีพิกัดเหมือนกันทุกแกน (Narrow + Statistical + Generative + Self-supervised) แต่ประสิทธิภาพต่างกันมหาศาล. Taxonomy บอก "ประเภท" ไม่ได้บอก "เกรด". สำหรับ "เกรด" ต้องดู benchmark, ทดสอบจริง, และอ่านรีวิวจากผู้ใช้ในบริบทที่ใกล้เคียงกับงานของคุณ.
+
+นอกจากนี้ taxonomy นี้ไม่ได้บอก "ควรใช้หรือไม่ควรใช้ในเชิงจริยธรรม" — คำถามนั้นต้องการ framework คนละชุด. ระบบ facial recognition ที่มีพิกัด Narrow + Statistical + Discriminative + Supervised อาจใช้เพื่อความปลอดภัยในสนามบิน (ยอมรับได้) หรือเพื่อ mass surveillance (น่ากังวล) — taxonomy เดียวกัน แต่ context ต่างกันอย่างสิ้นเชิง. เรื่อง ethics ของ AI เป็นอีกชุดเครื่องมือที่บทหลัง ๆ ในหลักสูตรจะพูดถึง.
+
+> 💡 **Key insight:** taxonomy เป็นเครื่องมือ ไม่ใช่กฎ. ระบบจริงมักอยู่ระหว่างขอบเขต และนั่นไม่ใช่ปัญหา — แค่หมายความว่าเราต้องระบุพิกัดบนหลายแกน ไม่ใช่หาคำตอบคำเดียว.
+
+<!-- IMAGE: ภาพ "before and after" — ซ้ายคือคำถาม "AI จะแทนที่งานคนไหม?" พร้อมเครื่องหมาย X — ขวาคือชุดคำถามที่แม่นยำกว่า เช่น "Narrow AI กำลังแทนที่งาน X แล้ว", "AGI ยังไม่มี", "ASI เป็น hypothetical" และ "Agentic AI กำลังเปลี่ยน workflow" พร้อมเครื่องหมาย ✓
+Style: comparison
+Text on image: "คำถามเดิม" | "คำถามที่แม่นยำกว่า"
+-->
+
+---
+
+## ฝึกใช้ taxonomy — จัดประเภท AI ที่คนไทยรู้จัก
+
+อ่านมาถึงตรงนี้แล้ว ลองใช้ taxonomy ทำงานจริงกับ AI ที่คนไทยรู้จักและใช้งาน:
+
+<!-- IMAGE: ภาพ "จัดประเภท AI ที่คนไทยรู้จัก" — infographic แบบตาราง แต่ละแถวคือ AI หนึ่งตัว แต่ละคอลัมน์คือแกน taxonomy (Scope, Approach, Output, Learning) มีไอคอน AI แต่ละตัวในแถวแรก
+Style: infographic
+Text on image: "ChatGPT" | "Grab AI" | "ระบบสแกนหน้า" | "Line OA chatbot" | "Narrow" | "Statistical" | "Generative" | "Discriminative"
+-->
+
+**Grab — ระบบจับคู่ผู้โดยสารกับคนขับ**
+- **ขอบเขต:** Narrow — ทำงานเดียวคือจับคู่ให้ได้เร็วที่สุดและ fair ที่สุด
+- **วิธีการ:** Statistical — เรียนจากข้อมูล trip หลายพันล้านเส้นทาง ปรับ surge pricing ตาม demand
+- **Output:** Discriminative + Optimization — ไม่ได้ "สร้าง" อะไรใหม่ แต่ "ตัดสิน" ว่าคนขับคนไหนเหมาะกับผู้โดยสารคนนี้
+- **วิธีเรียน:** Supervised (ข้อมูล trip ที่ rating ดี = label บวก) + Reinforcement (ปรับ algorithm จาก feedback ของผู้ใช้)
+
+**ระบบ facial recognition ที่สนามบินสุวรรณภูมิ**
+- **ขอบเขต:** Narrow — ยืนยันตัวตนจากใบหน้าเท่านั้น
+- **วิธีการ:** Statistical (deep learning) — เรียนจากภาพใบหน้าหลายล้านภาพ
+- **Output:** Discriminative — บอกว่า "ใบหน้านี้ match กับหนังสือเดินทางนี้ไหม" ได้คำตอบ yes/no
+- **วิธีเรียน:** Supervised — (ภาพใบหน้า → identity) ที่มีคนติด label
+
+**Line OA chatbot ของ 7-Eleven**
+- **ขอบเขต:** Narrow — ตอบคำถามเกี่ยวกับโปรโมชั่น, ค้นหาสาขา, เช็คแต้ม
+- **วิธีการ:** Symbolic หรือ Hybrid — ส่วนใหญ่ใช้ rule-based สำหรับ structured query (เช็คแต้ม), อาจผสม ML สำหรับ intent detection
+- **Output:** Discriminative — classify ว่าผู้ใช้ต้องการทำอะไร แล้วดึงข้อมูลตาม
+- **วิธีเรียน:** ถ้าเป็น rule-based = ไม่ได้ "เรียน" ในแบบ ML, ถ้าใช้ intent classifier = Supervised
+
+สังเกตว่าไม่มี AI ตัวไหนที่ "ง่ายพอจะใส่ช่องเดียว" ได้อย่างสมบูรณ์. แต่การถามคำถาม 4 ข้อนี้ทำให้เห็นภาพชัดขึ้นมากกว่าการแค่รู้ว่า "มันใช้ AI"
+
+> 💡 **Key insight:** การจัดประเภทที่ดีไม่จำเป็นต้องสมบูรณ์ — แค่ให้ภาพที่ชัดพอสำหรับการตัดสินใจ. รู้ว่า Grab ใช้ Reinforcement learning ทำให้คุณเข้าใจว่าทำไม pricing ถึงเปลี่ยนแปลงตาม demand ได้เอง ไม่ต้องมีคนปรับ. รู้ว่าระบบ facial recognition เป็น Discriminative ทำให้คุณเข้าใจว่ามันไม่ได้ "จำ" หน้าคุณ แต่ "เปรียบเทียบ" หน้าคุณกับฐานข้อมูล.
+
+---
+
+## สรุป — แผนที่ 4 แกนที่ใช้ได้จริง
+
+AI ไม่ใช่สิ่งเดียว และคำว่า "AI" เดี่ยว ๆ ไม่ได้บอกอะไรมากพอ.
+
+เมื่อเจอ AI ใหม่ หรือเวลาอ่านข่าวเกี่ยวกับ AI ลองถาม 4 คำถามนี้:
+
+**หนึ่ง — ขอบเขต:** มันเป็น Narrow AI (ทำงานเดียว) หรือใกล้ AGI (ทำได้หลายโดเมน)? ปี 2026 เกือบทั้งหมดยังเป็น Narrow. AGI ยังไม่มี. อย่าหลงเชื่อ headline ที่บอกว่า "AI เกือบถึง AGI" โดยไม่ดูว่าวัดจากอะไร.
+
+**สอง — วิธีการ:** มันเขียน rule เอง (Symbolic) หรือเรียนจาก data (Statistical) หรือผสม (Hybrid)? ระบบสมัยใหม่ส่วนใหญ่เป็น Statistical หรือ Hybrid. ถ้าเห็น AI ที่ "ถามได้ทุกเรื่อง" = Statistical. ถ้าเห็น AI ที่ "ทำงานตาม rule ที่ตรวจสอบได้" = Symbolic.
+
+**สาม — Output:** มัน classify/ทำนาย (Discriminative) หรือสร้างของใหม่ (Generative)? LLM เป็น Generative แต่ใช้ทำงาน Discriminative ได้ด้วย. สำหรับงาน "ตัดสินใจแบบใช่/ไม่ใช่" ที่ต้องการความเร็วและความแม่น — discriminative classifier เฉพาะทางมักชนะ LLM.
+
+**สี่ — วิธีเรียน:** ต้องการ label จากคน (Supervised) หรือเรียนจาก data ดิบได้ (Unsupervised/Self-supervised) หรือเรียนจาก reward (Reinforcement)? LLM ใช้ทั้งสามขั้นตอนใน pipeline เดียว. ถ้าจะซื้อ AI solution ถามว่า "train กับ data อะไร" คือคำถามที่สำคัญที่สุด.
+
+**บวก — Mode การทำงาน:** มันตอบแล้วจบ (LLM ธรรมดา) หรือทำงานหลายขั้นตอนพร้อมใช้ tool ภายนอก (Agentic)? ในปี 2026 ความต่างนี้มีผลต่อทั้งความสามารถและความเสี่ยงที่ต้องจัดการ. Agentic AI เหมาะกับ workflow automation, LLM ธรรมดาเหมาะกับ knowledge work ที่ต้องการ flexibility.
+
+สี่คำถามนี้ใช้เวลาไม่นาน แต่ให้ภาพที่ชัดกว่าอ่านสโลแกน "AI ที่ฉลาดที่สุดในโลก" มาก.
+
+และถ้ากลับไปที่คำถามต้นบท "AI จะมาแทนที่งานคนไหม" — ตอนนี้คุณตอบได้แม่นยำกว่าเดิมแล้ว: Narrow AI กำลังแทนที่งานบางประเภทอยู่แล้วในปี 2026, Agentic AI กำลังเปลี่ยน workflow อีกหลายประเภท, AGI ยังไม่มี, และ ASI ยังเป็น hypothetical. สามหรือสี่คำตอบที่ต่างกันสำหรับคำถามเดียว — เพราะ AI ไม่ใช่สิ่งเดียว.
+
+สิ่งที่ taxonomy นี้ให้คุณจริง ๆ ไม่ใช่แค่ความรู้ — แต่เป็น **วิธีคิดที่ scale ได้**. AI ใหม่จะออกมาเรื่อย ๆ ชื่อใหม่, acronym ใหม่, สโลแกนใหม่. แต่ถ้าคุณถามได้ว่า "ขอบเขตคือ?" "วิธีการคือ?" "output type คือ?" "วิธีเรียนคือ?" — คุณจะไม่งงกับ hype ใหม่ ๆ และจะประเมินได้เองว่ามันน่าสนใจและ relevant กับคุณแค่ไหน.
+
+ลองนึกถึงครั้งต่อไปที่คุณอ่านข่าว "OpenAI เปิดตัว model ใหม่ที่ฉลาดกว่าเดิม 10 เท่า" — แทนที่จะตื่นเต้น (หรือกลัว) ทันที ลองถาม: "ฉลาดกว่าในแง่ไหน? ทำงาน narrow เดิมได้ดีขึ้นไหม? หรือ general มากขึ้นจริง?" คำถามเหล่านี้มาจาก taxonomy ที่คุณเพิ่งเรียน.
+
+บทต่อไปในหลักสูตรจะลงลึกใน Statistical AI ซึ่งเป็นแกนหลักของ AI สมัยใหม่. หลังจากนั้นจะเจาะลึก LLM และ Generative AI โดยเฉพาะ. ทุกบทจะ map กลับมาที่ taxonomy 4 แกนนี้ — ดังนั้นการเข้าใจบทนี้ให้ดีคือรากฐานที่สำคัญที่สุด.
+
+### ลองทำดู — ทดสอบขีดจำกัด Narrow AI ด้วยตาตัวเอง
+
+ลองเปิด ChatGPT แล้วทำสามอย่างนี้ภายใน session เดียว:
+
+**ขั้นที่ 1 — ทดสอบ discriminative mode:** วางข้อความรีวิวร้านอาหาร 5 รีวิวแล้วถามว่า "รีวิวไหน positive ไหน negative บอกเป็นตาราง"
+
+**ขั้นที่ 2 — ทดสอบ generative mode:** "เขียนรีวิวร้านอาหารไทยในกรุงเทพขึ้นมาหนึ่งรีวิว ให้ฟังดูเหมือนลูกค้าจริง"
+
+**ขั้นที่ 3 — ทดสอบขีดจำกัด narrow AI:** ถามมันว่า "ช่วยเปิดเว็บไปจอง Wongnai รีวิวร้านนี้ให้หน่อย"
+
+ขั้นที่ 3 จะพบว่า ChatGPT ทำไม่ได้ (ถ้าไม่ได้ติด plugin หรือใช้ agentic mode) — นั่นคือข้อจำกัดของ narrow AI ที่เห็นชัดด้วยตาตัวเอง. แล้วลองต่อด้วย: ถ้าใช้ Claude หรือ ChatGPT ที่เปิด browsing mode แล้วถามคำถามเดิม — เปรียบเทียบว่าผลต่างกันอย่างไร. นั่นคือความต่างระหว่าง LLM ธรรมดากับ Agentic mode ในชีวิตจริง.
+
+สังเกตว่าการทดสอบ 3 ขั้นนี้ไม่ต้องการความรู้เทคนิคอะไรเลย — แค่ต้องรู้ว่า taxonomy คืออะไรและถามคำถามให้ถูก. นั่นคือ "ทักษะ" ที่บทนี้ต้องการให้คุณพัฒนา: ไม่ใช่การจำชื่อ แต่เป็นการตั้งคำถามที่เจาะลงไปในกลไก.
+
+---
+
+## ก่อนอ่านบทต่อไป — ตรวจสอบความเข้าใจ
+
+ถ้าอธิบาย 3 ข้อนี้ได้โดยไม่ต้องเปิดดูด้านบน แสดงว่าบทนี้ผ่านแล้ว:
+
+1. **ทำไม ChatGPT ถึงยังเป็น Narrow AI แม้จะตอบได้ทุกเรื่อง?** (คำตอบอยู่ที่ "ทำงานเดียวคืออะไร" — next-token prediction มีขอบเขตกว้างในแง่ output แต่ยังเป็นงานเดียว)
+
+2. **Symbolic AI กับ Statistical AI ต่างกันอย่างไรในแง่ที่ต้องเลือกใช้?** (คำตอบอยู่ที่ "อธิบายได้ vs scale ได้" — Symbolic ตรวจสอบได้ทุกขั้น แต่เขียนกฎไม่ทัน, Statistical scale ได้แต่อธิบายยาก)
+
+3. **ทำไม LLM ถึง scale ได้ถึงขนาดนี้โดยไม่ต้องพึ่ง labeled data?** (คำตอบอยู่ที่ self-supervised learning — text ต้นฉบับทำหน้าที่เป็นทั้ง input และ label พร้อมกัน ไม่ต้องจ้างคนติด label)
+
+4. **Agentic AI ต่างจาก LLM ธรรมดาอย่างไร?** (คำตอบอยู่ที่ "รอบเดียว vs หลายรอบ + tools" — LLM ธรรมดาตอบแล้วจบ Agentic AI วนซ้ำและ execute จริง)
+
+ถ้าตอบได้ทั้ง 4 ข้อ — พร้อมไปยัง Machine Learning บทต่อไปแล้ว. ถ้ายังตอบไม่ได้สักข้อ ลองอ่านส่วนนั้นซ้ำก่อน เพราะทั้ง 4 ข้อนี้จะใช้อ้างอิงตลอดหลักสูตร. ข้อที่คนส่วนใหญ่สะดุดมากที่สุดคือข้อแรก — "ChatGPT ทำได้ทุกเรื่องแล้ว Narrow อย่างไร" — เพราะคำว่า Narrow ในบริบทนี้หมายถึง task ไม่ใช่หัวข้อ.
+
+ถ้าอยากทดสอบเพิ่ม ลองเล่นเกมนี้กับเพื่อนหรือเพื่อนร่วมงาน: บอกชื่อ AI tool มาหนึ่งตัว แล้วให้อีกฝ่ายเดาพิกัดใน taxonomy 4 แกน. ไม่ว่าจะตอบถูกหรือผิด การถกเถียงเพื่อหาคำตอบที่ดีกว่าคือการเรียนรู้จริงที่ดีที่สุด.
+
+---
+
+บทต่อไปเราจะเจาะลึกแกน Statistical AI — วิธีการที่ครองวงการ AI ปัจจุบัน. คำถามสำคัญที่รอคำตอบอยู่คือ: เมื่อไม่มีใครเขียน rule ให้ machine เรียนรู้อะไรได้เอง มันทำได้ยังไง? และเรียนจาก data หมายความว่าอะไรกันแน่ในระดับกลไก? เมื่อเข้าใจตรงนี้แล้วจะเริ่มเห็นว่าทำไม AI ถึงพลาดในแบบที่มันพลาด และทำไมการใส่ data คุณภาพดีเข้าไปถึงสำคัญมากกว่าการซื้อ model แพงที่สุด — และจะใช้งานมันได้ดีกว่าเดิมมาก.
+
+นั่นคือจุดที่ taxonomy ในบทนี้จะเริ่มมี "น้ำหนัก" มากขึ้น — เมื่อคุณรู้กลไกของ Statistical AI แล้ว แกนที่ 2 และ 4 ของ taxonomy จะไม่ใช่แค่ชื่อ แต่จะเป็นความเข้าใจว่า "ใต้ฝากล่องดำมีอะไรอยู่จริง ๆ".
+
+ในระหว่างนี้ถ้าอยากทบทวน ลองกลับไปดู 4 แกนอีกรอบแล้วเลือก AI tool ที่ใช้บ่อยที่สุดในชีวิตประจำวัน — ไม่ว่าจะเป็น Google Maps, Spotify, TikTok, หรือแม้แต่ auto-correct บนมือถือ — แล้วลองจัดพิกัดให้ครบ. ทำได้แค่ไหนก็บอกระดับความเข้าใจของคุณกับบทนี้ได้ชัดเจนกว่าการอ่านซ้ำหลายรอบ.
+
+---
+
+*อ่านต่อ: [Machine Learning คืออะไร — กลไกที่ทำให้ AI เรียนรู้ได้เอง](/foundations/what-is-machine-learning)*

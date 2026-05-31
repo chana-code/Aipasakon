@@ -1,0 +1,545 @@
+---
+slug: transformer-architecture
+level: advanced
+title: "Transformer Architecture — สถาปัตยกรรมที่เปลี่ยนโลก AI"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ Transformer ตั้งแต่ทำไม RNN ไม่พอ, Encoder-Decoder structure, Self-Attention, Positional Encoding, Feed-Forward layers จนถึงทำไม Transformer ถึงชนะทุกสถาปัตยกรรมก่อนหน้า"
+---
+# Transformer Architecture — สถาปัตยกรรมที่เปลี่ยนโลก AI
+
+ทุกครั้งที่คุณพิมพ์ข้อความใน ChatGPT แล้วกด Enter มี neural network ที่ชื่อ **Transformer** ทำงานอยู่เบื้องหลัง มันอ่านข้อความของคุณทั้งหมดในพริบตาเดียว เข้าใจความสัมพันธ์ระหว่างทุกคำ แล้วสร้างคำตอบทีละคำออกมา สถาปัตยกรรมนี้เกิดขึ้นในปี 2017 จากทีมนักวิจัยที่ Google และมันเปลี่ยนโลก AI ไปตลอดกาล
+
+ถ้าคุณผ่าน L1-L3 มาแล้ว คุณรู้วิธีใช้ AI, เรียก API, สร้าง RAG pipeline, และออกแบบ agent ได้ บทนี้จะพาคุณลงไปอีกชั้น ไม่ใช่แค่ "ใช้เป็น" แต่เข้าใจว่า **มันทำงานยังไงจริง ๆ ข้างใน** ซึ่งจะทำให้คุณตัดสินใจได้ดีขึ้นมากเวลาออกแบบระบบ AI
+
+<!-- IMAGE: ภาพ overview ของ Transformer architecture — input tokens ทางซ้าย, หลาย layers ตรงกลาง, output tokens ทางขวา บรรยากาศเหมือนแผนผังวงจร -->
+
+---
+
+## ก่อนจะมี Transformer — ทำไม RNN และ LSTM ไม่พอ
+
+ย้อนกลับไปก่อนปี 2017 โมเดลภาษาที่ดีที่สุดในโลกใช้สถาปัตยกรรมที่ชื่อว่า **Recurrent Neural Network (RNN)** และรุ่นที่ปรับปรุงแล้วอย่าง **LSTM (Long Short-Term Memory)**
+
+วิธีที่ RNN อ่านประโยคนั้นเหมือนกับการอ่านหนังสือโดยที่คุณต้องปิดตาทุกอย่างแล้วจำเฉพาะสิ่งที่เพิ่งอ่านไป — อ่านคำแรก จำ แล้วอ่านคำสอง ผสมกับที่จำไว้ จำใหม่ แล้วอ่านคำสาม... ไปเรื่อย ๆ ทีละคำ ทีละขั้นตอน
+
+ปัญหาคือ **มันช้ามาก** เพราะแต่ละขั้นตอนต้องรอขั้นก่อนหน้าเสร็จก่อน GPU สมัยใหม่เก่งมากในการคำนวณหลายอย่างพร้อมกัน แต่ RNN บังคับให้ทำงานเป็นลำดับ เหมือนคุณมีพนักงาน 1,000 คน แต่งานมันต้องผ่านคนแรกก่อน ค่อยส่งให้คนสอง ค่อยส่งให้คนสาม — พนักงาน 999 คนนั่งเหงาอยู่เฉย ๆ
+
+แต่ปัญหาใหญ่กว่านั้นคือ **Vanishing Gradient** — เวลา train โมเดล เราต้องส่ง error signal ย้อนกลับไปปรับ weights ของ network แต่ใน RNN สัญญาณนี้ต้องเดินทางย้อนกลับผ่านทุก timestep ยิ่งประโยคยาว สัญญาณยิ่งอ่อนลง เหมือนเสียงกระซิบที่ส่งต่อกันในเกม Chinese Whisper — ถึงคนที่ 50 แทบไม่เหลืออะไร
+
+ผลลัพธ์คือ RNN **ลืมสิ่งที่อยู่ไกล** ลองนึกภาพว่าคุณกำลังอ่านนิยาย แต่จำได้แค่ 10 หน้าสุดท้าย ตัวละครที่โผล่มาตั้งแต่บทแรกแล้วหายไป พอถึงตอนจบก็จำไม่ได้แล้ว — นั่นแหละคือชีวิตของ RNN
+
+> 💡 **Key insight:** LSTM ช่วยแก้ปัญหา vanishing gradient ได้บางส่วน แต่ก็ยังช้าอยู่ดีเพราะยังต้อง process ทีละคำ และการจำข้อมูลระยะไกลก็ยังเป็นปัญหาในประโยคยาว ๆ ระดับหลายร้อยคำ
+
+ลองนึกถึงงานแปลภาษา ประโยคภาษาเยอรมัน "Das Buch, das ich dir letzte Woche empfohlen habe, ist wunderbar" — กริยาหลักอยู่ท้ายประโยค แต่คำนามที่มันอ้างถึงอยู่ต้นประโยค เวลา RNN เดินมาถึงกริยา มันอาจลืมไปแล้วว่าต้นประโยคพูดถึงอะไร
+
+มีความพยายามหลายรูปแบบในการแก้ปัญหา RNN ก่อนที่ Transformer จะมา:
+
+**Attention for RNN** — เพิ่ม attention mechanism เป็นส่วนเสริมให้ RNN สามารถ "หันกลับมามอง" input ที่อยู่ในอดีตได้ ดีขึ้น แต่ยังช้าเพราะ RNN core ยังเป็น sequential อยู่
+
+**Convolutional Sequence Models (ConvS2S)** — Facebook AI ลองใช้ CNN แทน RNN CNN ทำงานแบบ parallel ได้ (ดีกว่า RNN) แต่แต่ละ kernel มองได้แค่ window ขนาดคงที่ ยังจับ long-range dependency ได้ไม่ดีพอ
+
+ทั้งหมดนี้เป็นการ patch ปัญหา ไม่ใช่การแก้ที่ต้นเหตุ จนกระทั่ง Transformer เปลี่ยน paradigm ทั้งหมดด้วยการออกแบบใหม่ตั้งแต่ต้น
+
+<!-- IMAGE: diagram เปรียบเทียบ RNN (ลูกศรทีละขั้ว, sequential) กับ Transformer (ทุก token เชื่อมกันหมด, parallel) -->
+
+---
+
+## "Attention Is All You Need" — บทความที่เปลี่ยนทุกอย่าง
+
+ปี 2017 ทีม Google Brain และ Google Translate ตีพิมพ์บทความชื่อ **"Attention Is All You Need"** เขียนโดย Ashish Vaswani, Noam Shazeer, Niki Parmar และเพื่อนรวม 8 คน
+
+ชื่อบทความนั้นยั่วยุมากในเวลานั้น เพราะ Attention Mechanism มีมาก่อนหน้านั้นแล้ว — Bahdanau et al. เสนอ Attention สำหรับ Neural Machine Translation ในปี 2015 แต่ถูกใช้เป็นเพียง "ส่วนเสริม" ของ RNN เพื่อช่วยให้ Decoder "มองย้อนกลับ" ไปยัง Encoder output ตรง ๆ ได้ แทนที่จะต้องผ่าน hidden state ที่บีบอัดแล้ว
+
+แนวคิดของทีม Vaswani กล้ากว่ามาก: **ตัด RNN ทิ้งไปเลย ใช้แค่ Attention อย่างเดียว** ซึ่งในเวลานั้นฟังดูบ้าบิ่น เพราะ RNN คือ backbone ของ NLP มาหลายปี และหลายคนในวงการสงสัยว่า Attention อย่างเดียวจะพอได้จริงหรือ
+
+แนวคิดหลักที่ทำให้ Transformer แตกต่างจากทุกอย่างก่อนหน้า:
+
+**ทุกคำมองเห็นทุกคำพร้อมกัน** แทนที่จะอ่านทีละคำแบบ RNN Transformer ให้ทุกคำในประโยค "มองเห็น" และ "ถามถึง" ทุกคำอื่นได้โดยตรง พร้อมกันในครั้งเดียว
+
+ถ้าประโยคมี 100 คำ RNN ต้องทำ 100 ขั้นตอนแบบลำดับ Transformer ทำในขั้นตอนเดียว (แต่หนักกว่าในแต่ละขั้น) ผลลัพธ์คือ parallelizable อย่างสมบูรณ์ — GPU ชอบมาก
+
+> 💡 **Key insight:** บทความนี้ถูก cite มากกว่า 100,000 ครั้งในเวลาเพียงไม่กี่ปี ซึ่งถือว่าสูงผิดปกติมากในวงการ ML มันไม่ใช่แค่ paper ดี มันคือจุดเปลี่ยน
+
+ที่น่าสนใจคือ Vaswani et al. ไม่ได้รู้ตั้งแต่ต้นว่ามันจะยิ่งใหญ่ขนาดนี้ ตอนแรก Transformer ถูก design มาสำหรับงาน translation เท่านั้น แต่สิ่งที่เกิดขึ้นต่อมาคือนักวิจัยทั่วโลกเอามันไปลองกับทุกอย่าง — ภาพ, เสียง, โค้ด, วิดีโอ — และมันชนะทุกงาน นั่นคือตอนที่โลกรู้ว่านี่ไม่ใช่แค่โมเดลแปลภาษาที่ดี แต่คือ **สถาปัตยกรรมใหม่ของ AI**
+
+มีเรื่องเล่าที่น่าสนใจเกี่ยวกับ paper นี้: ผู้เขียนหลายคนออกจาก Google ไปตั้งบริษัทอื่นหลังจากนั้นไม่นาน Noam Shazeer ไปก่อตั้ง Character.ai, Llion Jones ไปก่อตั้ง Cohere (ร่วมกับคนอื่น), Jakob Uszkoreit ไปก่อตั้ง Inceptive ผลกระทบของ paper เดียวนี้ต่อ landscape ของ AI industry จึงไม่ได้อยู่แค่ใน research — มันกระเด็นออกมาเป็นบริษัท AI ชั้นนำหลายแห่งของโลก
+
+<!-- IMAGE: หน้าปกของ paper "Attention Is All You Need" กับ citation count -->
+
+---
+
+## Encoder-Decoder Structure — สองส่วนที่ทำงานร่วมกัน
+
+Transformer ต้นฉบับจาก paper ปี 2017 มี **2 ส่วนใหญ่**:
+
+**Encoder** — ทำหน้าที่อ่านและเข้าใจ input รับประโยคเข้ามา แล้วแปลงเป็น representation ที่เข้าใจความหมายและความสัมพันธ์ระหว่างคำทั้งหมด ลองนึกว่า Encoder เหมือนนักแปลที่อ่านข้อความต้นฉบับและ "เข้าใจ" มันอย่างลึกซึ้ง — ไม่ใช่แค่รู้ว่าแต่ละคำแปลว่าอะไร แต่รู้ว่าคำไหนสัมพันธ์กับคำไหน บริบทโดยรวมคืออะไร ความตั้งใจของผู้เขียนคืออะไร
+
+**Decoder** — ทำหน้าที่สร้าง output ทีละคำ มันรับ representation จาก Encoder มา แล้วสร้างคำตอบโดยอ้างอิงทั้ง context จาก Encoder และคำที่ตัวเองสร้างมาแล้วก่อนหน้า เหมือนนักแปลที่เริ่มเขียนคำแปล โดยมองต้นฉบับที่เข้าใจแล้วและดูว่าตัวเองเขียนอะไรไปแล้วบ้าง
+
+สำหรับงาน translation ที่ออกแบบมา: Encoder อ่านประโยคภาษาฝรั่งเศส, Decoder สร้างประโยคภาษาอังกฤษออกมา
+
+ทั้ง Encoder และ Decoder ประกอบด้วย layers หลายชั้น paper ต้นฉบับใช้ 6 layers สำหรับทั้งสอง ส่วน Encoder ใน BERT-Large มี 24 layers และ Decoder ใน GPT-3 มี 96 layers ทุก layer ใน Encoder ประกอบด้วย Self-Attention + FFN ส่วน Decoder มี Self-Attention + Cross-Attention + FFN (สามส่วน เพราะต้องทั้ง attend ตัวเองและ attend Encoder output)
+
+แต่หลังจากปี 2017 สถาปัตยกรรมแตกออกเป็น 3 สาย:
+
+**GPT (Decoder-only)** — ใช้แค่ Decoder ฝั่งเดียว ไม่มี Encoder เพราะงานหลักคือ "ต่อประโยค" — รับข้อความที่มีอยู่แล้วทำนายคำถัดไป GPT-1, GPT-2, GPT-3, GPT-4, Claude, Gemini ทั้งหมดเป็น Decoder-only Autoregressive model
+
+**BERT (Encoder-only)** — ใช้แค่ Encoder ฝั่งเดียว เหมาะสำหรับงาน "เข้าใจ" ข้อความ เช่น classification, question answering, Named Entity Recognition จุดแข็งคือมันอ่านได้ทั้งสองทิศทาง (bidirectional) — เห็นคำทั้งซ้ายและขวาพร้อมกัน ทำให้เข้าใจบริบทได้ดีกว่า
+
+**T5 (Encoder-Decoder)** — ใช้ทั้งสองส่วน ต่อยอดจาก original design เหมาะกับงานที่ input และ output เป็นคนละรูปแบบ เช่น summarization, translation, Q&A
+
+> 💡 **Key insight:** สาเหตุที่ GPT approach ชนะในปัจจุบันไม่ใช่เพราะ Decoder-only ดีกว่าในเชิงทฤษฎี แต่เพราะมันสามารถ scale ได้ดีกว่าและ training objective ("ทำนายคำถัดไป") simple พอที่จะใช้ข้อมูลขนาดมหาศาลได้ ซึ่งจะอธิบายในหัวข้อถัดไป
+
+<!-- IMAGE: diagram แสดง 3 variants — Encoder-only (BERT), Decoder-only (GPT), Encoder-Decoder (T5) พร้อม use cases -->
+
+---
+
+## Self-Attention — หัวใจของ Transformer
+
+นี่คือส่วนที่สำคัญที่สุด และก็ซับซ้อนที่สุดในขณะเดียวกัน ใช้เวลาอ่านส่วนนี้ให้ดี
+
+ทุก token ในประโยค (token = คำหรือชิ้นส่วนของคำ) ถามคำถามเดียวกันกับทุก token อื่น: **"ฉันควรให้ความสนใจคำไหนมากที่สุด?"**
+
+ลองใช้ตัวอย่าง: "**แมวดำนั้นกินปลา**"
+
+คำว่า "กิน" ต้องรู้ว่า subject ของมันคืออะไร — มันจะให้ความสนใจ "แมว" มาก ให้ความสนใจ "ปลา" มาก (เป็น object) และให้ความสนใจ "ดำ" น้อย เพราะ "ดำ" เป็นแค่ adjective ที่ไม่เกี่ยวกับการกระทำ
+
+วิธีที่ Transformer คำนวณ "ความสนใจ" นี้ใช้แนวคิดที่เรียกว่า **Query, Key, Value** ซึ่งชื่อมาจากระบบค้นหาข้อมูล ลองใช้ analogy ห้องสมุด:
+
+**Query (Q) = คำถามที่คุณนำมาค้น** — เวลาคุณเข้าห้องสมุดด้วยคำถามในหัว เช่น "อยากรู้เรื่องประวัติศาสตร์กรีกโบราณ" นั่นคือ Query ของคุณ ในบริบท Transformer แต่ละ token สร้าง Query เพื่อถามว่า "ฉันกำลังมองหาข้อมูลแบบไหน?"
+
+**Key (K) = ป้ายหมวดหมู่บนชั้นหนังสือ** — หนังสือแต่ละเล่มมีป้ายชื่อหมวด "ประวัติศาสตร์", "วิทยาศาสตร์", "นิยาย" Key คือสิ่งที่แต่ละ token ประกาศว่า "ฉันมีข้อมูลแบบนี้นะ"
+
+**Value (V) = เนื้อหาของหนังสือจริง ๆ** — เมื่อ Query ของคุณ match กับ Key ของหนังสือเล่มหนึ่ง คุณเปิดมันออกมาอ่าน เนื้อหาข้างในนั้นคือ Value ที่จะถูกนำมาใช้จริง
+
+กระบวนการทำงาน:
+
+1. แต่ละ token แปลงตัวเองเป็นสามเวกเตอร์: Q, K, V (ผ่าน weight matrices ที่ learned ระหว่าง training)
+2. Query ของ token A คูณกับ Key ของทุก token อื่น (รวมตัวเอง) — ได้ score ออกมา score สูง = เกี่ยวข้องกันมาก
+3. ผ่าน **softmax** เพื่อแปลง scores ทั้งหมดให้เป็น probabilities ที่รวมกันได้ 1 (ทำให้เปรียบเทียบได้ง่ายและ stable)
+4. คูณ probability เหล่านั้นกับ Value ของแต่ละ token แล้วบวกรวม — ได้ "weighted sum" ที่บอกว่า token A ควรรับข้อมูลอะไรมากน้อยแค่ไหนจากแต่ละ token
+
+ผลลัพธ์คือแต่ละ token ได้ representation ใหม่ที่ "ผสม" ข้อมูลจากทุก token อื่นในสัดส่วนที่เหมาะสม — token ที่เกี่ยวข้องกันมากก็มีอิทธิพลมาก, token ที่ไม่เกี่ยวก็มีอิทธิพลน้อย ตัวเลขพวกนี้ไม่ได้ถูก hardcode แต่เป็นผลจาก weight matrices Q, K, V ที่ learned ระหว่าง training
+
+นี่คือ intuition ที่พอสำหรับเข้าใจว่า Transformer ทำงานอย่างไรในภาพรวม ส่วนสมการจริง (รวมการ scale ด้วย √d_k และตัวอย่างคำนวณ attention ทีละขั้นด้วยมือ) เราจะเจาะลึกในบท [Attention Mechanism](/advanced/attention-mechanism) ที่จะมาถึง
+
+<!-- IMAGE: diagram แสดง Q, K, V matrices กับ attention score computation — มีตัวเลขตัวอย่างง่าย ๆ -->
+
+---
+
+## ลองคิดดู — Attention เห็นอะไร?
+
+ลองนึกถึงประโยค: "**ธนาคารอยู่ริมแม่น้ำ ฉันไปนั่งพักที่ฝั่งของมัน**"
+
+คำว่า "มัน" ในประโยคหลังอ้างถึงอะไร? "ธนาคาร" หรือ "แม่น้ำ"? ในบริบทนี้ชัดเจนว่า "ฝั่งแม่น้ำ" ไม่ใช่ "ฝั่งธนาคาร"
+
+Self-Attention ของ Transformer จะให้ "มัน" มี attention score สูงกับ "แม่น้ำ" มากกว่า "ธนาคาร" เพราะมันเรียนรู้จากข้อมูล training มหาศาลว่า "นั่งพักที่ฝั่ง" เกี่ยวข้องกับ "แม่น้ำ" มากกว่า "ธนาคาร"
+
+ลองคิดดูว่า: ถ้าเราเปลี่ยนประโยคเป็น "ธนาคารโทรมาบอกว่า บัญชีของมันมีปัญหา" — ตอนนี้ "มัน" ควร attend ไปที่ "ธนาคาร" มากกว่า Self-Attention เรียนรู้ความแตกต่างนี้ได้อย่างไร?
+
+คำตอบคือ: จาก context ทั้งหมดในประโยค คำว่า "บัญชี" และ "ธนาคาร" อยู่ใกล้กันและ co-occur บ่อยในข้อมูล training มันไม่ได้ใช้ rule-based logic แต่เรียนรู้จาก patterns จำนวนมากจนรู้ว่า "บัญชี" = financial context = "ธนาคาร"
+
+---
+
+## Multi-Head Attention — มองหลายมุมพร้อมกัน
+
+Self-Attention แบบ single เป็น "ผู้เชี่ยวชาญคนเดียว" ที่ตัดสินว่าคำไหนสำคัญกับคำไหน แต่ภาษาซับซ้อนกว่านั้น — ความสัมพันธ์ระหว่างคำมีหลายมิติ
+
+ลองนึกถึงประโยค "**หมอที่รักษาคนไข้ที่บ้านตรงข้ามบอกว่าเขาหายแล้ว**"
+
+คำว่า "เขา" อ้างถึง "หมอ" หรือ "คนไข้"? ความสัมพันธ์นี้มีหลายมิติ:
+- มิติ **semantic** (ความหมาย): "หาย" + "คนไข้" น่าจะเกี่ยวกัน
+- มิติ **syntactic** (ไวยากรณ์): subject ของประโยคหลักคือ "หมอ"
+- มิติ **position** (ตำแหน่ง): คำที่อยู่ใกล้กันมักเกี่ยวข้องกัน
+
+**Multi-Head Attention** แก้ปัญหานี้โดยรัน Attention หลายชุดพร้อมกัน แต่ละชุดคือ "head" หนึ่ง — แต่ละ head มี Q, K, V ของตัวเองและ train มาต่างกัน จึง "เชี่ยวชาญ" ความสัมพันธ์คนละมิติโดยอัตโนมัติ (head หนึ่งอาจจับ subject-verb อีก head จับ noun-pronoun) แล้วผลจากทุก head ถูกต่อกันเป็น representation เดียว
+
+เปรียบเทียบ: เหมือนการขอความเห็นจากผู้เชี่ยวชาญหลายคนพร้อมกัน — นักภาษาศาสตร์, นักตรรกะ, ผู้เชี่ยวชาญบริบท — แล้วรวมคำตอบของทุกคนเป็นคำตอบเดียว ดีกว่าถามคนเดียวแน่นอน รายละเอียดว่าแต่ละ head เรียนรู้อะไรได้จริง และตัวเลข head ของโมเดลดัง ๆ อยู่ในบท [Attention Mechanism](/advanced/attention-mechanism)
+
+<!-- IMAGE: diagram แสดง Multi-Head Attention — หลาย heads ทำงานพร้อมกัน แต่ละ head มี attention pattern ต่างกัน แล้ว concat กัน -->
+
+---
+
+## Positional Encoding — Transformer ไม่รู้ลำดับ
+
+ถ้าคุณสลับลำดับคำใน Set แบบ Python: `{"แมว", "กิน", "ปลา"}` กับ `{"ปลา", "กิน", "แมว"}` ได้ผลลัพธ์เดิม เพราะ Set ไม่สนใจลำดับ
+
+Self-Attention มีปัญหาเดียวกัน — ถ้าคุณสลับลำดับ input tokens ทั้งหมด attention scores จะออกมาเหมือนเดิม เพราะ Attention เป็นแค่การคำนวณความเกี่ยวข้องระหว่าง token ไม่มีแนวคิดเรื่องลำดับ
+
+แต่ภาษาสนใจลำดับมาก:
+- "**หมากัดคน**" กับ "**คนกัดหมา**" ใช้คำเดิม 3 คำ แต่ความหมายตรงข้าม
+- "**ฉันไม่รัก**" กับ "**ไม่ฉันรัก**" — อันแรกสมเหตุสมผล อันหลังประหลาด
+
+Transformer แก้ปัญหานี้ด้วย **Positional Encoding** — การเพิ่มข้อมูล "ตำแหน่ง" ลงใน embedding ของแต่ละ token ก่อนที่จะเข้า Attention layer
+
+วิธีที่ paper ต้นฉบับใช้เรียกว่า **Sinusoidal Encoding**:
+- token ตำแหน่งที่ 1 ได้ vector หนึ่ง
+- token ตำแหน่งที่ 2 ได้ vector อีกอัน
+- ...และต่อไปเรื่อย ๆ
+
+vector เหล่านี้สร้างจากฟังก์ชัน sine และ cosine ที่มีความถี่ต่างกัน ทำให้แต่ละตำแหน่งมี "ลายนิ้วมือ" ที่ unique และ pattern ช่วยให้โมเดลเรียนรู้ความสัมพันธ์ระหว่างตำแหน่ง (เช่น "ห่างกัน 3 ตำแหน่ง") ได้
+
+สูตรคร่าว ๆ:
+```
+PE(pos, 2i)   = sin(pos / 10000^(2i/d_model))
+PE(pos, 2i+1) = cos(pos / 10000^(2i/d_model))
+```
+
+โมเดลรุ่นหลังอย่าง BERT ใช้ **Learned Positional Embeddings** แทน — แทนที่จะ fixed formula ก็ให้โมเดล learn ว่าแต่ละตำแหน่งควรมี representation ยังไงจากข้อมูล training
+
+และ GPT-4 รุ่นใหม่ ๆ ใช้เทคนิคที่ซับซ้อนกว่า เช่น **Rotary Position Embedding (RoPE)** ที่ encode ตำแหน่งแบบ relative (ห่างกันเท่าไหร่) แทน absolute (อยู่ที่ตำแหน่งเท่าไหร่) ทำให้ generalize ไปยัง context ที่ยาวกว่า training ได้ดีกว่า
+
+> 💡 **Key insight:** เหตุที่มีเรื่อง "context window" ใน LLM (เช่น 128K tokens ของ Claude, 1M tokens ของ Gemini) เกี่ยวข้องกับ Positional Encoding โดยตรง — โมเดลเรียนรู้ตำแหน่งถึงแค่ไหน มันก็ handle ได้แค่นั้น เกินกว่านั้นคือ uncharted territory
+
+<!-- IMAGE: กราฟแสดง sinusoidal waves ที่ความถี่ต่างกัน ที่ผสมกันสร้าง unique pattern สำหรับแต่ละตำแหน่ง -->
+
+---
+
+## Feed-Forward Network — คิดคนเดียวหลังจากประชุม
+
+หลังจาก Self-Attention แต่ละ token ได้ representation ใหม่ที่ผสมข้อมูลจากทุกคำในประโยคแล้ว แต่ยังมีอีกขั้นตอนหนึ่งที่สำคัญในแต่ละ layer: **Position-wise Feed-Forward Network (FFN)**
+
+FFN คือ neural network ขนาดเล็กที่ process **แต่ละ token แยกกันโดยอิสระ** ไม่มีการ interact กับ token อื่น ซึ่งตรงข้ามกับ Attention ที่ทุก token คุยกัน
+
+โครงสร้าง FFN ง่ายมาก: Linear layer → Activation function (เช่น ReLU หรือ GELU) → Linear layer อีกตัว
+
+```
+FFN(x) = max(0, xW₁ + b₁)W₂ + b₂
+```
+
+ทำไมต้องมี FFN ถ้า Attention ทำงานได้ดีแล้ว?
+
+เปรียบเทียบ: นึกภาพ Attention เป็นการประชุมทีม — ทุกคนนั่งคุยกัน แลกเปลี่ยนข้อมูล ฟังกันและกัน นี่คือ Self-Attention ที่ทุก token ดูข้อมูลจากทุก token อื่น
+
+แต่หลังประชุม แต่ละคนต้องกลับไปนั่งที่โต๊ะตัวเองและ **คิดคนเดียว** — ย่อยข้อมูลที่ได้มาจากประชุม ประมวลผลในหัว แล้วตัดสินใจว่าจะทำอะไร นั่นคือ FFN
+
+FFN ทำให้แต่ละ token สามารถ "ย่อย" และ "ประมวลผล" ข้อมูลที่รวบรวมมาจาก Attention ได้ก่อนส่งต่อไป layer ถัดไป
+
+สิ่งที่น่าสนใจคือ FFN มักมีขนาดใหญ่กว่า Attention layer มาก — ใน GPT-2 ขนาด hidden dimension ของ Attention คือ 768 แต่ FFN ขยายขึ้นเป็น 3072 (4 เท่า) ก่อนจะ compress กลับลงมา นักวิจัยบางส่วนเชื่อว่า FFN คือที่ที่โมเดล "เก็บความรู้" ส่วนใหญ่ไว้ ในขณะที่ Attention ทำหน้าที่ "ค้นหาและเชื่อมโยง"
+
+**Activation Function — GELU แทน ReLU**
+
+FFN ใน Transformer รุ่นใหม่ ๆ ใช้ **GELU (Gaussian Error Linear Unit)** แทน ReLU ที่เห็นในสูตรด้านบน
+
+ReLU ตัดค่าลบออกหมด: `max(0, x)` — ง่าย แต่ทำให้ neurons "ตาย" ได้ถ้าไม่เคย activate
+GELU smooth กว่า: ค่าติดลบไม่ถูกตัดทิ้งทั้งหมด แต่ถูก scale ลงตาม probability distribution
+
+ในทางปฏิบัติ GELU ให้ผลดีกว่าใน language models ซึ่ง OpenAI พิสูจน์ใน GPT-2 และกลายเป็น default ในโมเดลรุ่นหลัง ๆ เกือบทั้งหมด รายละเอียดปลีกย่อยแบบนี้ฟังดูเล็กน้อย แต่บวกกับองค์ประกอบอื่น ๆ อีกมากก็ทำให้ performance รวมดีขึ้นได้อย่างมีนัยสำคัญ
+
+> 💡 **Key insight:** งานวิจัยล่าสุดพบว่าเราสามารถ "แก้ไขความรู้" ของ LLM โดยตรงด้วยการ edit weights ใน FFN layers — เช่น เปลี่ยนให้โมเดลเชื่อว่า "เมืองหลวงของฝรั่งเศสคือ Lyon" แทนที่จะเป็น "Paris" นี่คือหลักฐานที่สนับสนุนทฤษฎีว่า FFN คือ "memory storage"
+
+<!-- IMAGE: diagram เปรียบเทียบ Attention (all-to-all interaction) กับ FFN (each token independently) -->
+
+---
+
+## Layer Normalization และ Residual Connections — โครงสร้างรองรับความลึก
+
+Transformer ลึกมาก GPT-3 มี 96 layers, GPT-4 คาดว่ามีมากกว่านั้น การ train network ลึกขนาดนี้มีปัญหาพื้นฐาน: **gradients หายไปหรือระเบิดออก**
+
+ลองนึกภาพคุณส่งข่าวผ่านสายโทรศัพท์ 96 ต่อ ถ้าแต่ละจุดปรับสัญญาณนิดหน่อย กว่าจะถึงปลายทางสัญญาณอาจอ่อนมากจนฟังไม่ออก (vanishing) หรือถ้าแต่ละจุดขยายสัญญาณกลายเป็นเสียงดังอู้อี้ที่ฟังไม่ออก (exploding) Transformer แก้ปัญหานี้ด้วย 2 เทคนิค:
+
+**Residual Connections (Skip Connections)**
+
+แต่ละ sub-layer ใน Transformer (ทั้ง Attention และ FFN) มีสิ่งที่เรียกว่า residual connection — แทนที่จะส่งแค่ output ของ layer มันบวก input เดิมเข้าไปด้วย:
+
+```
+output = LayerNorm(x + SubLayer(x))
+```
+
+ความหมาย: แทนที่จะเรียนรู้ transformation ทั้งหมดจากศูนย์ แต่ละ layer เรียนรู้แค่ "ส่วนที่ต้องปรับเปลี่ยนเพิ่ม" จาก input เดิม เหมือนการวาดรูปโดยเริ่มจากร่างดินสอที่มีอยู่แล้ว แทนที่จะเริ่มจากกระดาษเปล่าทุกครั้ง
+
+นอกจากนี้ residual connection ยังสร้าง "ทางลัด" ให้ gradient ไหลผ่านโดยตรงระหว่าง training ไม่ต้องผ่านทุก layer ทำให้ gradient ยังคงแรงพอตลอด network
+
+**Layer Normalization**
+
+หลังจากบวก residual แล้ว ค่าตัวเลขอาจมี scale ที่ต่างกันมาก — บาง dimension ใหญ่มาก บาง dimension เล็กมาก Layer Norm ปรับให้ค่าทั้งหมดมี mean ≈ 0 และ variance ≈ 1
+
+ทำให้การ train stable มากขึ้น เหมือนการปรับ scale ของ input ให้เป็นมาตรฐานก่อนส่งต่อ layer ถัดไป
+
+สองเทคนิคนี้ร่วมกันทำให้สามารถ train Transformer ที่ลึก 96+ layers ได้โดยไม่ระเบิด นี่คือเหตุผลที่เราสามารถสร้างโมเดลขนาดใหญ่ได้
+
+> 💡 **Key insight:** ตำแหน่งของ Layer Norm แตกต่างกันระหว่างโมเดล original Transformer ใช้ Post-LN (normalize หลัง residual) แต่งานวิจัยพบว่า Pre-LN (normalize ก่อน sub-layer) train ได้ stable กว่า GPT-2 และรุ่นหลัง ๆ ส่วนใหญ่ใช้ Pre-LN
+
+<!-- IMAGE: diagram แสดง residual connection — ลูกศรหลักผ่าน sub-layer และลูกศร "bypass" กลับมาบวก -->
+
+---
+
+## ลองคิดดู — ถ้าไม่มี Residual Connection จะเกิดอะไร?
+
+ลองคิดถึง network ที่มี 96 layers แต่ไม่มี residual connection แต่ละ layer transform ข้อมูล และ gradient ต้องเดินทางย้อนกลับผ่านทุก layer ระหว่าง training
+
+สมมติแต่ละ layer ลดขนาด gradient ลง 10% — หลัง 96 layers: 0.9^96 ≈ 0.000077 gradient เกือบ 0 layer แรก ๆ (ที่อยู่ใกล้ input) แทบไม่ได้เรียนรู้อะไรเลย
+
+ตอนนี้ลองจินตนาการว่าคุณกำลังสอนนักเรียน 96 คนที่นั่งเป็นแถว คุณบอก feedback ให้คนสุดท้าย เขาส่งต่อไปคนถัดไป แต่ทุกคนสรุปสั้นลง 10% กว่าจะถึงคนแรกในแถว feedback แทบหายไปหมดแล้ว Residual connection เหมือนการที่คุณเดินไปบอก feedback กับทุกคนในแถวโดยตรงพร้อมกัน
+
+---
+
+## ทำไม Transformer ชนะ — 4 เหตุผลหลัก
+
+เมื่อ Transformer ออกมาในปี 2017 มันไม่ได้ชนะทันที ต้องใช้เวลาสักพักกว่าคนจะเชื่อว่ามันดีกว่า RNN จริง แต่พอ BERT (2018) และ GPT-2 (2019) ออกมา ทุกอย่างก็ชัดเจน
+
+**1. Parallelizable — GPU ชอบมาก**
+
+ต่างจาก RNN ที่ต้อง process ทีละ token Transformer process ทุก token พร้อมกันในขั้นตอนเดียว GPU ที่มี cores หลายพันตัวสามารถทำงานพร้อมกันได้เต็มที่ ผลคือ train เร็วกว่า RNN มากเมื่อ scale ขึ้น
+
+ลองนึกภาพ GPU เป็นโรงงานผลิตที่มีสายพาน 10,000 เส้น RNN บังคับให้ใช้แค่สายพานเดียวแบบ sequential Transformer ใช้ทุกสายพานพร้อมกัน ความต่างด้านความเร็วจึงไม่ใช่แค่ 2-3 เท่า แต่อาจเป็นร้อยเท่าสำหรับ sequence ยาว ๆ
+
+**2. Scalable — ใหญ่แล้วดีขึ้น**
+
+นี่คือ property ที่สำคัญมากและไม่ชัดเจนตั้งแต่แรก ปรากฏว่าถ้าคุณเพิ่ม layer, เพิ่ม heads, เพิ่ม parameters ใน Transformer — ประสิทธิภาพดีขึ้นอย่างสม่ำเสมอและคาดเดาได้
+
+งานวิจัย "Scaling Laws" ของ OpenAI แสดงให้เห็นว่า Transformer มี "scaling laws" ที่ดี — performance ดีขึ้นตาม predictable curve เมื่อเพิ่ม compute นี่ทำให้บริษัทมั่นใจที่จะลงทุนสร้างโมเดลใหญ่ขึ้นเรื่อย ๆ
+
+**3. Long-range Dependencies — จำได้ไกลกว่า**
+
+Self-Attention ให้ทุก token "เห็น" ทุก token อื่นในประโยคโดยตรง ไม่ว่าจะอยู่ห่างกันแค่ไหน ตำแหน่งที่ 1 และตำแหน่งที่ 1000 มีระยะทาง "1 hop" ใน Attention
+
+ต่างจาก RNN ที่ข้อมูลต้องเดินทาง 999 steps ซึ่งทำให้ gradient หาย Transformer เข้าถึง long-range dependency ได้ดีกว่าอย่างเห็นได้ชัด
+
+**4. Transfer Learning ทำงานได้ดีมาก**
+
+Transformer ที่ pre-train บน text จำนวนมากสามารถ fine-tune สำหรับ task ใหม่ด้วย data น้อยและได้ผลดีมาก นี่คือ paradigm shift ที่สำคัญ — แทนที่จะ train โมเดลใหม่ทุกครั้งสำหรับทุก task คุณ reuse "ความรู้" ที่ pre-train มา
+
+ก่อน Transformer ยุค deep learning แต่ละงาน (sentiment analysis, translation, summarization) ต้อง train โมเดลแยกกัน หลัง Transformer คุณ pre-train ครั้งเดียวได้ "foundation model" แล้ว fine-tune ได้เกือบทุกงาน ลด cost และ data requirement ลงมหาศาล นี่คือเหตุผลที่ AI democratize ได้เร็วมากในช่วงปี 2019-2024
+
+> 💡 **Key insight:** ความสำเร็จของ Transformer ไม่ได้มาจาก breakthrough เดียว แต่จากการรวมองค์ประกอบที่ดีหลายอย่างเข้าด้วยกัน: Attention + Residual + Layer Norm + Parallelization ผลรวมมากกว่าผลของแต่ละส่วน
+
+<!-- IMAGE: กราฟแสดง scaling laws — แกน x คือ compute/parameters, แกน y คือ performance — เส้นโค้งที่ predictable -->
+
+---
+
+## Variants ที่สำคัญ — สามสาย สามปรัชญา
+
+**GPT Series (Decoder-only, Autoregressive)**
+
+ปรัชญา: "เรียนรู้ทุกอย่างจากการทำนายคำถัดไป" Training objective ง่ายมาก: รับข้อความ N คำ ทำนายคำที่ N+1 ทำซ้ำหลายพันล้านครั้งด้วยข้อมูล text ทั่วอินเทอร์เน็ต
+
+Decoder-only ใช้ **Causal Attention (Masked Attention)** — ทุก token เห็นได้แค่ token ก่อนหน้า ไม่เห็น token ถัดไป (ป้องกัน "โกง" ตอน training)
+
+GPT-1 (2018): 117M parameters แสดงให้เห็นว่า unsupervised pre-training + fine-tuning ทำงานได้
+GPT-2 (2019): 1.5B parameters สร้าง text ที่น่าตกใจมากจน OpenAI กลัวปล่อยออกมาครั้งแรก
+GPT-3 (2020): 175B parameters few-shot learning กลายเป็น game changer
+GPT-4 (2023): ไม่เปิดเผย architecture แต่ performance กระโดดขึ้นอีกระดับ
+
+Claude, Gemini, Llama ทั้งหมดใช้ Decoder-only เช่นกัน
+
+**BERT (Encoder-only, Bidirectional)**
+
+ปรัชญา: "เข้าใจข้อความให้ลึก โดยอ่านทั้งสองทิศทาง" Training objective: **Masked Language Modeling** ปิด 15% ของคำแบบสุ่ม แล้วให้โมเดลทายคำที่ถูกปิด
+
+เพราะไม่ต้องทำนายอนาคต BERT อ่านได้ทั้งซ้ายและขวาพร้อมกัน (bidirectional) ทำให้ representation มี context รอบด้านมากกว่า
+
+BERT เก่งมากสำหรับ: sentiment analysis, named entity recognition, question answering, text classification งาน NLU (Natural Language Understanding) ทั่วไป
+
+**T5 (Encoder-Decoder)**
+
+ปรัชญา: "ทุกอย่างคือ text-to-text" Google ออกแบบ T5 ให้ทุก task อยู่ในรูปแบบ "input text → output text" เหมือนกันหมด Translation คือ input "translate English to French: ..." output คำแปล. Summarization คือ input "summarize: ..." output บทสรุป
+
+T5 ยังคงถูกใช้ในหลายงาน โดยเฉพาะ retrieval-augmented tasks
+
+**ทำไม GPT approach ชนะในปัจจุบัน?**
+
+สามเหตุผลหลัก:
+
+1. **Training objective scale ได้ไม่จำกัด** — "ทำนายคำถัดไป" ใช้ข้อมูลได้ทุก text ที่มีอยู่ในโลก ไม่ต้อง label ทั้ง Common Crawl, Wikipedia, GitHub, หนังสือ ฯลฯ BERT ต้องการ data ที่จัดการแล้วมากกว่า
+
+2. **Generation เป็น first-class** — โมเดล Decoder-only generate text ได้เป็น core capability BERT ไม่ได้ออกแบบมาสำหรับ generation ทำให้ยาก
+
+3. **Emergent capabilities จาก scale** — เมื่อ Decoder-only models ใหญ่ขึ้นเรื่อย ๆ มัน emergent capabilities ที่ไม่ได้ถูก train มาโดยตรง เช่น reasoning, in-context learning, chain-of-thought นักวิจัยยังถกเถียงกันว่าทำไม แต่ empirical evidence ชัดเจน
+
+> 💡 **Key insight:** "ทำนายคำถัดไป" ฟังดูง่าย แต่เพื่อทำนายได้ดี โมเดลต้องเรียนรู้ grammar, facts, reasoning, context, style และอีกมากมาย มัน simple objective ที่ requires complex knowledge — นั่นคือ secret sauce
+
+<!-- IMAGE: timeline แสดงวิวัฒนาการของ Transformer variants ตั้งแต่ 2017-2024 -->
+
+---
+
+## Tokenization — ก่อนที่ข้อความจะเข้า Transformer
+
+ก่อนที่ข้อความจะเข้า Transformer มีขั้นตอนหนึ่งที่หลายคนมองข้ามแต่สำคัญมาก นั่นคือ **Tokenization** — การแปลงข้อความดิบให้เป็น "หน่วยย่อย" ที่โมเดลจัดการได้
+
+Transformer ไม่ได้อ่าน "คำ" ตรง ๆ มันอ่าน "tokens" ซึ่งอาจจะเป็นคำ, ส่วนของคำ หรือแม้แต่ตัวอักษรเดียว GPT ใช้ algorithm ชื่อ **BPE (Byte-Pair Encoding)** ที่ merge คู่ตัวอักษรที่พบบ่อย คำที่พบบ่อยกลายเป็น token เดียว ส่วนคำหายากถูกแตกเป็นหลาย tokens และเพราะภาษาไทยไม่มี space ระหว่างคำ มันจึงใช้ tokens ต่อประโยคมากกว่าภาษาอังกฤษหลายเท่า
+
+กลไก BPE ทั้งหมด รวมถึงปัญหา Thai-token และผลกระทบต่อ cost และ context window เราจะเจาะลึกในบท [Tokenization Deep Dive](/advanced/tokenization-deep-dive) ที่จะมาถึง
+
+แต่ละ token จะถูกแปลงเป็น **embedding vector** — เวกเตอร์ตัวเลขหลายร้อยหรือหลายพัน dimensions ที่ represent ความหมายของ token นั้น vectors ของคำที่มีความหมายใกล้กันจะอยู่ใกล้กันใน embedding space เช่น vector ของ "หมา" กับ "สุนัข" จะใกล้กัน ส่วน vector ของ "หมา" กับ "อวกาศ" จะห่างกันมาก
+
+ขั้นตอนนี้เป็นสิ่งที่เกิดขึ้นก่อน Positional Encoding และก่อนที่จะเข้า Attention layer ทุกอย่าง
+
+<!-- IMAGE: diagram แสดง tokenization flow — text → tokens → embedding vectors → Transformer -->
+
+---
+
+## เปรียบเทียบประสิทธิภาพ — Transformer vs อดีต
+
+เพื่อให้เห็นภาพชัด ลองดูตัวเลขจาก benchmark ที่ใช้กันในวงการ:
+
+**WMT14 English-French Translation (BLEU score)**
+- RNN with Attention: 39.2
+- ConvS2S (CNN-based): 40.5
+- Transformer (original paper): **41.0** (ชนะด้วยเวลา train น้อยกว่ามาก)
+- GPT-4 (ปัจจุบัน): ยากจะวัด BLEU ตรง ๆ แต่คุณภาพเหนือกว่ามาก
+
+**GLUE Benchmark (ภาษาธรรมชาติ, หลาย tasks)**
+- เมื่อ BERT ออกมาในปี 2018 มัน beat previous SOTA ใน 11 จาก 12 tasks ในวันเดียว
+- SuperGLUE benchmark ถูกสร้างขึ้นมาเพื่อ challenge โมเดลที่ดีขึ้น แต่ภายในปี 2021 GPT-3 ก็ทำ SuperGLUE ได้ใกล้เคียง human baseline แล้ว
+
+**เวลา training ที่ต่างกัน**
+ใน paper ต้นฉบับ Transformer base ใช้เวลา 12 ชั่วโมงในการ train บน 8 P100 GPUs และชนะโมเดล RNN ที่ train นานกว่ามาก Transformer ไม่แค่ดีกว่า แต่ยัง efficient กว่าด้วย
+
+**Scale ของโมเดลปัจจุบัน**
+
+เพื่อให้เห็นระดับ scale ที่ Transformer ทำงานอยู่ในปัจจุบัน:
+
+| โมเดล | Parameters | Layers | Heads | Context Window |
+|--------|-----------|--------|-------|----------------|
+| GPT-2 (2019) | 1.5B | 48 | 25 | 1,024 |
+| GPT-3 (2020) | 175B | 96 | 96 | 4,096 |
+| LLaMA 3 70B (2024) | 70B | 80 | 64 | 128K |
+| Claude 3 Sonnet | ไม่เปิดเผย | - | - | 200K |
+
+แต่ละ "parameter" คือตัวเลขหนึ่งตัวใน weight matrices ทั้ง Q, K, V, FFN, Embeddings โมเดลที่มี 175B parameters มีตัวเลข 175,000,000,000 ตัวที่ถูก tune ระหว่าง training ทั้งหมดนี้ทำงานร่วมกันเพื่อ "อ่าน" และ "สร้าง" ภาษา
+
+<!-- IMAGE: bar chart เปรียบเทียบ performance ของ RNN, CNN, Transformer ใน benchmark ต่าง ๆ -->
+
+---
+
+## Transformer ในงาน Non-Text — ภาพ, เสียง, โค้ด
+
+หนึ่งในสิ่งที่ทำให้ Transformer ยิ่งใหญ่คือมันไม่ได้จำกัดแค่ภาษา
+
+**Vision Transformer (ViT)** — Google แสดงให้เห็นในปี 2020 ว่า Transformer ทำงานกับภาพได้โดยตรง วิธีคือ แบ่งภาพออกเป็น "patches" (สี่เหลี่ยมเล็ก ๆ) แล้ว treat แต่ละ patch เหมือน token ภาษา Self-Attention จึงเรียนรู้ว่า patch ไหน "เกี่ยวข้อง" กับ patch ไหนในภาพ — เหมือน attention ระหว่างคำในประโยค แต่เป็นการ attend ระหว่างบริเวณต่าง ๆ ในภาพ ViT ชนะ CNN ที่เป็น SOTA ของงานภาพมาหลายสิบปี
+
+**Whisper (Audio)** — OpenAI ใช้ Transformer กับ audio โดย convert audio waveform เป็น spectrogram (ภาพของเสียง) แล้วใช้ Transformer อ่าน ผลคือ speech recognition ที่ดีมากและ multilingual
+
+**AlphaCode (Code)** — DeepMind ใช้ Transformer สำหรับการเขียนโค้ด source code มีโครงสร้างที่ชัดเจน (syntax, indentation, function calls) ซึ่ง Self-Attention เหมาะมากกับการ track ว่า variable ถูก define ที่ไหน และถูกใช้ที่ไหนในโค้ด
+
+**AlphaFold 2 (Protein)** — DeepMind ใช้ Transformer variant เพื่อทำนาย 3D structure ของโปรตีนจาก amino acid sequence สิ่งที่นักวิทยาศาสตร์ทำไม่สำเร็จมา 50 ปี Transformer แก้ได้ ทำให้ AlphaFold ได้รับ Nobel Prize Chemistry ปี 2024
+
+**Sora, Stable Diffusion (Video/Image)** — Diffusion models รุ่นใหม่ ๆ ใช้ Transformer แทน U-Net เดิม OpenAI Sora ใช้ "Diffusion Transformer" ที่ treat video เป็น sequence of visual patches แล้วใช้ Attention เรียนรู้ความสัมพันธ์ระหว่าง frames ทั้งหมด
+
+> 💡 **Key insight:** Pattern เดียวกันซ้ำในทุกงาน — แปลง input ให้เป็น "sequence of tokens", ใช้ Self-Attention เรียนรู้ความสัมพันธ์, สร้าง output ผ่าน Decoder นี่คือเหตุผลที่นักวิจัยเรียก Transformer ว่าเป็น "general-purpose sequence model" ไม่ใช่แค่ language model
+
+<!-- IMAGE: collage แสดงการใช้ Transformer ใน domain ต่าง ๆ — ภาษา, ภาพ, เสียง, โค้ด, โปรตีน -->
+
+---
+
+## Inside One Transformer Layer — ภาพรวมสมบูรณ์
+
+มาดู flow ทั้งหมดของ 1 layer ใน Transformer (สำหรับ Encoder):
+
+```
+Input tokens: [ฉัน] [รัก] [กาแฟ]
+     ↓
+Token Embeddings (แปลง token เป็นเวกเตอร์ตัวเลข)
+     ↓
++ Positional Encoding (เพิ่มข้อมูลตำแหน่ง)
+     ↓
+┌─────────────────────────────────┐
+│  Transformer Layer (x N)        │
+│                                 │
+│  Input (x)                      │
+│    ↓                            │
+│  Multi-Head Self-Attention      │
+│    ↓                            │
+│  + x (Residual)                 │
+│    ↓                            │
+│  Layer Norm                     │
+│    ↓                            │
+│  Feed-Forward Network           │
+│    ↓                            │
+│  + x (Residual)                 │
+│    ↓                            │
+│  Layer Norm → Output            │
+└─────────────────────────────────┘
+     ↓ (ส่งต่อไป layer ถัดไป)
+```
+
+แต่ละ layer รับ representation ของ tokens, ปรับปรุงมันผ่าน Attention และ FFN แล้วส่งต่อ หลัง N layers representation สุดท้ายของแต่ละ token มีข้อมูลสะสมจากทุก layer ที่ผ่านมา — ยิ่งลึก ยิ่งนามธรรม
+
+Layer แรก ๆ มักจับ syntactic features (ไวยากรณ์, part of speech)
+Layer กลาง ๆ จับ semantic features (ความหมาย, entity)
+Layer สุดท้าย ๆ จับ task-specific features (สิ่งที่จำเป็นสำหรับ output)
+
+> 💡 **Key insight:** นี่คือเหตุผลที่การใช้ representation จาก layer ที่ต่างกันให้ผลต่างกัน ถ้าคุณต้องการ features ที่เกี่ยวกับไวยากรณ์ ดึงมาจาก early layers ถ้าต้องการ semantic meaning ดึงมาจาก middle layers แนวคิดนี้ใช้กันใน feature extraction สำหรับ downstream tasks
+
+**Cross-Attention ใน Decoder**
+
+สำหรับ Encoder-Decoder Transformer (เช่น T5 หรือ original translation model) Decoder มี Attention พิเศษที่ชื่อว่า **Cross-Attention** ซึ่งต่างจาก Self-Attention ตรงที่:
+
+ใน Self-Attention: Query, Key, Value มาจาก sequence เดียวกัน (Decoder attend to itself)
+ใน Cross-Attention: Query มาจาก Decoder แต่ Key และ Value มาจาก Encoder output
+
+ความหมาย: ตอนที่ Decoder กำลังสร้างคำถัดไป มันถามตัวเองว่า "ฉันต้องการข้อมูลแบบไหน?" (Query) แล้วไปค้นหาจาก representation ที่ Encoder สร้างไว้จาก input ทั้งหมด (Key และ Value)
+
+เปรียบเทียบ: นักแปลกำลังเขียนประโยคที่ 3 ของการแปล (Decoder) โดยอ้างอิงความเข้าใจของต้นฉบับทั้งหมดที่อ่านมาแล้ว (Encoder output) — นักแปลไม่ได้จำแค่คำท้าย ๆ ของต้นฉบับ แต่เข้าถึง "ความเข้าใจ" ทั้งหมดได้ตลอดเวลา
+
+นี่คือเหตุผลที่ Encoder-Decoder models เก่งงาน Translation และ Summarization ที่ต้องอ้างอิงข้อมูลต้นทางทั้งหมดขณะสร้าง output
+
+---
+
+## สิ่งที่ Transformer ยังทำไม่ได้ดี
+
+เพื่อให้ภาพครบถ้วน ควรพูดถึงข้อจำกัดด้วย:
+
+**Quadratic Complexity ของ Attention**
+
+Self-Attention มี complexity O(n²) ต่อ sequence length — ถ้า sequence ยาวเป็น 2 เท่า computation เป็น 4 เท่า ทำให้การ scale ไป context ที่ยาวมาก (เช่น หนังสือทั้งเล่ม) ยังเป็นงานหนักและ costly
+
+นักวิจัยพัฒนา Efficient Attention variants เช่น Sparse Attention, Linear Attention, Flash Attention เพื่อแก้ปัญหานี้ แต่ยังเป็น active research
+
+**ต้องการ data มหาศาล**
+
+Transformer ไม่ได้ sample-efficient เหมือนมนุษย์ — เด็กเรียนรู้ภาษาจากประสบการณ์ไม่กี่ปี แต่ LLM ต้อง train บน text หลายพันล้านคำ เหตุผลยังเป็น open question ในวงการ
+
+**ไม่มี "ความเข้าใจ" ที่แท้จริง (ยังถกเถียงกัน)**
+
+Transformer เรียนรู้ patterns อย่างยอดเยี่ยม แต่ว่ามัน "เข้าใจ" จริงหรือแค่ pattern match ที่ซับซ้อน? นักวิจัยยังถกเถียงกันอยู่ และคำตอบส่งผลต่อว่า AI จะพัฒนาได้ไกลแค่ไหน
+
+**Hallucination — ปัญหาที่มาจาก architecture**
+
+Hallucination (การที่โมเดลสร้างข้อมูลที่ผิดอย่างมั่นใจ) ไม่ใช่ bug ที่แก้ง่าย มันเป็นผลจาก training objective "ทำนายคำถัดไปที่น่าจะเป็น" — โมเดล optimize สำหรับความน่าจะเป็น ไม่ใช่ความจริง ถ้า pattern ที่เรียนรู้มาบอกว่า "หลังจากประโยคแบบนี้ควรมีคำแบบนั้น" มันจะสร้างออกมา แม้จะไม่มีข้อมูลจริงสนับสนุน
+
+เข้าใจ architecture ช่วยให้เข้าใจข้อจำกัดนี้ได้ชัดขึ้น และช่วยออกแบบระบบที่รับมือกับมันได้ดีกว่า (เช่น RAG ที่คุณเรียนใน L3 คือการแก้ปัญหาข้อนี้โดยตรง)
+
+<!-- IMAGE: diagram แสดง quadratic scaling ของ Attention complexity — sequence length vs computation time -->
+
+---
+
+## สรุป — รากฐานที่ต้องเข้าใจ
+
+Transformer ไม่ใช่ magic — มันคือ engineering ที่ elegant มาก องค์ประกอบแต่ละอย่างแก้ปัญหาเฉพาะ:
+
+นี่คือสรุปองค์ประกอบทั้งหมดที่ทำงานร่วมกัน:
+
+**Tokenization + Embeddings** แปลงข้อความดิบเป็นเวกเตอร์ตัวเลขที่โมเดลจัดการได้
+
+**Self-Attention** แก้ปัญหา long-range dependency ของ RNN โดยให้ทุก token เห็นทุก token โดยตรง
+
+**Multi-Head Attention** แก้ปัญหาที่ความสัมพันธ์ระหว่างคำมีหลายมิติ โดยให้ heads หลายตัวมองคนละมุม
+
+**Positional Encoding** แก้ปัญหาที่ Attention ไม่รู้ลำดับ โดยเพิ่มข้อมูลตำแหน่งเข้าไป
+
+**Feed-Forward Network** เพิ่ม non-linearity และ capacity ให้แต่ละ token ประมวลผลข้อมูลที่รวบรวมมา
+
+**Residual Connections + Layer Norm** ทำให้ train network ลึกมาก ๆ ได้โดยไม่ระเบิด
+
+รวมกันแล้วสร้างสถาปัตยกรรมที่ parallelizable, scalable, และจับ long-range dependency ได้ดี — ทั้งสามคุณสมบัตินี้รวมกันทำให้ Transformer ชนะทุกสถาปัตยกรรมก่อนหน้า
+
+**สิ่งที่ควรจำจากบทนี้**
+
+ถ้าคุณจำได้แค่อย่างเดียวจากบทนี้ ขอให้จำ analogy นี้:
+
+Transformer คือห้องประชุมที่ทุกคน (ทุก token) สามารถคุยกับทุกคนอื่นได้พร้อมกัน แต่ละคนถามว่า "ใครเกี่ยวข้องกับฉันบ้าง?" (Query), ประกาศตัวเองว่ามีข้อมูลแบบไหน (Key), และแบ่งปันข้อมูลนั้นจริง ๆ (Value) หลังประชุมแต่ละคนกลับไปนั่งคิดคนเดียวที่โต๊ะ (FFN) แล้วส่งต่อให้การประชุมรอบถัดไป ทำซ้ำหลายสิบหรือหลายร้อยรอบ และทุกอย่างทำพร้อมกันบน GPU พัน ๆ cores
+
+ความลึกของ Transformer (จำนวน layers) คือจำนวนรอบประชุม ยิ่งมากรอบ representation ยิ่งซับซ้อนและนามธรรมขึ้น จาก "คำนี้คือกริยา" (layer ต้น) ไปถึง "ประโยคนี้กำลังแสดงความเห็นในเชิงวิจารณ์เกี่ยวกับนโยบายเศรษฐกิจ" (layer ลึก)
+
+สิ่งที่น่าทึ่งที่สุดคือ กระบวนการทั้งหมดนี้ไม่มีใคร program ไว้ทีละขั้น — มันเกิดจากการ optimize ตัวเลขพันล้านตัวเพื่อให้ทำนาย "คำถัดไป" ได้ดีขึ้น แล้วความสามารถในการ "เข้าใจ" ภาษา เหตุผล และโลก ก็ emerge ออกมาเอง นี่คือสิ่งที่ทำให้ Transformer ไม่ใช่แค่ engineering achievement แต่เป็นปริศนาทางวิทยาศาสตร์ที่นักวิจัยยังพยายามทำความเข้าใจอยู่จนถึงทุกวันนี้
+
+เมื่อคุณเข้าใจ Transformer แล้ว ทุกอย่างใน AI landscape เริ่มมีเหตุมีผล ทำไม context window จึงมีขีดจำกัด? (Positional Encoding + Quadratic Attention) ทำไม GPT-4 เก่งกว่า GPT-3 มาก? (Scale + Data) ทำไม fine-tuning ทำงานได้? (Transfer learning จาก pre-trained weights) ทำไม RAG ที่คุณสร้างใน L3 ช่วยลด hallucination ได้? (ให้โมเดลมีข้อมูลจริงใน context แทนที่จะ rely บน FFN weights อย่างเดียว)
+
+ความเข้าใจ architecture ไม่ใช่แค่ "ความรู้ทั่วไป" — มันเปลี่ยนวิธีที่คุณตัดสินใจเลือกโมเดล, ออกแบบ prompt, กำหนด context window size, และ debug เมื่อระบบไม่ทำงานตามที่คาด คุณกลายเป็นคนที่ไม่แค่ใช้ AI แต่เข้าใจว่ากำลังทำงานกับอะไรอยู่จริง ๆ
+
+บทถัดไปจะ zoom เข้าไปในรายละเอียดของ **Attention Mechanism** ลึกยิ่งขึ้น — มันคำนวณยังไงทีละขั้นตอนจนถึงระดับ matrix multiplication, ทำไม "attention" ทำให้ AI เข้าใจภาษาได้ และ variants ใหม่ ๆ เช่น Cross-Attention ใน Diffusion models, Sparse Attention ที่ทำให้จัดการ sequence ยาวได้ และ Flash Attention ที่ทำให้ context window ยาวขึ้นได้จริงทำงานยังไง
+
+ถ้าคุณเข้าใจ Self-Attention จากบทนี้แล้ว บทนั้นจะทำให้ภาพของคุณสมบูรณ์ขึ้นอีกระดับหนึ่ง และเมื่อคุณเข้าใจ Attention อย่างถ่องแท้ คุณจะมองเห็น AI ในแบบที่คนส่วนใหญ่ไม่เคยเห็น

@@ -1,0 +1,831 @@
+---
+slug: cost-engineering
+level: building-with-ai
+title: "Cost Engineering — ควบคุมค่าใช้จ่าย AI ก่อนบิลจะบานปลาย"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เรียนรู้วิธีควบคุมค่าใช้จ่ายของระบบ LLM ตั้งแต่เข้าใจ pricing model, เลือก model ให้ถูกงาน, ลด token, caching, batching จนถึงการตั้ง budget alerts"
+---
+# Cost Engineering — ควบคุมค่าใช้จ่าย AI ก่อนบิลจะบานปลาย
+
+เดือนแรกที่ใช้ API ค่าใช้จ่ายอยู่ที่ $50 รู้สึกถูกมาก คิดว่านี่คือราคาของอนาคต เดือนที่สอง เพิ่ม feature ใหม่ที่ใช้ GPT-4o ทุก request บิลพุ่งเป็น $500 แล้วเดือนที่สาม ระบบ agent loop ที่เขียนเองเกิด bug วนซ้ำทำงานไม่หยุด ตื่นเช้ามาเจอบิล $5,000 ค้างอยู่รอคลิกยืนยัน
+
+เรื่องแบบนี้เกิดขึ้นจริงกับ startup หลายทีมที่รีบ ship product โดยยังไม่มี cost control ไว้รับมือ ค่า API ไม่ได้แพงตั้งแต่แรก มันแพงตอนที่คุณไม่รู้ว่ากำลังจ่ายอะไรอยู่
+
+บทนี้จะพาคุณเข้าใจโครงสร้างค่าใช้จ่ายของ LLM ตั้งแต่ต้น วิธีเลือก model ให้ตรงงาน เทคนิคลด token ที่ได้ผลจริง ระบบ caching และ routing ที่ประหยัดได้ 50-70% และวิธีตั้ง budget guard ก่อนที่บิลจะบานปลาย
+
+<!-- IMAGE: กราฟเส้นแสดงค่าใช้จ่าย API รายเดือนที่พุ่งขึ้นแบบ exponential เมื่อไม่มีการควบคุม เทียบกับเส้นที่ควบคุมได้ราบเรียบ -->
+
+---
+
+## เข้าใจ Pricing Model ของ LLM
+
+ก่อนจะประหยัดได้ ต้องเข้าใจก่อนว่าจ่ายอะไร
+
+ทบทวนเร็ว ๆ: LLM ทุกเจ้าคิดเงินแบบ **pay per token** — ทุกคำที่ส่งเข้าไป (input) และทุกคำที่ตอบกลับ (output) มีราคา และ output มักแพงกว่า input ราว 2-4 เท่า เพราะ model ต้องคำนวณทีละ token เพื่อสร้างคำตอบ นิยาม token เต็ม ๆ และตารางราคาเปรียบเทียบของแต่ละ model อยู่ในบท [LLM APIs](/building-with-ai/llm-apis) ซึ่งเป็นแหล่งราคาอ้างอิงหลักของหลักสูตรนี้ — ในบทนี้เราจะไม่ระบุตัวเลขซ้ำ แต่จะโฟกัสที่ "ทำยังไงให้จ่ายน้อยลง"
+
+> 💡 **Key insight:** Output tokens แพงกว่า input 2-4 เท่า การขอให้ model ตอบสั้นและตรงประเด็นไม่ใช่แค่ UX ที่ดี มันคือการประหยัดเงินจริง ๆ
+
+ประเด็นด้านราคาที่สำคัญต่อ cost engineering โดยเฉพาะ: flagship model อย่าง Sonnet หรือ GPT-4o มักแพงกว่า model เล็กอย่าง Haiku หรือ mini ราว 10-20 เท่า และ open-source model ที่ self-host เอง (เช่น Llama, Mistral) มีต้นทุนต่อ token เข้าใกล้ศูนย์ แลกกับภาระดูแล infrastructure เอง — ทั้งสองจุดนี้คือคันโยกหลักที่เราจะใช้ตลอดบท
+
+<!-- IMAGE: ตารางเปรียบเทียบราคา model ต่าง ๆ แบบ visual card พร้อม tier ว่าถูก/กลาง/แพง -->
+
+**ทำไม pricing ถึงซับซ้อนขึ้น?**
+
+Provider หลายเจ้าเริ่มแยก pricing ตาม context window ขนาด เช่น ถ้า prompt ยาวเกิน 128K tokens ราคาต่อ token อาจเพิ่มขึ้น บางเจ้ามี tier ราคาพิเศษสำหรับ batch requests หรือ cached tokens ซึ่งพวกนี้จะพูดถึงในส่วนถัดไป
+
+สิ่งสำคัญคือต้องอ่าน pricing page ของ provider ที่ใช้อยู่จริง ๆ ไม่ใช่จำราคาจากบทความเก่า เพราะมันเปลี่ยนบ่อย และการประเมินผิดพลาดแม้แค่ 2 เท่าทำให้ P&L ของ project เปลี่ยนไปทั้งหมด
+
+---
+
+## กฎข้อแรก: เลือก Model ให้ตรงกับงาน
+
+ข้อผิดพลาดที่พบบ่อยที่สุดในหมู่นักพัฒนาที่เพิ่งเริ่มใช้ LLM API คือการใช้ model ที่แพงที่สุดทุกงาน เพราะคิดว่า "ดีที่สุด = เหมาะที่สุด" ความจริงคือ งานส่วนใหญ่ในระบบ AI จริงในโลกไม่ต้องการ GPT-4o
+
+ลองคิดแบบนี้ ถ้าคุณต้องซื้อของที่ 7-Eleven คุณจะขับ BMW M5 ไปไหม ถ้าต้องส่งอีเมลยืนยันการสมัครสมาชิก คุณจะจ้างนักเขียนรางวัล Man Booker Prize ไปเขียนไหม งาน routine ต้องการ tool ที่เหมาะกับงาน ไม่ใช่ tool ที่ดีที่สุดในโลก
+
+**แนวทางการจับคู่งานกับ model:**
+
+| ประเภทงาน | Model ที่แนะนำ | เหตุผล |
+|-----------|----------------|--------|
+| Classification (spam/not spam, category tagging) | Haiku / GPT-4o mini | งานง่าย ต้องการความเร็ว ปริมาณสูง |
+| Summarization สั้น | Haiku / GPT-4o mini | ไม่ต้องการ reasoning ลึก |
+| Summarization ยาว + ซับซ้อน | Sonnet / GPT-4o | ต้องเก็บ context ยาวและสรุปได้แม่น |
+| Extraction ข้อมูลมีโครงสร้าง | GPT-4o mini / Haiku | pattern matching ไม่ใช่ reasoning |
+| Code generation | Sonnet / GPT-4o | ต้องการ reasoning เชิงตรรกะ |
+| Multi-step reasoning | GPT-4o / Opus | ปัญหาซับซ้อน เชื่อมโยงหลาย step |
+| Customer support FAQ | Haiku / GPT-4o mini | คำตอบ template-based ปริมาณมาก |
+| Legal / Medical analysis | GPT-4o / Opus | ความแม่นยำสูง ผิดพลาดมีผลกระทบ |
+
+ตัวเลขที่น่าสนใจ: ในระบบ production จริง งาน classification และ extraction มักคิดเป็น 60-70% ของ requests ทั้งหมด ถ้าคุณ route งานพวกนี้ไป model ถูก คุณประหยัดได้ทันที 50-60% ของค่า API รวม
+
+> 💡 **Key insight:** ไม่มีกฎว่าต้องใช้ model เดียวในระบบเดียว ระบบ production ส่วนใหญ่ที่ cost-efficient ใช้หลาย model ทำงานคนละ layer
+
+**ตัวอย่างจริง: ระบบ customer support**
+
+สมมติระบบ support chatbot รับ request วันละ 10,000 ครั้ง
+- 60% เป็นคำถาม FAQ ง่าย ๆ (ใช้ Haiku)
+- 30% ต้องการ context จาก order history (ใช้ Sonnet)
+- 10% เป็น complaint ซับซ้อน ต้องการ empathy + reasoning (ใช้ GPT-4o)
+
+ต้นทุนเปรียบเทียบ (สมมติ avg 500 input + 200 output tokens per request):
+
+ถ้าใช้ GPT-4o ทั้งหมด: 10,000 × (500×$0.0025 + 200×$0.01) / 1000 = $32.50/วัน = ~$975/เดือน
+
+ถ้าใช้ mixed model ตามตาราง: ≈ $8-12/วัน = ~$300/เดือน
+
+ประหยัดได้ราว $675/เดือน หรือ 70% โดยไม่ได้ลด quality ของ output แต่อย่างใด
+
+<!-- IMAGE: Diagram แสดง request flow แยกไปยัง model ต่าง ๆ ตาม task complexity -->
+
+---
+
+## ลด Token = ลดเงิน
+
+เมื่อเลือก model ถูกต้องแล้ว ก้าวถัดไปคือลด token ที่ส่งและรับในแต่ละ request
+
+**Prompt Compression: ตัดสิ่งที่ไม่จำเป็นออก**
+
+System prompt ที่ดีไม่ใช่ system prompt ที่ยาวที่สุด หลายคนเขียน system prompt แบบ stream of consciousness ใส่ทุกอย่างที่นึกได้ "คุณเป็น AI assistant ที่เป็นมิตร มีความรู้กว้างขวาง ตอบได้ทุกคำถาม ใช้ภาษาที่เป็นกันเอง ไม่ตอบคำถามเกี่ยวกับ..." แล้วก็ยาวไปอีกสองย่อหน้า
+
+ทดสอบง่าย ๆ: ลบบรรทัดออกทีละบรรทัด แล้วดูว่า output เปลี่ยนไปไหม ถ้าไม่เปลี่ยน บรรทัดนั้นเป็น waste token
+
+**กฎการลด system prompt:**
+- ระบุ role ในประโยคเดียว ไม่ต้องบรรยายยาว
+- ใส่เฉพาะ constraint ที่ผลต่อ output จริง
+- ลบคำอธิบายที่ซ้ำกับ common sense
+- ใช้ bullet point แทนย่อหน้า (token น้อยกว่า)
+
+**Few-shot Examples: น้อยแต่ตรง**
+
+การใส่ตัวอย่างใน prompt (few-shot) ช่วยให้ model เข้าใจ format ที่ต้องการ แต่ตัวอย่างแต่ละชุดกิน token จำนวนมาก
+
+กฎทั่วไปคือ 2-3 ตัวอย่างที่ดีมักเพียงพอ ไม่จำเป็นต้องใส่ 10 ตัวอย่าง ตัวอย่างที่ดีกว่าประหยัดกว่า ทดสอบกับ 1 ตัวอย่างก่อน แล้วเพิ่มเฉพาะถ้า output ยังไม่ตรง
+
+**Max Tokens: บอก model ว่าต้องการคำตอบขนาดไหน**
+
+ถ้าคุณต้องการสรุปสั้น ๆ แต่ไม่ได้ set max_tokens ไว้ model อาจสร้างคำตอบยาวเกินความจำเป็น ซึ่งคุณจ่ายทุก token ที่มันสร้าง
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=messages,
+    max_tokens=150,  # บอกชัด ๆ ว่าต้องการสั้น
+    temperature=0.3
+)
+```
+
+ทดสอบว่างานแต่ละประเภทต้องการ output กี่ token โดยเฉลี่ย แล้วตั้ง max_tokens ที่ 120-130% ของค่านั้น มีพื้นที่หายใจนิดหน่อย แต่ไม่ปล่อยให้บาน
+
+**Response Format: ขอแค่ที่ต้องการ**
+
+แทนที่จะขอให้ model อธิบายแล้วสรุป ลองขอแค่สรุปอย่างเดียว
+
+แย่: "อธิบายว่าทำไมราคาถึงเพิ่มขึ้น แล้วสรุปเป็นข้อ ๆ"
+ดีกว่า: "สรุปสาเหตุราคาเพิ่ม 3 ข้อ แต่ละข้อไม่เกิน 20 คำ"
+
+คำสั่งที่ specific ทำให้ output สั้นและตรงกว่า ซึ่งดีทั้งในแง่ user experience และ cost
+
+<!-- IMAGE: ตัวอย่าง before/after system prompt แสดงการลด token จาก 500 เหลือ 150 โดยไม่เสีย quality -->
+
+**ตัวอย่างการลด prompt จริง:**
+
+Before (ประมาณ 120 tokens):
+```
+คุณคือ AI assistant ผู้เชี่ยวชาญด้านการบริการลูกค้าของบริษัท XYZ 
+คุณมีความรู้เกี่ยวกับผลิตภัณฑ์ทุกชนิดของเรา คุณควรตอบด้วยความเป็นมิตร
+อ่อนน้อมถ่อมตน และให้ข้อมูลที่ถูกต้อง หากไม่รู้คำตอบให้บอกว่าจะส่งต่อให้ทีม
+โปรดอย่าพูดถึงคู่แข่ง อย่าให้ส่วนลดเกิน 10% โดยไม่ได้รับอนุมัติ
+ตอบเป็นภาษาไทยเสมอ
+```
+
+After (ประมาณ 45 tokens):
+```
+Support agent สำหรับ XYZ. ตอบภาษาไทย เป็นมิตร.
+ข้อจำกัด: ไม่พูดถึงคู่แข่ง, ส่วนลดสูงสุด 10%, ไม่รู้ → ส่งต่อทีม.
+```
+
+Output quality เหมือนกัน แต่ประหยัด 75 tokens ทุก request ถ้ารับ 10,000 requests/วัน นั่นคือ 750,000 tokens/วัน หรือราว $0.19/วัน จาก input ฝั่งเดียว ดูเล็กน้อย แต่คูณ 365 วันคือ $69/ปี สำหรับแค่การย่อ system prompt
+
+---
+
+## Caching — อย่าจ่ายซ้ำสำหรับคำถามเดิม
+
+ลองนึกภาพ call center ที่รับโทรศัพท์ถามคำถามเดิม 500 ครั้งต่อวัน "เปิดกี่โมง?" แทนที่จะให้พนักงานตอบทุกครั้ง ถ้ามีระบบบันทึกคำตอบสำเร็จรูปไว้ ก็ตอบได้เลยโดยไม่ต้องคิด Caching ในระบบ LLM ทำงานแบบเดียวกัน
+
+**Exact Match Cache**
+
+วิธีง่ายที่สุด ถ้า query เหมือนกัน 100% ส่ง response เดิมกลับไป ไม่ต้องเรียก API
+
+```python
+import hashlib
+import json
+
+# Cache แบบง่ายด้วย dictionary (production ควรใช้ Redis)
+cache = {}
+
+def cached_llm_call(prompt: str, model: str = "gpt-4o-mini") -> str:
+    # สร้าง cache key จาก prompt + model
+    cache_key = hashlib.md5(f"{model}:{prompt}".encode()).hexdigest()
+    
+    # ถ้ามีใน cache แล้ว ส่งคืนเลย ไม่เรียก API
+    if cache_key in cache:
+        print("Cache hit! ไม่เสียเงิน")
+        return cache[cache_key]
+    
+    # ไม่มีใน cache ต้องเรียก API
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    result = response.choices[0].message.content
+    
+    # บันทึกลง cache
+    cache[cache_key] = result
+    print("API call: บันทึกลง cache แล้ว")
+    return result
+```
+
+Exact match ใช้ได้ดีกับ FAQ, product descriptions, หรือ content ที่คนถามซ้ำด้วยคำเดิม
+
+**Semantic Cache**
+
+ปัญหาของ exact match คือ "เปิดกี่โมง" กับ "ร้านเปิดเวลาไหน" เป็นคำถามเดิมในความหมาย แต่ key ต่างกัน Semantic cache แก้ปัญหานี้ด้วยการเปรียบเทียบ meaning ไม่ใช่ text
+
+กระบวนการทำงาน:
+1. รับ query ใหม่
+2. แปลงเป็น embedding vector (แสดงความหมาย)
+3. เปรียบเทียบกับ query ที่เคยตอบไว้
+4. ถ้า similarity เกิน threshold (เช่น 0.92) ใช้คำตอบเก่า
+5. ถ้าต่ำกว่า threshold เรียก LLM แล้วบันทึก
+
+Library ที่ใช้ได้: `GPTCache`, `Semantic Cache` จาก LangChain, หรือสร้างเองด้วย `sentence-transformers` + vector DB
+
+> 💡 **Key insight:** Semantic cache ให้ผลดีที่สุดกับ traffic ที่มี pattern ซ้ำ เช่น product support, FAQ bot, หรือ content generation ที่ prompt มาจาก template เดิม
+
+**Prompt Caching จาก Provider**
+
+Anthropic และ OpenAI เพิ่ม feature prompt caching ระดับ API ซึ่งทรงพลังกว่า cache ที่เราสร้างเอง
+
+Anthropic Prompt Caching: ถ้า system prompt หรือ document ยาว ๆ เหมือนกันทุก request API จะ cache ส่วนนั้นไว้ และคิดราคาพิเศษสำหรับ cached tokens (ถูกกว่า uncached 90%)
+
+```python
+# Anthropic prompt caching
+response = anthropic.messages.create(
+    model="claude-haiku-4-5",
+    max_tokens=1024,
+    system=[
+        {
+            "type": "text",
+            "text": "คุณเป็น assistant สำหรับบริษัท XYZ...",
+        },
+        {
+            "type": "text",
+            "text": "<นโยบายบริษัท 50 หน้า>",
+            "cache_control": {"type": "ephemeral"}  # บอกให้ cache ส่วนนี้
+        }
+    ],
+    messages=[{"role": "user", "content": user_question}]
+)
+```
+
+ในครั้งแรกที่เรียก จะคิดราคาปกติ แต่ครั้งต่อ ๆ ไปที่ส่ง document เดิม ส่วนที่ cache ไว้จะถูกกว่า 90% สำหรับ RAG system ที่แนบ document ยาว ๆ ทุก request นี่คือการประหยัดที่มหาศาล
+
+**ผลลัพธ์ที่คาดหวังจาก Caching:**
+
+- Exact match cache: ลด cost 30-50% สำหรับ traffic FAQ
+- Semantic cache: ลด cost 20-40% สำหรับ traffic ที่มี paraphrase
+- Provider prompt cache: ลด cost ส่วน context document 80-90%
+
+รวมกันแล้วระบบที่ออกแบบ caching ดีอาจประหยัดได้ 50-70% ของ cost ทั้งหมด
+
+<!-- IMAGE: Diagram แสดง cache hit vs cache miss flow พร้อม cost ที่ต่างกัน -->
+
+---
+
+## ลองทำดู #1: คำนวณ Cost ของระบบคุณ
+
+ก่อนจะ optimize ต้องรู้ก่อนว่าตอนนี้จ่ายอะไรอยู่ การประมาณ cost ล่วงหน้าช่วยหลีกเลี่ยงความเซอร์ไพรส์จากบิลปลายเดือน
+
+**Step 1: วัดขนาด traffic**
+
+```python
+# วัด token usage จาก response จริง
+def measure_tokens(prompt: str, response_text: str, model: str):
+    """วัด token ที่ใช้จริงใน production"""
+    # ส่วนใหญ่ API จะ return usage ใน response object
+    print(f"Model: {model}")
+    print(f"Estimated input tokens: {len(prompt.split()) * 1.3:.0f}")
+    print(f"Estimated output tokens: {len(response_text.split()) * 1.3:.0f}")
+```
+
+> หมายเหตุ: ค่าประมาณ *1.3 เป็น rough estimate ควรใช้ tokenizer จริงของแต่ละ model เช่น tiktoken สำหรับ OpenAI หรืออ่านค่าจาก response.usage ที่ API return มาให้
+
+**Step 2: Cost Calculator**
+
+```python
+# ราคาต่อ 1,000,000 tokens (ดูราคาอ้างอิงในบท LLM APIs และปรับให้ตรงกับ provider ที่ใช้จริง)
+PRICING = {
+    "gpt-4o": {"input": 5.00, "output": 15.00},
+    "gpt-4o-mini": {"input": 0.15, "output": 0.60},
+    "claude-sonnet-4-5": {"input": 3.00, "output": 15.00},
+    "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
+}
+
+def calculate_monthly_cost(
+    model: str,
+    avg_input_tokens: int,
+    avg_output_tokens: int,
+    requests_per_day: int,
+    cache_hit_rate: float = 0.0  # 0.0 = ไม่มี cache, 0.5 = cache hit 50%
+) -> dict:
+    """คำนวณค่าใช้จ่ายรายเดือน"""
+    
+    price = PRICING[model]
+    
+    # คำนวณ requests จริงที่ต้องเรียก API (หักส่วนที่ cache)
+    effective_requests = requests_per_day * (1 - cache_hit_rate)
+    
+    # cost ต่อ request
+    cost_per_request = (
+        (avg_input_tokens / 1_000_000) * price["input"] +
+        (avg_output_tokens / 1_000_000) * price["output"]
+    )
+    
+    daily_cost = effective_requests * cost_per_request
+    monthly_cost = daily_cost * 30
+    
+    return {
+        "model": model,
+        "cache_hit_rate": f"{cache_hit_rate*100:.0f}%",
+        "daily_cost_usd": round(daily_cost, 2),
+        "monthly_cost_usd": round(monthly_cost, 2),
+        "annual_cost_usd": round(monthly_cost * 12, 2)
+    }
+
+# ลอง 3 scenarios
+params = {
+    "avg_input_tokens": 800,
+    "avg_output_tokens": 300,
+    "requests_per_day": 5000
+}
+
+scenarios = [
+    ("gpt-4o", 0.0),           # ใช้ GPT-4o ทั้งหมด ไม่มี cache
+    ("gpt-4o-mini", 0.0),      # เปลี่ยน model อย่างเดียว
+    ("gpt-4o-mini", 0.4),      # เปลี่ยน model + cache hit 40%
+]
+
+for model, cache_rate in scenarios:
+    result = calculate_monthly_cost(model, cache_hit_rate=cache_rate, **params)
+    print(f"\n{result['model']} (cache {result['cache_hit_rate']}):")
+    print(f"  รายเดือน: ${result['monthly_cost_usd']:,.2f}")
+    print(f"  รายปี:    ${result['annual_cost_usd']:,.2f}")
+```
+
+ผลที่ควรได้ (ประมาณ):
+- GPT-4o ไม่มี cache: ~$1,275/เดือน
+- GPT-4o-mini ไม่มี cache: ~$40/เดือน
+- GPT-4o-mini + 40% cache: ~$24/เดือน
+
+ความต่างระหว่าง scenario แรกกับสุดท้ายมากกว่า 50 เท่า โดยไม่ได้เปลี่ยน feature ใด ๆ
+
+<!-- IMAGE: Spreadsheet screenshot แสดง 3 scenarios คำนวณ cost พร้อม highlight savings -->
+
+---
+
+## Batching และ Async
+
+ไม่ใช่ทุก request จำเป็นต้องได้คำตอบทันที
+
+**Batch API: ส่วนลด 50% สำหรับงานที่รอได้**
+
+OpenAI มี Batch API ที่ให้ส่วนลด 50% สำหรับ requests ที่ไม่ต้องการ real-time response งานจะถูกประมวลผลภายใน 24 ชั่วโมง เหมาะสำหรับ:
+
+- Report generation รายคืน
+- Data enrichment (classify หรือ tag data จำนวนมาก)
+- Content generation สำหรับ product catalog
+- Batch analysis ของ customer feedback
+- Training data generation
+
+```python
+import json
+
+# สร้าง batch request file
+batch_requests = []
+
+# สมมติมี products 1000 ชิ้นที่ต้องเขียน description
+for product_id, product_name in products:
+    batch_requests.append({
+        "custom_id": f"product-{product_id}",
+        "method": "POST",
+        "url": "/v1/chat/completions",
+        "body": {
+            "model": "gpt-4o-mini",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": f"เขียน description สำหรับ {product_name} ใน 2 ประโยค"
+                }
+            ],
+            "max_tokens": 100
+        }
+    })
+
+# บันทึกเป็น JSONL file
+with open("batch_input.jsonl", "w") as f:
+    for req in batch_requests:
+        f.write(json.dumps(req, ensure_ascii=False) + "\n")
+
+# ส่ง batch
+batch_file = client.files.create(
+    file=open("batch_input.jsonl", "rb"),
+    purpose="batch"
+)
+
+batch = client.batches.create(
+    input_file_id=batch_file.id,
+    endpoint="/v1/chat/completions",
+    completion_window="24h"  # จะเสร็จภายใน 24 ชั่วโมง
+)
+
+print(f"Batch ID: {batch.id}")
+print("ราคาจะถูกกว่า real-time API 50%")
+```
+
+> 💡 **Key insight:** ถ้า workflow ของคุณมีงาน batch ที่ทำเป็น cron job หรือ scheduled task การเปลี่ยนไปใช้ Batch API ทำให้ประหยัดได้ทันที 50% โดยไม่ต้องปรับ code มาก
+
+**Async Processing สำหรับ High Volume**
+
+แม้ใน real-time use case การส่ง requests แบบ async พร้อมกันหลาย ๆ ตัวช่วยให้ throughput สูงขึ้นโดยไม่เพิ่มต้นทุน
+
+```python
+import asyncio
+import aiohttp
+
+async def async_llm_call(session, prompt, semaphore):
+    """เรียก API แบบ async พร้อม rate limiting"""
+    async with semaphore:  # จำกัดไม่เกิน N concurrent requests
+        # เรียก API...
+        pass
+
+async def process_batch_async(prompts: list, max_concurrent: int = 10):
+    """ประมวลผลหลาย prompts พร้อมกัน"""
+    semaphore = asyncio.Semaphore(max_concurrent)
+    async with aiohttp.ClientSession() as session:
+        tasks = [async_llm_call(session, p, semaphore) for p in prompts]
+        results = await asyncio.gather(*tasks)
+    return results
+```
+
+<!-- IMAGE: Timeline diagram แสดง sequential vs async processing และ throughput ที่ต่างกัน -->
+
+---
+
+## Model Routing — ส่งงานไปให้ model ที่ถูกต้องอัตโนมัติ
+
+Model routing คือระบบที่ตัดสินใจแทนคนว่า query นี้ควรไปหา model ไหน โดยอิงจากความยากและประเภทของ query ระบบที่ดีจะ route งานง่ายไป model ถูก และงานยากไป model แพง โดยอัตโนมัติ
+
+**วิธีที่ 1: Rule-based Router**
+
+วิธีง่ายที่สุด ใช้ keyword และ heuristic ตัดสิน
+
+```python
+def simple_router(query: str) -> str:
+    """Router แบบง่ายด้วย rule-based"""
+    query_lower = query.lower()
+    query_len = len(query.split())
+    
+    # งานที่ชัดเจนว่าง่าย → model ถูก
+    simple_patterns = [
+        "จัดหมวดหมู่", "classify", "แท็ก", "tag",
+        "สรุปสั้น", "ใช่หรือไม่", "yes or no"
+    ]
+    
+    # งานที่ต้องการ reasoning → model แพง
+    complex_patterns = [
+        "วิเคราะห์", "เปรียบเทียบ", "อธิบาย", "ทำไม",
+        "กลยุทธ์", "แผนงาน", "วางแผน"
+    ]
+    
+    if any(p in query_lower for p in simple_patterns) or query_len < 20:
+        return "claude-haiku-4-5"
+    elif any(p in query_lower for p in complex_patterns) or query_len > 100:
+        return "claude-sonnet-4-5"
+    else:
+        return "gpt-4o-mini"  # default กลาง ๆ
+```
+
+**วิธีที่ 2: Classifier-based Router**
+
+ใช้ model เล็ก ๆ (และถูก) classify ก่อน แล้วค่อย route ไป model ที่เหมาะ
+
+```python
+def classify_query_difficulty(query: str) -> str:
+    """ใช้ model เล็กตัดสินว่า query ยากแค่ไหน"""
+    
+    classification_prompt = f"""
+จัดหมวดหมู่ query ต่อไปนี้เป็น: SIMPLE, MEDIUM, หรือ COMPLEX
+
+SIMPLE = classification, extraction, yes/no, สรุปสั้น
+MEDIUM = summarization, Q&A จาก document
+COMPLEX = multi-step reasoning, creative writing, analysis เชิงลึก
+
+Query: {query}
+
+ตอบด้วยคำเดียว: SIMPLE, MEDIUM, หรือ COMPLEX
+"""
+    
+    # ใช้ model ถูกที่สุดในการ classify!
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # ถูกมาก และพอเพียงสำหรับ classify
+        messages=[{"role": "user", "content": classification_prompt}],
+        max_tokens=10  # ต้องการแค่หนึ่งคำ
+    )
+    
+    difficulty = response.choices[0].message.content.strip()
+    return difficulty
+
+def intelligent_router(query: str) -> str:
+    """Router ที่ใช้ AI classify ก่อน route"""
+    difficulty = classify_query_difficulty(query)
+    
+    routing_map = {
+        "SIMPLE": "claude-haiku-4-5",
+        "MEDIUM": "gpt-4o-mini",
+        "COMPLEX": "gpt-4o"
+    }
+    
+    model = routing_map.get(difficulty, "gpt-4o-mini")
+    print(f"Query difficulty: {difficulty} → routing to {model}")
+    return model
+
+def routed_llm_call(query: str, system_prompt: str = "") -> str:
+    """เรียก LLM พร้อม routing อัตโนมัติ"""
+    model = intelligent_router(query)
+    
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": query})
+    
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages
+    )
+    
+    return response.choices[0].message.content
+```
+
+ต้นทุนการ classify ด้วย GPT-4o-mini ประมาณ $0.00001 ต่อ query (ถูกมาก) แต่ถ้า routing ถูกต้อง ประหยัดได้มากกว่านั้น 100 เท่า
+
+<!-- IMAGE: Flow diagram แสดง routing logic: query → classifier → model selection → response -->
+
+---
+
+## ลองทำดู #2: สร้าง Model Router ง่าย ๆ
+
+ลองทดสอบ router จาก code ด้านบนกับ queries จริง
+
+**Step 1: ติดตั้ง dependencies**
+
+```bash
+pip install openai python-dotenv
+```
+
+**Step 2: เตรียม test queries**
+
+```python
+# test_router.py
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# ราคาต่อ 1M tokens (ดูราคาอ้างอิงในบท LLM APIs)
+COST_PER_MILLION = {
+    "gpt-4o": {"input": 5.00, "output": 15.00},
+    "gpt-4o-mini": {"input": 0.15, "output": 0.60},
+    "claude-sonnet-4-5": {"input": 3.00, "output": 15.00},
+    "claude-haiku-4-5": {"input": 1.00, "output": 5.00},
+}
+
+test_queries = [
+    "จัดหมวดหมู่รีวิวนี้ว่า positive หรือ negative: 'สินค้าดีมาก ส่งเร็ว'",
+    "สรุปบทความนี้ใน 3 ประโยค: [บทความยาว]",
+    "วิเคราะห์โอกาสและความเสี่ยงของการขยายธุรกิจไปยังตลาดอาเซียน พร้อมแนะนำกลยุทธ์",
+    "คำว่า 'กรุงเทพ' ภาษาอังกฤษคืออะไร",
+    "เปรียบเทียบ microservices vs monolith architecture สำหรับ startup ที่มีทีม 5 คน"
+]
+
+total_without_routing = 0
+total_with_routing = 0
+
+for query in test_queries:
+    # ราคาถ้าใช้ GPT-4o ทั้งหมด
+    tokens_estimate = len(query.split()) * 1.3
+    cost_gpt4o = (tokens_estimate / 1_000_000) * COST_PER_MILLION["gpt-4o"]["input"]
+    total_without_routing += cost_gpt4o
+    
+    # ราคาด้วย routing
+    model = intelligent_router(query)
+    cost_routed = (tokens_estimate / 1_000_000) * COST_PER_MILLION.get(
+        model, COST_PER_MILLION["gpt-4o-mini"]
+    )["input"]
+    total_with_routing += cost_routed
+    
+    print(f"Query: {query[:50]}...")
+    print(f"  Routed to: {model}")
+    print(f"  Cost saving: {((cost_gpt4o - cost_routed) / cost_gpt4o * 100):.0f}%\n")
+
+savings_pct = (total_without_routing - total_with_routing) / total_without_routing * 100
+print(f"Overall savings with routing: {savings_pct:.0f}%")
+```
+
+ในการทดสอบจริง router แบบนี้มักประหยัดได้ 40-60% สำหรับ mixed workload ทั่วไป
+
+**Step 3: Measure และปรับปรุง**
+
+เมื่อ router ทำงานใน production ให้ log ไว้ว่า query แต่ละประเภทถูก route ไปที่ไหน และ output quality เป็นอย่างไร ถ้า user complaint มาจาก SIMPLE queries แสดงว่า classification ผิด ให้ adjust threshold
+
+<!-- IMAGE: Terminal output แสดงผลการ run test_router.py พร้อม savings percentage -->
+
+---
+
+## Budget Management — กำแพงกั้นก่อนบิลบานปลาย
+
+เทคนิคทั้งหมดข้างต้นช่วยลด cost แต่ยังต้องการ safety net สำหรับกรณีที่ไม่คาดคิด เช่น bug ที่ทำให้ loop วนซ้ำ หรือ traffic spike ที่ไม่ได้วางแผน
+
+**ตั้ง Spending Limits ที่ Provider**
+
+ทุก provider หลักมี interface ให้ตั้ง spending limit:
+
+- **OpenAI**: ไปที่ platform.openai.com → Billing → Usage limits → ตั้ง Hard limit (block requests เมื่อถึง) และ Soft limit (แจ้งเตือนก่อน)
+- **Anthropic**: console.anthropic.com → Settings → Limits
+- **Azure OpenAI**: ตั้ง Token per minute quotas ใน Azure portal
+
+ตั้งทั้งสองระดับ เช่น Soft limit $400/เดือน Hard limit $500/เดือน ให้มี buffer 20% สำหรับ legitimate traffic ที่สูงขึ้น
+
+**Budget Guard ใน Code**
+
+อย่าพึ่งแค่ provider limits ระบบของคุณเองควรมี cost tracking ด้วย
+
+```python
+import time
+from dataclasses import dataclass, field
+from typing import Optional
+
+@dataclass
+class BudgetTracker:
+    """Track และ enforce budget limits"""
+    daily_limit_usd: float
+    monthly_limit_usd: float
+    current_daily_spend: float = 0.0
+    current_monthly_spend: float = 0.0
+    last_reset_day: int = field(default_factory=lambda: time.localtime().tm_mday)
+    
+    def reset_if_new_day(self):
+        current_day = time.localtime().tm_mday
+        if current_day != self.last_reset_day:
+            self.current_daily_spend = 0.0
+            self.last_reset_day = current_day
+    
+    def check_budget(self, estimated_cost: float) -> bool:
+        """ตรวจสอบว่ายังอยู่ใน budget ไหม"""
+        self.reset_if_new_day()
+        
+        if self.current_daily_spend + estimated_cost > self.daily_limit_usd:
+            print(f"Daily budget exceeded! Used: ${self.current_daily_spend:.2f}, Limit: ${self.daily_limit_usd}")
+            return False
+        
+        if self.current_monthly_spend + estimated_cost > self.monthly_limit_usd:
+            print(f"Monthly budget exceeded! Used: ${self.current_monthly_spend:.2f}, Limit: ${self.monthly_limit_usd}")
+            return False
+        
+        return True
+    
+    def record_spend(self, actual_cost: float):
+        """บันทึกค่าใช้จ่ายหลัง request สำเร็จ"""
+        self.current_daily_spend += actual_cost
+        self.current_monthly_spend += actual_cost
+    
+    def get_status(self) -> dict:
+        return {
+            "daily_used": self.current_daily_spend,
+            "daily_limit": self.daily_limit_usd,
+            "daily_pct": f"{(self.current_daily_spend/self.daily_limit_usd*100):.1f}%",
+            "monthly_used": self.current_monthly_spend,
+            "monthly_limit": self.monthly_limit_usd,
+            "monthly_pct": f"{(self.current_monthly_spend/self.monthly_limit_usd*100):.1f}%"
+        }
+
+# ใช้งาน
+budget = BudgetTracker(daily_limit_usd=50.0, monthly_limit_usd=1000.0)
+
+def safe_llm_call(prompt: str, model: str = "gpt-4o-mini") -> Optional[str]:
+    """เรียก LLM พร้อม budget check"""
+    
+    # ประมาณ cost ก่อน
+    estimated_tokens = len(prompt.split()) * 1.3
+    estimated_cost = (estimated_tokens / 1_000_000) * 0.60  # rough estimate
+    
+    if not budget.check_budget(estimated_cost):
+        # แจ้งเตือน หรือ fallback
+        send_alert("Budget limit approaching!")
+        return "ขออภัย ระบบกำลัง maintenance ชั่วคราว"
+    
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    
+    # บันทึก actual cost
+    actual_input = response.usage.prompt_tokens
+    actual_output = response.usage.completion_tokens
+    actual_cost = (actual_input * 0.15 + actual_output * 0.60) / 1_000_000
+    budget.record_spend(actual_cost)
+    
+    return response.choices[0].message.content
+
+def send_alert(message: str):
+    """ส่ง alert (ปรับให้เชื่อมกับ Slack หรือ email จริง)"""
+    print(f"ALERT: {message}")
+    # ใน production: requests.post(slack_webhook_url, json={"text": message})
+```
+
+**Kill Switch สำหรับ Runaway Agents**
+
+ถ้าระบบมี agent loop ต้องมี kill switch ที่ชัดเจน
+
+```python
+MAX_ITERATIONS = 10  # จำกัดรอบ agent loop
+MAX_COST_PER_SESSION = 0.50  # จำกัด cost ต่อ session
+
+def run_agent(user_request: str):
+    iterations = 0
+    session_cost = 0.0
+    
+    while True:
+        # Guard conditions
+        if iterations >= MAX_ITERATIONS:
+            return "Agent หยุดทำงาน: เกินจำนวนรอบที่กำหนด"
+        
+        if session_cost >= MAX_COST_PER_SESSION:
+            return f"Agent หยุดทำงาน: ค่าใช้จ่าย session เกิน ${MAX_COST_PER_SESSION}"
+        
+        # ... logic ของ agent ...
+        iterations += 1
+```
+
+**Dashboard สำหรับ Monitoring**
+
+สำหรับ production system ควรมี dashboard แสดง:
+- Cost รายวัน/รายสัปดาห์/รายเดือน trend
+- Cost breakdown ตาม model และ feature
+- Request volume และ average cost per request
+- Cache hit rate
+- Alert history
+
+Tools ที่ใช้ได้: Grafana + custom metrics, Datadog, หรือแม้แต่ Google Sheets ที่ update จาก cron job ง่าย ๆ ก็เพียงพอสำหรับ early stage
+
+<!-- IMAGE: Screenshot ของ budget dashboard แสดง daily spend trend พร้อม alert threshold line -->
+
+> 💡 **Key insight:** Budget management ที่ดีต้องมีทั้ง hard limits ที่ provider, soft limits ใน code, และ monitoring dashboard ไม่ควรพึ่งแค่อย่างเดียว เพราะแต่ละชั้นป้องกันคนละ failure mode
+
+---
+
+## Open-source Models — ทางเลือกเมื่อต้องการ Cost เข้าใกล้ศูนย์
+
+ถ้า API cost สูงเกินไป หรือมีข้อจำกัดเรื่อง data privacy มีทางเลือกที่สาม: run model เอง
+
+**Models ที่น่าสนใจสำหรับ Self-hosting**
+
+| Model | Parameter Size | ความสามารถ | Hardware ที่ต้องการ |
+|-------|----------------|------------|---------------------|
+| Llama 3.1 8B | 8B | งานทั่วไป, instruction following | GPU 8-16GB VRAM |
+| Llama 3.1 70B | 70B | ใกล้เคียง GPT-4o สำหรับงานหลายอย่าง | GPU 40-80GB VRAM |
+| Mistral 7B | 7B | เร็ว, efficient, ดีสำหรับ classification | GPU 8GB VRAM |
+| Phi-3.5 Mini | 3.8B | เล็กมาก, ดีสำหรับ edge deployment | CPU ก็ได้ (ช้า) |
+| Qwen 2.5 | หลายขนาด | แรง, รองรับภาษาเอเชียดี | ขึ้นกับขนาด |
+
+**เมื่อไหร่ Self-hosting คุ้ม**
+
+Self-hosting ไม่ได้ฟรี มีต้นทุน:
+- GPU server (A100 40GB ราคา ~$2-3/ชั่วโมงบน cloud)
+- Engineering time สำหรับ setup และ maintenance
+- Latency ที่อาจสูงกว่า managed API
+
+กฎง่าย ๆ: ถ้าค่า API เกิน $500-1,000/เดือน เริ่มคำนวณว่า self-hosting คุ้มไหม
+
+ตัวอย่าง: ถ้า Llama 3.1 70B บน A100 ที่ $3/ชั่วโมง ทำได้ 1,000 requests/ชั่วโมง ต้นทุนต่อ request คือ $0.003 ถ้า GPT-4o mini คิด $0.002/request ก็ยังไม่คุ้มเปลี่ยน แต่ถ้า request ละ 5,000 tokens input + 1,000 tokens output ต้นทุน GPT-4o mini จะเพิ่มเป็น $0.01+ และเริ่มคุ้มค่า self-hosting มากขึ้น
+
+**Privacy Requirement**
+
+ถ้า data ของคุณอ่อนไหวและไม่สามารถส่งออกไปยัง third-party API ได้ (เช่น ข้อมูลการแพทย์ กฎหมาย ข้อมูลทางการเงิน) self-hosting เป็นทางเดียวที่ทำได้ ไม่ใช่แค่เรื่องต้นทุน
+
+**เริ่มต้นกับ Ollama**
+
+สำหรับการทดลอง self-hosting บนเครื่อง local Ollama คือ tool ที่ง่ายที่สุด
+
+```bash
+# ติดตั้ง Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+
+# Download และ run Llama 3.1 8B
+ollama run llama3.1:8b
+
+# หรือ Mistral
+ollama run mistral:7b
+```
+
+```python
+# เรียกใช้ผ่าน Python (compatible กับ OpenAI SDK)
+from openai import OpenAI
+
+# ชี้ไปที่ local Ollama
+local_client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"  # ไม่ต้องใช้ key จริง
+)
+
+response = local_client.chat.completions.create(
+    model="llama3.1:8b",
+    messages=[{"role": "user", "content": "สวัสดี ช่วยสรุปข้อดีของ Python ใน 3 ข้อ"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+ใช้ Ollama สำหรับ development และทดสอบว่า open-source model ทำงานได้ดีพอไหมสำหรับ use case ของคุณ ก่อนตัดสินใจลงทุน GPU server จริง
+
+<!-- IMAGE: Architecture diagram เปรียบเทียบ Cloud API vs Self-hosted model พร้อม cost structure ของทั้งสองแบบ -->
+
+---
+
+## สรุป
+
+Cost engineering ไม่ใช่เรื่องของการประหยัด มันคือเรื่องของความยั่งยืน ระบบ AI ที่ดีต้องทำงานได้โดยไม่กิน margin ทั้งหมดของธุรกิจ และต้องขยายได้โดยที่ cost ไม่โตเร็วกว่า revenue
+
+ทบทวนสิ่งที่เรียนมาในบทนี้:
+
+**เข้าใจโครงสร้าง** — Pay per token, output แพงกว่า input 2-4 เท่า, ราคาต่าง model ต่างกัน 10-20 เท่า
+
+**เลือก model ให้ถูกงาน** — ไม่มีเหตุผลที่ต้องใช้ GPT-4o สำหรับงาน classification ง่าย ๆ Mixed model routing ประหยัดได้ 50-70%
+
+**ลด token** — ย่อ system prompt ตั้ง max_tokens ขอแค่ที่ต้องการ ทุก token ที่ตัดออกได้คือเงินที่เก็บไว้
+
+**Caching ที่ดี** — Exact match สำหรับ FAQ, semantic cache สำหรับ paraphrase, provider cache สำหรับ long context ลด cost 30-70% สำหรับ traffic ที่ซ้ำ
+
+**Batch เมื่อทำได้** — งานที่รอได้ 24 ชั่วโมง ใช้ Batch API ประหยัดทันที 50%
+
+**Budget guard ทุกชั้น** — Provider limits, code-level tracker, kill switch สำหรับ agent loop, monitoring dashboard
+
+**Self-hosting เมื่อสมเหตุสมผล** — High volume + privacy requirements คือสัญญาณให้ประเมิน self-hosting
+
+ขั้นตอนต่อไปที่แนะนำ: เปิด spreadsheet แล้วคำนวณ cost ของระบบที่คุณกำลังสร้างด้วย 3 scenarios ตามที่แสดงในส่วน ลองทำดู #1 ตัวเลขจะบอกคุณเองว่า optimization ไหนคุ้มค่าที่สุดสำหรับ context ของคุณ
+
+ระบบที่ควบคุม cost ได้คือระบบที่ scale ได้ และระบบที่ scale ได้คือธุรกิจที่ยั่งยืน ขั้นตอนสุดท้ายก่อนที่ระบบจะพร้อมรับผู้ใช้จริงคือการ deploy [บทถัดไปเรื่อง Deployment](/building-with-ai/deployment) จะพาคุณดูวิธี deploy ระบบ AI ให้ production-ready ตั้งแต่ containerization ไปจนถึง monitoring ที่ทำให้คุณนอนหลับได้สบายแม้ระบบทำงานอยู่ตลอด 24 ชั่วโมง
+

@@ -1,0 +1,595 @@
+---
+slug: mixture-of-experts
+level: advanced
+title: "Mixture of Experts — โมเดลยักษ์ที่ใช้แค่บางส่วนในแต่ละครั้ง"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ Mixture of Experts (MoE) ตั้งแต่แนวคิด gating mechanism, sparse activation, load balancing จนถึง GPT-4 และ Mixtral ที่ใช้ MoE เพื่อสร้างโมเดลที่เก่งแต่เร็ว"
+---
+# Mixture of Experts — โมเดลยักษ์ที่ใช้แค่บางส่วนในแต่ละครั้ง
+
+มีคำถามหนึ่งที่คนในวงการ AI เถียงกันมาหลายปี และยังไม่มีคำตอบที่ชัดเจนในที่สาธารณะ
+
+GPT-4 มี parameters กี่ตัว?
+
+OpenAI ไม่เคยบอก แต่ข้อมูลที่ถูก leak ออกมาในปี 2023 ระบุว่าอาจอยู่ที่ราวๆ 1.8 ล้านล้าน parameters — ใหญ่กว่า GPT-3 มากกว่า 100 เท่า ถ้าตัวเลขนั้นจริง คำถามถัดมาคือ ทำไม GPT-4 ถึงตอบเร็วพอๆ กับโมเดลที่เล็กกว่า 10 เท่า? ทำไม inference cost ถึงไม่พุ่งตามสัดส่วนของขนาด?
+
+คำตอบอยู่ที่สถาปัตยกรรมที่ชื่อว่า **Mixture of Experts (MoE)** — แนวคิดที่เปลี่ยนวิธีคิดเรื่อง "โมเดลใหญ่" ไปโดยสิ้นเชิง
+
+แทนที่จะใช้ parameters ทั้งหมดทุกครั้งที่มี input เข้ามา MoE เลือกใช้เฉพาะ "ผู้เชี่ยวชาญ" ที่เหมาะกับงานนั้น บทนี้จะอธิบายว่ามันทำแบบนั้นได้ยังไง ทำไมมันยาก และทำไมมันถึงกลายเป็นองค์ประกอบสำคัญของ frontier models ในปัจจุบัน
+
+<!-- IMAGE: Infographic แสดง GPT-4 ขนาดใหญ่มาก แต่มีแค่ "window" เล็กๆ ที่ถูก activate ต่อ token -->
+
+---
+
+## Dense vs Sparse — สองวิธีคิดที่ต่างกันโดยสิ้นเชิง
+
+เพื่อเข้าใจ MoE ต้องเข้าใจก่อนว่าโมเดลปกติทำงานยังไง และมันมีปัญหาอะไร
+
+โมเดลทั่วไปที่เราคุ้นเคย ไม่ว่าจะเป็น GPT-3, Llama รุ่นแรกๆ, หรือโมเดล open-source ส่วนใหญ่ ล้วนเป็นสิ่งที่เรียกว่า **Dense Model** คำว่า "dense" ในที่นี้แปลตรงตัวว่า "หนาแน่น" — ทุก parameter ทุกตัวในโมเดลจะถูก activate และคำนวณทุกครั้งที่มี token เข้ามา
+
+ถ้าโมเดลมี 70 พันล้าน parameters ก็แปลว่าทุกครั้งที่คุณพิมพ์คำถาม neural network จะประมวลผลผ่าน parameters ทั้ง 70B ตัวโดยไม่มีข้อยกเว้น ฟังดูสมเหตุสมผล แต่คิดดูดีๆ — มันหมายความว่า parameter ทุกตัวต้องมีส่วนร่วมในทุกงาน ไม่ว่าจะเป็นการเขียนโค้ด Python, การแปลภาษาญี่ปุ่น, การคำนวณคณิตศาสตร์, หรือการเขียนกลอน
+
+ลองนึกภาพโรงพยาบาลขนาดใหญ่ที่มีหมอครบทุกสาขา หมอกระดูก หมอหัวใจ จิตแพทย์ หมอฟัน กุมารแพทย์ ศัลยแพทย์ สูตินรีแพทย์ ทุกคน
+
+ในโรงพยาบาลแบบ Dense ทุกครั้งที่คนไข้เดินเข้ามา ไม่ว่าจะเป็นไข้ธรรมดา ปวดหัว หรือกระดูกหัก หมอทุกคนทุกสาขาต้องออกมาตรวจพร้อมกัน ทุกครั้ง ไม่มีข้อยกเว้น คนไข้แค่หวัดธรรมดา แต่ต้องรอให้ศัลยแพทย์หัวใจตรวจด้วยก่อนกลับบ้านได้
+
+ฟังดูไร้สาระ แต่นั่นคือสิ่งที่ Dense Model ทำทุกวัน
+
+**Sparse Model** คือโรงพยาบาลอีกแบบ — มีหมอครบทุกสาขาเหมือนกัน แต่มีระบบ triage ที่ฉลาด คนไข้เดินเข้ามา ระบบวิเคราะห์อาการอย่างรวดเร็ว แล้วเรียกเฉพาะหมอที่เกี่ยวข้อง ถ้าปวดหัวก็เรียกอายุรแพทย์กับนักประสาทวิทยา ถ้ากระดูกหักก็เรียกหมอกระดูกกับวิสัญญีแพทย์ หมออื่นๆ ยังอยู่ที่นั่น แต่ไม่ต้องออกมาจนกว่าจะต้องการ
+
+ผลคือเร็วขึ้น ใช้ทรัพยากรน้อยลง แต่คุณภาพการรักษายังดีเพราะส่งผู้เชี่ยวชาญที่ถูกคน
+
+> 💡 **Key insight:** ความแตกต่างระหว่าง Dense กับ Sparse ไม่ได้อยู่ที่ขนาดรวม แต่อยู่ที่ว่า parameters กี่ตัวถูกใช้จริงต่อ input หนึ่งชิ้น ตัวเลขที่สำคัญคือ **active parameters** ไม่ใช่ **total parameters** — แนวคิดนี้จะเปลี่ยนวิธีที่คุณประเมินโมเดลไปตลอดกาล
+
+ปัญหาของ Dense Models ที่ scale ใหญ่ขึ้นเรื่อยๆ ก็คือ compute cost โตตามขนาดโดยตรง อยากได้โมเดล 2 เท่า ก็ต้องใช้ compute 2 เท่า ทั้งตอน train และตอน inference ซึ่งทำให้การ scale ต่อจาก GPT-3 ไป GPT-4 มีค่าใช้จ่ายที่น่ากลัวมากถ้าใช้ Dense architecture
+
+MoE แก้ปัญหานี้ด้วยการตัดการเชื่อมต่อระหว่าง "ขนาดโมเดล" กับ "compute per token" ออกจากกัน
+
+<!-- IMAGE: กราฟแสดง Dense (total params = active params, cost โตเส้นตรง) vs Sparse (total params สูงกว่า active params มาก, inference cost ต่ำกว่า) -->
+
+---
+
+## MoE Architecture — เบื้องหลังของโมเดลที่ฉลาดกว่า
+
+ก่อนจะลงรายละเอียด ต้องทบทวนโครงสร้างของ Transformer เล็กน้อย เพราะ MoE ไม่ได้เปลี่ยนทุกอย่าง แต่เปลี่ยนเฉพาะส่วนที่สำคัญ
+
+ใน Transformer ทุก layer ประกอบด้วยสองส่วนหลัก คือ Multi-Head Attention ที่ดูความสัมพันธ์ระหว่าง token ต่างๆ ในประโยค และ Feed-Forward Network (FFN) ที่รับ representation ของแต่ละ token แล้วประมวลผลเพิ่มเติม
+
+ใน dense Transformer ส่วน Attention ยังคงเป็น dense (ทุก token ต้อง attend ถึงทุก token) แต่ส่วน FFN นั้นเองที่ MoE เข้ามาเปลี่ยน
+
+**Dense FFN:**
+```
+Input → Linear(d, 4d) → ReLU → Linear(4d, d) → Output
+```
+ทุก token ผ่านกระบวนการนี้ด้วย weights เดียวกัน
+
+**MoE FFN:**
+```
+Input → Router → [Expert 1, Expert 2, ..., Expert N] → Top-K → Weighted Sum → Output
+```
+แต่ละ token จะถูก route ไปหา experts ที่แตกต่างกัน โดย router เป็นคนตัดสิน
+
+สถาปัตยกรรม MoE มีสามองค์ประกอบหลัก
+
+**องค์ประกอบที่หนึ่ง: Expert Networks**
+
+แต่ละ expert คือ FFN ขนาดเต็มที่เหมือนกับที่ dense model ใช้ ถ้ามี 8 experts และแต่ละตัวมีขนาด FFN ของ 7B model ก็แปลว่า FFN portion ของโมเดลใหญ่ขึ้น 8 เท่าในแง่ parameter count แต่เราใช้แค่ 2 ตัวต่อ token ดังนั้น compute ขยายแค่ 2 เท่า ไม่ใช่ 8 เท่า
+
+Experts แต่ละตัวจะ "เรียนรู้" ที่จะจัดการกับ token patterns ที่แตกต่างกัน ในทางปฏิบัติขอบเขตของแต่ละ expert ไม่ชัดเจนนัก แต่มีงานวิจัยที่ probe experts ใน trained MoE models และพบว่ามีความชำนาญที่แตกต่างกันจริงๆ บาง expert ถนัด token ที่เกี่ยวกับภาษาเฉพาะทาง บาง expert ถนัด token เชิงคณิตศาสตร์ บาง expert เก่งเรื่อง syntax ของโปรแกรมมิ่ง
+
+**องค์ประกอบที่สอง: Router / Gating Network**
+
+Router คือ neural network ขนาดเล็กที่อยู่ก่อนหน้า experts ทำหน้าที่รับ representation ของแต่ละ token แล้วตัดสินใจว่าควรส่ง token นั้นไปหา expert ตัวไหน
+
+Router ไม่ได้ถูก hand-code — มันถูก trained พร้อมกับโมเดลทั้งหมด ซึ่งหมายความว่า routing strategy ที่ดีที่สุดจะ emerge จาก training data เอง ไม่มีใครบอกล่วงหน้าว่า expert 1 ควรรับ token แบบไหน
+
+**องค์ประกอบที่สาม: Top-K Selection**
+
+Router ให้คะแนน (score) แต่ละ expert สำหรับ token ที่มา แต่แทนที่จะส่งไปหาทุก expert จะเลือกเฉพาะ top-K ที่ได้คะแนนสูงสุด ค่า K ที่นิยมมากที่สุดคือ 2 (เลือก 2 experts ต่อ token)
+
+output จาก experts ที่ถูกเลือกจะถูก weighted combination ด้วย scores ของแต่ละ expert แล้วผลรวมถูกส่งต่อไปยัง layer ถัดไปของ Transformer
+
+<!-- IMAGE: Diagram แสดง MoE layer: token representation → router (small network) → scores [0.4, 0.05, 0.35, 0.08, 0.06, 0.02, 0.03, 0.01] → top-2 selection (expert 1 + expert 3) → expert 1 output × 0.53 + expert 3 output × 0.47 → combined output -->
+
+---
+
+## Gating Mechanism — Router ตัดสินใจยังไง
+
+มาดูรายละเอียดของ router กัน เพราะนี่คือหัวใจของ MoE ที่คนส่วนใหญ่ข้ามไป
+
+สมมติมี 8 experts (E1 ถึง E8) และ token หนึ่งตัวมี representation เป็น vector ขนาด d (เช่น d=4096 ใน large model)
+
+**ขั้นตอนที่หนึ่ง: Compute Raw Scores**
+
+Router มี weight matrix W_g ขนาด d × N_experts (เช่น 4096 × 8)
+
+คูณ token vector กับ W_g ได้ raw scores เป็น vector ขนาด 8:
+```
+scores = token_vector @ W_g
+# ได้ [-0.2, 1.3, 0.8, -0.5, 2.1, 0.3, -0.8, 1.1]
+```
+
+ตัวเลขพวกนี้ยังไม่ interpret ได้ตรงๆ เพราะมีทั้งบวกและลบ และขนาดขึ้นอยู่กับ initialization
+
+**ขั้นตอนที่สอง: Softmax เป็น Probabilities**
+
+นำ raw scores ไปผ่าน softmax ที่แปลงเป็น probability distribution บวกทุกตัวได้ 1:
+```
+probs = softmax(scores)
+# ได้ [0.06, 0.26, 0.16, 0.04, 0.58, 0.10, 0.03, 0.21]
+# (ตัวเลขสมมติ แต่รวมกันเป็น 1.0)
+```
+
+ตอนนี้เห็นชัดแล้วว่า Expert 5 ได้คะแนน 0.58 สูงที่สุด รองมาคือ Expert 2 (0.26) และ Expert 8 (0.21)
+
+**ขั้นตอนที่สาม: Top-2 Selection**
+
+เลือก experts ที่ได้ probability สูงสุด 2 อันดับ: Expert 5 (0.58) และ Expert 2 (0.26)
+
+experts อื่นๆ ทั้งหมดถูก mask ออก จะไม่ได้รับ token นี้ไปประมวลผล
+
+**ขั้นตอนที่สี่: Re-normalize**
+
+นำ scores ของ top-2 มา normalize ให้รวมกันเป็น 1 อีกครั้ง เพื่อใช้เป็น weights:
+```
+weight_E5 = 0.58 / (0.58 + 0.26) = 0.69
+weight_E2 = 0.26 / (0.58 + 0.26) = 0.31
+```
+
+**ขั้นตอนที่ห้า: Weighted Combination**
+
+Token vector ถูกส่งไปยัง Expert 5 และ Expert 2 พร้อมกัน (แบบ parallel) แต่ละตัวประมวลผลและ return output แล้ว output ถูก weighted sum:
+```
+final_output = 0.69 × output_E5 + 0.31 × output_E2
+```
+
+ผลลัพธ์นี้คือสิ่งที่ส่งต่อไปยัง layer ถัดไป
+
+> 💡 **Key insight:** Router ไม่ได้แค่ binary เลือก on/off — มัน soft weighting ระหว่าง experts ที่เลือก ซึ่งสำคัญมากสำหรับ gradient flow ระหว่าง training เพราะถ้าเป็น hard selection (winner-take-all) gradient จะไม่ไหลไปยัง expert ที่ไม่ถูกเลือก และโมเดลจะ learn ช้ามาก การ weighted combination ทำให้ทั้ง Expert 5 และ Expert 2 ได้รับ gradient update จาก token นี้ในสัดส่วนที่ต่างกัน
+
+<!-- IMAGE: Step-by-step diagram ของ gating: raw scores → softmax → top-2 → re-normalize → weights 0.69 และ 0.31 → weighted sum ของ expert outputs -->
+
+ตรงนี้มีเรื่องละเอียดอีกอย่างที่มักถูกมองข้าม — Router นั้นเล็กมากเมื่อเทียบกับ experts ใน large model ที่ d=4096 และ 8 experts Router มีแค่ 4096×8 = 32,768 parameters ในขณะที่แต่ละ expert อาจมีหลายพันล้าน parameters
+
+ซึ่งหมายความว่า routing decision ที่ดูซับซ้อนนั้น ถูกตัดสินโดย network ที่เล็กมากๆ และมันต้องตัดสินใจเร็วมากก่อนที่ computation จริงจะเริ่ม
+
+---
+
+## Load Balancing — ปัญหาที่ดูเล็กแต่ทำลายทุกอย่าง
+
+ถ้า MoE ทำงานดีแค่นี้ ทำไมถึงไม่ใช้กันตั้งนานแล้ว?
+
+เพราะมีปัญหาที่ดูเล็กแต่ทำลายระบบทั้งหมดได้ นั่นคือ Router ที่ไม่มีข้อจำกัดใดๆ จะ "ชอบ" experts บางตัวมากกว่าตัวอื่น และยิ่งชอบมากขึ้นเรื่อยๆ จนกลายเป็นปัญหา
+
+ลองคิดดูถึงวงจรที่เกิดขึ้น: Expert 1 ได้รับงานบ่อยกว่า → Expert 1 ได้รับ training data เยอะกว่า → Expert 1 เก่งขึ้น → Router รู้ว่า Expert 1 ดีกว่า → Expert 1 ได้รับงานบ่อยขึ้นไปอีก → วนซ้ำ
+
+ผลสุดท้ายคือ **Expert Collapse** — โมเดลที่ออกแบบมาให้มี 8 experts กลายเป็นโมเดลที่ทำงานจริงเหมือนมี expert เดียว ส่วน experts อื่นๆ แทบไม่ถูกใช้เลย ทั้งหมดที่ลงทุนไปกับ additional experts กลายเป็นสิ่งที่สูญเปล่า
+
+นอกจาก expert collapse แล้ว การ imbalance ยังสร้างปัญหาในทางปฏิบัติอีกมาก ในระบบที่ experts อยู่บน GPUs ต่างตัว ถ้า Expert 1 ได้รับ 90% ของ tokens GPU ที่รัน Expert 1 จะ overloaded ในขณะที่ GPUs อื่นๆ นั่งเล่นรอ นี่คือ bottleneck ที่ทำให้ throughput ของระบบทั้งหมดตกลง
+
+**วิธีแก้ที่ใช้งานจริง**
+
+วิธีแก้ที่หนึ่ง: **Auxiliary Load Balancing Loss**
+
+เพิ่ม loss term พิเศษในระหว่าง training ที่วัดว่า distribution ของ tokens ไปยัง experts uniform แค่ไหน loss นี้จะ penalize การกระจุกตัว บังคับให้ router กระจายงานให้ experts ทุกตัวได้รับบ้าง
+
+สูตรพื้นฐานคือ auxiliary loss โตขึ้นเมื่อ variance ของ expert utilization สูง ถ้า Expert 1 ได้ 80% ส่วน 7 ตัวที่เหลือแบ่งกัน 20% loss จะสูงมาก gradient จาก loss นี้จะ push router ให้ distribute ต่างกัน
+
+ค่า weight ของ auxiliary loss คือ hyperparameter สำคัญ ถ้า weight สูงเกินไป router จะถูกบังคับให้ balance จนเกินไป ส่งผลเสียต่อ quality เพราะ router ไม่สามารถส่ง token ไปหา expert ที่เหมาะที่สุดได้ ถ้า weight ต่ำเกินไปก็ไม่มีผล balance เลย
+
+**วิธีแก้ที่สอง: Capacity Factor**
+
+กำหนด "ความจุ" ให้แต่ละ expert ว่ารับ token ได้สูงสุดกี่ตัวต่อ batch
+
+ถ้า batch มี 1000 tokens และมี 8 experts กับ top-2 routing แต่ละ expert ควรได้รับงานประมาณ 1000×2/8 = 250 tokens ต่อ batch โดยเฉลี่ย ถ้ากำหนด capacity factor เป็น 1.25 แต่ละ expert รับสูงสุด 250×1.25 = 312 tokens
+
+ถ้า token ที่ router ต้องการส่งไป expert ใดเกินความจุ token นั้นจะถูก "drop" หรือส่งต่อโดยไม่ผ่าน expert (ผ่าน residual connection แทน) ฟังดูแย่ แต่ในทางปฏิบัติทำให้ระบบ predictable และ manageable
+
+**วิธีแก้ที่สาม: Jitter Noise**
+
+เพิ่ม random noise เล็กน้อยลงใน router scores ก่อนที่จะทำ softmax และ top-K selection ทำให้ router ไม่ deterministic เกินไปในช่วงต้นของ training
+
+ถ้าไม่มี noise และ expert 1 มี score สูงกว่า expert 2 แค่นิดเดียว ทุก token จะถูกส่งไป expert 1 เสมอ การเพิ่ม noise ทำให้บาง token "โดนสุ่ม" ไปหา expert 2 บ้าง ทำให้ experts ทุกตัวได้รับโอกาสเรียนรู้ในช่วงต้น
+
+**วิธีแก้ที่สี่: Expert Choice Routing**
+
+แนวคิดนี้ flip logic ทั้งหมด แทนที่ token จะเลือก expert ให้ expert เป็นคนเลือก token
+
+แต่ละ expert รับ token top-K ที่เหมาะสมกับมันที่สุดจาก batch ปัจจุบัน วิธีนี้ guarantee perfect load balance โดยธรรมชาติเพราะแต่ละ expert รับ token จำนวนเท่ากันเสมอ แต่แลกกับความซับซ้อนในการ implement และ token บางตัวอาจไม่ถูก expert ใดเลือกเลยถ้า batch เล็กเกินไป
+
+> 💡 **Key insight:** Load balancing ไม่ใช่ปัญหาเล็กน้อย — มันคือความแตกต่างระหว่าง MoE ที่ทำงานได้กับ MoE ที่ล้มเหลว Paper ส่วนใหญ่เกี่ยวกับ MoE จะใช้หน้ากระดาษส่วนมากพูดถึง balancing strategies ซึ่งบอกอะไรมากเกี่ยวกับว่าส่วนไหนยากที่สุดในทางปฏิบัติ
+
+<!-- IMAGE: กราฟแสดงสองสถานการณ์ ซ้าย: expert utilization collapsed (expert 1 ได้ 85%, ที่เหลือ 15% รวมกัน) ขวา: balanced (แต่ละ expert ได้ประมาณ 12.5%) -->
+
+---
+
+## ลองคิดดู #1 — เมื่อ Expert ผูกขาดงาน
+
+สมมติคุณสร้าง MoE model ที่มี 8 experts และ train โดยไม่มี load balancing mechanism ใดๆ เลย หลัง training เสร็จ คุณวิเคราะห์ว่า tokens จากชุด test ถูกส่งไปที่ไหน และพบว่า Expert 1 ได้รับ token 87% ของทั้งหมด experts อีก 7 ตัวแบ่งกัน 13% ที่เหลือ
+
+ถามตัวเองสี่ข้อนี้
+
+**ข้อหนึ่ง: โมเดลนี้ดีกว่า dense model ยังไง?**
+
+ถ้าคิดดูแล้ว คำตอบคือ แทบไม่ดีกว่าเลย หรืออาจแย่กว่าด้วยซ้ำ เพราะ capacity ของโมเดลถูกจำกัดโดย Expert 1 เพียงตัวเดียว ซึ่งมี parameter เท่ากับ FFN ของ dense model 7B ตัวเดียว experts อีก 7 ตัวแทบไม่ได้รับ training data พอจึงไม่ได้ contribute ความสามารถอะไรเพิ่มเติม
+
+**ข้อสอง: Inference เร็วขึ้นไหม?**
+
+ตรงนี้น่าคิด ถึงแม้ Expert 1 จะได้งาน 87% ของ tokens แต่ต่อ token เดียวก็ยังใช้แค่ 2 experts เสมอ ดังนั้น active computation per token ยังคงต่ำกว่า dense model ที่ total parameters เท่ากัน ความเร็วยังดีกว่า dense ในแง่ latency per token
+
+แต่คุณกำลังจ่ายเงินสำหรับ total params ของ 8 experts ทั้งหมด (memory) เพื่อได้ quality ของ expert เดียว นั่นคือ worst of both worlds
+
+**ข้อสาม: ทำไมต้อง balance?**
+
+ประโยชน์ที่แท้จริงของ MoE ไม่ใช่แค่ active params น้อยลง แต่คือ total knowledge capacity ของโมเดลที่ใหญ่ขึ้น ถ้า experts ทุกตัว receive tokens อย่าง balanced แต่ละ expert จะ specialize ใน subtasks ต่างๆ ทำให้โมเดลรวมมี capability ที่หลากหลายกว่า dense model ที่ขนาดเท่ากัน
+
+ถ้า expert 1 ได้งานทั้งหมด มันจะกลายเป็น generalist ที่พอใช้ได้ ไม่ใช่ specialist ที่เก่งในสิ่งที่ตัวเองถนัด และ experts อื่นๆ ก็ไม่มีโอกาสพัฒนาความชำนาญเฉพาะทางได้เลย
+
+**ข้อสี่: ถ้าคุณเป็น engineer ต้องแก้ปัญหานี้ยังไง?**
+
+คำตอบง่ายๆ คือเพิ่ม auxiliary load balancing loss ในระหว่าง training แต่ต้องระวัง weight ของ loss นี้ ถ้าแรงเกินไป router จะถูก force ให้ uniform distribution จนเกินไป ส่งผลเสียต่อ quality เพราะ routing ที่ "ดีที่สุด" สำหรับ token นั้นอาจไม่ใช่การกระจายแบบ uniform
+
+มีเส้นบางๆ ระหว่าง "balance enough เพื่อให้ experts ทุกตัวได้รียนรู้" กับ "balance มากเกินไปจนโมเดล lose quality"
+
+---
+
+## Mixtral 8x7B — MoE ที่จับต้องได้ที่สุด
+
+ถ้า MoE ฟังดูเป็นแนวคิดนามธรรม Mixtral 8x7B ที่ Mistral AI release ในเดือนธันวาคม 2023 คือตัวอย่างที่ดีที่สุดที่เราสามารถพูดถึงด้วยตัวเลขจริงๆ ได้
+
+ชื่อ "8x7B" บอกโครงสร้างตรงๆ มี 8 experts แต่ละตัวมีขนาด 7 พันล้าน parameters (ใกล้เคียงกับ Mistral 7B model ที่ออกก่อนหน้า) และโมเดลจะเลือกใช้ top-2 experts ต่อ token
+
+**ตัวเลขที่ต้องเข้าใจให้ถูกต้อง**
+
+Total parameters: ประมาณ 46.7 พันล้าน พารามิเตอร์ (ไม่ใช่ 8×7=56B เพราะส่วน Attention layers และ embedding layers ยังคงเป็น dense และ shared ระหว่าง layers ไม่ใช่ replicated)
+
+Active parameters per token: ประมาณ 12-13 พันล้าน พารามิเตอร์ เนื่องจาก MoE ถูกใช้เฉพาะใน FFN layers ส่วน Attention ยังคง dense เต็มรูปแบบ ดังนั้น active portion ของ Attention บวกกับ 2 FFN experts ต่อ layer ออกมาประมาณ 12-13B
+
+เปรียบเทียบกับ Llama 2 70B: Mixtral ที่มี active params แค่ 12-13B ให้ผลลัพธ์ที่เทียบเท่าหรือเหนือกว่า Llama 2 70B dense model ในหลาย benchmarks ทั้งๆ ที่ใช้ compute per token น้อยกว่ามาก ตัวเลขนี้คือสิ่งที่ทำให้ AI community ตื่นเต้นมากในตอนนั้น
+
+> 💡 **Key insight:** Mixtral ไม่ได้ "เล็กกว่า" Llama 2 70B ในแง่ความรู้ที่สะสมไว้ใน weights — มัน "ใหญ่กว่า" ในแง่ total parameter count แต่ "เร็วกว่า" ในแง่ computation per token ความเข้าใจสองระดับนี้ (total vs active) จำเป็นมากสำหรับการเลือกโมเดลในการใช้งานจริง
+
+**Mixtral ใน Production จริงๆ**
+
+สิ่งที่ Mixtral พิสูจน์ให้เห็นนอกจาก benchmark คือ MoE scale ได้จริงในโลก open-source โดยไม่ต้องมี infrastructure ของ big lab ใหญ่ๆ Mistral AI เป็นบริษัทขนาดเล็กที่ทำสิ่งนี้ได้ด้วย compute budget ที่จำกัดกว่า OpenAI หรือ Google มาก
+
+Mixtral ยังถูก quantize และ run ได้บน local machines ที่มี RAM พอเพียง (เนื่องจาก active params น้อย latency ของ quantized Mixtral ยังยอมรับได้มากกว่า quantized 70B dense model) ซึ่งเปิดประตูให้ developer ทั่วไปเข้าถึง capability ระดับ 70B-class ได้บน hardware ที่ตัวเองมี
+
+<!-- IMAGE: Benchmark comparison table: Mixtral 8x7B vs Llama 2 70B vs GPT-3.5 ในหลาย tasks แสดง active params และ speed comparison -->
+
+**Mixtral 8x22B — รุ่นใหญ่ขึ้น**
+
+Mistral release Mixtral 8x22B ตามมาในปี 2024 ด้วย architecture เดียวกันแต่ experts ใหญ่ขึ้น total params ประมาณ 141B แต่ active params ต่อ token ประมาณ 39B pattern เดิม เหนือกว่า dense models หลายตัวที่มี total size ใกล้เคียงกัน แต่ inference เร็วกว่าเพราะ active params น้อยกว่า
+
+---
+
+## GPT-4 กับ MoE — ความลับที่เปิดเผยไม่ได้
+
+ในปี 2023 นักวิจัยด้าน AI ชื่อ George Hotz โพสต์บน Twitter (ตอนนี้คือ X) ว่า GPT-4 ใช้ MoE architecture และมีรายละเอียดเพิ่มเติมจากแหล่งที่ไม่เปิดเผยชื่อว่าอาจมีโครงสร้างประมาณ 8 experts ขนาด total parameters ในระดับ 1.8 ล้านล้าน
+
+OpenAI ไม่เคย confirm หรือ deny สิ่งนี้ทั้งอย่างเป็นทางการและไม่เป็นทางการ GPT-4 Technical Report ที่ OpenAI publish มีข้อมูล architecture แทบจะศูนย์
+
+**ทำไมถึงเงียบ?**
+
+มีเหตุผลที่เป็นไปได้หลายข้อที่สมเหตุสมผล
+
+เหตุผลแรกคือ competitive advantage architecture นวัตกรรมคือทรัพย์สินที่ lab ต้องปกป้อง ถ้า OpenAI เปิดเผยว่าใช้ MoE คู่แข่งจะรู้ว่านี่คือ direction ที่ได้ผล และสามารถ focus effort ไปที่ MoE ได้เลยโดยไม่ต้องทดลองเอง
+
+เหตุผลที่สองคือ regulatory consideration เมื่อ AI regulation กำลังพัฒนา การเปิดเผยว่าโมเดลมีกี่ parameters อาจสร้าง liability ในอนาคตได้ถ้า regulation กำหนด threshold สำหรับ "large models" ที่ต้องรายงาน
+
+เหตุผลที่สามคือ narrative complexity ถ้าผู้ใช้รู้ว่าโมเดลใช้แค่ส่วนหนึ่งต่อ query จะมีคำถามตามมาว่า "ทำไมฉันถึงไม่ได้รับ full power?" แม้ว่านั่นจะไม่ใช่วิธีที่ถูกต้องในการเข้าใจ MoE
+
+**ถ้า GPT-4 ใช้ MoE จริงๆ อะไรเปลี่ยนไป?**
+
+นัยยะแรก: scale ของ frontier models อาจใหญ่กว่าที่ใครคิดมาก 1.8 ล้านล้าน parameters ถ้าจริงคือใหญ่กว่า GPT-3 (175B) มากกว่า 10 เท่า แต่ inference cost per token ไม่ได้ใหญ่ขึ้นตามสัดส่วน
+
+นัยยะที่สอง: การ compare models ด้วย parameter count อย่างเดียวไม่มีความหมายอีกต่อไป GPT-4 "1.8T params" กับ Llama 70B ไม่ใช่ apple to apple comparison เพราะ active params ของ GPT-4 ต่อ token อาจใกล้เคียงกับ Llama 70B มากกว่าที่คิด
+
+นัยยะที่สาม: frontier labs กำลัง operate ด้วย architecture ที่ซับซ้อนกว่าที่ academic literature ทั่วไปพูดถึงมาก ระยะห่างระหว่าง "เข้าใจ architecture ใน papers" กับ "เข้าใจว่า commercial models จริงๆ ทำงานยังไง" กำลังถ่างออกเรื่อยๆ
+
+<!-- IMAGE: Timeline ของ MoE developments: Switch Transformer (2021) → GLaM (2021) → Mixtral (2023) → GPT-4 speculation → DeepSeek-V2 (2024) → ปัจจุบัน -->
+
+---
+
+## Switch Transformer — เมื่อ Google เลือกความเรียบง่าย
+
+ก่อนที่ Mixtral จะมาพิสูจน์ว่า MoE ใช้งานได้จริงในวงกว้าง Google Research ได้ publish "Switch Transformer" ในปี 2021 ซึ่งเป็น milestone สำคัญในประวัติศาสตร์ MoE
+
+Switch Transformer ทำสิ่งที่ดูย้อนแย้ง — แทนที่จะเพิ่มความซับซ้อนของ routing ให้มากขึ้น มันเลือก simplify ให้สุดขีด ด้วย **Top-1 Routing** แต่ละ token ถูกส่งไปหา expert เพียงตัวเดียวเท่านั้น
+
+ไม่มี weighted combination ไม่มี soft routing ไม่มี gradient จาก multiple experts token เข้าไป expert หนึ่งตัว แล้วออกมา
+
+ฟังดูเสียเปรียบมาก แต่ Switch Transformer พิสูจน์ว่า simplicity มีคุณค่าของตัวเอง
+
+**ข้อดีของ Top-1 Routing**
+
+ข้อดีแรกคือ Communication Overhead ลดลงครึ่งหนึ่ง ใน top-2 routing ต้องส่ง token ไปสองทิศทาง ใน top-1 ส่งทิศเดียว ใน distributed training ที่ experts อยู่คนละ GPU นี่คือความแตกต่างที่ใหญ่มาก
+
+ข้อดีที่สองคือ Implementation ง่ายกว่า Top-1 routing ง่ายกว่ามากในการ code ทดสอบ และ debug เมื่อมีปัญหา
+
+ข้อดีที่สามคือ Capacity Factor ง่ายกว่า การกำหนดความจุของแต่ละ expert ง่ายกว่าเพราะไม่ต้องจัดการกับ overlapping assignments จาก multiple routing paths
+
+**ข้อเสียของ Top-1 Routing**
+
+ข้อเสียแรกคือ Training Instability สูงกว่า เนื่องจาก routing เป็น discrete decision gradient ไม่ smooth แบบ top-2 ทำให้ training ขรุขระกว่า
+
+ข้อเสียที่สองคือ Expert Collapse ง่ายกว่า เพราะ all-or-nothing decision ทำให้ feedback loop ของ collapse รุนแรงกว่า
+
+ข้อเสียที่สามคือ Expressiveness น้อยกว่า บาง token ที่ "อยู่ตรงกลาง" ระหว่าง experts สองตัว อาจได้ประโยชน์จาก combination แต่ top-1 บังคับให้เลือกข้างเดียว
+
+**Scale คือ Proof of Concept ที่แท้จริง**
+
+สิ่งที่ Switch Transformer พิสูจน์ที่สำคัญกว่า top-1 vs top-2 คือ MoE scale ได้ Google train Switch Transformer ถึงขนาด 1.6 ล้านล้าน parameters และแสดงให้เห็นว่าด้วย compute budget เท่ากัน MoE ให้ perplexity ที่ดีกว่า T5 dense model อย่างชัดเจน
+
+นั่นคือ message หลักของ paper ว่า sparse architecture เป็น promising direction สำหรับ scaling และมัน works แม้แต่กับ routing scheme ที่เรียบง่ายที่สุด
+
+> 💡 **Key insight:** Switch Transformer สอนบทเรียนที่สำคัญมากสำหรับ ML engineering ว่า simpler system ที่ scale ได้มักดีกว่า complex system ที่ scale ไม่ได้ ถ้าคุณต้องเลือกระหว่าง elegant complexity กับ boring simplicity ในระบบที่ต้อง scale ให้เลือก boring simplicity
+
+<!-- IMAGE: Comparison table: Switch (top-1) vs Standard MoE (top-2) ใน columns: routing decisions, communication cost, gradient flow, training stability, quality -->
+
+---
+
+## Training MoE — ยากกว่า Dense อย่างที่ไม่มีใครบอกคุณ
+
+ถ้าคุณเคย train dense model และคิดว่า MoE แค่เพิ่ม experts เข้าไปแล้วก็จบ ความเป็นจริงโหดกว่านั้นมาก
+
+**ความท้าทายที่หนึ่ง: Communication Overhead**
+
+ในการ train model ขนาดใหญ่ที่ต้องใช้หลาย GPU (data parallelism, tensor parallelism) การ communication ระหว่าง GPUs เป็น bottleneck อยู่แล้ว
+
+ใน MoE มีสิ่งที่เรียกว่า **Expert Parallelism** ที่ experts แต่ละตัวอยู่บน GPU ที่ต่างกัน เมื่อ router ตัดสินใจว่า token จะไปหา expert ตัวไหน token representation ต้องถูกส่ง (via network) ไปยัง GPU ที่มี expert นั้น และ output ต้องถูกส่งกลับมา
+
+กระบวนการนี้เรียกว่า **All-to-All Communication** และมัน scale แย่ตามจำนวน experts ยิ่ง experts มาก ยิ่งต้องส่งข้อมูลข้ามเยอะ ยิ่งช้า ถ้า interconnect ระหว่าง GPUs ไม่เร็วพอ (เช่น NVLink vs PCIe) overhead อาจกลืนกิน speedup ทั้งหมดที่ MoE ควรจะให้
+
+**ความท้าทายที่สอง: Expert Collapse**
+
+อธิบายไปแล้ว แต่เพิ่มเติมว่าปัญหานี้ยิ่งแย่ใน top-1 routing เพราะ gradient ไม่ไหลไปยัง experts ที่ไม่ถูกเลือก ทำให้ feedback loop รุนแรงกว่ามาก
+
+**ความท้าทายที่สาม: Training Instability**
+
+Routing ที่เปลี่ยนแปลงระหว่าง training สร้างปัญหา non-stationarity ในระหว่าง step ต้นๆ expert ไหน "ดีกว่า" เปลี่ยนบ่อย ทำให้ landscape ที่ optimizer ต้อง navigate มี noise สูงกว่า dense model มาก
+
+MoE มักต้องการ learning rate ต่ำกว่า warmup นานกว่า และ gradient clipping ที่ aggressive กว่า dense model ที่ขนาดใกล้เคียงกัน
+
+**ความท้าทายที่สี่: Evaluation ยากกว่า**
+
+ใน dense model ถ้าโมเดล overfit หรือ underfit มันมักแสดงออกมา uniform ทั่วทั้งโมเดล ใน MoE บาง experts อาจ overfit ในขณะที่บาง experts underfits ทำให้การ diagnose ปัญหาซับซ้อนกว่ามาก ต้องมีเครื่องมือ monitoring ที่ track utilization และ performance ของแต่ละ expert แยกกัน
+
+**วิธีแก้ที่ใช้กันจริง**
+
+วิธีแรก **MoE Upcycling**: แทนที่จะ train MoE จาก scratch ให้ใช้ pre-trained dense model แล้ว "expand" มันเป็น MoE โดย copy weights ของ FFN ไปใส่ทุก experts แล้ว fine-tune ต่อ วิธีนี้เรียกว่า upcycling ช่วยลด instability ช่วงต้น training ได้มากเพราะ experts เริ่มจาก decent initialization แทนที่จะ random
+
+วิธีที่สอง **Careful Hyperparameter Tuning**: auxiliary loss weight, capacity factor, noise level ล้วนเป็น hyperparameters ที่ sensitive มาก และค่าที่ดีที่สุดมักขึ้นอยู่กับ model size, number of experts, และ dataset characteristic ต้องทดลองมากกว่า dense model
+
+วิธีที่สาม **Monitor Expert Utilization**: ต้อง log และ visualize ว่า experts ถูกใช้งานอย่างไรตลอด training ถ้าเห็นสัญญาณ collapse ต้องปรับ auxiliary loss weight ทันที รอไม่ได้
+
+วิธีที่สี่ **Staged Training**: บาง implementations เริ่มจาก training ด้วย experts จำนวนน้อยก่อน แล้วค่อยเพิ่มจำนวน experts ระหว่าง training ช่วยให้ routing network มีเวลา stabilize ก่อนที่จะต้องรับมือกับ decision space ที่ใหญ่กว่า
+
+<!-- IMAGE: Training curve แสดง: dense model (smooth loss decrease) vs MoE without balancing (spiky, unstable) vs MoE with proper balancing (smoother แต่ยังไม่ราบเรียบเท่า dense) -->
+
+---
+
+## Inference Benefits — ทำไม MoE ถึงน่าสนใจสำหรับ Production
+
+หลังจากผ่านความยากในการ training มาแล้ว ตอน inference MoE ให้ประโยชน์จริงๆ ที่สำคัญ
+
+**ข้อได้เปรียบหลัก: Compute per Token ต่ำกว่า**
+
+เนื่องจาก active parameters น้อยกว่า FLOPs ที่ต้องทำต่อ token น้อยกว่า dense model ที่มี total params เท่ากันมาก สำหรับ latency-sensitive applications นี่คือข้อได้เปรียบที่ชัดเจนมาก
+
+ถ้า dense model ใช้เวลา 100ms ต่อ response MoE ที่ active params เท่ากัน (ไม่ใช่ total params เท่ากัน) อาจใช้เวลาใกล้เคียงกัน แต่ MoE ได้ quality ที่ดีกว่าเพราะ total knowledge capacity ใหญ่กว่า
+
+**จุดที่ทำให้หลายคนเข้าใจผิด: Memory ไม่ได้ลดลง**
+
+นี่คือ misconception ที่พบบ่อยมากในการเลือก MoE สำหรับ production
+
+แม้ว่าแต่ละ token จะใช้แค่ 2 experts ก็ตาม แต่ตอน inference ระบบต้องโหลด weights ของ experts ทั้งหมดไว้ใน GPU memory เผื่อว่า token ถัดไปอาจต้องการ expert ตัวไหนก็ได้ ไม่รู้ล่วงหน้า ดังนั้น memory footprint ยังสัมพันธ์กับ total parameters ไม่ใช่ active parameters
+
+Mixtral 8x7B จะต้องการ GPU memory ใกล้เคียงกับ 47B dense model แต่ทำงานด้วย compute per token ใกล้เคียงกับ 13B dense model
+
+**นี่คือ core tradeoff ของ MoE:**
+- เร็วกว่า dense ที่ total size เท่ากัน (ในแง่ compute/latency)
+- แต่ memory requirement ยังสูงเหมือน dense ที่ total size เท่ากัน
+- ได้ quality ที่ดีกว่า dense ที่ compute cost เท่ากัน (active params เท่ากัน)
+
+**Batch Size Sweet Spots**
+
+MoE มี performance curve ที่แตกต่างจาก dense ตาม batch size
+
+ที่ batch size เล็ก (1-8 sequences): MoE ได้เปรียบชัดเจน compute ต่อ sequence น้อยกว่ามาก เหมาะสำหรับ interactive applications ที่ users รอ response แบบ one at a time
+
+ที่ batch size กลาง (32-128): MoE ยังได้เปรียบ แต่ gap ระหว่าง MoE กับ dense เริ่มลดลงเพราะ GPU utilization ดีขึ้นสำหรับ dense model
+
+ที่ batch size ใหญ่มาก (512+): Dense model อาจ approach ประสิทธิภาพของ MoE ที่ active params เท่ากัน เพราะ matrix operations ของ dense มี hardware efficiency ที่ดีกว่าในบางสถาปัตยกรรม
+
+ถ้าคุณกำลังสร้างระบบที่ต้องรองรับ users จำนวนมากพร้อมกัน และสามารถ batch requests ได้ดี ต้อง benchmark จริงๆ แทนที่จะ assume ว่า MoE ชนะเสมอ
+
+**Expert Parallelism ใน Multi-GPU Serving**
+
+ข้อได้เปรียบพิเศษอีกอย่างของ MoE ใน production คือสามารถ distribute experts ข้าม GPUs ได้อย่างเป็นธรรมชาติ ถ้ามี 8 experts และ 8 GPUs แต่ละ GPU รับ expert หนึ่งตัว เมื่อมี token เข้ามา router ตัดสินใจ แล้วส่ง token ไปยัง GPUs ที่มี experts นั้น pattern นี้ scale ได้ดีกว่า dense model ที่ต้อง replicate weights ทั้งหมดบนทุก GPU หรือต้อง partition อย่างระมัดระวัง
+
+> 💡 **Key insight:** MoE ไม่ใช่ free lunch แต่มัน realign tradeoffs ถ้า bottleneck ของคุณคือ compute (latency per token) MoE ช่วยได้มาก ถ้า bottleneck คือ memory budget หรือ hardware ที่มีอยู่ ต้องคิดให้รอบคอบกว่านั้นก่อนตัดสินใจ
+
+<!-- IMAGE: Performance comparison: 3 scenarios — latency per token, throughput at fixed batch size, memory usage — แสดงว่า MoE wins ที่ไหนและ loses ที่ไหน -->
+
+---
+
+## ลองคิดดู #2 — Dense หรือ MoE สำหรับ Production System?
+
+นี่คือ scenario จริงๆ ที่วิศวกรต้องตัดสินใจ ลองคิดตามไปด้วย
+
+**สถานการณ์:** คุณกำลังสร้าง AI assistant สำหรับทีม customer support ในบริษัท ต้องตอบ queries แบบ real-time โดย latency เป้าหมายคือไม่เกิน 400ms ต่อ response และต้องรองรับ concurrent users สูงสุด 500 คนพร้อมกัน
+
+**ทรัพยากรที่มี:** GPU cluster ที่มี 8 × A100 80GB = รวม 640GB GPU memory
+
+**สองตัวเลือก:**
+
+ตัวเลือก A: **Dense 70B Model** (เช่น Llama 2 70B หรือ Mistral-type 70B)
+- Total params: 70B, Active params per token: 70B
+- Memory ใน float16: ประมาณ 140GB
+- สามารถ fit ได้กี่ copies ใน 640GB: 640/140 ≈ 4 copies (ใช้ tensor parallelism ข้าม 2 GPUs ต่อ copy)
+- Estimated latency per token: สมมติ 30ms บน setup นี้
+- Concurrent capacity ด้วย 4 copies: สูง
+
+ตัวเลือก B: **MoE 8x12B** (total ~96B, active ~24B per token)
+- Total params: 96B, Active params per token: ~24B
+- Memory ใน float16: ประมาณ 192GB
+- สามารถ fit ได้กี่ copies ใน 640GB: 640/192 ≈ 3 copies
+- Estimated latency per token: สมมติ 15ms (active params น้อยกว่า 3×)
+- Concurrent capacity ด้วย 3 copies: ต่ำกว่า 4 copies
+
+**คำถามที่ต้องตอบ:**
+
+ถ้า user ส่ง query แล้วรอ response ประมาณ 50 tokens latency รวมคือ Dense: 30×50 = 1500ms และ MoE: 15×50 = 750ms ทั้งคู่เกิน 400ms เป้าหมาย ดังนั้นต้องใช้ streaming (ส่ง token ทีละตัวแทน) ซึ่งในกรณีนี้ time-to-first-token สำคัญกว่า total latency
+
+แต่ถ้าพิจารณา throughput: Dense 4 copies สามารถ parallel serve 4 streams พร้อมกัน MoE 3 copies serve ได้ 3 streams พร้อมกัน แต่แต่ละ stream เสร็จเร็วกว่า 2 เท่า ดังนั้น effective throughput (tokens ที่ generate ได้ต่อวินาที) อาจใกล้เคียงกัน
+
+**คำตอบที่ไม่มีในตำรา:** ไม่มีคำตอบที่ถูกเสมอ ต้อง benchmark จริงๆ บน hardware ที่คุณมี ด้วย traffic pattern ที่คุณคาดหวัง แล้วเปรียบเทียบ
+
+สิ่งที่ควรทำก่อนตัดสินใจในโลกจริง:
+- Estimate average query length และ response length จริงๆ
+- Profile ว่า latency bottleneck อยู่ที่ network I/O, GPU compute, หรือ memory bandwidth
+- ทดสอบ quantized versions ของทั้งสอง (4-bit quantization ลด memory ได้มากแต่อาจกระทบ quality ต่างกัน)
+- วัด cost per 1000 tokens แทนการ assume
+
+ความเข้าใจ MoE architecture ทำให้คุณถามคำถามที่ถูกต้อง ไม่ใช่แค่ "โมเดลไหนดีกว่า" แต่ "โมเดลไหน optimize สำหรับ constraint ของฉัน"
+
+---
+
+## MoE Variants — ที่วิจัยและ deploy อยู่ในปัจจุบัน
+
+MoE ไม่ได้หยุดนิ่งที่ Mixtral สถาปัตยกรรมนี้ยังพัฒนาต่อเนื่อง และ variants ที่ออกมาในช่วงปี 2024-2025 แสดงให้เห็นว่ายังมีพื้นที่อีกมากสำหรับการ innovate
+
+**DeepSeek-V2 (2024) — Fine-grained MoE**
+
+DeepSeek ออกแบบ MoE ที่มี experts จำนวนมากกว่าแต่แต่ละตัวเล็กกว่า แทนที่จะมี 8 experts ใหญ่ๆ มี 64 experts เล็กๆ และเลือก top-6 ต่อ token idea คือ experts ที่ละเอียดกว่าจะ specialize ได้ดีกว่า ทำให้ routing มี granularity สูงขึ้น
+
+ทำไมถึงดีกว่า? เพราะ knowledge ในโลกจริงมีหลายระดับ ถ้ามี expert ขนาดใหญ่ 8 ตัว แต่ละตัวต้องครอบคลุม knowledge หลายอย่างในตัวเดียว ทำให้ specialization ไม่ชัดเจน แต่ถ้ามี experts เล็กๆ 64 ตัว แต่ละตัวสามารถ specialize ในพื้นที่แคบกว่าได้ และ router สามารถ combine experts ที่เกี่ยวข้องหลายๆ ตัวเพื่อตอบ query ที่ต้องใช้ knowledge หลายประเภท
+
+นอกจากนี้ยังมี **Shared Experts** — experts บางตัว (DeepSeek-V2 ใช้ 2 ตัว) ถูก activate ทุก token เสมอ ทำหน้าที่เก็บ "common knowledge" ที่ทุก token ต้องการ เช่น grammar rules, basic reasoning patterns ส่วน routed experts ทำหน้าที่เพิ่ม specialized knowledge ที่เฉพาะเจาะจงกับ token นั้น
+
+architecture นี้ก้าวหน้ากว่า Mixtral ตรงที่แยก "ความรู้ทั่วไป" ออกจาก "ความรู้เฉพาะทาง" อย่างชัดเจนกว่า DeepSeek-V2 แสดงให้เห็นว่าแนวทางนี้ดีกว่า Mixtral-style MoE ในหลาย benchmarks ทั้งยังมีต้นทุน inference ที่ต่ำกว่าด้วย
+
+**GLaM — Google's Trillion-Parameter MoE**
+
+ก่อน Switch Transformer จะ publish ทีม Google สร้าง GLaM (Generalist Language Model) ที่มี 1.2 ล้านล้าน parameters ด้วย MoE architecture 64 experts และ top-2 routing และเป็นครั้งแรกที่แสดงให้เห็นว่า MoE ขนาด trillion-scale ให้ few-shot performance ที่ดีกว่า GPT-3 175B ด้วย training energy ที่น้อยกว่ามาก
+
+GLaM ไม่ได้ถูก release ต่อสาธารณะ แต่ impact ของ paper คือการ confirm ว่า trillion-parameter MoE เป็น viable path และ energetically efficient กว่า dense model ขนาดเล็กกว่า
+
+**Mixture of Depths (MoD)**
+
+แนวคิดที่น่าสนใจมากจาก Google Research ที่ publish ในปี 2024: แทนที่จะ route token ไปยัง experts ต่างๆ ใน layer เดียวกัน ให้ route เรื่องจำนวน layers ที่ token จะผ่าน
+
+ใน standard Transformer ทุก token ผ่านทุก layer เสมอ ใน MoD router ต่อ layer ตัดสินใจว่า token นี้ควร "ข้าม" layer นี้ได้หรือไม่ token ที่ "ง่าย" อาจผ่านแค่ 12 layers จาก 32 layers ทั้งหมด token ที่ "ยาก" หรือ "สำคัญ" ผ่านทุก layer
+
+วิธีนี้ลด FLOPs สำหรับ simple tokens โดยไม่กระทบ quality สำหรับ complex tokens เพราะ complex tokens ยังได้รับ full computation เหมือนเดิม เป็นการ sparse activation ในมิติ depth แทนที่จะเป็น width เหมือน MoE ปกติ
+
+สิ่งที่น่าสนใจมากคือ MoD สามารถ combine กับ MoE ได้ ทำให้มีทั้ง sparse depth และ sparse width พร้อมกัน ซึ่งเป็นพื้นที่วิจัยที่กำลัง explore อยู่
+
+**MoE + RL Fine-tuning — คำถามที่ยังไม่มีคำตอบ**
+
+สิ่งที่นักวิจัยกำลัง explore คือวิธีที่ MoE interact กับ RLHF (Reinforcement Learning from Human Feedback) ที่ใช้ใน ChatGPT-style training
+
+มีหลักฐานว่า RL fine-tuning อาจ change routing patterns อย่างมีนัยยะ เพราะ reward model จะ provide feedback ที่แตกต่างกันสำหรับ responses ที่ดีและไม่ดี feedback นี้จะ backpropagrate ไปยัง router ด้วย ทำให้ router เรียนรู้ว่า "สำหรับ query ประเภทนี้ ควรใช้ expert ไหนเพื่อให้ได้ response ที่ human prefer มากกว่า"
+
+ซึ่งเปิดคำถามใหม่เรื่อง alignment ของ MoE models ถ้า expert routing เปลี่ยนหลัง RL training และ experts บางตัวกลายเป็น "reward hacking experts" ที่ generate text ที่ human raters ชอบแต่ไม่ accurate จะ detect และ correct ได้ยังไง? นี่คือ open research question ที่สำคัญมาก
+
+<!-- IMAGE: Diagram เปรียบเทียบ MoE variants: Standard MoE (Mixtral), Fine-grained MoE (DeepSeek), Shared Expert MoE, Mixture of Depths -->
+
+---
+
+## อ่านประกาศโมเดลใหม่ให้ออก — MoE เปลี่ยนวิธีตีความตัวเลข
+
+ทุกครั้งที่ lab ประกาศโมเดลใหม่ มักมีตัวเลขสามอย่างที่คนสนใจ: parameter count, benchmark scores, และ inference speed ก่อนที่ MoE จะ mainstream สามตัวเลขนี้มีความสัมพันธ์ที่คาดเดาได้ โมเดลใหญ่ขึ้น ก็ดีขึ้นและช้าลงตามสัดส่วน
+
+ตอนนี้ไม่ใช่แล้ว
+
+**เมื่อเห็น parameter count — ถามทันทีว่า dense หรือ MoE?**
+
+"โมเดล 100B" อาจหมายถึงสองสิ่งที่ต่างกันโดยสิ้นเชิง
+
+ถ้าเป็น dense 100B ทุก query ใช้ 100B params compute สูงมาก
+
+ถ้าเป็น MoE ที่มี total 100B แต่ active 20B per token compute ต่ำกว่าเยอะ และมักให้ quality ดีกว่า dense 20B
+
+การ compare "GPT-X ขนาด 100B" กับ "โมเดลอื่น 100B" โดยไม่รู้ว่าแต่ละตัวเป็น dense หรือ MoE เป็นการ compare ที่ไม่มีความหมาย เหมือนเปรียบเทียบราคา "บ้าน 200 ตารางเมตร" โดยไม่รู้ว่าอันไหนอยู่กรุงเทพหรือต่างจังหวัด
+
+**เมื่อเห็น benchmark scores — ดูว่า benchmark วัดอะไร?**
+
+MoE มักทำได้ดีใน knowledge-heavy benchmarks เช่น MMLU (ถามความรู้ทั่วไป), TriviaQA, หรืองานที่ต้องใช้ความรู้หลายด้าน เพราะ total knowledge capacity ใหญ่กว่า
+
+แต่ในงานที่ต้องการ deep reasoning แบบ chain-of-thought หรือ multi-step problem solving ความแตกต่างระหว่าง MoE และ dense ที่มี active params เท่ากันอาจน้อยกว่าที่คิด เพราะ reasoning อาจพึ่ง depth ของ computation มากกว่า breadth ของ knowledge
+
+**เมื่อเห็น inference speed — ถามว่าวัดที่ batch size เท่าไหร่?**
+
+ดังที่อธิบายไปแล้ว MoE ได้เปรียบมากที่ batch size เล็ก แต่ gap อาจแคบลงที่ batch size ใหญ่ lab ที่ต้องการให้โมเดลของตัวเองดูดีมักเลือก report ตัวเลขที่ batch size ที่ดีที่สุดสำหรับ architecture ของตัวเอง
+
+> 💡 **Key insight:** ทักษะสำคัญสำหรับคนที่ติดตาม AI landscape คือการอ่าน model announcements อย่าง critical ถามว่า "total params หรือ active params?", "benchmark ไหน?", "วัดที่ conditions อะไร?" ก่อนที่จะสรุปว่าโมเดลนี้ดีหรือไม่ดีกว่า
+
+**ตัวอย่างจริง: เมื่อ headline หลอกตา**
+
+สมมติ headline บอกว่า "โมเดลใหม่ขนาด 400B เอาชนะ GPT-4" ฟังดูน่าประทับใจ แต่ถ้า GPT-4 เป็น MoE ที่มี active params ต่อ token ประมาณ 220B (สมมติ) และโมเดลใหม่นี้เป็น dense 400B ก็แปลว่าโมเดลใหม่ใช้ compute ต่อ token มากกว่าเกือบ 2 เท่า และอาจช้ากว่า 2 เท่าด้วย
+
+ใน resource-constrained environment "เอาชนะ" ด้วย compute 2 เท่าอาจไม่ใช่ "เอาชนะ" จริงๆ ขึ้นอยู่กับว่าคุณ optimize สำหรับอะไร
+
+<!-- IMAGE: Checklist สำหรับอ่าน model announcement: ถาม 5 คำถามก่อนสรุป — dense/MoE?, total vs active params?, benchmark conditions?, hardware requirements?, inference latency at what batch size? -->
+
+---
+
+## ความเชื่อมโยงกับ Scaling Laws — เมื่อ sparse architecture เปลี่ยนกฎ
+
+ก่อนจะจบบทนี้ มีคำถามที่ใหญ่กว่าที่ต้องพูดถึง
+
+Scaling Laws — กฎที่ระบุว่าโมเดลดีขึ้นตาม power law ของ compute และ data ที่ใช้ train — ถูกสร้างขึ้นโดย assume ว่าโมเดลทั้งหมดเป็น dense MoE เปลี่ยนสมการนี้หรือไม่?
+
+คำตอบสั้นๆ คือ MoE ไม่ได้ "break" Scaling Laws แต่มัน complicate สิ่งที่ต้องวัด
+
+ใน dense model มีตัวแปรหลักแค่สองตัวที่ต้อง optimize พร้อมกัน คือ model size (params) กับ training data ถ้าคุณมี compute budget ตายตัว Chinchilla บอกได้ว่า optimal ratio ของสองอย่างนี้คืออะไร
+
+ใน MoE มีตัวแปรเพิ่มมา ได้แก่ จำนวน experts, expert size, top-K value, และ balancing strategy ทั้งหมดนี้ interact กัน และยังไม่มี Chinchilla-equivalent paper ที่ให้ optimal recipe สำหรับ MoE ที่ scale ต่างๆ
+
+สิ่งที่รู้คือ ด้วย compute budget เท่ากัน MoE มักให้ lower perplexity กว่า dense ซึ่ง align กับ Scaling Laws ในแง่ที่ว่า "compute มากขึ้น = quality ดีขึ้น" แต่ MoE ทำให้ compute budget เดิมไปได้ไกลกว่า เหมือนได้ "discount" บน Scaling curve
+
+นี่เป็นเหตุผลที่ทำให้บทถัดไปเรื่อง Scaling Laws สำคัญมากเมื่อมาอ่านร่วมกับบทนี้ เพราะ Scaling Laws บอกว่า "ควร allocate compute ยังไง" และ MoE เพิ่มมิติใหม่ว่า "architecture ที่เลือกจะเปลี่ยน efficiency ของ compute allocation นั้นได้มากแค่ไหน"
+
+> 💡 **Key insight:** MoE และ Scaling Laws ไม่ใช่คำถามแยกกัน แต่เป็นสองด้านของคำถามเดียวกันว่า "จะสร้างโมเดลที่ดีที่สุดด้วยทรัพยากรที่มีได้ยังไง?" MoE แก้ด้าน architecture Scaling Laws แก้ด้าน resource allocation ต้องเข้าใจทั้งคู่ถึงจะเห็นภาพเต็ม
+
+---
+
+## สรุป — โมเดลที่ฉลาดพอจะรู้ว่าไม่ต้องใช้ทุกอย่าง
+
+Mixture of Experts แก้ปัญหาที่ Dense model กำลังเผชิญอยู่ นั่นคือ "จะ scale ขึ้นไปอีกได้ยังไงโดยที่ inference cost ไม่พุ่งตามเส้นตรง?"
+
+คำตอบคือ Sparse Activation แทนที่จะสร้างโมเดลเดียวที่ต้องรู้ทุกอย่างและใช้ทุกอย่างตลอดเวลา ให้สร้างทีม experts ที่แต่ละตัวถนัดต่างกัน และมี router ที่เรียนรู้ว่าควรส่งงานไปหาใคร
+
+สิ่งที่ MoE สอนเกี่ยวกับ AI architecture มีค่ามากกว่าตัว technique เอง มันสอนว่า "ใหญ่กว่า" และ "แพงกว่า" ไม่ได้หมายความเดียวกันอีกต่อไป คุณสามารถมีโมเดลที่ "รู้มากกว่า" (total params ใหญ่กว่า) แต่ "ทำงานเร็วกว่า" (active params น้อยกว่า) ในเวลาเดียวกัน
+
+สิ่งที่ต้องจำจากบทนี้มีห้าอย่าง
+
+อย่างแรก: Active parameters คือตัวเลขที่สำคัญสำหรับ inference cost ไม่ใช่ total parameters เมื่อเห็นโมเดลใหม่ ถามก่อนว่า dense หรือ MoE และ active params คือเท่าไหร่
+
+อย่างที่สอง: Router คือ neural network ขนาดเล็กที่ learn routing strategy จาก training data โดยอัตโนมัติ ไม่ได้ถูก hand-programmed และการ routing นี้ทำแบบ soft weighted combination ไม่ใช่ binary เลือก on/off
+
+อย่างที่สาม: Load balancing ไม่ใช่ optional feature เป็น critical requirement ที่ขาดไม่ได้สำหรับ MoE ที่ทำงานได้จริง Expert collapse คือสิ่งที่ทำลาย MoE ทั้งหมดโดยไม่มีสัญญาณเตือนที่ชัดเจน
+
+อย่างที่สี่: Memory requirement ของ MoE ยังสูงตาม total parameters ไม่ใช่ active parameters ต้องโหลด all experts เข้า GPU memory เสมอแม้จะใช้แค่ 2 ตัวต่อ token
+
+อย่างที่ห้า: MoE training ยากกว่า dense มาก แต่ถ้าทำได้ ผลลัพธ์คือ model ที่มี better quality-per-compute ratio ที่เหนือกว่า dense ในหลาย scenarios
+
+อย่างที่หก (bonus): ไม่มีคำตอบสำเร็จรูปสำหรับ "MoE ดีกว่า dense ไหม?" ขึ้นอยู่กับ workload, hardware, batch size, และ constraint ที่คุณมี เข้าใจ tradeoffs แล้วตัดสินใจจากนั้น
+
+**ภาพรวมของ journey ใน MoE**
+
+เราเริ่มจากคำถามว่าทำไม GPT-4 ถึงตอบเร็ว ไปสู่การเข้าใจว่า Dense model มีข้อจำกัดอะไร แล้วค่อยๆ build up ว่า MoE แก้ปัญหานั้นยังไงผ่าน experts, routers, และ load balancing ก่อนจะดูตัวอย่างจริงใน Mixtral และ Switch Transformer และจบด้วยการ understand tradeoffs ที่ต้องตัดสินใจใน production
+
+ทุก concept ในบทนี้มีความสำคัญ ไม่ใช่แค่เรื่อง trivia architecture แต่เป็น framework ที่ทำให้คุณ evaluate และ choose models ได้ดีขึ้นในโลกจริง
+
+Mixtral 8x7B พิสูจน์ว่าแนวคิดนี้ใช้งานได้จริงในโลก open-source GPT-4 (ถ้า rumors เป็นความจริง) พิสูจน์ว่าแม้แต่ lab ที่มีทรัพยากรมากที่สุดก็เลือก MoE ที่ frontier scale DeepSeek-V2 พิสูจน์ว่า MoE ยังมีพื้นที่สำหรับ innovation อีกมาก และ Switch Transformer พิสูจน์ว่าบางครั้ง simplicity ที่ scale ได้ดีกว่า complexity ที่ดูสวยงามบนกระดาษ
+
+สิ่งที่น่าสนใจที่สุดเกี่ยวกับ MoE ไม่ใช่ตัว technique แต่คือ principle ที่มันแสดงให้เห็น ว่าการรู้จักไม่ใช้ทุกสิ่งที่มี และเลือกใช้เฉพาะสิ่งที่เหมาะ คือความฉลาดอีกแบบหนึ่ง ที่มีคุณค่าไม่แพ้การมีความสามารถรอบด้าน
+
+แต่ถ้าคุณคิดว่าเรื่อง parameter count และ architecture เป็นสิ่งที่ซับซ้อนแล้ว ยังมีชั้นอีกชั้นหนึ่งที่ต้องเข้าใจ นั่นคือกฎที่ควบคุมว่าโมเดลใหญ่ขึ้นเท่าไหร่ถึงจะ "คุ้มค่า" จริงๆ และทำไม compute, data, และ model size ต้อง scale ในสัดส่วนที่เฉพาะเจาะจง ซึ่งเป็นสิ่งที่ [Scaling Laws](/advanced/scaling-laws) จะอธิบายในบทถัดไป — และคำตอบอาจทำให้คุณมองโลก AI ต่างออกไปอีกครั้ง
+
+<!-- IMAGE: Summary concept map แสดงความสัมพันธ์ระหว่าง: Dense vs Sparse → MoE Architecture → Router/Gating → Load Balancing → Real-world tradeoffs (Mixtral case study) → Future directions -->

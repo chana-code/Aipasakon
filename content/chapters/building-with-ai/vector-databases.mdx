@@ -1,0 +1,649 @@
+---
+slug: vector-databases
+level: building-with-ai
+title: "Vector Database คืออะไร — เก็บและค้นหาความหมายด้วยฐานข้อมูลแบบใหม่"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ Vector Database ตั้งแต่ทำไม SQL ไม่พอ, วิธีจัดเก็บและค้นหา embedding vectors, เปรียบเทียบ Pinecone/ChromaDB/pgvector จนถึงการเลือกใช้ในโปรเจกต์จริง"
+---
+# Vector Database คืออะไร — เก็บและค้นหาความหมายด้วยฐานข้อมูลแบบใหม่
+
+บทที่แล้วคุณเปลี่ยนข้อความเป็น vector ได้แล้ว — ตัวเลขเรียงกันเป็นพิกัดในอวกาศหลายมิติ ที่จับ "ความหมาย" ของประโยคนั้นไว้ แต่ลองจินตนาการดูว่า ถ้าบริษัทคุณมีเอกสารภายใน 100,000 ชิ้น แต่ละชิ้นมี vector 1,536 ตัวเลข คุณจะเก็บมันที่ไหน? และเวลาผู้ใช้ถามคำถามมาหนึ่งข้อ คุณจะค้นหา vector ที่ "ใกล้เคียงที่สุด" ในกองนั้นยังไงให้ได้ผลใน milliseconds?
+
+SQL ธรรมดาทำไม่ได้ — และนั่นคือเหตุผลที่ Vector Database ถูกสร้างขึ้น
+
+<!-- IMAGE: ภาพเปรียบเทียบ: ซ้าย = ตาราง SQL แถวยาวๆ, ขวา = จุดกระจายในอวกาศ 3 มิติ พร้อมลูกศรชี้หา "จุดที่ใกล้ที่สุด" -->
+
+---
+
+## ทำไม SQL Database ถึงไม่พอ
+
+ก่อนจะเข้าใจว่า Vector Database ทำงานยังไง ต้องเข้าใจก่อนว่า SQL ทำงานยังไง และทำไมมันถึงสู้งานนี้ไม่ได้
+
+SQL เก่งมากในสิ่งที่มันทำ โดยเฉพาะ "exact match" — การค้นหาแบบตรงตัว เช่น `WHERE name = 'สมชาย'` หรือ `WHERE department = 'HR'` หรือ `WHERE created_at > '2024-01-01'` ฐานข้อมูลมี index ที่ทำให้ค้นหาแบบนี้ได้เร็วมาก เพราะมันรู้ชัดเจนว่าต้องไปหาที่ไหน
+
+แต่ลองเปลี่ยนโจทย์ดู: แทนที่จะหาบ้านในซอย 15 คุณต้องการหาบ้านที่ "บรรยากาศคล้ายๆ บ้านเพื่อน" — อากาศดี, สงบ, มีต้นไม้เยอะ, ไม่ใกล้ตลาด
+
+ความคล้ายคลึงแบบนี้ไม่มีคอลัมน์ไหนใน SQL จับได้ คุณไม่สามารถเขียน `WHERE บรรยากาศ = 'คล้ายบ้านเพื่อน'` ได้ เพราะ "บรรยากาศ" ไม่ใช่ค่าตายตัว มันเป็น "ความรู้สึก" ที่ประกอบจากปัจจัยหลายอย่างพร้อมกัน
+
+Vector คือวิธีแปลง "ความรู้สึก" นั้นให้กลายเป็นตัวเลขที่คำนวณได้ แต่พอเราได้ vector มาแล้ว การค้นหาใน SQL ก็ยังมีปัญหา
+
+<!-- IMAGE: ตารางแสดง vector 1,536 มิติ พร้อมสูตร cosine similarity และสัญลักษณ์แสดงการวนซ้ำทุก row -->
+
+### ปัญหาคือ: SQL ต้องสแกนทุก row
+
+สมมติคุณเก็บ vector ของเอกสาร 100,000 ชิ้นไว้ในคอลัมน์ `ARRAY[FLOAT]` ใน Postgres เวลาผู้ใช้ถามคำถามมา คุณต้องการหา vector ที่ใกล้ที่สุด 5 อัน
+
+ใน SQL ธรรมดา คุณต้องทำแบบนี้:
+
+```sql
+-- คำนวณ cosine similarity กับทุก row แล้วเรียง
+SELECT id, content,
+       1 - (embedding <=> query_vector) AS similarity
+FROM documents
+ORDER BY similarity DESC
+LIMIT 5;
+```
+
+ฟังดูโอเคไหม? แต่ลองดูว่าเกิดอะไรขึ้นข้างใต้:
+
+ทุกครั้งที่มีคำถาม → คำนวณ cosine similarity ระหว่าง query vector กับ document vector ทุกตัว → 100,000 × 1,536 = 153.6 ล้านการคูณ → เรียงลำดับ → ส่งผล
+
+ถ้ามีผู้ใช้ 100 คนพร้อมกัน นั่นคือ 15,360 ล้านการคูณต่อวินาที แค่เพื่อค้นหาเอกสาร ยิ่งข้อมูลโต ยิ่งช้าเป็นเส้นตรง (linear scan) — นักวิทยาศาสตร์คอมพิวเตอร์เรียกว่า O(n)
+
+> 💡 **Key insight:** SQL ค้นหาโดย "เปิดดูทุกอย่าง" แต่ Vector Database ค้นหาโดย "รู้ว่าควรไปดูที่ไหน" — ความแตกต่างนี้คือเหตุผลที่ต้องมีเครื่องมือใหม่
+
+---
+
+## Vector Database ทำงานยังไง — ความลับอยู่ที่ Index
+
+Vector Database แก้ปัญหา linear scan ด้วยการสร้าง "แผนที่" ของ vector space ที่ทำให้ไม่ต้องเปิดดูทุกอัน เรียกว่า ANN หรือ Approximate Nearest Neighbor
+
+คำว่า "Approximate" สำคัญมาก — มันหมายความว่า อาจไม่ได้ผลที่ "ดีที่สุดจริงๆ" เสมอไป แต่ได้ผลที่ "ดีพอ" เร็วมาก ซึ่งในทางปฏิบัติ เพียงพอแล้ว
+
+### HNSW — ทางลัดแบบ 3 มิติ
+
+อัลกอริทึมที่ได้รับความนิยมที่สุดในปัจจุบันคือ HNSW (Hierarchical Navigable Small World) ฟังดูซับซ้อน แต่แนวคิดเข้าใจได้ง่ายมาก
+
+ลองนึกภาพห้องสมุดที่จัดหนังสือแบบใหม่ — ไม่ใช่จัดตามตัวอักษรชื่อผู้แต่ง แต่จัดตาม "ความเกี่ยวข้องของเนื้อหา" หนังสือฟิสิกส์อยู่ใกล้หนังสือคณิตศาสตร์ หนังสือการตลาดอยู่ใกล้หนังสือจิตวิทยา
+
+ห้องสมุดนี้มี 3 ชั้น:
+
+- **ชั้นบน (Layer 2):** แผนผังคร่าวๆ แบ่งเป็นโซนใหญ่ๆ "วิทยาศาสตร์", "สังคมศาสตร์", "ศิลปะ" มีแค่ไม่กี่โหนด แต่ครอบคลุมทุกพื้นที่
+- **ชั้นกลาง (Layer 1):** แบ่งละเอียดขึ้น "ฟิสิกส์", "เคมี", "ชีววิทยา", "เศรษฐศาสตร์", "การตลาด"
+- **ชั้นล่าง (Layer 0):** หนังสือจริงทุกเล่ม เชื่อมต่อกับหนังสือที่เนื้อหาใกล้เคียง
+
+เวลาหาหนังสือ คุณไม่เดินดูทุกชั้น — คุณเริ่มที่แผนผังชั้นบน หาโซนที่ใช่ เดินลงมาชั้นกลาง หาหมวดที่ใช่ แล้วค่อยมองหาในชั้นล่าง ใช้เวลาไม่กี่นาที แทนที่จะต้องเดินดูทุกเล่มในห้องสมุด
+
+HNSW ทำงานแบบเดียวกัน — สร้างโครงสร้างหลายชั้นที่เชื่อมต่อ vector ที่ "ใกล้กัน" ไว้ด้วยกัน เวลาค้นหา ระบบ navigate จากชั้นบนสุดลงมาชั้นล่าง ไม่ต้องเปิดดูทุก vector
+
+<!-- IMAGE: ภาพแสดง HNSW 3 layers: บนมีไม่กี่จุด, กลางมีปานกลาง, ล่างมีจุดเต็ม พร้อมลูกศรแสดงเส้นทางการค้นหา -->
+
+### IVF — แบ่งห้องเก็บของ
+
+อีกวิธีคือ IVF (Inverted File Index) — คิดง่ายๆ ว่าแบ่ง vector ทั้งหมดออกเป็น "cluster" ก่อน แต่ละ cluster มี centroid (จุดศูนย์กลาง) เวลาค้นหา ระบบหา centroid ที่ใกล้ query ที่สุด 2-3 อัน แล้วค้นหาเฉพาะใน cluster เหล่านั้น
+
+ไม่ต้องดูทั้งหมด 100,000 vector — ดูแค่ 3,000-5,000 vector ในไม่กี่ cluster ก็พอ
+
+> 💡 **Key insight:** Vector Database ไม่ได้ "ฉลาดกว่า" SQL — มันแค่ "รู้จักพื้นที่ดีกว่า" เพราะมันลงทุนเวลาสร้าง index ตอน insert ข้อมูล เพื่อแลกกับความเร็วตอนค้นหา
+
+---
+
+## เปรียบเทียบ Vector Databases ยอดนิยม
+
+ปัจจุบันมี Vector Database ให้เลือกหลายตัว แต่ละตัวมีจุดแข็งต่างกัน เหมาะกับสถานการณ์ต่างกัน
+
+| ฐานข้อมูล | ประเภท | จุดเด่น | เหมาะกับ | ราคา |
+|-----------|--------|---------|---------|------|
+| **ChromaDB** | Open-source | เริ่มต้นง่าย, ไม่ต้องตั้ง server | Prototype, learning | ฟรี |
+| **pgvector** | Postgres extension | ไม่ต้องเพิ่ม infra ใหม่ | ทีมที่มี Postgres อยู่แล้ว | ฟรี |
+| **Pinecone** | Managed cloud | ง่ายที่สุด, scale ได้ไม่จำกัด | Production ที่ไม่อยากดูแล infra | จ่ายตามใช้ |
+| **Qdrant** | Open-source / Cloud | Performance ดี, filter ครบ | Scale กลาง-ใหญ่, on-premise | ฟรี / จ่ายตามใช้ |
+| **Weaviate** | Open-source / Cloud | GraphQL API, module system | Enterprise, multi-modal | ฟรี / Enterprise |
+| **Milvus** | Open-source | Scale ได้สูงมาก, billion vectors | ขนาดใหญ่มาก | ฟรี |
+
+### ChromaDB — เพื่อน Python ที่ดีที่สุด
+
+ChromaDB คือตัวเลือกที่ดีที่สุดสำหรับการเริ่มต้น pip install ได้เลย ไม่ต้องตั้ง server ไม่ต้องสมัคร account ข้อมูลเก็บ local มีทั้ง in-memory mode (สำหรับทดสอบ) และ persistent mode (เก็บลง disk)
+
+ข้อเสีย: ไม่ได้ออกแบบมาสำหรับ production scale ใหญ่ ถ้าต้องการ vector หลายสิบล้านตัวหรือมีผู้ใช้พร้อมกันเป็นร้อย ต้องเปลี่ยน
+
+### pgvector — ถ้ามี Postgres อยู่แล้ว อย่าเพิ่งเปลี่ยน
+
+pgvector คือ extension ของ PostgreSQL ที่เพิ่ม data type `vector` และ operator สำหรับ similarity search เข้าไป ข้อดีคือ ไม่ต้องเพิ่ม infrastructure ใหม่ ทีมที่คุ้นกับ SQL ก็ใช้ได้เลย และรวม vector search กับ relational query ในประโยคเดียวได้
+
+Supabase ใช้ pgvector เป็น default ทำให้เป็นที่นิยมมากในหมู่ developer ที่ใช้ Supabase อยู่แล้ว
+
+### Pinecone — ง่ายที่สุด แต่ต้องจ่าย
+
+Pinecone คือ fully managed vector database ที่ไม่ต้องดูแลอะไรเลย สมัคร, สร้าง index, upsert vectors, query — จบ Scale ได้โดยไม่ต้องแตะ config
+
+ข้อเสียชัดเจน: ราคา ถ้า vector เยอะขึ้น ค่าใช้จ่ายก็โตตาม และ vendor lock-in สูง
+
+### Qdrant — ดีที่สุดถ้าต้องการ performance + control
+
+Qdrant เป็น open-source ที่เขียนด้วย Rust ทำให้ performance ดีมาก รองรับ filtering ที่ซับซ้อน และ deploy บน server ของตัวเองได้ ปัจจุบันหลายทีมที่เริ่มจาก ChromaDB และต้องการ scale มักย้ายมา Qdrant
+
+<!-- IMAGE: ไดอะแกรมแสดงการ migrate: ChromaDB → Qdrant/pgvector → Pinecone ตามขนาดของโปรเจกต์ -->
+
+---
+
+## ลองทำดู #1: ChromaDB — เริ่มต้นใน 5 นาที
+
+ถึงเวลาลงมือทำ ส่วนนี้จะพาคุณสร้าง vector database จริงๆ ใน Python บนเครื่องตัวเอง ไม่ต้องสมัคร account ไม่ต้องใช้ internet
+
+> 🧪 **ลองทำดู:** ติดตั้ง ChromaDB และสร้าง collection แรกของคุณ — ใช้เวลาไม่เกิน 5 นาที
+
+**ขั้นตอน 1: ติดตั้ง**
+
+```bash
+pip install chromadb
+```
+
+**ขั้นตอน 2: สร้าง collection และเพิ่มเอกสาร**
+
+```python
+import chromadb
+
+# สร้าง client แบบ persistent (เก็บลง disk)
+client = chromadb.PersistentClient(path="./my_vector_db")
+
+# สร้าง collection — ChromaDB จะจัดการ embedding ให้เอง
+# โดย default ใช้ sentence-transformers model ขนาดเล็ก
+collection = client.get_or_create_collection(
+    name="company_docs",
+    metadata={"hnsw:space": "cosine"}  # ใช้ cosine similarity
+)
+
+# เพิ่มเอกสาร — ChromaDB แปลงเป็น vector ให้อัตโนมัติ
+collection.add(
+    documents=[
+        "นโยบายลาป่วยของบริษัท: พนักงานมีสิทธิ์ลาป่วยได้ 30 วันต่อปี",
+        "วิธีขอเบิกค่าเดินทาง: กรอกแบบฟอร์ม EX-01 และแนบใบเสร็จ",
+        "ระเบียบการทำงานจากที่บ้าน: ต้องขออนุมัติจากหัวหน้าล่วงหน้า 3 วัน",
+        "สวัสดิการประกันสุขภาพ: คุ้มครองทั้งพนักงานและครอบครัว วงเงิน 500,000 บาท",
+        "วันหยุดประจำปี: พนักงานได้รับวันหยุดพักผ่อน 10 วันต่อปี",
+    ],
+    metadatas=[
+        {"category": "HR", "doc_type": "policy"},
+        {"category": "Finance", "doc_type": "procedure"},
+        {"category": "HR", "doc_type": "policy"},
+        {"category": "HR", "doc_type": "benefit"},
+        {"category": "HR", "doc_type": "policy"},
+    ],
+    ids=["doc1", "doc2", "doc3", "doc4", "doc5"]
+)
+
+print(f"เพิ่มเอกสารสำเร็จ: {collection.count()} รายการ")
+```
+
+**ขั้นตอน 3: ค้นหา**
+
+```python
+# ค้นหาด้วยภาษาธรรมชาติ — ChromaDB แปลง query เป็น vector ให้
+results = collection.query(
+    query_texts=["ถ้าป่วยแล้วต้องทำยังไง"],  # query ด้วยภาษาพูดปกติ
+    n_results=2  # ต้องการ 2 ผลที่ใกล้เคียงที่สุด
+)
+
+# แสดงผล
+for i, (doc, distance) in enumerate(zip(
+    results['documents'][0],
+    results['distances'][0]
+)):
+    similarity = 1 - distance  # cosine distance → similarity
+    print(f"\nผลที่ {i+1} (similarity: {similarity:.3f})")
+    print(f"เนื้อหา: {doc}")
+```
+
+ผลที่ได้ควรจะคืน "นโยบายลาป่วย" และ "วันหยุดประจำปี" — แม้ว่า query จะไม่มีคำว่า "ลาป่วย" ตรงๆ แต่ความหมายมันใกล้กัน
+
+> 💡 **Key insight:** ChromaDB เรียกว่า "auto-embedding" — มันรับ text ดิบแล้วแปลงเป็น vector ให้เอง คุณไม่ต้องเรียก OpenAI Embeddings API แยก แต่ถ้าต้องการ embedding คุณภาพสูงกว่า ก็สามารถส่ง vector ที่แปลงเองมาได้เลย
+
+<!-- IMAGE: ภาพ screenshot terminal แสดงผลการค้นหา พร้อม similarity score -->
+
+---
+
+## ลองทำดู #2: pgvector — ใช้กับ Postgres ที่มีอยู่แล้ว
+
+ถ้าคุณมี PostgreSQL database อยู่แล้ว (หรือใช้ Supabase) คุณไม่จำเป็นต้องเพิ่ม Vector Database ใหม่เลย pgvector เพิ่ม vector search เข้าไปใน Postgres ที่มีอยู่
+
+> 🧪 **ลองทำดู:** ถ้ามี Postgres หรือ Supabase อยู่แล้ว ลองเพิ่ม pgvector ใน 10 นาที
+
+**ขั้นตอน 1: เปิดใช้งาน extension**
+
+```sql
+-- รันใน PostgreSQL (Supabase ทำให้แล้วโดย default)
+CREATE EXTENSION IF NOT EXISTS vector;
+```
+
+**ขั้นตอน 2: สร้างตารางที่มี vector column**
+
+```sql
+-- สร้างตารางเอกสาร
+-- 1536 คือจำนวน dimensions ของ OpenAI text-embedding-3-small
+CREATE TABLE company_documents (
+    id          SERIAL PRIMARY KEY,
+    content     TEXT NOT NULL,
+    category    VARCHAR(50),
+    doc_type    VARCHAR(50),
+    embedding   vector(1536),  -- คอลัมน์ใหม่! เก็บ vector
+    created_at  TIMESTAMP DEFAULT NOW()
+);
+
+-- สร้าง HNSW index เพื่อให้ค้นหาเร็ว
+-- (สร้างก่อน insert ข้อมูลจริงจะดีกว่า)
+CREATE INDEX ON company_documents
+USING hnsw (embedding vector_cosine_ops);
+```
+
+**ขั้นตอน 3: Insert เอกสารพร้อม embedding ด้วย Python**
+
+```python
+import psycopg2
+from openai import OpenAI
+
+client = OpenAI()
+
+# เอกสารที่ต้องการเก็บ
+documents = [
+    {
+        "content": "นโยบายลาป่วยของบริษัท: พนักงานมีสิทธิ์ลาป่วยได้ 30 วันต่อปี",
+        "category": "HR",
+        "doc_type": "policy"
+    },
+    {
+        "content": "วิธีขอเบิกค่าเดินทาง: กรอกแบบฟอร์ม EX-01 และแนบใบเสร็จ",
+        "category": "Finance",
+        "doc_type": "procedure"
+    },
+]
+
+# เชื่อมต่อ Postgres
+conn = psycopg2.connect("postgresql://user:pass@localhost/mydb")
+cur = conn.cursor()
+
+for doc in documents:
+    # แปลงเป็น embedding ด้วย OpenAI
+    response = client.embeddings.create(
+        model="text-embedding-3-small",
+        input=doc["content"]
+    )
+    embedding = response.data[0].embedding  # list of 1536 floats
+
+    # Insert ลง Postgres — pgvector รับ Python list ได้เลย
+    cur.execute("""
+        INSERT INTO company_documents (content, category, doc_type, embedding)
+        VALUES (%s, %s, %s, %s)
+    """, (doc["content"], doc["category"], doc["doc_type"], embedding))
+
+conn.commit()
+print("Insert สำเร็จ!")
+```
+
+**ขั้นตอน 4: Query ด้วย cosine similarity**
+
+```python
+# แปลง query เป็น embedding
+query = "ถ้าป่วยแล้วต้องทำยังไง"
+response = client.embeddings.create(
+    model="text-embedding-3-small",
+    input=query
+)
+query_embedding = response.data[0].embedding
+
+# ค้นหาด้วย pgvector operator <=>  (cosine distance)
+cur.execute("""
+    SELECT
+        content,
+        category,
+        1 - (embedding <=> %s::vector) AS similarity
+    FROM company_documents
+    ORDER BY embedding <=> %s::vector  -- เรียงจากใกล้ที่สุด
+    LIMIT 3
+""", (query_embedding, query_embedding))
+
+results = cur.fetchall()
+for content, category, similarity in results:
+    print(f"[{category}] similarity={similarity:.3f}")
+    print(f"  {content[:80]}...")
+```
+
+ความพิเศษของ pgvector คือ คุณสามารถรวม vector search กับ SQL ปกติในประโยคเดียวกันได้ — `WHERE category = 'HR' AND embedding <=> query_vector < 0.3` ค้นหาตามความหมาย พร้อมกรองตาม category ได้พร้อมกัน
+
+<!-- IMAGE: ภาพแสดง schema ของตาราง Postgres ที่มีทั้งคอลัมน์ปกติและคอลัมน์ vector -->
+
+---
+
+## Metadata Filtering — ค้นหาความหมาย แต่กรองตาม property
+
+ถ้าคุณมีเอกสาร 50,000 ชิ้นจากหลายแผนก และผู้ใช้ถามว่า "นโยบายเรื่องการลาคืออะไร" คุณต้องการแสดงเฉพาะเอกสารจากแผนก HR ของบริษัท ไม่ใช่เอกสารการตลาดที่บังเอิญพูดถึงการลาไปด้วย
+
+นี่คือที่มาของ Metadata Filtering — การรวม vector similarity กับ property filter เข้าด้วยกัน
+
+### วิธีทำใน ChromaDB
+
+```python
+# กรองเฉพาะเอกสาร HR ที่เป็น policy
+results = collection.query(
+    query_texts=["นโยบายการลา"],
+    n_results=3,
+    where={
+        "$and": [
+            {"category": {"$eq": "HR"}},        # เฉพาะแผนก HR
+            {"doc_type": {"$eq": "policy"}}      # เฉพาะ policy
+        ]
+    }
+)
+```
+
+### วิธีทำใน pgvector (SQL)
+
+```sql
+-- รวม vector search + metadata filter ในประโยคเดียว
+SELECT content, category, doc_type,
+       1 - (embedding <=> $1::vector) AS similarity
+FROM company_documents
+WHERE
+    category = 'HR'           -- กรองแผนก
+    AND doc_type = 'policy'   -- กรองประเภท
+    AND created_at > '2024-01-01'  -- กรองวันที่
+ORDER BY embedding <=> $1::vector
+LIMIT 5;
+```
+
+### Use Cases จริงของ Metadata Filtering
+
+สถานการณ์ที่พบบ่อยในองค์กร:
+
+- **ระบบ HR Bot:** ค้นหาตามความหมาย แต่แสดงเฉพาะเอกสารของบริษัทนั้น ไม่ใช่บริษัทอื่น
+- **Customer Support:** ค้นหาคำตอบที่ใกล้เคียง แต่กรองเฉพาะ version ของ product ที่ลูกค้าใช้
+- **Legal Search:** ค้นหาตามความหมายของกฎหมาย แต่กรองเฉพาะปีที่ยังมีผลบังคับใช้
+- **E-commerce:** ค้นหาสินค้าที่ "บรรยากาศคล้ายกัน" แต่กรองเฉพาะสินค้าที่มีสต็อก
+
+> 💡 **Key insight:** Metadata filtering คือ "pre-filter" ที่ลด search space ก่อนที่จะทำ vector comparison จริง ทำให้ทั้งเร็วขึ้นและแม่นยำขึ้นพร้อมกัน
+
+<!-- IMAGE: ไดอะแกรมแสดง funnel: เอกสาร 50,000 ชิ้น → กรอง metadata เหลือ 5,000 ชิ้น → ค้นหา vector similarity → ได้ผล top 5 -->
+
+---
+
+## Hybrid Search — รวม Keyword กับ Semantic ได้ผลดีที่สุด
+
+Vector search เก่งเรื่องความหมาย แต่มีจุดอ่อน: บางครั้งผู้ใช้รู้คำ exact ที่ต้องการ
+
+สมมติผู้ใช้ถามว่า "มาตรา 42 พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล" — ถ้าใช้ vector search อย่างเดียว ระบบอาจคืนเอกสารที่ "พูดถึงการคุ้มครองข้อมูล" แบบกว้างๆ แต่ไม่ใช่มาตรา 42 จริงๆ เพราะ "มาตรา 42" คือ proper noun ที่ความหมาย vector มันไม่ได้แตกต่างจากมาตราอื่นๆ มากนัก
+
+ในทางกลับกัน ถ้าผู้ใช้ถามว่า "กฎหมายเกี่ยวกับข้อมูลส่วนตัว" ผู้ใช้ไม่รู้ชื่อกฎหมายที่แน่นอน keyword search จะหาไม่เจอ แต่ vector search หาได้
+
+แนวทางที่ดีที่สุดคือรวมทั้งสอง: **Hybrid Search**
+
+### วิธีทำงานของ Hybrid Search
+
+```
+Query ผู้ใช้
+    ↓
+┌─────────────────────┐     ┌─────────────────────┐
+│   BM25 / Keyword    │     │   Vector Similarity  │
+│   Search            │     │   Search             │
+│   (exact match)     │     │   (semantic match)   │
+└─────────────────────┘     └─────────────────────┘
+    ↓                             ↓
+  Rank 1: doc_A               Rank 1: doc_C
+  Rank 2: doc_C               Rank 2: doc_A
+  Rank 3: doc_B               Rank 3: doc_D
+    ↓                             ↓
+         ┌─────────────────────┐
+         │   RRF Fusion        │
+         │   (รวม rank สองฝั่ง) │
+         └─────────────────────┘
+                  ↓
+           Final Result
+```
+
+### RRF — Reciprocal Rank Fusion
+
+RRF คือ algorithm สำหรับรวม ranking จากสองระบบเข้าด้วยกัน สูตรง่ายมาก:
+
+```
+RRF_score(doc) = 1/(k + rank_keyword) + 1/(k + rank_vector)
+```
+
+k คือ constant (มักใช้ 60) ป้องกันไม่ให้เอกสารที่ rank 1 ในระบบเดียวได้คะแนนมากเกินไป
+
+ผลคือเอกสารที่ติด top ทั้งสองระบบจะได้คะแนนสูงสุด เอกสารที่ดีแค่ระบบเดียวก็ยังมีโอกาสปรากฏ
+
+### ตัวอย่างจริงด้วย Qdrant (รองรับ Hybrid Search in-built)
+
+```python
+from qdrant_client import QdrantClient
+from qdrant_client.models import SparseVector, NamedSparseVector, NamedVector
+
+client = QdrantClient(":memory:")  # in-memory สำหรับทดสอบ
+
+# Qdrant รองรับ hybrid search แบบ native
+# ใส่ทั้ง dense vector (semantic) และ sparse vector (keyword)
+results = client.query_points(
+    collection_name="company_docs",
+    prefetch=[
+        # ค้นหาด้วย keyword (sparse vector)
+        models.Prefetch(
+            query=models.SparseVector(indices=[1, 2, 3], values=[0.5, 0.3, 0.8]),
+            using="sparse",
+            limit=20,
+        ),
+        # ค้นหาด้วย semantic (dense vector)
+        models.Prefetch(
+            query=[0.1, 0.3, ...],  # embedding vector
+            using="dense",
+            limit=20,
+        ),
+    ],
+    # รวมด้วย RRF
+    query=models.FusionQuery(fusion=models.Fusion.RRF),
+    limit=5,
+)
+```
+
+> 💡 **Key insight:** ในโปรเจกต์จริง Hybrid Search มักให้ผลดีกว่า pure vector search ประมาณ 10-20% ในแง่ relevance โดยเฉพาะเมื่อผู้ใช้รู้คำ exact บางคำ เช่น ชื่อกฎหมาย, เลขที่เอกสาร, หรือชื่อเฉพาะ
+
+<!-- IMAGE: กราฟเปรียบเทียบ precision/recall ของ keyword-only, vector-only, และ hybrid search -->
+
+---
+
+## Scaling และ Performance — สิ่งที่ต้องรู้ก่อน Production
+
+ตอนทดสอบ vector database มักจะเร็วมากในทุกแบบ แต่พอข้อมูลโตขึ้น สิ่งที่ใช้งานได้ดีกับ 10,000 vectors อาจไม่ work กับ 10 ล้าน vectors
+
+### Indexing Time vs Query Time
+
+เวลา insert vector ใหม่ระบบต้องอัปเดต index ด้วย ซึ่งใช้เวลา การ insert ครั้งละ 1 vector ช้ากว่า batch insert มาก
+
+```python
+# อย่าทำแบบนี้ — insert ทีละอัน ช้ามาก
+for doc in documents:
+    collection.add(documents=[doc["text"]], ids=[doc["id"]])
+
+# ทำแบบนี้ดีกว่า — batch insert
+collection.add(
+    documents=[doc["text"] for doc in documents],
+    ids=[doc["id"] for doc in documents],
+    metadatas=[doc["metadata"] for doc in documents]
+)
+```
+
+สำหรับข้อมูลจำนวนมาก แนะนำ batch size 500-1,000 records ต่อครั้ง
+
+### Dimensions vs Speed Tradeoff
+
+Vector มีหลาย dimension:
+- OpenAI `text-embedding-3-small`: 1,536 dimensions
+- OpenAI `text-embedding-3-large`: 3,072 dimensions
+- Sentence Transformers เล็ก: 384 dimensions
+
+มากขึ้น = แม่นยำขึ้น แต่ช้าลงและใช้ memory มากขึ้น สำหรับ prototype ใช้ 384-768 ก็พอ สำหรับ production คุณภาพสูงใช้ 1,536
+
+OpenAI ยังมีฟีเจอร์ "Matryoshka" ที่ให้ลด dimension ได้ เช่น ตัด 1,536 ลง 256 โดย accuracy ลดนิดเดียวแต่เร็วขึ้นมาก:
+
+```python
+response = client.embeddings.create(
+    model="text-embedding-3-small",
+    input=text,
+    dimensions=256  # ลด dimension เพื่อความเร็ว
+)
+```
+
+### Memory และ Storage
+
+Vector หนึ่งตัว (float32, 1,536 dims) ใช้ 6,144 bytes หรือประมาณ 6 KB หนึ่งล้าน vector ใช้ RAM ประมาณ 6 GB ซึ่งไม่น้อย การ quantize vector (จาก float32 เป็น int8) ลด memory ได้ 4 เท่า โดย accuracy ลดเพียงเล็กน้อย
+
+```python
+# Qdrant รองรับ scalar quantization
+from qdrant_client.models import ScalarQuantization, ScalarQuantizationConfig, ScalarType
+
+client.create_collection(
+    collection_name="large_scale_docs",
+    vectors_config=VectorParams(size=1536, distance=Distance.COSINE),
+    quantization_config=ScalarQuantization(
+        scalar=ScalarQuantizationConfig(
+            type=ScalarType.INT8,   # ลด memory 4x
+            quantile=0.99,
+            always_ram=True,
+        ),
+    ),
+)
+```
+
+<!-- IMAGE: ตารางแสดง: จำนวน vectors × dimensions × precision = memory usage + expected query time -->
+
+### Sharding สำหรับ Scale ใหญ่มาก
+
+ถ้า vector มากกว่า 50-100 ล้าน การแบ่ง collection ออกเป็นหลาย shard และกระจายไปยังหลาย server เป็นสิ่งจำเป็น Pinecone, Weaviate, Milvus รองรับ built-in sharding แต่สำหรับ Qdrant ต้องตั้งค่าเอง
+
+สำหรับ startup และบริษัทขนาดกลาง scale นี้ยังห่างไกลมาก — ถ้ามีเอกสารไม่เกิน 5 ล้านชิ้น pgvector หรือ Qdrant instance เดียวก็เพียงพอ
+
+---
+
+## เลือก Vector Database ยังไง — Decision Tree
+
+ทั้งหมดที่ผ่านมาอาจทำให้งงว่าควรเลือกอะไร ขอสรุปเป็น decision tree ที่ใช้ได้จริง:
+
+```
+คุณกำลังทำอะไร?
+│
+├─ ทดสอบ / เรียนรู้ / prototype เร็วๆ
+│   └─ ใช้ ChromaDB — ติดตั้งง่าย ไม่ต้องตั้ง server
+│
+├─ มี PostgreSQL หรือ Supabase อยู่แล้ว
+│   └─ ใช้ pgvector — ไม่ต้องเพิ่ม infra เลย
+│       ├─ ถ้ายังพอ: อยู่กับ pgvector ต่อไป
+│       └─ ถ้า scale เกิน: ย้ายไป Qdrant
+│
+├─ ต้องการ production แบบไม่อยากดูแล infra
+│   └─ ใช้ Pinecone — ง่ายที่สุด จ่ายเงินแลกความสะดวก
+│
+├─ ต้องการ performance + ควบคุม + open-source
+│   └─ ใช้ Qdrant — balance ดีที่สุดสำหรับ mid-scale
+│
+└─ Enterprise scale / multi-modal / GraphQL API
+    └─ ใช้ Weaviate หรือ Milvus
+```
+
+### เส้นทางที่แนะนำสำหรับทีมส่วนใหญ่
+
+**เดือน 1-2 (Prototype):** ChromaDB local — เร็ว ง่าย ได้ feedback เร็ว
+
+**เดือน 3-6 (MVP):** pgvector บน Supabase หรือ Railway — ยังคุมราคาได้ รวม stack ไม่กระจัดกระจาย
+
+**หลังจากนั้น (Growth):** วัด actual query time และ vector count จริง แล้วค่อยตัดสินใจว่าต้องย้ายหรือไม่
+
+> 💡 **Key insight:** การตัดสินใจ early ว่าจะใช้ Vector Database ตัวไหนมักไม่สำคัญเท่า การ design schema และ metadata ให้ดี เพราะการ migrate ระหว่าง Vector Database นั้นไม่ยากมาก เพียงแค่ re-embed และ re-insert ข้อมูล
+
+<!-- IMAGE: Road map timeline: Prototype → MVP → Scale พร้อมระบุ Vector DB ที่เหมาะในแต่ละ phase -->
+
+---
+
+## ทุกอย่างประกอบกัน — Vector Database ในชีวิตจริง
+
+ลองดูว่า Vector Database ทำหน้าที่อะไรในระบบจริง
+
+สมมติบริษัทประกันต้องการสร้าง AI ที่ตอบคำถามเกี่ยวกับเงื่อนไขกรมธรรม์ได้:
+
+**1. Ingestion Pipeline (ทำครั้งเดียว หรือเมื่อมีเอกสารใหม่)**
+
+```python
+# อ่าน PDF กรมธรรม์
+# แบ่งเป็น chunk (300-500 words)
+# แปลงแต่ละ chunk เป็น embedding
+# เก็บลง Vector Database พร้อม metadata
+# เช่น: {"policy_type": "health", "version": "2024", "section": "exclusion"}
+```
+
+**2. Query Pipeline (ทุกครั้งที่ผู้ใช้ถาม)**
+
+```python
+# รับคำถาม: "โรคมะเร็งคุ้มครองไหม?"
+# แปลงเป็น embedding
+# ค้นหาใน Vector Database กรอง metadata: policy_type = ประเภทที่ลูกค้าถือ
+# ดึง top 5 chunks ที่ใกล้เคียงที่สุด
+# ส่ง context + คำถาม → LLM → ตอบ
+```
+
+นี่คือ RAG (Retrieval-Augmented Generation) pipeline ที่สมบูรณ์ — และ Vector Database คือหัวใจของมัน
+
+> 💡 **Key insight:** Vector Database ไม่ได้ "ตอบคำถาม" ด้วยตัวเอง มันทำหน้าที่เป็น "ห้องสมุดอัจฉริยะ" ที่หาเอกสารที่เกี่ยวข้องให้ LLM ทำงานได้ถูกต้อง แทนที่จะ hallucinate คำตอบขึ้นมาเอง
+
+<!-- IMAGE: ภาพ pipeline สมบูรณ์: PDF → Chunking → Embedding → Vector DB → Query → Context → LLM → Answer -->
+
+---
+
+## ข้อผิดพลาดที่พบบ่อย
+
+ก่อนจบ ขอพูดถึงข้อผิดพลาดที่ developer มักทำตอนเริ่มต้น:
+
+### 1. Chunk ใหญ่เกินไป
+
+เอกสาร 10 หน้า embed เป็น vector เดียว vector จะ "เฉลี่ย" ความหมายทั้ง 10 หน้า ทำให้ค้นหาได้ไม่แม่นยำ ควรแบ่ง chunk 300-500 words มี overlap ระหว่าง chunk เพื่อไม่ให้ประโยคสำคัญหลุดไประหว่าง chunk
+
+### 2. ไม่มี metadata ดีพอ
+
+ใส่แค่ content โดยไม่มี metadata เลย ทำให้ filter ไม่ได้ ควรเก็บ: source, date, category, author, doc_id อย่างน้อย
+
+### 3. ลืม index ก่อน production
+
+ทดสอบด้วยข้อมูลน้อยโดยไม่มี index แล้วพอ deploy จริงช้ามาก ต้องสร้าง HNSW index ก่อน หรืออย่างน้อย ivfflat index
+
+### 4. ใช้ embedding model ต่างกันตอน insert vs query
+
+ถ้า insert ด้วย `text-embedding-ada-002` ต้อง query ด้วย `text-embedding-ada-002` เสมอ ต่างกันคือค้นหาไม่เจอ เพราะ vector space ต่างกัน
+
+```python
+# บันทึกไว้ใน config ชัดเจน
+EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_DIMENSIONS = 1536
+
+# ใช้ constant นี้ทุกที่ — ห้าม hardcode คนละที่
+```
+
+---
+
+## สรุป — Vector Database คือรากฐานของ AI ที่ "รู้เรื่อง" ของคุณ
+
+ตลอดบทนี้เราเดินทางจาก "ทำไม SQL ไม่พอ" → เข้าใจ index structures อย่าง HNSW → ลองใช้ ChromaDB และ pgvector จริงๆ → เข้าใจ metadata filtering, hybrid search, และ scaling
+
+Vector Database ไม่ใช่เทคโนโลยีที่น่ากลัว มันคือฐานข้อมูลแบบใหม่ที่ออกแบบมาสำหรับยุคที่ "ความหมาย" สำคัญกว่า "คำ" และ "ความใกล้เคียง" สำคัญกว่า "ความตรงกันพอดี"
+
+สิ่งที่สำคัญที่สุดที่ต้องจำ:
+
+- **เริ่มจาก ChromaDB** ถ้าอยากลองเลยตอนนี้
+- **ใช้ pgvector** ถ้ามี Postgres อยู่แล้ว ไม่ต้องเพิ่ม complexity
+- **Metadata ดี** สำคัญกว่า Vector Database แพงๆ ที่ไม่มี filter ดี
+- **Hybrid Search** ให้ผลดีกว่า pure vector search เสมอในงานจริง
+
+แต่ตอนนี้คุณมีชิ้นส่วนครบแล้ว: รู้ว่า Embedding คืออะไร [จากบทที่แล้ว](/building-with-ai/embeddings) รู้ว่าจะเก็บและค้นหา vector ยังไง (บทนี้) บทถัดไปคือ moment ที่ชิ้นส่วนทั้งหมดประกอบกัน — เราจะสร้าง RAG Pipeline ที่สมบูรณ์ตั้งแต่ต้นจนจบ: รับ PDF, แบ่ง chunk, embed, เก็บลง vector database, รับคำถาม, ค้นหา, ส่ง LLM, และตอบ
+
+ถ้าคุณทำตามมาถึงจุดนี้ได้ บทถัดไปจะไม่ใช่แค่ "เข้าใจว่า RAG ทำงานยังไง" แต่คุณจะมีระบบ RAG ใช้งานได้จริงในมือคุณเอง
+
+---
+
+*บทที่เกี่ยวข้อง: [Embeddings คืออะไร](/building-with-ai/embeddings) | บทถัดไป: RAG Pipeline — รวมทุกอย่างเข้าด้วยกัน*

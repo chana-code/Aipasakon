@@ -1,0 +1,598 @@
+---
+slug: tokenization-deep-dive
+level: advanced
+title: "Tokenization Deep Dive — ทำไม AI อ่านภาษาไทยได้แย่กว่าภาษาอังกฤษ"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เจาะลึก Tokenization ตั้งแต่ BPE, WordPiece, SentencePiece, ทำไมภาษาไทยใช้ token เยอะกว่า, ผลกระทบต่อ cost/quality/context length จนถึงอนาคตของ tokenizer"
+---
+# Tokenization Deep Dive — ทำไม AI อ่านภาษาไทยได้แย่กว่าภาษาอังกฤษ
+
+ลองพิมพ์ประโยคนี้ไปใน ChatGPT แล้วนับ token ดู: "I want to learn about artificial intelligence" — 8 token พอดี แล้วลองเปลี่ยนเป็นภาษาไทย: "ฉันอยากเรียนรู้เรื่องปัญญาประดิษฐ์" — 26 token เกือบสามเท่า ทั้งที่ความหมายเดียวกันทุกประการ
+
+นั่นหมายความว่าทุกครั้งที่คุณถาม AI เป็นภาษาไทย คุณจ่ายเงินแพงกว่าคนที่ถามภาษาอังกฤษสามเท่า บทความยาวหนึ่งหน้า A4 ภาษาไทยอาจกินพื้นที่ context window ของโมเดลไปมากกว่าบทความภาษาอังกฤษความยาวเท่ากันอย่างมีนัยสำคัญ และยังส่งผลต่อคุณภาพคำตอบด้วย ทั้งหมดนี้เกิดขึ้นก่อนที่ AI จะเริ่มคิดแม้แต่คำเดียว
+
+สาเหตุอยู่ที่สิ่งที่เรียกว่า **tokenizer** — เครื่องจักรชิ้นเล็กที่ทุกคนใช้ทุกวันแต่แทบไม่มีใครรู้ว่ามันทำงานอย่างไร บทนี้จะแกะมันออกมาดูทีละชั้น
+
+อย่างที่เห็นในบท [Hallucination](/using-ai/hallucination) AI ทำงานด้วยการ predict probability คำถัดไป แต่คำถามที่ยังไม่ได้ตอบคือ "คำ" ในที่นี้หมายความว่าอะไรกันแน่? ขอบเขตของแต่ละ "คำ" ที่โมเดล predict ถูกกำหนดโดย tokenizer และตามที่คุณจะได้เห็น มันไม่ได้ตรงกับ "คำ" ในแบบที่มนุษย์เข้าใจเสมอไป
+
+<!-- IMAGE: เปรียบเทียบ token count ระหว่างประโยคภาษาอังกฤษและภาษาไทยที่มีความหมายเดียวกัน แสดงด้วย visual box แต่ละ box = 1 token -->
+
+---
+
+## ทำไม AI ถึงต้องแปลงข้อความเป็นตัวเลขก่อน
+
+ก่อนจะเข้าใจ tokenizer ต้องเข้าใจก่อนว่า AI มองตัวอักษรแบบไหน
+
+คำตอบคือ: มันมองไม่เห็นตัวอักษรเลย
+
+โมเดล language model ทำงานกับตัวเลขล้วน ๆ — matrix คูณ matrix, gradient descent, attention weight — ทุกอย่างเป็นคณิตศาสตร์ ตัวอักษร "A" ไม่มีความหมายอะไรต่อโมเดลในตัวเอง มันต้องถูกแปลงเป็นตัวเลขก่อน แล้วตัวเลขนั้นก็ถูกแปลงเป็น vector ความยาวหลายร้อยหรือหลายพัน dimension อีกทีหนึ่ง กระบวนการทั้งหมดเริ่มต้นที่การตัดข้อความออกเป็นชิ้น ๆ แต่ละชิ้นเรียกว่า **token**
+
+คำถามคือ จะตัดอย่างไร? มีสามแนวทางหลักที่นักวิจัยเคยทดลอง:
+
+**แนวทางที่ 1: Character-level** — ตัดทีละตัวอักษร "Hello" = ['H', 'e', 'l', 'l', 'o'] = 5 tokens ข้อดีคือง่าย ไม่มี out-of-vocabulary ข้อเสียคือลำดับที่ยาวมาก โมเดลต้องเรียนรู้ว่า H+e+l+l+o รวมกันแล้วหมายถึงอะไร ซึ่งต้องใช้ memory และ computation สูงมาก
+
+**แนวทางที่ 2: Word-level** — ตัดทีละคำ "Hello world" = ['Hello', 'world'] = 2 tokens ง่ายและธรรมชาติ แต่มีปัญหาใหญ่ คือถ้าโมเดล train บนคำ 100,000 คำ แล้วเจอคำที่ไม่เคยเห็น (เช่น ชื่อแบรนด์ใหม่, คำศัพท์เฉพาะ) โมเดลจะตัน vocabulary ขนาดมหึมาที่ต้อง maintain ก็เป็นปัญหาอีก
+
+**แนวทางที่ 3: Subword** — ตัดให้ฉลาดกว่านั้น คำที่พบบ่อยได้เป็น token เดียว คำหายากถูกแยกเป็นชิ้นย่อย "unhappiness" = ['un', 'happiness'] หรือ ['un', 'happi', 'ness'] วิธีนี้ balance ได้ดีระหว่างความยืดหยุ่นและความมีประสิทธิภาพ โมเดลทุกตัวในยุคนี้ใช้แนวทางนี้
+
+Subword tokenization ฉลาดตรงที่มัน adaptive — มันเรียนรู้จาก data ว่า unit ไหนควรอยู่ด้วยกัน ไม่ใช่แค่ตัด mechanical ตาม rule ที่ hardcode ไว้ ผลคือ vocabulary ที่ได้ reflect ความถี่ของ pattern จริงในภาษา คำที่มีรูป prefix-suffix ซ้ำกันบ่อยอย่าง "-tion", "-ing", "pre-", "re-" จะถูก capture ได้ดี
+
+แต่นี่ก็คือ double-edged sword สำหรับภาษาไทย ถ้า pattern ในภาษาไทยไม่ถูก represent ดีใน training data algorithm ก็ไม่รู้ว่าควร merge อะไร
+
+> 💡 **Key insight:** การเลือกว่าจะตัดข้อความอย่างไรไม่ใช่แค่ technical detail มันส่งผลต่อทุกอย่าง ตั้งแต่ต้นทุนการ inference ไปจนถึงว่าโมเดลจะ "เข้าใจ" ภาษาได้ดีแค่ไหน
+
+<!-- IMAGE: แผนภาพเปรียบเทียบ character-level, word-level, subword tokenization ด้วยตัวอย่างคำเดียวกัน -->
+
+---
+
+## BPE — อัลกอริทึมที่เปลี่ยนวงการ
+
+Byte Pair Encoding หรือ BPE ไม่ได้ถูกคิดขึ้นมาสำหรับ AI ตอนแรก มันเป็นอัลกอริทึม compression จากปี 1994 ที่ใช้ลด file size โดยการ merge byte คู่ที่พบบ่อยที่สุดซ้ำ ๆ จนกว่าจะ compress ได้ตามต้องการ ปี 2016 นักวิจัย Sennrich และทีมงานนำมันมาดัดแปลงใช้กับ NLP และโลกก็เปลี่ยนไป
+
+มาดู BPE ทำงานอย่างไรทีละขั้น โดยใช้ตัวอย่างง่าย ๆ:
+
+**ขั้นที่ 1: เริ่มจาก character**
+
+สมมติ corpus ของเรามีคำเหล่านี้ (พร้อมความถี่):
+```
+"low" × 5
+"lower" × 2  
+"newest" × 6
+"widest" × 3
+```
+
+BPE แยกทุกคำออกเป็นตัวอักษร และเพิ่ม marker พิเศษท้ายคำ (มักเป็น `</w>`) เพื่อบอกว่าตรงนี้คือ end-of-word:
+```
+l o w </w>         × 5
+l o w e r </w>     × 2
+n e w e s t </w>   × 6
+w i d e s t </w>   × 3
+```
+
+**ขั้นที่ 2: นับ pair ที่พบบ่อยที่สุด**
+
+ดูทุก adjacent pair ทั้ง corpus แล้วนับความถี่ (คูณด้วย frequency ของคำนั้น ๆ ด้วย):
+- `e s` พบ 6+3 = 9 ครั้ง (จาก "newest" × 6 และ "widest" × 3)
+- `e r` พบ 2 ครั้ง (จาก "lower" × 2)
+- `l o` พบ 5+2 = 7 ครั้ง (จาก "low" × 5 และ "lower" × 2)
+- `s t` พบ 6+3 = 9 ครั้ง (จาก "newest" และ "widest" เช่นกัน)
+- `e w` พบ 6 ครั้ง (จาก "newest")
+
+สังเกตว่า `e s` กับ `s t` ทั้งคู่ได้ 9 เท่ากัน ในกรณีนี้ algorithm เลือกตาม lexicographic order หรือ tiebreaking rule ที่ define ไว้
+
+Pair ที่บ่อยที่สุดคือ `e s` (9 ครั้ง
+
+**ขั้นที่ 3: Merge pair นั้น สร้าง token ใหม่**
+
+แทนที่ `e` + `s` ทุกที่ด้วย `es`:
+```
+l o w </w>          × 5
+l o w e r </w>      × 2
+n e w es t </w>     × 6
+w i d es t </w>     × 3
+```
+
+**ขั้นที่ 4: ทำซ้ำ**
+
+นับ pair ใหม่ ตอนนี้ `es t` ชนะ (9 ครั้ง) → merge เป็น `est`:
+```
+l o w </w>          × 5
+l o w e r </w>      × 2
+n e w est </w>      × 6
+w i d est </w>      × 3
+```
+
+ทำซ้ำไปเรื่อย ๆ จนได้จำนวน merge ตามที่ต้องการ (hyperparameter ที่นักวิจัยตั้ง ปกติหลักหมื่นถึงแสน) vocabulary สุดท้ายจะมีทั้ง character เดี่ยว ๆ และ subword ที่พบบ่อย
+
+**ตัวอย่างกับภาษาไทย**
+
+สมมติ corpus ไทยมีคำเหล่านี้:
+```
+"กิน" × 100
+"กินข้าว" × 80
+"ข้าว" × 90
+"น้ำ" × 70
+"ดื่มน้ำ" × 60
+```
+
+BPE จะเริ่ม merge จาก character:
+- `ก` `ิ` `น` → เจอ `กิ` บ่อยมาก (จาก "กิน", "กินข้าว") → merge เป็น `กิ`
+- `กิ` `น` → พบซ้ำ → merge เป็น `กิน`
+- `ข` `้` `า` `ว` → `ข้` ก่อน → `ข้า` → `ข้าว`
+
+จากนั้น `กินข้าว` ก็อาจได้ merge เป็น token เดียวถ้าพบบ่อยพอ แต่นี่คือจุดสำคัญ ถ้า training data ไทยน้อย corpus อาจไม่มี `กินข้าว` มากพอที่จะ trigger merge ผลคือคำว่า "กินข้าว" ถูกแทนด้วย `กิน` + `ข้าว` (2 tokens) ซึ่งยังโอเค แต่ถ้าน้อยกว่านั้นอาจได้ `กิ` + `น` + `ข้า` + `ว` (4 tokens) ซึ่งเป็นปัญหา
+
+> 💡 **Key insight:** BPE เป็น greedy algorithm — มันเลือก pair ที่ดีที่สุดในแต่ละ step โดยไม่มองไกล นี่คือ limitation แต่ในทางปฏิบัติมันใช้งานได้ดีมากเพราะ language มีโครงสร้างที่ค่อนข้าง predictable
+
+ผลลัพธ์คือ vocabulary ที่คำพบบ่อยอย่าง "the", "and", "is" จะเป็น token เดียว แต่คำหายากอย่าง "tokenization" อาจถูกแยกเป็น "token", "ization" หรือ "token", "iz", "ation" ขึ้นอยู่กับ corpus ที่ใช้ train
+
+<!-- IMAGE: animation-style diagram แสดง BPE merge step ทีละขั้น ด้วยตัวอย่างจริง -->
+
+---
+
+## WordPiece และ SentencePiece — พี่น้อง BPE
+
+BPE ไม่ได้เป็นทางเลือกเดียว โมเดลยุคต่าง ๆ ใช้ variants ต่างกัน:
+
+**WordPiece** คือสิ่งที่ Google ใช้ใน BERT และโมเดลในตระกูลนั้น หลักการคล้าย BPE แต่ต่างตรงที่วิธีเลือก pair ที่จะ merge BPE เลือก pair ที่ **พบบ่อยที่สุด** แต่ WordPiece เลือก pair ที่ **เพิ่ม likelihood ของ training data มากที่สุด** เมื่อ merge แล้ว
+
+พูดง่าย ๆ คือ BPE ถาม "อะไรพบบ่อย?" แต่ WordPiece ถาม "อะไรที่ถ้า merge แล้วจะทำให้โมเดลอธิบาย data ได้ดีขึ้นมากที่สุด?" มันประเมิน information gain ของแต่ละ merge จึง conservative กว่าเล็กน้อย ไม่ merge สุ่มสี่สุ่มห้า
+
+**SentencePiece** ต่างออกไปอีกระดับ มันเป็น library ที่พัฒนาโดย Google สำหรับ multilingual NLP ข้อแตกต่างสำคัญคือ SentencePiece ไม่ต้องการ pre-tokenization ก่อน มันกิน raw text เข้าไปโดยตรงและ treat ช่องว่างเหมือนตัวอักษรธรรมดา (มักแทนด้วย `▁`)
+
+ทำไมเรื่องนี้สำคัญ? เพราะสำหรับภาษาที่ไม่มีช่องว่างระหว่างคำอย่างภาษาไทย จีน ญี่ปุ่น SentencePiece ยืดหยุ่นกว่ามาก ไม่ต้อง assume ว่าช่องว่างคือ word boundary
+
+**Unigram Language Model** คือ variant อีกแบบที่ SentencePiece รองรับ แทนที่จะ build vocabulary จาก bottom-up (เริ่มจาก character แล้ว merge ขึ้น) Unigram เริ่มจาก vocabulary ใหญ่มาก แล้ว prune ออกทีละ token โดยดูว่าการเอา token ไหนออกทำให้ likelihood ของ corpus ลดลงน้อยที่สุด สุดท้ายได้ vocabulary ที่ compact กว่าและมี coverage ที่ดี
+
+| Feature | BPE | WordPiece | SentencePiece/Unigram |
+|---|---|---|---|
+| Direction | Bottom-up merge | Bottom-up merge | Top-down prune |
+| Selection criterion | Frequency | Likelihood gain | Likelihood loss |
+| Pre-tokenization | ต้องการ | ต้องการ | ไม่ต้องการ |
+| ใช้ใน | GPT series, Llama | BERT, DistilBERT | T5, mT5, XLNet |
+| Thai-friendliness | ปานกลาง | ปานกลาง | ดีกว่า |
+
+**ทำไม SentencePiece ถึงเหมาะกับ multilingual มากกว่า**
+
+ลองนึกภาพว่า tokenizer ที่ต้องการ pre-tokenization มองประโยคภาษาไทย "ฉันชอบกินข้าวผัด" มันจะทำอะไรก่อน? มันต้อง split ด้วยช่องว่าง แต่ไม่มีช่องว่างเลย ผลคือมันมองทั้งประโยคเป็น "คำเดียว" แล้วค่อยพยายาม tokenize จากนั้น
+
+SentencePiece ไม่มีขั้นตอนนี้ มันกิน "ฉันชอบกินข้าวผัด" เป็น raw byte stream แล้วใช้ algorithm ตัดเองโดยไม่ต้อง pre-assume อะไรเกี่ยวกับ word boundary นี่คือเหตุผลที่โมเดล multilingual รุ่นใหม่หลายตัวเลือก SentencePiece เป็นฐาน
+
+<!-- IMAGE: flow diagram เปรียบเทียบ BPE vs WordPiece vs SentencePiece/Unigram แบบ side-by-side -->
+
+---
+
+## ปัญหาภาษาไทย — ทำไมมันยากกว่าคนอื่น
+
+ถึงเวลาที่จะตอบคำถามที่เปิดบทนี้
+
+ภาษาอังกฤษมีคุณสมบัติที่ทำให้ tokenizer รักมาก:
+1. **Word boundary ชัดเจน** — ทุกคำคั่นด้วยช่องว่าง BPE รู้ทันทีว่า "hello" กับ "world" คือสองหน่วยแยกกัน
+2. **ตัวอักษร ASCII** — 26 ตัวพิมพ์เล็ก 26 ตัวพิมพ์ใหญ่ พร้อมเครื่องหมายจัดการได้ง่าย
+3. **Morphology สม่ำเสมอ** — prefix/suffix patterns อย่าง "un-", "-ing", "-tion" ซ้ำในคำนับพัน BPE เรียนรู้ได้ดีมาก
+
+ภาษาไทยทำตรงกันข้ามเกือบทุกข้อ:
+
+**ปัญหาที่ 1: ไม่มีช่องว่างระหว่างคำ**
+
+ประโยค "ฉันกินข้าวที่บ้าน" เขียนติดกันหมด BPE ที่ไม่ถูก design มาสำหรับภาษาไทยจะไม่รู้ว่า "ฉัน" "กิน" "ข้าว" "ที่" "บ้าน" คือห้าหน่วยความหมายแยกกัน มันอาจตัดเป็น "ฉัน", "กิน", "ข้าวที่", "บ้าน" หรือรูปแบบอื่นที่แปลก ๆ ทั้งหมดขึ้นอยู่กับว่าเจอ sequence นี้ในชุด training data บ่อยแค่ไหน
+
+**ปัญหาที่ 2: Unicode code points จำนวนมาก**
+
+ภาษาไทยมีตัวอักษรหลักประมาณ 44 พยัญชนะ 21 สระ และวรรณยุกต์ 4 ตัว บวกสัญลักษณ์อื่น ๆ แต่ในระดับ Unicode การเขียนภาษาไทยซับซ้อนกว่านั้น ตัวอักษรหลายตัวมี combining character (วรรณยุกต์ สระบน สระล่าง) ที่นับเป็น code point แยกต่างหาก
+
+"กี" ที่เราเห็นเป็นตัวอักษรสองตัว จริง ๆ แล้วอาจเป็น 2-3 code points ขึ้นอยู่กับการ encode เมื่อ BPE เจอสิ่งนี้ในช่วงแรก ๆ ของ training มันอาจ treat แต่ละ code point เป็น character แยกกัน
+
+**ปัญหาที่ 3: Data imbalance ใน training corpus**
+
+โมเดลภาษาใหญ่ ๆ train บน internet data ภาษาอังกฤษมี content บนอินเทอร์เน็ตมากกว่าภาษาไทยมหาศาล Common Crawl ซึ่งเป็น dataset หลักที่โมเดลหลายตัวใช้ มีภาษาอังกฤษประมาณ 40-50% แต่ภาษาไทยอยู่ที่ประมาณ 0.5% หรือน้อยกว่า
+
+ผลคือ BPE ที่ train จาก corpus นี้จะ merge คำภาษาอังกฤษได้ดีมาก เพราะเห็นซ้ำหลายครั้งพอที่จะ identify pattern แต่ภาษาไทยมีข้อมูลน้อยกว่า → merge น้อยกว่า → ต้องใช้ token มากกว่าในการแทนคำเดียวกัน
+
+**Token Fertility คืออะไร**
+
+นักวิจัยวัด "ความฟุ่มเฟือย" ของ tokenization ด้วยค่าที่เรียกว่า **token fertility** — จำนวน token เฉลี่ยต่อคำ ยิ่งสูงยิ่งแย่ ค่า ideal อยู่ที่ประมาณ 1.0-1.5 (หนึ่งคำ = หนึ่งถึงหนึ่งครึ่ง token)
+
+งานวิจัยหลายชิ้นวัดค่านี้สำหรับ GPT-style tokenizer พบว่า:
+- อังกฤษ: ~1.3 tokens/word
+- ฝรั่งเศส, สเปน: ~1.5-2.0
+- ภาษาอาหรับ, ฮินดี: ~2.5-3.5
+- ภาษาไทย: ~3.0-5.0 ขึ้นอยู่กับ tokenizer และ text
+
+"สวัสดี" คำเดียว ด้วย GPT-3.5 tokenizer อาจถูกแยกเป็น:
+- `ส` `ว` `ัส` `ดี` (4 tokens)
+- หรือ `สว` `ัสดี` (2 tokens ถ้าโชคดี)
+
+ไม่มีทางรู้แน่ ๆ โดยไม่ run tokenizer จริง
+
+> 💡 **Key insight:** ภาษาไทยไม่ได้แย่ในตัวเอง โครงสร้างภาษาไทยสวยงามและมีระบบ ปัญหาอยู่ที่ tokenizer ถูก optimize มาสำหรับภาษาอังกฤษโดยค่าเริ่มต้น ความเสียเปรียบนี้เป็นเรื่องของ engineering choice ไม่ใช่ความบกพร่องของภาษา
+
+<!-- IMAGE: infographic แสดง token fertility ของภาษาต่าง ๆ เป็น bar chart ภาษาไทยโดดเด่นว่าสูงกว่าอังกฤษ -->
+
+---
+
+## ลองคิดดู #1 — นับ Token ด้วย Tiktoken
+
+> 🧪 **ลองทำดู:** ทดลองนี้ใช้เวลาไม่เกิน 10 นาที และจะทำให้คุณเห็น tokenization จริง ๆ ด้วยตาตัวเอง
+
+OpenAI มีไลบรารี Python ชื่อ `tiktoken` ที่ใช้ tokenizer เดียวกันกับ GPT-4 ลองรัน code นี้:
+
+```python
+import tiktoken
+
+# โหลด tokenizer ของ GPT-4o
+enc = tiktoken.get_encoding("o200k_base")
+
+# ประโยคภาษาอังกฤษ
+en_text = "I want to learn about artificial intelligence and machine learning"
+en_tokens = enc.encode(en_text)
+
+# ประโยคภาษาไทยที่มีความหมายเดียวกัน
+th_text = "ฉันอยากเรียนรู้เรื่องปัญญาประดิษฐ์และการเรียนรู้ของเครื่องจักร"
+th_tokens = enc.encode(th_text)
+
+print(f"ภาษาอังกฤษ: {len(en_tokens)} tokens")
+print(f"ภาษาไทย: {len(th_tokens)} tokens")
+print(f"อัตราส่วน: {len(th_tokens)/len(en_tokens):.1f}x")
+
+# ดู token แต่ละตัว
+print("\nToken ภาษาไทย:")
+for token in th_tokens:
+    print(f"  {token} → '{enc.decode([token])}'")
+```
+
+ผลที่คุณน่าจะเห็น (ตัวเลขอาจต่างเล็กน้อย):
+```
+ภาษาอังกฤษ: 12 tokens
+ภาษาไทย: 31 tokens
+อัตราส่วน: 2.6x
+
+Token ภาษาไทย:
+  9468 → 'ฉัน'
+  85042 → 'อยาก'
+  ...
+```
+
+**สิ่งที่น่าสังเกต:**
+
+1. ลองเปลี่ยน text เป็นคำภาษาไทยที่ซับซ้อนขึ้น เช่น ศัพท์เทคนิค ชื่อเฉพาะ หรือคำสแลง แล้วดูว่า token count เปลี่ยนอย่างไร
+2. คำภาษาไทยที่พบบ่อยอย่าง "ฉัน" "ที่" "และ" มักได้เป็น token เดียว แต่คำยาวหรือหายากถูกแตกออก
+3. ลองพิมพ์ตัวเลขภาษาไทย เช่น "หนึ่งพัน" vs "1000" แล้วดูผล
+
+**ลองคำถามนี้:** ถ้าคุณมี budget 1 ล้าน token ต่อเดือน การเขียน prompt ภาษาไทยเทียบกับอังกฤษส่งผลต่อจำนวนคำถามที่คุณถามได้แค่ไหน? คำนวณดู
+
+<!-- IMAGE: screenshot ตัวอย่าง tiktoken output แสดง token boundary บนข้อความภาษาไทย พร้อม highlight สีต่างกันแต่ละ token -->
+
+---
+
+## ผลกระทบที่เห็นได้จริงเมื่อ Tokenization แย่
+
+ตอนนี้ที่เข้าใจกลไกแล้ว มาดูว่ามันกระทบชีวิตจริงอย่างไร
+
+**ผลกระทบที่ 1: ค่าใช้จ่ายสูงกว่า**
+
+API ของ OpenAI, Anthropic, Google คิดราคาตาม token ไม่ใช่ตามตัวอักษร ถ้าภาษาไทยใช้ token 3 เท่า แปลว่าคุณจ่ายเงิน 3 เท่าสำหรับ workload เดียวกัน
+
+สำหรับทีมที่ process document ภาษาไทยจำนวนมาก เช่น ทำ RAG system หรือ batch summarization ตัวเลขนี้สำคัญมาก บางทีการแปล document เป็นภาษาอังกฤษก่อน process แล้วแปลกลับ อาจถูกกว่าการ process ตรง ๆ (แม้จะดูแปลก)
+
+**ผลกระทบที่ 2: Context Window สั้นลงในทางปฏิบัติ**
+
+โมเดลที่มี context window 128,000 tokens ฟังดูใหญ่มาก แต่ถ้าภาษาไทยใช้ token 3 เท่า context window จริง ๆ สำหรับ content ภาษาไทยคือ ~43,000 "คำ-equivalent" ถ้าเทียบกับภาษาอังกฤษ
+
+เอกสาร A4 หนึ่งหน้าภาษาไทยประมาณ 500-700 คำ อาจใช้ 2,000-3,000+ token ถ้าคุณกำลังทำ document analysis หรือ multi-turn conversation ยาว นับเร็วกว่าที่คิด
+
+**ผลกระทบที่ 3: Quality ลดลงสำหรับ tasks บางอย่าง**
+
+นี่คือผลกระทบที่ subtle ที่สุดและน่าสนใจที่สุด
+
+โมเดล language model ทำงานโดยการ predict token ถัดไป ถ้าคำหนึ่งถูกแยกเป็น 4 tokens โมเดลต้อง "สร้าง" ทีละ token ต่อกัน หมายความว่ามันต้องคงความสัมพันธ์ระหว่าง token เหล่านั้นให้ถูกต้องตลอด ซึ่งยากกว่าการ generate คำ-token สัมพันธ์กับ token เดียว
+
+ยิ่งไปกว่านั้น attention mechanism ของ transformer มี budget จำกัด ต้องแบ่ง attention ให้กับทุก token ใน context ถ้า sequence ยาวขึ้น (เพราะ token fertility สูง) แต่ละ token ได้รับ attention น้อยลง ผลคือ long-range dependency อ่อนแอลง โมเดลอาจ "ลืม" สิ่งที่พูดไปต้น ๆ เร็วกว่าปกติเมื่อทำงานกับข้อความภาษาไทยยาว ๆ
+
+**ผลกระทบที่ 4: Spelling และ Character-Level Tasks พังเลย**
+
+ลองถามภาษาไทย: "คำว่า 'ประชาธิปไตย' มีกี่ตัวอักษร?"
+
+โมเดลส่วนใหญ่จะตอบผิด ทำไม? เพราะโมเดลมองไม่เห็นตัวอักษร มันเห็น token และ "ประชาธิปไตย" อาจเป็น 3-4 tokens ที่แต่ละอัน represent sequence ของ character โมเดลต้อง "คิดย้อน" จาก token กลับไปหา character ซึ่งมันไม่ได้ถูก train มาให้ทำแบบนั้นโดยตรง
+
+เปรียบเทียบกับ "democracy" ภาษาอังกฤษ โมเดลก็ยังตอบผิดบ่อย แต่น้อยกว่ามาก เพราะ token granularity ดีกว่า
+
+> 💡 **Key insight:** เวลาโมเดลทำ spelling หรือ counting ผิด ไม่ใช่เพราะ AI โง่ แต่เพราะ task นั้นต้องการ character-level understanding ซึ่ง tokenization เป็น bottleneck
+
+<!-- IMAGE: diagram แสดงผลกระทบ 4 ด้านของ tokenization แย่ ด้วย icon และ brief description แต่ละข้อ -->
+
+---
+
+## Vocabulary Size — เล็กกว่าดี หรือใหญ่กว่าดี?
+
+ทุก tokenizer มี hyperparameter สำคัญหนึ่งตัว: **vocabulary size** — จำนวน unique token ที่มีในระบบ ตัวเลขนี้ส่งผลต่อทุกอย่าง
+
+**Vocabulary เล็ก (เช่น 32,000 tokens — GPT-2 ยุคแรก):**
+
+ข้อดี:
+- Embedding matrix เล็ก → โมเดลขนาดเล็กกว่า ประหยัด memory
+- แต่ละ token มีตัวอย่างใน training data มากกว่า → เรียนรู้ได้ดีกว่า
+- Fast lookup, ง่ายต่อการ implement
+
+ข้อเสีย:
+- คำหายาก, ชื่อเฉพาะ, หรือภาษาที่ไม่ใช่ภาษาหลักถูกแตกเป็น sub-token จำนวนมาก
+- Token fertility สูงสำหรับภาษา low-resource
+
+**Vocabulary ใหญ่ (เช่น 128,000+ tokens — Llama 3, GPT-4o):**
+
+ข้อดี:
+- คำภาษาไทย, จีน, อาหรับ มีโอกาสได้เป็น single token มากขึ้น
+- Token fertility ต่ำลงสำหรับ multilingual use cases
+- Generation quality ดีขึ้นสำหรับ non-English languages
+
+ข้อเสีย:
+- Embedding layer ใหญ่ขึ้น (128K vocab × embedding dimension → อาจเป็น billions of parameters แค่ layer นี้)
+- Token ที่ rare มาก อาจมีตัวอย่างใน training น้อย → representation แย่
+- ใช้ GPU memory มากขึ้น
+
+**The Sweet Spot**
+
+โมเดลรุ่นใหม่ส่วนใหญ่ land ที่ประมาณ 32K-128K tokens ตัวเลขที่นิยมในปัจจุบัน:
+- GPT-4o: 200,256 tokens (o200k_base encoding)
+- Llama 3: 128,256 tokens
+- Claude (Anthropic): ไม่เปิดเผย แต่สนับสนุน multilingual ได้ดีขึ้นเรื่อย ๆ
+- Gemini: 256,000 token vocabulary
+
+**คำนวณ Embedding Matrix Size ดู**
+
+นี่เป็นตัวเลขที่คนส่วนใหญ่ไม่ค่อยนึกถึง แต่ vocabulary size กระทบ model size โดยตรง
+
+Embedding layer คือ table ขนาด `[vocabulary_size × embedding_dimension]` ถ้า:
+- Vocabulary = 128,000 tokens
+- Embedding dimension = 4,096 (ขนาดทั่วไปของโมเดลขนาดกลาง)
+- แต่ละค่าเป็น float16 (2 bytes)
+
+ขนาด embedding table = 128,000 × 4,096 × 2 bytes = **~1 GB** แค่ layer นี้ layer เดียว
+
+สำหรับ GPT-4o ที่มี 200,256 tokens ถ้า embedding dim สูงกว่านี้ embedding layer อาจหนักหลาย GB สิ่งนี้ถูก trade-off มาเพื่อ multilingual quality ที่ดีกว่า ไม่ใช่ decision ที่ทำฟรี
+
+<!-- IMAGE: bar chart เปรียบเทียบ vocabulary size ของโมเดลต่าง ๆ พร้อม note ว่าส่งผลต่อ Thai token fertility อย่างไร -->
+
+---
+
+## Multilingual Tokenizers — ภาษาไทยดีขึ้นแค่ไหน?
+
+ตั้งแต่ GPT-3 ในปี 2020 จนถึงโมเดลในปี 2024-2025 ภาษาไทยได้รับการปรับปรุงอย่างเป็นรูปธรรม
+
+**GPT-3 และ GPT-3.5** ใช้ tokenizer ที่มีประมาณ 50,000 tokens (cl100k_base ของ GPT-3.5 มี 100,277 tokens) ภาษาไทยยังใช้ token สูงมาก เพราะ training data ภาษาไทยยังน้อยและ vocabulary coverage ยังจำกัด
+
+**GPT-4o** เปลี่ยนมาใช้ o200k_base ที่มี 200,256 tokens และมีการเพิ่ม multilingual coverage อย่างตั้งใจ ผลคือ token fertility ภาษาไทยลดลงจากยุค GPT-3 อย่างเห็นได้ชัด
+
+**Llama 3** จาก Meta ตัดสินใจเพิ่ม vocabulary จาก Llama 2 ที่ 32,000 tokens มาเป็น 128,256 tokens โดยมีเป้าหมายชัดเจนว่าต้องการรองรับภาษาที่หลากหลายขึ้น ภาษาไทย, ฮินดี, อาหรับ ได้รับประโยชน์จากการเพิ่มนี้
+
+**โมเดลภาษาไทยโดยเฉพาะ** เช่นที่มีการพัฒนาในไทย บางตัวใช้ tokenizer ที่ถูก fine-tune หรือ train ใหม่สำหรับภาษาไทยโดยเฉพาะ ทำให้ token fertility ต่ำกว่าโมเดล general-purpose มาก ข้อเสียคือ vocabulary ภาษาอื่นอาจได้รับผลกระทบ และ multilingual capability ลดลง
+
+**ทดสอบด้วยตัวเองก่อนตัดสินใจ**
+
+แทนที่จะเชื่อ marketing claim ของใคร ให้ทำ benchmark เล็ก ๆ ของตัวเอง:
+
+```python
+import tiktoken
+
+# สำหรับ OpenAI models ใช้ tiktoken
+# ลองเปรียบเทียบ encoding ต่างกัน
+
+enc_old = tiktoken.get_encoding("cl100k_base")  # GPT-3.5/4 เดิม
+enc_new = tiktoken.get_encoding("o200k_base")   # GPT-4o
+
+thai_sample = """
+สวัสดีครับ วันนี้ผมอยากพูดถึงเรื่องปัญญาประดิษฐ์และการนำไปใช้งานในชีวิตประจำวัน
+เทคโนโลยีนี้มีผลกระทบต่อการทำงาน การศึกษา และสังคมโดยรวมอย่างมีนัยสำคัญ
+"""
+
+tokens_old = enc_old.encode(thai_sample)
+tokens_new = enc_new.encode(thai_sample)
+
+print(f"cl100k_base (GPT-3.5/4): {len(tokens_old)} tokens")
+print(f"o200k_base (GPT-4o): {len(tokens_new)} tokens")
+print(f"ประหยัดได้: {len(tokens_old) - len(tokens_new)} tokens ({(1 - len(tokens_new)/len(tokens_old))*100:.1f}%)")
+```
+
+ผลลัพธ์จะแสดงให้เห็นว่า GPT-4o ประหยัด token ภาษาไทยได้จริงแค่ไหนเมื่อเทียบกับรุ่นก่อน ตัวเลขนี้แปลงเป็นเงินได้โดยตรง
+
+> 💡 **Key insight:** การเลือกโมเดลสำหรับ application ภาษาไทยไม่ใช่แค่เรื่อง benchmark score แต่ต้องดู tokenizer ด้วย โมเดลที่ tokenize ภาษาไทยได้ดีกว่าจะถูกกว่าและ output quality ดีกว่าสำหรับ task ที่เกี่ยวกับภาษาไทยโดยตรง
+
+<!-- IMAGE: timeline แสดงวิวัฒนาการของ vocabulary size และ Thai token fertility ตั้งแต่ GPT-2 ถึงปัจจุบัน -->
+
+---
+
+## Byte-Level Tokenization — เริ่มจากล่างสุด
+
+มีแนวทางที่แตกต่างออกไปอีกวิธีหนึ่ง แทนที่จะ token เป็น subword ทำไมไม่ token เป็น byte แทน?
+
+ทุกอักษรในทุกภาษาถูก encode ด้วย byte ในระบบ UTF-8 ตัวอักษร ASCII (พวก a-z, 0-9) ใช้ 1 byte ตัวอักษรยุโรป (แบบ é, ü) ใช้ 2 bytes ตัวอักษรภาษาไทยและจีนส่วนใหญ่ใช้ 3 bytes
+
+**Byte-level BPE** เริ่ม tokenization จาก byte แทนที่จะเป็น character ผลคือ vocabulary base มีแค่ 256 tokens (byte values 0-255) แล้วจึง merge ขึ้นไปเหมือน BPE ปกติ
+
+ข้อดีที่ชัดเจน:
+- ไม่มี out-of-vocabulary ไม่ว่าจะเป็นภาษา emoji หรือ character พิเศษอะไรก็ตามที่ encode ได้ด้วย UTF-8 จะถูกจัดการได้เสมอ
+- Coverage สมบูรณ์ 100%
+- โมเดลสามารถ generate ภาษาที่ไม่เคยเห็นใน training ได้ (แม้อาจไม่มีความหมาย)
+
+ข้อเสีย:
+- Sequence ยาวมาก — ถ้าภาษาไทยใช้ 3 bytes/character และ character-per-token ratio ไม่ดี ก็ยาวกว่า subword อยู่ดี
+- Attention mechanism ต้องทำงานกับ sequence ยาวกว่า ซึ่งมี complexity O(n²)
+
+**Byte Fallback** เป็น compromise — tokenizer หลักยังเป็น subword แต่ถ้าเจอ character ที่ไม่อยู่ใน vocabulary จะ fallback ไปใช้ byte representation แทนที่จะ crash SentencePiece รองรับ mode นี้
+
+GPT-2 ใช้ byte-level BPE ตั้งแต่ต้น (character vocabulary = 256 bytes) และ GPT-3 เป็นต้นไปยังคง principle นี้ ทำให้ OpenAI models ไม่มีปัญหา out-of-vocabulary เลย
+
+**ทำไมเรื่อง byte สำคัญสำหรับภาษาไทย**
+
+ตัวอักษรภาษาไทยใน UTF-8 ใช้ 3 bytes ต่อ character ตัวอย่างเช่น "ก" = `0xE0 0xB8 0x81` ถ้า tokenizer ใช้ byte-level approach ตัว "ก" เดียวจะเป็น 3 token ทันที นั่นหมายความว่า byte-level tokenization จริง ๆ แล้วอาจทำให้ภาษาไทยใช้ token **มากกว่า** subword approach ที่ดีสำหรับ character ที่มี subword อยู่ใน vocabulary แล้ว
+
+นี่คือเหตุผลที่ byte-level ไม่ใช่ silver bullet สำหรับภาษาไทย มันแก้ปัญหา out-of-vocabulary แต่ยังคงมี token fertility สูงอยู่ถ้าโมเดลไม่ learn ที่จะ merge byte patterns ภาษาไทยอย่างมีประสิทธิภาพ
+
+<!-- IMAGE: diagram แสดง byte-level tokenization ของคำภาษาไทย "สวัสดี" เทียบกับ subword tokenization -->
+
+---
+
+## ลองคิดดู #2 — Tokenizer ในฐานะ Filter ของ Intelligence
+
+> 🧪 **ลองคิดดู:** นี่ไม่ใช่ code exercise แต่เป็น thought experiment ที่จะเปลี่ยนวิธีคุณมองโมเดล AI
+
+สมมติมีเด็กอัจฉริยะที่ฉลาดมาก แต่ทุกครั้งที่คุณพูดกับเขา มีคนกลางที่ถอดรหัสคำพูดของคุณก่อนจะส่งไป คนกลางคนนี้ไม่ได้ translate แค่ "แปลง" จาก format หนึ่งไปอีก format หนึ่ง และบางครั้งเขาทำแบบนี้:
+
+- คำว่า "สวัสดี" → เขาส่งไปเป็น "ส + วัส + ดี" (สามชิ้น)
+- คำว่า "hello" → เขาส่งไปเป็น "hello" (หนึ่งชิ้น)
+
+เด็กอัจฉริยะคนนั้น (โมเดล AI) ต้อง figure out ว่า "ส + วัส + ดี" รวมกันหมายถึงการทักทาย ขณะที่ "hello" มาถึงเป็น unit เดียวพร้อมความหมายในตัว
+
+ลองคิดต่อ:
+1. ถ้าคุณ train เด็กคนนี้มาหลายปีด้วยข้อความภาษาอังกฤษ 99% ภาษาไทย 1% เขาจะเก่งภาษาไหนมากกว่า?
+2. ถ้าคนกลางส่งข้อมูลมาเป็นชิ้นเล็กกว่า intelligence ของเด็กจะถูก utilize ได้เต็มที่ไหม?
+3. ถ้าคุณอยากให้เด็กคนนี้เก่งภาษาไทยขึ้น สิ่งที่ต้องแก้คืออะไรก่อน — ตัวเด็ก หรือคนกลาง?
+
+คำตอบสำหรับ AI ในชีวิตจริงคือ: **ต้องแก้ทั้งสองอย่างพร้อมกัน** — ทั้ง tokenizer (คนกลาง) และ training data (สิ่งที่เด็กเรียน) และนี่คือสาเหตุที่ทำ multilingual AI ให้ดีนั้นยากมาก
+
+> 💡 **Key insight:** Tokenizer ไม่ใช่แค่ preprocessing step มันเป็น interface ระหว่างภาษาธรรมชาติกับ computation ถ้า interface แย่ ไม่ว่าโมเดลจะฉลาดแค่ไหนก็ถูก bottleneck ลงมา
+
+<!-- IMAGE: analogy diagram แสดง tokenizer ในฐานะ "translator/filter" ระหว่าง human language และ model intelligence -->
+
+---
+
+## อนาคตของ Tokenization — ปัญหาที่ยังไม่มีคำตอบ
+
+ทั้งที่ tokenization ยังมีปัญหามากมาย วงการ AI ก็ยังใช้มันเป็นมาตรฐาน ทำไม? เพราะมันใช้งานได้ดีพอ และ alternatives ยังไม่ mature พอที่จะแทนที่
+
+แต่นักวิจัยกำลังสำรวจหลายทิศทาง:
+
+**Tokenizer-Free Models**
+
+งานวิจัยอย่าง MegaByte (Meta, 2023) เสนอ model architecture ที่ทำงานกับ byte โดยตรง ไม่ผ่าน tokenization เลย ใช้ hierarchical model ที่มี local model (ทำงานกับ byte) และ global model (ทำงานกับ chunk ใหญ่กว่า) ผลเบื้องต้นน่าสนใจ แต่ยังมี computational cost สูงกว่าโมเดลปัจจุบัน
+
+**Patch-Level Tokenization**
+
+แนวคิดที่แทนที่จะตัดตาม linguistic unit ให้ตัดตาม fixed-size chunk ของ byte (เรียกว่า "patch") แล้วใช้ encoder แปลง patch เป็น representation ก่อนส่งเข้า transformer หลัก งานวิจัย MEGABYTE และ approaches คล้ายกันกำลัง explore ทิศทางนี้
+
+**Learned Tokenization**
+
+แทนที่ tokenizer จะเป็น static algorithm (BPE train ครั้งเดียว ใช้ไปเรื่อย ๆ) บางงานวิจัยเสนอ tokenizer ที่ train พร้อมกับโมเดล end-to-end ให้ learning algorithm figure out เองว่าควร segment อย่างไรจึงจะ optimal สำหรับ task ที่ต้องการ
+
+**Character-Aware Embeddings**
+
+วิธีนี้ยังคง subword tokenizer ไว้ แต่เพิ่ม character-level information เข้าไปใน embedding ทำให้โมเดลรู้จัก character ภายใน token ด้วย ช่วยแก้ปัญหา spelling และ character-level tasks โดยไม่ต้องเปลี่ยน architecture ทั้งหมด
+
+**ทำไมมันยังเป็นปัญหาเปิด?**
+
+เพราะมีสามเป้าหมายที่ conflict กัน:
+1. **Coverage** — รองรับทุกภาษาได้ดี
+2. **Efficiency** — ใช้ token น้อยเพื่อลดต้นทุนและยืด context
+3. **Quality** — แต่ละ token มีความหมายชัดเจนสำหรับโมเดล
+
+เพิ่มอย่างหนึ่งมักส่งผลเสียต่ออีกอย่าง vocabulary ใหญ่ขึ้นช่วย coverage แต่ทำ model ใหญ่ขึ้น byte-level ช่วย coverage สมบูรณ์แต่ sequence ยาวขึ้น จนกว่าจะมีสถาปัตยกรรมใหม่ที่แก้ทั้งสามอย่างพร้อมกันได้ tokenization จะยังเป็น trade-off อยู่
+
+**มีเรื่องน่าสนใจในวงการวิจัยล่าสุด**
+
+ทีมวิจัยบางกลุ่มกำลังสำรวจ **modality-agnostic tokenization** — แทนที่จะมี tokenizer แยกสำหรับ text, image, audio, video ให้มี tokenizer เดียวที่รับ raw signal ทุกรูปแบบ แล้วให้โมเดลเรียนรู้เองว่า unit ของแต่ละ modality คืออะไร concept นี้น่าสนใจมากแต่ยังเป็นงานวิจัยในระยะต้น
+
+อีกทิศทางที่น่าติดตามคือ **dynamic tokenization** ที่ปรับตัวตาม task ถ้า task คือการ translate จะใช้ tokenization แบบหนึ่ง ถ้า task คือ code generation จะ tokenize code ให้เหมาะกับ syntax ของภาษา programming นั้น แทนที่จะใช้ tokenizer เดียวตลอด
+
+> 💡 **Key insight:** ว่าทิศทางไหนจะชนะยังไม่มีใครรู้ แต่ทุกทิศทางมีจุดร่วมเดียวกัน คือต้องการให้ AI "เห็น" ภาษาในระดับที่ละเอียดขึ้นและใกล้เคียงกับวิธีที่มนุษย์ประมวลผลภาษามากขึ้น
+
+<!-- IMAGE: roadmap แสดงวิวัฒนาการ tokenization ตั้งแต่ character-level → word-level → subword → byte-level → tokenizer-free และ direction ที่นักวิจัยกำลังมองอยู่ -->
+
+---
+
+## สิ่งที่ควรรู้สำหรับ Thai AI Practitioners
+
+ถ้าคุณทำงานกับ AI ในบริบทภาษาไทย บทเรียนจาก tokenization มีผลต่อการตัดสินใจจริง:
+
+**1. เลือก model ที่ tokenize ภาษาไทยได้ดี**
+
+ก่อน commit กับ API ใดก็ตาม ลอง tokenize sample text ของคุณดูก่อน ไม่ต้องเชื่อ benchmark คนอื่น นับ token จาก use case ของตัวเองแล้วเทียบราคา บางครั้งโมเดลที่ถูกกว่าต่อ token แต่ต้องใช้ token มากกว่า 3 เท่า จบลงที่แพงกว่า
+
+**2. Prompt ภาษาไทยสั้นได้ ดีกว่า**
+
+ถ้า task เดียวกันเขียน prompt ภาษาไทยได้กระชับกว่า ทำ เพราะทุก token ที่ประหยัดได้คือ budget ที่เหลือสำหรับ output หรือ context
+
+**3. เข้าใจว่า task ไหน tokenization จะเป็น bottleneck**
+
+- Character counting, anagram, spelling check ในภาษาไทย → expect คำตอบผิดบ่อย เพราะ tokenization ซ่อน character-level information
+- Summary, translation, Q&A → tokenization มีผลน้อยกว่า โมเดลทำงาน semantic level ได้ดี
+- Code ที่ comment เป็นภาษาไทย → อาจ tokenize แย่กว่า code ล้วน ๆ
+
+**4. ถ้าทำ RAG หรือ processing pipeline**
+
+คำนวณ token count ของ document ภาษาไทยก่อน estimate cost และ chunking strategy ไม่ใช่เอาตัวเลข English benchmark มาใช้โดยตรง เช่น ถ้า paper บอก "รองรับ document 100 หน้า" นั้นอ้างอิงกับ English text ถ้า document คุณเป็นภาษาไทย ให้คาดว่าจะได้ประมาณ 33-50 หน้าต่อ context window เดียวกัน
+
+**5. เข้าใจ error message ที่เกี่ยวกับ token**
+
+เวลา API ส่ง error ว่า "maximum context length exceeded" หรือ "token limit reached" อย่าแค่ตัดข้อความออก ให้ลอง tokenize ก่อนเพื่อดูว่าส่วนไหนกิน token เยอะผิดปกติ บางครั้งเป็นเพราะ table format หรือ JSON ที่ verbose เกินไป ซึ่งสามารถ optimize ได้โดยไม่ต้องตัด content จริง
+
+**6. ทดสอบ multilingual pipeline อย่างเป็นระบบ**
+
+ถ้า application ของคุณรับ input ทั้งภาษาไทยและอังกฤษ (เช่น customer support ที่ลูกค้าอาจเขียนภาษาไหนก็ได้) ให้ทดสอบ cost และ quality แยกตาม language ของ input อย่า assume ว่าถ้าทำงานได้ดีกับ English แล้วจะ scale เหมือนกันกับ Thai
+
+<!-- IMAGE: checklist-style graphic "Thai AI Practitioner's Tokenization Guide" ทั้ง 6 ข้อ -->
+
+---
+
+## Recap — ทุกอย่างที่ควรจำ
+
+**Tokenization คืออะไร:** การแปลงข้อความเป็น token (ชิ้นส่วนย่อย) ก่อนส่งให้โมเดล AI เพราะโมเดลทำงานกับตัวเลข ไม่ใช่ตัวอักษร ขั้นตอนนี้เกิดขึ้นก่อนที่โมเดลจะ "คิด" อะไรทั้งนั้น และ quality ของมันส่งผลต่อทุกอย่างที่ตามมา
+
+**BPE ทำงานอย่างไร:** เริ่มจาก character → นับ pair ที่พบบ่อย → merge → ทำซ้ำ จนได้ vocabulary ที่มีทั้งตัวอักษรและ subword ที่พบบ่อย เป็น greedy algorithm ที่ optimize ทีละ step ไม่มองภาพรวม
+
+**WordPiece vs SentencePiece:** WordPiece เลือก merge ตาม likelihood gain ใช้ใน BERT family SentencePiece ไม่ต้องการ word boundary ล่วงหน้า เหมาะกับภาษา non-segmented อย่างภาษาไทยมากกว่า
+
+**ทำไมภาษาไทยใช้ token เยอะ:** สามสาเหตุรวมกัน — ไม่มีช่องว่างระหว่างคำทำให้ boundary ไม่ชัด, Unicode code point หลายตัวต่อ character เดียวทำให้ BPE เห็นชิ้นส่วนมากกว่าจริง, และ training data น้อยกว่าภาษาอังกฤษทำให้ได้ merge น้อยกว่า
+
+**Token fertility คืออะไร:** จำนวน token เฉลี่ยต่อคำ ยิ่งสูงยิ่งแย่ ภาษาอังกฤษอยู่ที่ ~1.3 ภาษาไทยอาจสูงถึง 3-5 ขึ้นกับ tokenizer
+
+**ผลกระทบจริง 4 ด้าน:** ค่าใช้จ่ายสูงกว่า 2-4 เท่า / context window สั้นลงในทางปฏิบัติ / quality ต่ำกว่าสำหรับ long-range dependency / spelling และ character-level tasks ผิดบ่อย
+
+**Vocabulary size trade-off:** vocab เล็ก = โมเดล lightweight แต่ coverage แย่สำหรับภาษา minority vocab ใหญ่ = coverage ดีแต่ embedding layer หนักหลาย GB โมเดลรุ่นใหม่เลือก 100K-256K เป็นการ balance
+
+**Byte-level approach:** เริ่มจาก byte 256 ค่าแทน character ไม่มี OOV แต่ sequence ยาวกว่า ไม่ใช่ silver bullet สำหรับภาษาไทย
+
+**อนาคต:** tokenizer-free, byte-level, patch-level และ learned tokenization กำลัง explore อยู่ แต่ยังไม่มีใครชนะ ปัญหาอยู่ที่การ balance coverage, efficiency, quality พร้อมกัน รวมถึง dynamic tokenization และ modality-agnostic approaches ที่อาจเปลี่ยน landscape ในอีกไม่กี่ปีข้างหน้า
+
+**สิ่งสำคัญสำหรับ Thai AI Practitioners:** ทดสอบ token count จาก use case จริงก่อนเลือก model หรือออกแบบ pipeline เลือก model ที่มี vocabulary ครอบคลุมภาษาไทยดี อย่าแปลงผลลัพธ์ English benchmark ตรง ๆ มาใช้กับ Thai workload และเข้าใจว่า task ไหนที่ tokenization เป็น fundamental bottleneck (spelling, counting, character tasks) เพื่อ set expectation ที่ถูกต้องกับ stakeholder
+
+---
+
+## Tokenization Quirks ที่ทำให้คนงงมาที่สุด
+
+ก่อนจบบท มีปรากฏการณ์แปลก ๆ จาก tokenization ที่คนพบบ่อยแต่ไม่รู้สาเหตุ รวบรวมไว้ตรงนี้เลย:
+
+ความเข้าใจ tokenization อย่างลึกซึ้งทำให้คุณ debug AI behavior ได้เร็วขึ้น ออกแบบ system ได้ดีกว่า และตั้ง expectation กับทีมได้ถูกต้องกว่า นี่คือความแตกต่างระหว่างคนที่ "ใช้ AI" กับคนที่ "เข้าใจ AI"
+
+**ทำไม "1+1=2" กับ "1 + 1 = 2" ได้ผลต่างกัน?**
+
+เว้นวรรคหรือไม่เว้น ตัวเลขและ operator อาจถูก tokenize ต่างกัน "1+1" อาจเป็น token เดียวในบาง tokenizer แต่ "1 + 1" เป็นสาม token แยกกัน ซึ่ง affect วิธีที่โมเดลประมวลผล arithmetic บางครั้งการเว้นวรรคช่วยให้โมเดลคิดเลขได้ถูกต้องขึ้น
+
+**ทำไม "ChatGPT" กับ "chatgpt" อาจได้ token ต่างกัน?**
+
+Capitalization สำคัญ ในหลาย tokenizer "ChatGPT" และ "chatgpt" เป็นคนละ token บางโมเดลจะ handle ได้ดีกว่าผ่าน training แต่บางโมเดลอาจ confuse ระหว่าง casing
+
+**ทำไม prompt ที่เติม space นำหน้าบางครั้งได้ผลต่างกัน?**
+
+" hello" (มี space นำหน้า) กับ "hello" อาจเป็น token ต่างกัน เพราะ BPE ต้องรู้ว่าคำนี้อยู่ต้นประโยคหรือกลางประโยคเพื่อ tokenize ให้ถูกต้อง นี่คือเหตุผลที่ prompt engineering บางเทคนิคแนะนำให้ระวังเรื่อง leading/trailing whitespace
+
+**ทำไมภาษาไทยบน ChatGPT บางครั้งตอบภาษาอังกฤษปนมา?**
+
+หนึ่งในสาเหตุ (ไม่ใช่สาเหตุเดียว) คือ token บางตัวใน vocabulary ถูก associate กับ English context แม้จะ appear ใน Thai text บางคำไทยที่ tokenize คล้ายกับ pattern อังกฤษอาจ "pull" โมเดลไปสู่ English response distribution เล็กน้อย ปรากฏการณ์นี้ลดลงมากใน GPT-4o แต่ยังไม่หายไปทั้งหมด
+
+> 💡 **Key insight:** Tokenization bug หลายอย่างไม่ใช่ bug ของโมเดล แต่เป็น artifact ของ tokenizer เวลา debug output แปลก ๆ ลอง tokenize input ดูก่อนเสมอ บางครั้งปัญหาอยู่ที่ input ไม่ได้ถูก tokenize อย่างที่คุณคิด
+
+<!-- IMAGE: "Tokenization Quirks" card grid แสดง 4 quirks พร้อม icon ประกอบ น่าแชร์ -->
+
+---
+
+## บทถัดไป — เมื่อโมเดลไม่ได้อยู่คนเดียว
+
+ตอนนี้คุณเข้าใจแล้วว่าโมเดล AI "มองเห็น" ภาษาอย่างไรในระดับล่างสุด — จาก character ไปสู่ token ไปสู่ embedding vector ก่อนที่ attention mechanism จะเริ่มทำงาน แต่มีอีกหนึ่งความลับที่โมเดลขนาดใหญ่ปัจจุบันซ่อนไว้
+
+GPT-4, Claude, Gemini ไม่ได้เป็น "โมเดลเดียว" ที่ทำงานกับทุก token ด้วย capacity เต็มตลอดเวลา พวกมันเป็น **ระบบที่มีโมเดลหลายตัวทำงานร่วมกัน** โดยแต่ละ token ถูก route ไปหา "expert" ที่เหมาะสมสำหรับ token นั้น สถาปัตยกรรมนี้มีชื่อว่า Mixture of Experts และมันอธิบายว่าทำไมโมเดล 70 billion parameters ถึงรันได้เร็วกว่าที่ตัวเลขบอกไว้ และทำไม scale ของโมเดลถึงสำคัญน้อยกว่าที่คุณคิด
+
+[อ่านต่อ: Mixture of Experts — สถาปัตยกรรมที่ทำให้ GPT-4 ไม่ช้าอย่างที่ควรจะเป็น →](/advanced/mixture-of-experts)
+
+<!-- END OF CHAPTER -->

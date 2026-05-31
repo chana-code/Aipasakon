@@ -1,0 +1,609 @@
+---
+slug: llm-apis
+level: building-with-ai
+title: "LLM API คืออะไร — จาก Chat หน้าเว็บสู่การเรียกใช้ด้วยโค้ด"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจวิธีเรียกใช้ LLM ผ่าน API ตั้งแต่ API key, endpoint, request/response, token pricing จนถึงการเขียน Python เรียก OpenAI และ Anthropic API ได้จริง"
+---
+คุณพิมพ์ข้อความในช่อง ChatGPT แล้วกด Enter ทุกวัน ได้รับคำตอบกลับมาทันที รู้สึกเหมือนมีผู้ช่วยฉลาด ๆ อยู่ปลายอีกฝั่ง แต่เคยสงสัยไหมว่า ถ้าอยากให้ระบบของคุณทำแบบเดียวกันโดยอัตโนมัติ — สรุปอีเมล 500 ฉบับ, แปลเอกสาร 1,000 หน้า, หรือตอบคำถามลูกค้าทันทีที่ส่งมา — ต้องทำยังไง? คำตอบคือ **API**
+
+<!-- IMAGE: ภาพเปรียบเทียบ: ซ้าย = คนนั่งพิมพ์ในหน้าเว็บ ChatGPT ทีละข้อความ ขวา = โค้ดวนลูปส่ง request อัตโนมัติ 1,000 รายการ -->
+
+---
+
+## ทำไมหน้าเว็บถึงไม่พอ
+
+ถ้าคุณเป็นนักการตลาดที่ต้องสรุปรีวิวสินค้า 300 ชิ้นเพื่อหา insight ก่อนส่งรายงานพรุ่งนี้ คุณจะทำยังไง?
+
+วิธีแรกที่นึกถึงคือเปิด ChatGPT แล้ว copy รีวิวแต่ละชิ้นไปวาง แล้วพิมพ์ว่า "สรุปให้หน่อย" แล้วก็ copy คำตอบมาใส่ Excel แล้วก็ทำซ้ำ... 300 ครั้ง
+
+ลองคิดดูว่าจะใช้เวลาเท่าไหร่ ถ้าแต่ละรีวิวใช้เวลา 2 นาที คุณจะนั่งทำอยู่ 10 ชั่วโมง ไม่นับเวลาที่นิ้วล้าและสมองเริ่มล่า
+
+ปัญหาของการใช้หน้าเว็บมีหลายข้อ:
+
+**ทำซ้ำได้ยาก** — ทุก request ต้องมีคนนั่งพิมพ์ ระบบไม่รู้จัก "ทำแบบเดิมกับข้อมูลใหม่"
+
+**ปรับ parameter ไม่ได้** — หน้าเว็บไม่ให้คุณบอกว่าอยากได้คำตอบสั้นแค่ไหน ต้องการความ creative มากน้อยแค่ไหน หรืออยากให้ตอบเป็นรูปแบบอะไร
+
+**ไม่มี audit trail** — ไม่รู้ว่า prompt ไหนให้ผลดี ไม่มีบันทึกว่าถามอะไรไป ตอบอะไรกลับมา
+
+**เชื่อมกับระบบอื่นไม่ได้** — ถ้าอยากให้ผลลัพธ์ไปต่อใน Google Sheets, Slack, หรือฐานข้อมูลบริษัท ต้องทำมือทั้งหมด
+
+**Scale ไม่ได้** — 300 รีวิวอาจพอทน แต่ถ้าพรุ่งนี้มี 3,000 ล่ะ?
+
+> 💡 **Key insight:** หน้าเว็บ ChatGPT ออกแบบมาสำหรับการสนทนาแบบ one-on-one ระหว่างคนกับ AI แต่ถ้าอยากให้ AI ทำงานเป็นส่วนหนึ่งของระบบ — เช่น ประมวลผลข้อมูลจำนวนมาก, ตอบสนองต่อ event อัตโนมัติ, หรือทำงานร่วมกับ database — คุณต้องใช้ API
+
+เปรียบเทียบง่าย ๆ: การใช้หน้าเว็บเหมือนเดินไปร้านอาหารสั่งข้าวทีละจาน แต่ API เหมือนมีระบบ catering ที่คุณส่ง order list ไปครั้งเดียว แล้วอาหาร 300 จานก็ออกมาพร้อมกัน
+
+<!-- IMAGE: อินโฟกราฟิก: ซ้าย = คนเดินไปร้านสั่งทีละจาน (web UI), ขวา = ระบบ catering รับ order ทีเดียว 300 รายการ (API) -->
+
+---
+
+## API คืออะไร — อธิบายแบบไม่ต้องเป็นโปรแกรมเมอร์
+
+API ย่อมาจาก Application Programming Interface ฟังดูน่ากลัว แต่แนวคิดมันเรียบง่ายมาก
+
+ลองนึกถึงร้านอาหารที่คุณชอบ ในร้านนั้นมี counter รับออเดอร์ คุณเดินไปบอกพนักงานว่า "ขอข้าวผัดกุ้งไม่ใส่ผักชี เพิ่มไข่ดาวด้วย" พนักงานรับ order ไปส่งครัว ครัวทำอาหาร แล้วพนักงานเอาอาหารกลับมาให้คุณ
+
+**API คือ counter รับออเดอร์ของ LLM**
+
+คุณ (หรือโปรแกรมของคุณ) ส่ง request ไปบอกว่าต้องการอะไร — LLM ประมวลผล — แล้วส่ง response กลับมา ทั้งหมดนี้เกิดขึ้นผ่านอินเทอร์เน็ตในเสี้ยววินาที
+
+กลไกที่ทำให้มันทำงานได้เรียกว่า **HTTP request** ซึ่งเป็นภาษากลางที่คอมพิวเตอร์ทั่วโลกใช้คุยกัน เวลาคุณเปิดเว็บไซต์ก็ใช้ HTTP เหมือนกัน แค่ครั้งนี้แทนที่จะขอหน้าเว็บ คุณกำลังขอให้ LLM ประมวลผลข้อความ
+
+ส่วนประกอบของ API call มีสามอย่าง:
+
+**Endpoint** — URL ที่คุณส่ง request ไป เหมือนที่อยู่ของ counter รับออเดอร์ ตัวอย่างเช่น `https://api.openai.com/v1/chat/completions` คือ endpoint สำหรับเรียก ChatGPT
+
+**Headers** — ข้อมูลเพิ่มเติมที่แนบไปกับ request เหมือนคุณบอกพนักงานว่าคุณเป็นสมาชิก VIP ก่อนสั่ง ส่วนสำคัญที่สุดใน header คือ API key — รหัสที่บอกว่าคุณเป็นใครและมีสิทธิ์ใช้งานหรือเปล่า
+
+**Body** — เนื้อหาหลักของ request เหมือนตัว order จริง ๆ ว่าอยากสั่งอะไร ใน LLM API นี่คือที่ที่คุณใส่ข้อความที่จะส่งให้ AI
+
+> 💡 **Key insight:** API ไม่ใช่เทคโนโลยีพิเศษของ AI — มันเป็นมาตรฐานที่ซอฟต์แวร์ทุกชนิดใช้คุยกันมาหลายสิบปี แค่ตอนนี้ LLM ทุกเจ้าเลือกใช้มาตรฐานเดียวกันนี้ ทำให้โค้ดที่เขียนสำหรับ API หนึ่งเอาไปปรับกับ API อื่นได้ไม่ยาก
+
+<!-- IMAGE: ไดอะแกรม: คอมพิวเตอร์ส่ง HTTP request (พร้อม endpoint, headers, body) → LLM Server → HTTP response กลับมา (พร้อม generated text) -->
+
+---
+
+## ส่วนประกอบของ LLM API Call
+
+ตอนคุณส่ง request ไปหา LLM มีหลายตัวแปรที่กำหนดได้ว่าจะได้ผลลัพธ์แบบไหนกลับมา ลองทำความรู้จักทีละตัว
+
+### model
+
+ชื่อ model ที่อยากใช้ เช่น `gpt-4o`, `gpt-4o-mini`, `claude-sonnet-4-5`, `claude-haiku-4-5` การเลือก model เหมือนเลือกว่าจะให้พ่อครัวระดับไหนทำอาหาร พ่อครัวมิชลินสตาร์ทำได้ดีกว่าแต่ก็แพงกว่า ถ้างานไม่ซับซ้อน ใช้ model เล็กก็พอ ประหยัดค่าใช้จ่ายได้มาก
+
+### messages
+
+นี่คือหัวใจของ LLM API call — array ของข้อความที่ประกอบเป็นบทสนทนา แต่ละข้อความมี role บอกว่าใครพูด:
+
+**system** — คำสั่งให้ AI ว่าต้องการให้มันเป็นใคร มีบุคลิกยังไง ทำอะไรได้และทำอะไรไม่ได้ เหมือน job description ที่คุณมอบให้พนักงานก่อนเริ่มงาน
+
+**user** — ข้อความจากคนที่คุย เช่น คำถามหรือ prompt ที่คุณต้องการส่งให้ AI
+
+**assistant** — ข้อความที่ AI ตอบกลับมา ถ้าอยากให้ AI จำการสนทนาก่อนหน้า คุณต้องใส่ messages ก่อนหน้าทั้งหมดไปใน array นี้ด้วย
+
+```python
+messages = [
+    {"role": "system", "content": "คุณเป็นนักวิเคราะห์ข้อมูลที่ตอบสั้น ตรงประเด็น"},
+    {"role": "user", "content": "สรุปจุดเด่นของสินค้านี้ให้หน่อย: [รีวิว...]"},
+]
+```
+
+### temperature
+
+ตัวเลขระหว่าง 0 ถึง 2 ที่กำหนดความ "สร้างสรรค์" ของคำตอบ
+
+ลองนึกภาพนักเขียนสองคน คนแรกเป็นนักเขียนที่รอบคอบมาก เลือกคำที่ถูกต้องที่สุดเสมอ ไม่ค่อยเสี่ยง ผลลัพธ์สม่ำเสมอและคาดเดาได้ คนที่สองเป็นนักเขียนที่ชอบลองสิ่งใหม่ ไอเดียหลุดโลกบางที แต่บางทีก็ได้งานที่แปลกและน่าสนใจมาก
+
+- **temperature 0** = นักเขียนรอบคอบ คำตอบซ้ำกันเกือบทุกครั้ง เหมาะสำหรับงานที่ต้องการความแม่นยำ เช่น การแปลหรือสรุปข้อมูล
+- **temperature 1** = สมดุล ใช้เป็น default ได้ดี
+- **temperature 1.5-2** = นักเขียนบ้าระห่ำ ได้งานสร้างสรรค์แต่บางทีก็ไม่ focused เหมาะสำหรับ brainstorming
+
+(กลไกข้างใต้ว่า temperature ไปบิดความน่าจะเป็นของคำต่อไปยังไง อธิบายไว้ในบท [Temperature และความสุ่ม](/using-ai/temperature-and-determinism))
+
+### max_tokens
+
+จำนวน token สูงสุดที่ AI จะตอบกลับมา เหมือนการบอกพ่อครัวว่า "ขอจาน medium ไม่เอา large" ถ้าไม่กำหนด AI อาจตอบยาวโดยไม่จำเป็น ซึ่งเปลืองทั้งเวลาและเงิน
+
+### top_p
+
+อีกตัวแปรหนึ่งที่ควบคุมความหลากหลายของคำตอบ มักจะใช้คู่กับ temperature แต่ถ้าเพิ่งเริ่มต้น ปล่อยค่า default ไว้ก่อนได้เลย
+
+> 💡 **Key insight:** Parameter ที่สำคัญที่สุดสำหรับมือใหม่คือสาม: `model` (เลือก model ที่เหมาะกับงาน), `messages` (ออกแบบ conversation ให้ดี), และ `max_tokens` (ควบคุมค่าใช้จ่าย) ส่วนที่เหลือค่อย ๆ เรียนรู้ทีหลังได้
+
+<!-- IMAGE: ตารางสรุป parameters: ชื่อ, ค่าที่ใช้บ่อย, ผลที่ได้, เมื่อไหร่ควรปรับ -->
+
+---
+
+## ลองทำดู #1: เรียก OpenAI API ด้วย Python
+
+ถึงเวลาลงมือจริง ส่วนนี้จะพาคุณเรียก OpenAI API ตั้งแต่ศูนย์จนได้รับคำตอบกลับมาบนหน้าจอ
+
+> 🧪 **ลองทำดู:** ทำตามขั้นตอนด้านล่างนี้ทีละขั้น ถ้ายังไม่เคยเขียน Python มาก่อน ไม่ต้องกลัว — โค้ดที่ใช้สั้นมาก และทุกบรรทัดมีคำอธิบายภาษาไทย
+
+### ขั้นตอนที่ 1: สมัครและสร้าง API Key
+
+เปิดเบราว์เซอร์ไปที่ `platform.openai.com` แล้วสมัครบัญชี (ถ้ามีบัญชี ChatGPT แล้ว login ได้เลย)
+
+เข้าไปที่เมนู **API Keys** แล้วกด **Create new secret key** จะได้ key ที่ขึ้นต้นด้วย `sk-...`
+
+สำคัญมาก: copy key ไปเก็บไว้ก่อน เพราะหลังจากปิดหน้าต่างนี้จะดูไม่ได้อีก ถ้าทำหาย ต้องสร้างใหม่
+
+### ขั้นตอนที่ 2: ติดตั้ง Library
+
+เปิด Terminal แล้วพิมพ์:
+
+```bash
+pip install openai
+```
+
+รอสักครู่ พอเห็น "Successfully installed" ก็พร้อมแล้ว
+
+### ขั้นตอนที่ 3: เขียนโค้ดเรียก API
+
+สร้างไฟล์ใหม่ชื่อ `test_openai.py` แล้วใส่โค้ดนี้:
+
+```python
+# นำเข้า library ของ OpenAI
+from openai import OpenAI
+
+# สร้าง client โดยใส่ API key ของคุณ
+# (ยังไม่ต้องกังวลเรื่อง security ตอนนี้ — เดี๋ยวบทหลังจะสอนวิธีที่ถูกต้อง)
+client = OpenAI(api_key="sk-ใส่-key-ของคุณตรงนี้")
+
+# ส่ง request ไปหา API
+response = client.chat.completions.create(
+    model="gpt-4o-mini",           # เลือก model ราคาประหยัด
+    messages=[
+        {
+            "role": "system",
+            "content": "คุณเป็นผู้ช่วยที่ตอบสั้น ตรงประเด็น ภาษาไทย"
+        },
+        {
+            "role": "user",
+            "content": "อธิบาย API ให้ฉันเข้าใจใน 2 ประโยค"
+        }
+    ],
+    max_tokens=200,                 # จำกัดความยาวคำตอบ
+    temperature=0.7,               # ความสร้างสรรค์ระดับกลาง
+)
+
+# ดึงข้อความคำตอบออกมาจาก response object
+คำตอบ = response.choices[0].message.content
+
+# แสดงผล
+print(คำตอบ)
+
+# ดูข้อมูลการใช้ token
+print(f"\nTokens ที่ใช้: {response.usage.total_tokens}")
+```
+
+### ขั้นตอนที่ 4: รันโค้ด
+
+```bash
+python test_openai.py
+```
+
+ถ้าทุกอย่างถูกต้อง คุณจะเห็นคำตอบเป็นภาษาไทยปรากฏขึ้น พร้อมกับจำนวน token ที่ใช้ไป
+
+ขอแสดงความยินดี — คุณเพิ่ง interact กับ LLM ผ่านโค้ดเป็นครั้งแรกแล้ว
+
+### ทำความเข้าใจ Response Object
+
+`response` ที่ได้กลับมาไม่ใช่แค่ข้อความ มันคือ object ที่มีข้อมูลหลายอย่าง:
+
+- `response.choices[0].message.content` — ข้อความคำตอบจริง ๆ
+- `response.usage.prompt_tokens` — จำนวน token ที่คุณส่งไป (input)
+- `response.usage.completion_tokens` — จำนวน token ที่ AI ใช้ตอบ (output)
+- `response.usage.total_tokens` — รวมทั้งหมด
+- `response.model` — model ที่ใช้จริง
+- `response.id` — ID ของ request นี้ (เอาไว้ track ถ้ามีปัญหา)
+
+<!-- IMAGE: screenshot ตัวอย่างผลลัพธ์ที่ได้จากการรันโค้ด พร้อมคำอธิบาย annotation แต่ละส่วน -->
+
+---
+
+## ลองทำดู #2: เรียก Anthropic Claude API
+
+OpenAI ไม่ใช่เจ้าเดียวในตลาด ลอง Claude ของ Anthropic ดูบ้าง โค้ดคล้ายกัน แต่มีข้อแตกต่างที่ควรรู้
+
+> 🧪 **ลองทำดู:** ถ้าทำ OpenAI ได้แล้ว ลองทำ Anthropic ต่อเลย เปรียบเทียบดูว่าคำตอบต่างกันยังไง
+
+### สมัครและสร้าง API Key ของ Anthropic
+
+ไปที่ `console.anthropic.com` สมัครบัญชี แล้วไปที่ **API Keys** เพื่อสร้าง key ใหม่ key จะขึ้นต้นด้วย `sk-ant-...`
+
+### ติดตั้ง Library
+
+```bash
+pip install anthropic
+```
+
+### โค้ดเรียก Claude API
+
+สร้างไฟล์ `test_anthropic.py`:
+
+```python
+# นำเข้า library ของ Anthropic
+import anthropic
+
+# สร้าง client
+client = anthropic.Anthropic(api_key="sk-ant-ใส่-key-ของคุณ")
+
+# ส่ง request — สังเกตว่า structure ต่างจาก OpenAI นิดหน่อย
+response = client.messages.create(
+    model="claude-haiku-4-5",       # Claude model รุ่นเล็ก ราคาประหยัด
+    max_tokens=200,
+    system="คุณเป็นผู้ช่วยที่ตอบสั้น ตรงประเด็น ภาษาไทย",  # system แยกออกมาต่างหาก
+    messages=[
+        {
+            "role": "user",
+            "content": "อธิบาย API ให้ฉันเข้าใจใน 2 ประโยค"
+        }
+    ]
+)
+
+# ดึงคำตอบออกมา — format ต่างจาก OpenAI เล็กน้อย
+คำตอบ = response.content[0].text
+
+print(คำตอบ)
+
+# ดูการใช้ token
+print(f"\nInput tokens: {response.usage.input_tokens}")
+print(f"Output tokens: {response.usage.output_tokens}")
+```
+
+### ความแตกต่างที่สำคัญระหว่าง OpenAI และ Anthropic API
+
+| จุดเปรียบเทียบ | OpenAI | Anthropic |
+|---|---|---|
+| ชื่อ method | `chat.completions.create()` | `messages.create()` |
+| system message | อยู่ใน messages array | แยกเป็น parameter ต่างหาก |
+| ดึงคำตอบ | `response.choices[0].message.content` | `response.content[0].text` |
+| ชื่อ token fields | `prompt_tokens` / `completion_tokens` | `input_tokens` / `output_tokens` |
+
+ส่วนที่เหมือนกัน: แนวคิดทั้งหมดเหมือนกัน — model, messages, temperature, max_tokens ต่างกันแค่ชื่อและ format เล็กน้อย ถ้าเข้าใจ OpenAI แล้ว เรียนรู้ Anthropic เพิ่มไม่ถึง 15 นาที
+
+> 💡 **Key insight:** ในโลกจริงหลายทีมเลือกใช้หลาย API พร้อมกัน เช่น ใช้ Claude สำหรับงานเขียนที่ต้องการความละเอียด ใช้ GPT-4o Mini สำหรับงาน volume สูงที่ต้องการความเร็วและราคาถูก การเข้าใจทั้งสองช่วยให้คุณยืดหยุ่นได้
+
+<!-- IMAGE: ตารางเปรียบเทียบ code structure ระหว่าง OpenAI และ Anthropic แบบ side-by-side -->
+
+---
+
+## Token และค่าใช้จ่าย — เข้าใจก่อนบิลมา
+
+ถ้าคุณเคยอ่านบทก่อนหน้าเกี่ยวกับ [LLM พื้นฐาน](/foundations/what-is-an-llm) แล้ว คุณรู้ว่า token คือหน่วยประมวลผลของ LLM แต่เมื่อคุณเรียก API ด้วยเงินจริง เรื่อง token กลายเป็นเรื่องของกระเป๋าตังค์โดยตรง
+
+### Token คืออะไร (ทบทวนเร็ว)
+
+Token ไม่ใช่คำ ไม่ใช่ตัวอักษร แต่เป็นหน่วยที่ LLM ใช้อ่านและเขียนข้อความ ภาษาอังกฤษประมาณ 1 คำ = 1-2 tokens ภาษาไทยหนักกว่า ประมาณ 1 พยางค์ = 1-3 tokens ดังนั้นข้อความไทยยาวเท่ากับอังกฤษจะใช้ token มากกว่า
+
+ลองนึกภาพ token เหมือน "เหรียญ" ที่คุณจ่ายให้ LLM — ยิ่ง input ยาว ยิ่งจ่ายเหรียญมาก และยิ่ง output ยาว ก็ยิ่งจ่ายเหรียญมากขึ้น
+
+### Input vs Output Tokens
+
+**Input tokens** — ทุกอย่างที่คุณส่งไปใน request: system message + messages ทั้งหมด + prompt ของคุณ
+
+**Output tokens** — ข้อความที่ AI สร้างขึ้นมาตอบ
+
+ทั้งสองประเภทคิดราคาต่างกัน โดยทั่วไป output tokens แพงกว่า input tokens ราว 3-5 เท่า เพราะการสร้างข้อความใหม่ใช้ compute มากกว่าการอ่าน
+
+### ราคาเปรียบเทียบ (ข้อมูล ณ ต้นปี 2026)
+
+| Model | Input (ต่อ 1M tokens) | Output (ต่อ 1M tokens) | เหมาะกับ |
+|---|---|---|---|
+| GPT-4o | ~$5 | ~$15 | งานซับซ้อน ต้องการคุณภาพสูง |
+| GPT-4o Mini | ~$0.15 | ~$0.60 | งาน volume สูง ไม่ซับซ้อน |
+| Claude Sonnet 4.5 | ~$3 | ~$15 | งานที่ต้องการ reasoning ดี |
+| Claude Haiku 4.5 | ~$1 | ~$5 | งานเร็ว ราคาถูก |
+
+หมายเหตุ: ราคาเปลี่ยนได้ ตรวจสอบล่าสุดที่เว็บของแต่ละเจ้า ตารางนี้เป็นแหล่งราคาอ้างอิงหลักของหลักสูตรนี้
+
+### ตัวอย่างคำนวณค่าใช้จ่ายจริง
+
+สมมติว่าคุณทำ batch processing สรุปรีวิวสินค้า 1,000 ชิ้น แต่ละ request:
+- System message: ~50 tokens
+- รีวิวที่ส่งไป: ~300 tokens
+- คำตอบที่ได้กลับมา: ~150 tokens
+
+**ใช้ GPT-4o Mini:**
+- Input: 1,000 × 350 tokens = 350,000 tokens = $0.053
+- Output: 1,000 × 150 tokens = 150,000 tokens = $0.09
+- **รวม: ~$0.14 หรือประมาณ 5 บาท**
+
+**ใช้ GPT-4o:**
+- Input: 350,000 tokens = $1.75
+- Output: 150,000 tokens = $2.25
+- **รวม: ~$4.00 หรือประมาณ 145 บาท**
+
+สรุป: งานเดียวกัน ราคาต่างกัน 30 เท่า เพียงแค่เลือก model ให้เหมาะกับงาน
+
+> 💡 **Key insight:** กฎง่าย ๆ คือ เริ่มด้วย model เล็กและถูกก่อนเสมอ ถ้าคุณภาพไม่พอค่อยเลื่อนขึ้น Model ใหญ่ไม่ได้แปลว่าดีกว่าเสมอ — สำหรับงานง่าย ๆ อย่างการจัดหมวดหมู่หรือสรุปสั้น ๆ model เล็กทำได้ดีพอกันแต่ถูกกว่า 10-30 เท่า
+
+<!-- IMAGE: กราฟเปรียบเทียบราคา models ต่าง ๆ กับระดับความซับซ้อนของงานที่เหมาะสม -->
+
+---
+
+## Streaming vs Non-streaming
+
+คุณเคยสังเกตไหมว่าเวลาถาม ChatGPT คำตอบไม่ได้โผล่มาทีเดียวทั้งก้อน แต่ทยอยปรากฏทีละคำ ทีละประโยค เหมือนมีคนพิมพ์ให้ดูสด ๆ
+
+นี่คือ **Streaming** และมันทำให้ UX ดีขึ้นมาก
+
+### Non-streaming (default)
+
+ปกติแล้ว API จะรอจนกว่า LLM จะสร้างคำตอบเสร็จทั้งหมด แล้วค่อยส่งกลับมาครั้งเดียว ถ้าคำตอบยาว 500 คำ คุณต้องรอ 10-15 วินาทีโดยไม่เห็นอะไร แล้วทุกอย่างโผล่มาพร้อมกัน
+
+เหมาะสำหรับ: งาน background processing ที่ไม่มีคนรอดู เช่น batch jobs ที่รันตอนกลางคืน
+
+### Streaming
+
+ด้วย `stream=True` (OpenAI) หรือ `stream=True` (Anthropic) LLM จะส่งคำตอบมาเป็น chunks เล็ก ๆ ทันทีที่สร้างได้ โปรแกรมคุณรับ chunk มา แสดงผล แล้วรอ chunk ถัดไป
+
+ผลที่ได้คือผู้ใช้เห็นคำตอบทยอยปรากฏแบบ real-time ซึ่งรู้สึก responsive กว่ามาก แม้เวลารวมจะเท่ากัน
+
+```python
+# Streaming กับ OpenAI
+stream = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "เล่านิทานสั้น"}],
+    max_tokens=300,
+    stream=True,                   # เปิด streaming
+)
+
+# รับและแสดงผลทีละ chunk
+for chunk in stream:
+    # ตรวจสอบว่า chunk นี้มีข้อความไหม
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+
+print()  # ขึ้นบรรทัดใหม่หลังจบ
+```
+
+### เมื่อไหร่ควรใช้อะไร
+
+**ใช้ Streaming เมื่อ:**
+- สร้าง chatbot หรือ interface ที่มีคนรอดูคำตอบ
+- คำตอบยาวและอยากให้ผู้ใช้เริ่มอ่านได้เร็ว
+- ต้องการให้รู้สึก responsive
+
+**ใช้ Non-streaming เมื่อ:**
+- ทำ batch processing ไม่มีคนรอดู
+- ต้องการ response ทั้งก้อนก่อนนำไปประมวลผลต่อ
+- ต้องการนับ token แม่นยำก่อนตัดสินใจทำอะไรต่อ
+
+> 💡 **Key insight:** Streaming ไม่ได้ทำให้ LLM ตอบเร็วขึ้น เวลาประมวลผลรวมเท่าเดิม แต่มันเปลี่ยน "perceived speed" — ผู้ใช้รู้สึกว่าระบบตอบสนองไวกว่า เพราะเห็นอะไรบางอย่างเกิดขึ้นทันที ไม่ต้องนั่งดูหน้าจอเปล่า
+
+<!-- IMAGE: ไดอะแกรมเปรียบเทียบ: Non-streaming = รอ 10 วิ แล้วได้ทั้งก้อน, Streaming = เห็นคำทยอยออกมาตั้งแต่วิแรก -->
+
+---
+
+## Error Handling ที่ต้องรู้
+
+เมื่อทำงานกับ API จริง ๆ สิ่งที่ผิดพลาดได้มีมาก ถ้าไม่จัดการ error ให้ดี โปรแกรมจะ crash และคุณจะไม่รู้ว่าเกิดอะไรขึ้น
+
+### Error ที่เจอบ่อย
+
+**429 — Rate Limit Exceeded**
+
+แต่ละ account มีขีดจำกัดว่าส่ง request ได้กี่ครั้งต่อนาที ถ้าส่งเร็วเกินไปจะได้ error 429 กลับมา
+
+โซลูชันคือ **retry with exponential backoff** — รอแล้วลองใหม่ แต่รอนานขึ้นเรื่อย ๆ ถ้ายังไม่สำเร็จ:
+
+```python
+import time
+import random
+
+def call_api_with_retry(client, messages, max_retries=3):
+    """เรียก API พร้อม retry logic กรณีเจอ rate limit"""
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=messages,
+                max_tokens=500,
+            )
+            return response
+        except Exception as e:
+            if "429" in str(e) and attempt < max_retries - 1:
+                # รอนานขึ้นแต่ละครั้ง + สุ่มเพื่อไม่ให้ requests กระจุกตัว
+                wait_time = (2 ** attempt) + random.uniform(0, 1)
+                print(f"Rate limit — รอ {wait_time:.1f} วินาที แล้วลองใหม่...")
+                time.sleep(wait_time)
+            else:
+                raise  # ถ้าไม่ใช่ rate limit หรือหมด retry ให้ throw error ออกไป
+    return None
+```
+
+**Token Limit Error**
+
+ถ้า input ของคุณยาวเกิน context window ของ model (เช่น ส่งเอกสาร 100 หน้าให้ model ที่รับได้ 8,000 tokens) จะได้ error กลับมา
+
+วิธีแก้: ตัดข้อความเป็นชิ้นเล็ก ๆ แล้วส่งทีละชิ้น หรือเลือก model ที่มี context window ใหญ่กว่า
+
+**Authentication Error (401)**
+
+API key ผิด หมดอายุ หรือไม่มีเครดิตในบัญชี ตรวจสอบที่ dashboard ของ OpenAI หรือ Anthropic
+
+**Timeout**
+
+request ใช้เวลานานเกินไปแล้ว connection ขาด มักเกิดกับ request ที่ต้องการ output ยาวมาก แก้ด้วยการตั้ง timeout ที่เหมาะสมหรือลด max_tokens
+
+### Pattern พื้นฐานสำหรับ Production
+
+```python
+import openai
+
+def safe_api_call(client, prompt, system="You are a helpful assistant"):
+    """
+    Template สำหรับเรียก API อย่างปลอดภัย
+    จัดการ error พื้นฐานและ log ข้อมูลที่จำเป็น
+    """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            temperature=0.7,
+        )
+        return {
+            "success": True,
+            "content": response.choices[0].message.content,
+            "tokens_used": response.usage.total_tokens,
+        }
+    except openai.RateLimitError:
+        return {"success": False, "error": "rate_limit"}
+    except openai.AuthenticationError:
+        return {"success": False, "error": "invalid_api_key"}
+    except openai.BadRequestError as e:
+        return {"success": False, "error": f"bad_request: {str(e)}"}
+    except Exception as e:
+        return {"success": False, "error": f"unknown: {str(e)}"}
+```
+
+> 💡 **Key insight:** การไม่มี error handling ไม่ใช่แค่เรื่องโค้ดดี/ไม่ดี มันคือความเสี่ยงจริง ๆ งาน batch processing ที่รัน 1,000 items อาจ crash ที่ item 347 แล้วคุณไม่รู้ว่า 653 ที่เหลือได้ทำหรือยัง
+
+<!-- IMAGE: flow diagram: request → ส่งสำเร็จ → process response, request → error → จัดประเภท error → retry หรือ skip และ log -->
+
+---
+
+## Best Practices สำหรับมือใหม่
+
+ก่อนจะออกไปเขียนโค้ดจริง มีข้อปฏิบัติบางอย่างที่ถ้ารู้ตั้งแต่ต้นจะช่วยประหยัดเวลาและเงินได้มาก
+
+### 1. อย่า Hardcode API Key ในโค้ดเด็ดขาด
+
+นี่คือสิ่งที่อันตรายที่สุดสำหรับมือใหม่ ถ้าคุณทำแบบนี้:
+
+```python
+# อย่าทำแบบนี้!
+client = OpenAI(api_key="sk-abc123xyz...")
+```
+
+แล้ว commit โค้ดขึ้น GitHub (แม้แต่ private repo) API key ของคุณอาจถูกขโมยและนำไปใช้สร้างค่าใช้จ่ายมหาศาลในบัญชีของคุณ มีกรณีจริงที่คนเสียเงินเป็นหมื่นดอลลาร์เพราะเรื่องนี้
+
+ใช้ **environment variable** แทน:
+
+```bash
+# ใน terminal หรือไฟล์ .env
+export OPENAI_API_KEY="sk-abc123xyz..."
+```
+
+```python
+# ในโค้ด Python
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+```
+
+หรือใช้ library `python-dotenv` เพื่ออ่านจากไฟล์ `.env`:
+
+```bash
+pip install python-dotenv
+```
+
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # โหลดค่าจากไฟล์ .env
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+```
+
+และอย่าลืมเพิ่ม `.env` ในไฟล์ `.gitignore`:
+
+```
+# .gitignore
+.env
+*.env
+```
+
+### 2. เริ่มจาก Model ถูกก่อนเสมอ
+
+Rule of thumb: เริ่ม prototype ด้วย `gpt-4o-mini` หรือ `claude-haiku-4-5` เสมอ ทดสอบว่าโค้ดและ logic ทำงานได้ก่อน แล้วค่อยเปลี่ยนเป็น model ใหญ่เมื่อต้องการคุณภาพสูงขึ้นจริง ๆ
+
+ระหว่าง development คุณจะ call API หลายร้อยครั้งเพื่อทดสอบ ถ้าใช้ model ใหญ่ตั้งแต่ต้นค่าใช้จ่ายจะพุ่งโดยไม่จำเป็น
+
+### 3. Set max_tokens เสมอ
+
+ถ้าไม่กำหนด max_tokens AI อาจสร้างคำตอบยาวโดยไม่จำเป็น ทำให้:
+- เสียเงินค่า token มากกว่าต้องการ
+- ระบบช้าลงเพราะต้องรอ output ยาว
+- บางครั้งได้คำตอบที่ "พูดมากเกินไป"
+
+ตั้งค่าที่เหมาะสมกับงาน ถ้าต้องการสรุปสั้น ๆ อาจแค่ 200-300 tokens ถ้าต้องการเขียน essay ค่อยตั้ง 2,000+
+
+### 4. Log ทุก Request ในระบบ Production
+
+ใน production system ทุก API call ควรมีบันทึกว่า:
+- เวลาที่ส่ง request
+- prompt ที่ใช้
+- คำตอบที่ได้
+- จำนวน tokens ที่ใช้
+- ราคาโดยประมาณ
+- success หรือ error
+
+```python
+import json
+from datetime import datetime
+
+def log_api_call(prompt, response_data, tokens_used):
+    """บันทึกข้อมูล API call ลง log"""
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "prompt_preview": prompt[:100] + "...",  # แค่ 100 ตัวแรก
+        "tokens_used": tokens_used,
+        "estimated_cost_usd": tokens_used * 0.00000015,  # GPT-4o Mini rate
+    }
+    print(json.dumps(log_entry, ensure_ascii=False))
+```
+
+ทำไมต้อง log? เพราะเมื่อระบบมีปัญหา คุณจะต้องรู้ว่า prompt ไหนทำให้เกิด error, วันไหนใช้ token เยอะผิดปกติ, หรือ pattern อะไรที่ทำให้ได้คำตอบแย่
+
+### 5. ทดสอบ Edge Cases
+
+ก่อน deploy ทดสอบกับ input ที่ "แปลก" ด้วย:
+- ข้อความว่างเปล่า
+- ข้อความยาวมากผิดปกติ
+- ภาษาผสมหลายภาษา
+- ตัวอักษรพิเศษหรือ emoji
+- คำถามที่ off-topic จากที่ system message กำหนด
+
+> 💡 **Key insight:** โค้ดที่ทำงานได้กับ test case 10 อันแรกของคุณ ไม่ได้แปลว่ามันจะทำงานได้กับ input ที่ผู้ใช้จริงส่งมา คนเรามีความสามารถพิเศษในการส่งข้อมูลในแบบที่คุณไม่คาดคิดเสมอ
+
+<!-- IMAGE: checklist graphic: 5 best practices พร้อม tick boxes สำหรับมือใหม่ -->
+
+---
+
+## สรุป
+
+ในบทนี้คุณได้เรียนรู้อะไรบ้าง:
+
+**ทำไมต้อง API** — หน้าเว็บ ChatGPT เหมาะกับการสนทนา แต่ถ้าอยากให้ AI ทำงานในระบบอัตโนมัติ ประมวลผลข้อมูลจำนวนมาก หรือเชื่อมกับซอฟต์แวร์อื่น API คือทางเดียว
+
+**API ทำงานยังไง** — HTTP request ส่งไปที่ endpoint พร้อม headers (รวม API key) และ body (model, messages, parameters) แล้ว response กลับมาพร้อมคำตอบและข้อมูลการใช้ token
+
+**Parameters สำคัญ** — model เลือกให้เหมาะกับงาน, messages ออกแบบ conversation, temperature ปรับความสร้างสรรค์, max_tokens ควบคุมค่าใช้จ่าย
+
+**เรียกได้จริง** — คุณมีโค้ด Python ที่ใช้งานได้จริงทั้งสำหรับ OpenAI และ Anthropic แล้ว
+
+**ต้นทุนจริง** — token pricing ต่างกันมากระหว่าง models การเลือก model ให้เหมาะกับงานประหยัดได้ 10-30 เท่า
+
+**Streaming** — ทำให้ผู้ใช้เห็นคำตอบทยอยออกมาแบบ real-time เหมาะกับ user-facing applications
+
+**Error handling** — rate limits, token limits, และ authentication errors เป็นสิ่งที่เจอแน่ ๆ ในการใช้งานจริง ต้องจัดการให้ดี
+
+**Best practices** — ไม่ hardcode API key, เริ่มจาก model ถูก, set max_tokens, log ทุก request
+
+---
+
+ตอนนี้คุณเรียก LLM ได้แล้ว แต่คำตอบที่ได้กลับมาเป็นข้อความยาว ๆ ที่มนุษย์อ่านแล้วเข้าใจ แต่ถ้าอยากให้ระบบอื่นอ่านได้ด้วยล่ะ? เช่น อยากให้ AI วิเคราะห์รีวิวแล้วส่งผลออกมาเป็น JSON ที่บอกว่า sentiment เป็น positive หรือ negative, score เท่าไหร่, และ topic หลักคืออะไร — แบบที่โปรแกรมอื่นนำไปใช้ต่อได้ทันที
+
+นั่นคือสิ่งที่เราจะเรียนใน [Structured Output](/building-with-ai/structured-output-and-json-mode) บทถัดไป ซึ่งเป็นทักษะที่เปลี่ยน LLM จาก "chatbot" ให้กลายเป็น "component" ที่ต่อเข้ากับระบบจริงได้

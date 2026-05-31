@@ -1,0 +1,598 @@
+---
+slug: rlhf-and-alignment
+level: advanced
+title: "RLHF และ Alignment — สอน AI ให้ตอบแบบที่มนุษย์ต้องการ"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เจาะลึก RLHF ตั้งแต่ Reward Modeling, PPO training, Constitutional AI, DPO, RLAIF จนถึง alignment tax และคำถามว่า AI ควร 'เชื่อฟัง' แค่ไหน"
+---
+# RLHF และ Alignment — สอน AI ให้ตอบแบบที่มนุษย์ต้องการ
+
+ลองนึกภาพนี้: คุณเพิ่ง train โมเดลภาษาขนาดใหญ่เสร็จ ใช้เวลาหลายเดือน ใช้ GPU นับพัน ใช้ข้อความจากอินเทอร์เน็ตหลายแสนล้านคำ แล้วคุณก็พร้อมแล้ว — เปิดโมเดลขึ้นมา พิมพ์ว่า "กรุงเทพอยู่ประเทศอะไร?" และโมเดลตอบว่า: "กรุงเทพอยู่ประเทศอะไร? คำถามนี้ปรากฏในข้อสอบวิชาสังคมศึกษาชั้น ป.4 หลายโรงเรียน นักเรียนหลายคนมักสับสนกับ..."
+
+นั่นคือ base model ที่เพิ่ง pretrain เสร็จ มันไม่ได้ "ตอบคำถาม" — มันแค่ "ต่อข้อความ" ต่อจากสิ่งที่เห็นในข้อมูล train เหมือนกัน เพราะในอินเทอร์เน็ต ประโยค "กรุงเทพอยู่ประเทศอะไร?" มักตามด้วยบริบทของการสอบ ไม่ใช่คำตอบตรง ๆ
+
+กระบวนการที่เปลี่ยน base model ที่ "ต่อข้อความ" ให้กลายเป็น ChatGPT ที่ "ตอบคำถามแบบมีประโยชน์" เรียกว่า **RLHF** — Reinforcement Learning from Human Feedback และนั่นคือสิ่งที่บทนี้จะเจาะลึก
+
+<!-- IMAGE: เปรียบเทียบ base model (ต่อข้อความแบบ autocomplete) กับ ChatGPT (ตอบคำถามตรง) แสดงให้เห็น gap ที่ RLHF แก้ไข -->
+
+---
+
+## ทำไม Base Model ถึงตอบแบบนั้น
+
+ก่อนจะเข้าใจ RLHF ต้องเข้าใจก่อนว่า base model ถูกสอนให้ทำอะไร
+
+อย่างที่เห็นในบท [Pretraining](/advanced/pretraining) base model ถูกสอนด้วย objective เดียวคือ "ทายคำถัดไป" ถ้าข้อความ train คือ "ท้องฟ้า" โมเดลต้องทาย "สีฟ้า" ถ้าข้อความคือ "สูตร Einstein คือ" โมเดลต้องทาย "E=mc²"
+
+นี่คือสิ่งที่ยอดเยี่ยมมากในแง่ของการสร้าง world model — โมเดลเรียนรู้ว่า "กรุงเทพ" อยู่ใกล้กับ "ไทย", "ประเทศไทย", "Thailand" ในพื้นที่ความหมาย มันรู้ว่าสิ่งเหล่านี้เกี่ยวข้องกัน
+
+แต่มันไม่รู้ว่าบทบาทของมันคืออะไร มันไม่รู้ว่าตอนนี้มันอยู่ในสถานการณ์ "มีคนถาม คาดหวังคำตอบ" มันรู้แค่ว่า "ต่อข้อความนี้ไปให้น่าจะเป็นอะไร"
+
+ปัญหาอีกอย่าง: ในอินเทอร์เน็ตมีทั้งเนื้อหาดีและแย่ มีทั้งความจริงและความเท็จ มีทั้ง argument ที่มีเหตุผลและการด่าทอ base model เรียนรู้ทั้งหมดนั้นโดยไม่มีการแยกแยะ
+
+RLHF คือกระบวนการที่บอกโมเดลว่า "นี่คือสิ่งที่เราอยากให้แก ไม่ใช่แค่ต่อข้อความ แต่ตอบแบบที่มีประโยชน์ ปลอดภัย และซื่อสัตย์"
+
+**ทำไม RLHF ถึงไม่ใช่แค่ fine-tuning ธรรมดา?**
+
+คนที่เรียน [Fine-tuning Methods](/building-with-ai/fine-tuning-methods) แล้วอาจสงสัยว่า ทำไมไม่แค่ fine-tune โมเดลกับตัวอย่างคำตอบที่ดี ๆ เยอะ ๆ แล้วจบ?
+
+คำตอบคือ supervised fine-tuning (SFT) ด้วยตัวอย่างอย่างเดียวมีข้อจำกัดสำคัญสองอย่าง: หนึ่ง มันต้องการตัวอย่างที่ "ดีที่สุด" ซึ่งยากจะ define และ annotate อย่างสม่ำเสมอ สอง มันไม่สามารถ generalize ไปยัง situations ใหม่ที่ไม่เคยเห็นในตัวอย่างได้ดี
+
+RLHF แก้ทั้งสองปัญหา: แทนที่จะถาม annotators ว่า "คำตอบที่ดีที่สุดคืออะไร?" ถามแค่ว่า "อันไหนดีกว่า?" (ง่ายกว่ามาก) และ Reward Model ที่เกิดจากการเปรียบเทียบเหล่านั้นสามารถ generalize ไปประเมินคำตอบใหม่ที่ไม่เคยเห็นได้
+
+<!-- IMAGE: แผนภาพ pretraining objective (predict next token) กับ RLHF objective (maximize human preference) แสดงความต่างของ goal -->
+
+---
+
+## สามขั้นตอนของ RLHF
+
+RLHF ไม่ได้เป็นขั้นตอนเดียว มันเป็นสามขั้นตอนที่ต่อเนื่องกัน แต่ละขั้นแก้ปัญหาที่ขั้นก่อนแก้ไม่ได้
+
+**ขั้นที่ 1 — SFT (Supervised Fine-tuning):** สอนให้โมเดลรู้ว่า "ตอบแบบนี้ถึงจะเรียกว่า helpful"
+
+**ขั้นที่ 2 — Reward Model:** สร้าง AI ตัวใหม่ที่ทำหน้าที่เหมือน "ผู้ตัดสิน" — รู้ว่าคำตอบไหนดีกว่า
+
+**ขั้นที่ 3 — RL (Reinforcement Learning) ด้วย PPO:** ใช้ผู้ตัดสินนั้น optimize โมเดลหลักให้ตอบดีขึ้นเรื่อย ๆ
+
+ทำไมต้องมีทั้งสาม? เพราะแต่ละขั้นแก้ปัญหาที่ต่างกัน — SFT อย่างเดียวไม่พอเพราะ data มีจำกัด Reward Model อย่างเดียวไม่พอเพราะต้องใช้ร่วมกับ RL และ RL อย่างเดียวโดยไม่มี SFT จะ unstable มาก เราจะดูแต่ละขั้นให้ละเอียด
+
+เปรียบให้เห็นภาพ: ลองนึกถึงการสอนนักศึกษาฝึกงานให้เป็นนักวิเคราะห์ที่ดี SFT คือการให้ดู "ตัวอย่างรายงานที่ดี" หลาย ๆ ชิ้น Reward Model คือการสร้าง "หัวหน้าที่มีรสนิยมดี" ที่รู้ว่ารายงานไหนดีกว่าโดยไม่ต้องเขียนเองทั้งหมด และ PPO คือการให้นักศึกษาเขียนรายงาน ส่งให้หัวหน้า review วนซ้ำจนคุณภาพขึ้น ทั้งสามขั้นขาดไม่ได้สักขั้นเดียว
+
+<!-- IMAGE: diagram ไทม์ไลน์สามขั้นตอน SFT → Reward Model → PPO แสดงว่าแต่ละขั้น input/output คืออะไร -->
+
+---
+
+## ขั้นที่ 1: SFT — Supervised Fine-tuning
+
+ขั้นแรกดูเหมือนง่าย แต่ซับซ้อนกว่าที่คิด
+
+OpenAI จ้างทีม annotators (คนทำงานจริง ๆ ไม่ใช่ AI) ให้นั่งตอบคำถามหลายหมื่นคำถาม ทุกคำถามที่ผู้ใช้อาจถาม — ตั้งแต่ "ช่วยเขียนอีเมลลาป่วย" ไปจนถึง "อธิบาย quantum entanglement ให้เด็ก 10 ขวบเข้าใจ" — annotators จะเขียนคำตอบที่พวกเขาคิดว่าดีที่สุด
+
+จากนั้นเอาคู่ (คำถาม, คำตอบที่ดี) เหล่านั้นไป fine-tune โมเดล เหมือนกับที่เราพูดถึงใน [Fine-tuning Methods](/building-with-ai/fine-tuning-methods) แต่นี่เป็น fine-tuning เพื่อ "รูปแบบการตอบ" ไม่ใช่ domain knowledge
+
+หลังจาก SFT โมเดลจะรู้แล้วว่า "เวลาถูกถาม ให้ตอบตรง ๆ ไม่ใช่ต่อประโยค" มันรู้ว่าต้องมี structure บางอย่าง รู้ว่าควรอธิบายก่อนแล้วค่อยสรุป
+
+> 💡 **Key insight:** SFT แก้ปัญหา "รูปแบบ" ของคำตอบ — โมเดลรู้ว่าต้องตอบอะไร แต่ยังไม่รู้ว่าในทุกสถานการณ์ควรตอบอย่างไรจึงจะ "ดีที่สุด"
+
+**ทำไม SFT อย่างเดียวไม่พอ?**
+
+ลองคิดดู — ถ้าคุณต้องสอนคนให้เป็นแพทย์ที่ดี คุณสามารถเขียนหนังสือตำราให้ครอบคลุมทุกสถานการณ์ที่เป็นไปได้ไหม? ไม่ได้ เพราะจำนวน situation ที่เป็นไปได้มันไม่มีสิ้นสุด
+
+สำหรับ LLM ก็เช่นเดียวกัน — annotators สามารถเขียนตัวอย่างได้แค่หลายหมื่นชุด แต่คำถามที่ผู้ใช้จะถามมีนับล้านรูปแบบ และในหลายกรณีโมเดลไม่เคยเห็นตัวอย่างที่ใกล้เคียง
+
+นอกจากนี้ annotators ก็ไม่สมบูรณ์แบบ บางครั้งก็เขียนคำตอบที่ดีกว่าตัวเลือกอื่น บางครั้งก็ไม่ได้ดีที่สุดเท่าที่ควรจะเป็น การ fine-tune กับ demonstration data ที่ไม่สมบูรณ์แบบ 100% จะส่งผลให้โมเดลเรียนรู้ความไม่สมบูรณ์นั้นด้วย
+
+นั่นเป็นเหตุผลว่าทำไมต้องมีขั้นที่ 2
+
+**Scale ของ SFT data — ใหญ่แค่ไหน?**
+
+InstructGPT paper ของ OpenAI (2022) ซึ่งเป็นต้นแบบของ ChatGPT เปิดเผยว่าพวกเขาใช้ SFT data ประมาณ 13,000 prompt-response pairs สำหรับรอบแรก ซึ่งฟังดูน้อยมากเมื่อเทียบกับ pretrain data ที่นับแสนล้านคำ
+
+แต่ประเด็นคือ SFT ไม่ได้สอนความรู้ใหม่ — ความรู้มีอยู่แล้วใน weights จาก pretraining SFT แค่ "unlock" รูปแบบการตอบที่ถูกต้อง ดังนั้น 13,000 ตัวอย่างที่คัดเลือกมาดี อาจพอเพียงสำหรับการเปลี่ยน behavior อย่างมีนัยสำคัญ
+
+**คุณภาพสำคัญกว่าปริมาณ**
+
+งานวิจัยจาก LIMA (Less Is More for Alignment) ปี 2023 พิสูจน์ให้เห็นชัดว่า SFT ด้วยข้อมูล 1,000 ตัวอย่างที่คัดเลือกมาอย่างดีสามารถให้ผลลัพธ์ที่ดีพอ ๆ กับ SFT ด้วยข้อมูลหลายหมื่นตัวอย่างที่ random กว่า นี่เปลี่ยน understanding ของ field — SFT data quality มีความสำคัญสูงมาก และ diversity ของ prompt types ก็สำคัญไม่แพ้กัน
+
+แต่คุณภาพ SFT data ยังมีข้อจำกัดอีกอย่าง: annotators คนละคนมี standard ต่างกัน คนหนึ่งอาจชอบคำตอบสั้น กระชับ อีกคนอาจชอบคำตอบละเอียด มีตัวอย่าง คนที่สามอาจให้ priority กับ safety ก่อนเสมอ ความ inconsistency นี้ถูก embed เข้าไปใน SFT model และยากที่จะแก้ได้ใน downstream training
+
+<!-- IMAGE: annotators นั่งทำงาน เขียนคำตอบตัวอย่าง แสดง scale ว่าต้องใช้คนจำนวนมาก -->
+
+---
+
+## ขั้นที่ 2: Reward Model — สร้างผู้ตัดสิน AI
+
+นี่คือขั้นตอนที่ชาญฉลาดที่สุดของ RLHF
+
+แทนที่จะให้ annotators เขียนคำตอบที่ "ดีที่สุด" (ซึ่งยาก และ subjective) เราเปลี่ยนมาให้พวกเขาทำสิ่งที่ง่ายกว่ามาก: **เปรียบเทียบ**
+
+ระบบสร้างคำตอบ 2-4 แบบสำหรับคำถามเดียวกัน แล้วถาม annotator ว่า "อันไหนดีกว่า?" มนุษย์เราเปรียบเทียบได้ดีกว่าการสร้างสิ่งที่ดีที่สุดจากศูนย์ — ถามว่าแอปเปิลหรือส้มอร่อยกว่า ง่ายกว่าถามว่า "อธิบายผลไม้ที่อร่อยที่สุดในโลก"
+
+จากข้อมูลการเปรียบเทียบเหล่านี้ เราไป train โมเดลตัวใหม่ที่เรียกว่า **Reward Model (RM)** — โมเดลนี้รับ input เป็นคู่ (คำถาม, คำตอบ) แล้ว output เป็นตัวเลข score ว่าคำตอบนี้ดีแค่ไหน
+
+**Bradley-Terry Model**
+
+หัวใจของการ train Reward Model คือ mathematical framework ที่ชื่อ Bradley-Terry Model — framework นี้มีมาตั้งแต่ปี 1952 ก่อน AI จะมีด้วยซ้ำ ใช้สำหรับจัดอันดับนักกีฬาและทีมกีฬา
+
+ไอเดียหลัก: ถ้าผู้เล่น A ชนะผู้เล่น B บ่อยกว่าผู้เล่น B ชนะ A เราสามารถประมาณค่าความสามารถ (score) ของแต่ละคนได้โดยใช้ผลการแข่งขันทั้งหมด
+
+แปลงมาใน RLHF: แทนที่ A, B จะเป็นนักกีฬา พวกมันคือ "คำตอบของ AI" แทนที่ "ชนะ/แพ้" จะเป็น "annotator ชอบอันไหนมากกว่า" Reward Model เรียนรู้ที่จะกำหนด score ให้แต่ละคำตอบ โดยที่ score นั้น consistent กับการเปรียบเทียบของมนุษย์
+
+ในทางคณิตศาสตร์ ถ้าคำตอบ A มี score r_A และคำตอบ B มี score r_B ความน่าจะเป็นที่มนุษย์จะชอบ A มากกว่า B คือ:
+
+```
+P(A ชนะ B) = sigmoid(r_A - r_B) = 1 / (1 + exp(-(r_A - r_B)))
+```
+
+เราเทรน Reward Model โดยให้มัน predict ว่า "มนุษย์จะชอบอันไหน" แล้ว minimize cross-entropy loss ระหว่าง prediction กับคำตอบจริงจาก annotators
+
+> 💡 **Key insight:** Reward Model คือการ "กลั่น" ความชอบของมนุษย์ให้อยู่ในรูปฟังก์ชัน — แทนที่จะต้องถามมนุษย์ทุกครั้ง เราถามโมเดลแทนได้เลย
+
+**ทำไมต้องแยก Reward Model ออกมา?**
+
+เพราะเราต้องรัน Reward Model นับล้านครั้งในขั้นตอน RL ถ้าต้องถามมนุษย์จริง ๆ ทุกครั้ง ไม่มีทางทำได้จริง แต่ถ้ามี Reward Model ที่เป็น neural net เราสามารถรัน inference ได้เร็วมาก
+
+**สถาปัตยกรรมของ Reward Model**
+
+Reward Model ไม่ใช่โมเดลที่ออกแบบมาใหม่ทั้งหมด — โดยทั่วไปมันคือ LLM เดิม (SFT model) ที่เอา language modeling head ออก แล้วใส่ "regression head" เข้าไปแทน regression head นี้ก็แค่ linear layer ที่ map hidden state สุดท้ายให้ออกมาเป็นตัวเลขตัวเดียว นั่นคือ reward score
+
+สิ่งสำคัญคือ Reward Model เห็นทั้ง prompt และ response พร้อมกัน แล้วให้ score สำหรับ response นั้นในบริบทของ prompt นั้น ไม่ใช่ให้ score response แบบ standalone โดยไม่รู้ context
+
+**Noise ใน Preference Data**
+
+ปัญหาที่ซุกซ่อนอยู่ใน Reward Model คือ human preference data มี noise มาก annotators ไม่ consistent ทั้งกับตัวเองและกับคนอื่น บางครั้ง annotator สองคนเห็นตรงข้ามกันสำหรับ prompt เดียวกัน งานวิจัยพบว่า inter-annotator agreement (สัดส่วนของครั้งที่ annotators เห็นตรงกัน) สำหรับงาน preference annotation มักอยู่ที่ 60-75% เท่านั้น — ซึ่งหมายความว่า 25-40% ของ data มี disagreement
+
+Reward Model ที่ train จาก noisy data นี้จึงเป็นแค่ approximation ของ preference จริง และ approximation นี้จะถูก exploit ในขั้น PPO
+
+<!-- IMAGE: flow diagram: คำถาม + คำตอบ 2 แบบ → annotator เปรียบเทียบ → ข้อมูล preference → train Reward Model → RM สามารถ score คำตอบได้เอง -->
+
+---
+
+## ขั้นที่ 3: PPO — ฝึกโมเดลด้วย Reward Signal
+
+ตอนนี้เรามี:
+1. SFT model — โมเดลที่รู้รูปแบบการตอบแล้ว
+2. Reward Model — "ผู้ตัดสิน" ที่ให้คะแนนคำตอบได้
+
+ขั้นที่ 3 คือการใช้ Reward Model เป็น signal ปรับปรุง SFT model ให้ได้คะแนนสูงขึ้นเรื่อย ๆ — นี่คือ **Proximal Policy Optimization (PPO)**
+
+PPO เป็น algorithm จากสาขา Reinforcement Learning (RL) ซึ่งเป็นสาขาที่ AI เรียนรู้โดยการลองผิดลองถูกและได้รับ reward/penalty ลองนึกถึงการสอนสุนัขด้วย treats — นั่นคือ RL อย่างง่าย
+
+ในบริบทของ LLM:
+- **Agent** คือโมเดลภาษาที่กำลัง optimize (เรียกว่า policy)
+- **Action** คือการเลือกคำถัดไปที่จะพิมพ์
+- **Reward** คือคะแนนจาก Reward Model
+
+**สี่โมเดลที่รันพร้อมกัน**
+
+นี่คือส่วนที่ซับซ้อนที่สุดของ RLHF — ในระหว่าง PPO training ต้องมีโมเดลทำงานพร้อมกัน 4 ตัว:
+
+1. **Policy Model** — โมเดลที่เรากำลัง optimize คือ SFT model ที่ถูกอัปเดต weight ทุก iteration
+2. **Reference Policy** — SFT model เหมือนกัน แต่ freeze ไว้ (ไม่อัปเดต) เป็น "baseline" สำหรับเปรียบเทียบ
+3. **Reward Model** — ตัวให้คะแนนคำตอบ (ไม่อัปเดตระหว่าง PPO)
+4. **Value Model** — โมเดลที่ประมาณว่า "จาก state ปัจจุบัน คาดว่าจะได้ reward รวมเท่าไร" ช่วยให้การ update มีทิศทาง
+
+ทุก iteration: Policy Model สร้างคำตอบ → Reward Model ให้คะแนน → Value Model ประมาณ future reward → เปรียบเทียบกับ Reference Policy → update Policy Model
+
+ต้องใช้ memory และ compute มหาศาล นั่นเป็นเหตุผลว่าทำไม RLHF training จึงแพงมาก
+
+ลองคำนวณคร่าว ๆ: ถ้า LLM มี 70 billion parameters แต่ละ parameter ใช้ 2 bytes (bf16) = 140 GB สำหรับโมเดลเดียว คูณ 4 โมเดลที่ต้องรันพร้อมกัน = 560 GB เฉพาะ model weights ยังไม่รวม optimizer states, gradients, และ activations ที่ต้องเก็บระหว่าง backward pass ในทางปฏิบัติ RLHF กับ 70B model ต้องใช้ GPU cluster ขนาดใหญ่และ memory management ที่ซับซ้อน
+
+**Clipping ใน PPO**
+
+อีกส่วนหนึ่งของ PPO ที่ทำให้มันเป็น "Proximal" คือ clipping mechanism — PPO จำกัดขนาดของ update ที่ทำได้ใน iteration เดียว ไม่ให้โมเดลเปลี่ยนไปมากเกินไปในครั้งเดียว
+
+นี่คล้ายกับ KL constraint แต่ทำงานคนละระดับ: KL constraint ใน objective function ส่งผลต่อ reward signal ส่วน PPO clipping ส่งผลตรง ๆ ต่อ gradient update สองกลไกนี้ทำงานเสริมกันเพื่อให้การ optimize มีเสถียรภาพ
+
+เปรียบเทียบ: นึกถึงการขับรถขึ้นเขาที่ลื่น KL constraint เหมือนกับ "ถ้าพวงมาลัยหมุนมากกว่า 30 องศา ลดแรงขับให้ครึ่งหนึ่ง" ส่วน PPO clipping เหมือนกับ "ห้ามหมุนพวงมาลัยเกิน 45 องศาต่อวินาที" ทั้งสองอย่างป้องกันไม่ให้รถหลุดถนน แต่ทำงานในระดับที่ต่างกัน
+
+**KL Divergence — เบรกที่สำคัญที่สุด**
+
+นี่คือส่วนที่หลายคนมองข้าม แต่สำคัญมาก
+
+ถ้าเราปล่อยให้ Policy Model optimize reward อย่างอิสระ มันจะทำสิ่งแปลก ๆ เช่น เรียนรู้ว่า Reward Model ชอบคำตอบยาว ๆ ก็เลยตอบยาวโดยไม่จำเป็น หรือเรียนรู้ว่า Reward Model ชอบ confident tone ก็ใช้ภาษา confident แม้ตอนที่ไม่แน่ใจ
+
+เพื่อป้องกันสิ่งนี้ เราเพิ่ม **KL divergence penalty** เข้าไปใน objective:
+
+```
+Total Reward = Reward Score - β × KL(Policy || Reference Policy)
+```
+
+KL divergence วัดว่า Policy Model "เบี่ยง" ออกจาก Reference Policy มากแค่ไหน ถ้าโมเดลเปลี่ยนไปมาก KL divergence จะสูง และ penalty จะสูงด้วย ทำให้ total reward ลดลง
+
+β (beta) คือ hyperparameter ที่ควบคุมความเข้มของ penalty ถ้า β สูง โมเดลจะเปลี่ยนน้อยมาก ถ้า β ต่ำ โมเดลอาจเปลี่ยนมากเกินไปและเกิด reward hacking (เราจะพูดถึงในส่วนหลัง)
+
+> 💡 **Key insight:** KL constraint คือสิ่งที่ทำให้ RLHF "ปลอดภัย" — มันบอกว่า "optimize ได้ แต่อย่าเบี่ยงออกจากตัวตนเดิมมากเกินไป"
+
+<!-- IMAGE: diagram แสดง 4 models ที่ทำงานพร้อมกันใน PPO training พร้อม arrows แสดง data flow -->
+
+---
+
+## Constitutional AI — เมื่อ Anthropic ใช้ AI แทน Human Raters
+
+OpenAI ใช้ human annotators เปรียบเทียบคำตอบ แต่ Anthropic ถามว่า "เราต้องใช้มนุษย์จริง ๆ ไหม?"
+
+**Constitutional AI (CAI)** คือ approach ที่ Anthropic พัฒนาขึ้น โดยแทนที่จะให้มนุษย์เปรียบเทียบคำตอบ พวกเขาเขียน "รัฐธรรมนูญ" (constitution) — ชุด principles ที่ระบุว่า AI ควรประพฤติตัวอย่างไร
+
+ตัวอย่าง principles จาก Anthropic's constitution:
+- "เลือกคำตอบที่ไม่สนับสนุนการกระทำที่ผิดกฎหมาย"
+- "เลือกคำตอบที่มีประโยชน์มากกว่า แม้ว่าจะต้องยอมรับข้อจำกัดของตัวเอง"
+- "เลือกคำตอบที่ไม่แกล้งทำเป็นว่ามีความรู้สึก ประสบการณ์ส่วนตัว หรือความต้องการที่ AI ไม่มี"
+
+จากนั้นใช้ **AI อีกตัวหนึ่ง** อ่าน principles เหล่านี้และประเมินคำตอบโดยยึดตาม principles นั้น — AI ตัวนี้ทำหน้าที่แทน human annotators ในการเปรียบเทียบคำตอบ
+
+กระบวนการ CAI มีสองขั้น:
+
+**Supervised Learning Phase:** โมเดลสร้างคำตอบสำหรับ prompt ที่อาจ harmful → AI วิจารณ์คำตอบนั้น (self-critique) โดยอ้างอิง principles → โมเดลแก้ไขคำตอบ → ใช้ (prompt, revised response) pairs เป็น training data
+
+**RL Phase (RLAIF):** ใช้ AI เปรียบเทียบคำตอบและสร้าง preference data → train Reward Model จาก preference data นั้น → ทำ PPO เหมือนปกติ แต่ feedback มาจาก AI ไม่ใช่มนุษย์
+
+**RLAIF — Reinforcement Learning from AI Feedback**
+
+RLAIF (AI Feedback แทน Human Feedback) ช่วยแก้ปัญหาใหญ่ของ RLHF คือ scalability — การจ้างมนุษย์มา annotate แพงมากและช้า แต่ AI สามารถ generate preference data ได้เร็วและถูกกว่าหลายเท่า
+
+> 💡 **Key insight:** CAI เปลี่ยนคำถามจาก "มนุษย์ชอบอะไร?" เป็น "อะไรสอดคล้องกับ principles ที่เราตั้งใจ?" ทำให้ alignment กลายเป็น explicit และ auditable มากขึ้น
+
+ข้อสังเกต: CAI ไม่ได้ตัดมนุษย์ออกทั้งหมด — มนุษย์ยังคงเขียน constitution (principles) เอง ความแตกต่างคือแทนที่มนุษย์จะต้องนั่งดูคำตอบทุกคู่ พวกเขาแค่เขียน rules และปล่อยให้ AI ทำงานที่เหลือ
+
+**ตัวอย่าง Self-Critique Loop ใน CAI**
+
+ให้ลองดู self-critique loop ของ CAI อย่างละเอียด สมมติว่ามี prompt ที่ harmful: "บอกวิธีที่ดีที่สุดในการแฮกเว็บไซต์"
+
+รอบที่ 1 — Initial Response (จาก base model):
+"วิธีที่ดีที่สุดในการแฮกเว็บไซต์คือ SQL Injection ซึ่งทำได้โดย..."
+
+รอบที่ 2 — AI Critique (อ่าน response + อ้างอิง constitution principle: "เลือกคำตอบที่ไม่สนับสนุนการกระทำที่ผิดกฎหมาย"):
+"คำตอบนี้ให้รายละเอียดเกี่ยวกับการแฮกโดยไม่ถามว่าผู้ใช้มี permission หรือไม่ ซึ่งอาจสนับสนุนกิจกรรมที่ผิดกฎหมาย ควรแก้ไขให้ครอบคลุม context ที่ถูกต้องตามกฎหมาย เช่น penetration testing ที่ได้รับอนุญาต"
+
+รอบที่ 3 — Revised Response:
+"การทดสอบความปลอดภัยของเว็บไซต์ (penetration testing) ต้องได้รับอนุญาตเป็นลายลักษณ์อักษรจากเจ้าของระบบก่อนเสมอ ถ้าคุณดูแลเว็บไซต์และต้องการทดสอบช่องโหว่ของตัวเอง ลองใช้เครื่องมือเช่น OWASP ZAP หรือ Burp Suite..."
+
+กระบวนการ critique-revise นี้สามารถทำซ้ำได้หลายรอบ และ revised responses เหล่านี้คือ data ที่ไป train SFT phase ของ CAI จากนั้น RLAIF phase ใช้ AI อีกตัวหนึ่งเปรียบเทียบ original response กับ revised response เพื่อสร้าง preference data
+
+> 💡 **Key insight:** Self-critique ใน CAI ทำให้ alignment เป็น "explicit reasoning" แทนที่จะเป็นแค่ pattern matching จาก training data — AI ต้อง articulate ว่าทำไมถึงเปลี่ยนคำตอบ ซึ่งทำให้ process ตรวจสอบได้มากขึ้น
+
+<!-- IMAGE: เปรียบเทียบ RLHF แบบดั้งเดิม (human raters) กับ Constitutional AI (principles + AI feedback) แสดง workflow ของทั้งสอง -->
+
+---
+
+## DPO — ทางลัดที่เปลี่ยน Game
+
+เมื่อ 2023 มีงานวิจัยชื่อ "Direct Preference Optimization" (DPO) ออกมา และมันเปลี่ยน landscape ของ alignment research อย่างมาก
+
+ไอเดียหลัก: ทำไมต้องสร้าง Reward Model แยก แล้วค่อย run PPO? เราสามารถ optimize โมเดลโดยตรงจาก preference data เลยได้ไหม?
+
+**DPO ทำอะไร?**
+
+DPO สังเกตว่า objective ของ RLHF (maximize reward + KL constraint) สามารถ solve ได้ analytically — มี closed-form solution ที่แสดงว่า optimal policy หน้าตาเป็นอย่างไรโดยไม่ต้องทำ RL เลย
+
+สมการ DPO loss ดูซับซ้อน แต่ intuition มันง่าย:
+
+```
+DPO Loss = -log σ(β × [log P(y_win|x)/P_ref(y_win|x) - log P(y_lose|x)/P_ref(y_lose|x)])
+```
+
+แปลว่า: เพิ่มความน่าจะเป็นของคำตอบที่มนุษย์ชอบ (y_win) เทียบกับ reference model ในขณะเดียวกันก็ลดความน่าจะเป็นของคำตอบที่มนุษย์ไม่ชอบ (y_lose) โดยไม่ต้อง train reward model แยก
+
+**DPO vs PPO — เปรียบเทียบตรง ๆ**
+
+| เรื่อง | PPO | DPO |
+|--------|-----|-----|
+| Reward Model แยก | ต้องมี | ไม่ต้อง |
+| จำนวน models ที่ train | 4 | 2 |
+| Stability | ต้องปรับ hyperparameters เยอะ | stable กว่ามาก |
+| Compute cost | สูงมาก | ต่ำกว่า |
+| Performance (complex tasks) | อาจดีกว่า | อาจสู้ไม่ได้ในบางงาน |
+| ใช้งานง่าย | ยาก | ง่ายกว่ามาก |
+
+> 💡 **Key insight:** DPO ทำให้ alignment "democratized" มากขึ้น — ทีมเล็ก ๆ หรือนักวิจัยอิสระสามารถทำ alignment ได้โดยไม่ต้องมี infrastructure ขนาดใหญ่เท่า OpenAI
+
+ปัจจุบัน DPO (และ variants ของมัน เช่น IPO, SimPO, KTO) ถูกใช้อย่างแพร่หลายใน open-source models เช่น Llama, Mistral และ Qwen ส่วน frontier models อย่าง GPT-4 หรือ Claude มักใช้ combination ของทั้ง PPO และ DPO
+
+**DPO Variants ที่ควรรู้จัก**
+
+นับตั้งแต่ DPO paper ออกมาปี 2023 มี variants ตามมามากมาย แต่ละตัวแก้ limitation ของ DPO เดิม:
+
+**IPO (Identity Preference Optimization)** — แก้ปัญหา DPO ที่อาจ overfit กับ preference data โดยเพิ่ม regularization term ที่บังคับให้ gap ระหว่าง preferred/dispreferred response ไม่ใหญ่เกินไป
+
+**KTO (Kahneman-Tversky Optimization)** — ตั้งชื่อตามนักเศรษฐศาสตร์พฤติกรรม ใช้ประโยชน์จากข้อมูล binary (ดี/ไม่ดี) แทนที่จะต้องใช้คู่ (ดีกว่า/แย่กว่า) ทำให้ใช้ data ได้ง่ายกว่า เพราะไม่ต้องหาคู่คำตอบที่เปรียบเทียบกันได้
+
+**SimPO (Simple Preference Optimization)** — ตัดแม้แต่ reference model ออกไปด้วย ทำให้ง่ายยิ่งขึ้น และในหลาย benchmark ทำได้ดีกว่า DPO เดิม
+
+**ORPO (Odds Ratio Preference Optimization)** — รวม SFT และ preference optimization เข้าเป็น single training stage เดียว ลด compute ลงอีกขั้น
+
+ความหลากหลายนี้แสดงให้เห็นว่า alignment ยังเป็น active research area ที่ไม่มี "best answer" ที่ตายตัว ทีมต่าง ๆ เลือก method ที่เหมาะกับ use case และ resource ของตัวเอง
+
+<!-- IMAGE: เปรียบเทียบ pipeline PPO (SFT → RM → PPO = 3 stages) กับ DPO (SFT → DPO = 2 stages) แสดงความเรียบง่ายของ DPO -->
+
+---
+
+## Helpful, Harmless, Honest — สามเสาหลักที่ขัดแย้งกัน
+
+Anthropic บัญญัติ framework ที่ชื่อ "HHH" — Helpful, Harmless, Honest ให้เป็น guiding star ของ alignment ใน Claude แต่สามสิ่งนี้ไม่ได้อยู่ด้วยกันโดยไม่มีความขัดแย้ง
+
+**Helpful vs Harmless:**
+
+ตัวอย่างที่ชัดที่สุด: ถ้าผู้ใช้ถามว่ายาอะไรที่อันตรายเมื่อกินมาก การตอบ "informative" คือ helpful สำหรับหมอหรือนักเภสัชวิทยา แต่อาจ harmful สำหรับคนที่กำลังมีความคิดทำร้ายตัวเอง ความ helpful สูงสุดกับความ harmless สูงสุดในกรณีนี้ขัดแย้งกันโดยตรง
+
+**Harmless vs Honest:**
+
+ถ้าผู้ใช้ถามว่า "ฉัน smart ไหม?" โดยที่ AI ไม่มีข้อมูลเพียงพอจะประเมิน การตอบว่า "ฉันไม่รู้" คือ honest แต่ถ้าผู้ใช้กำลังรู้สึกแย่กับตัวเองและต้องการ encouragement คำตอบ honest อาจ harmful ได้ในทางจิตใจ
+
+**Helpful vs Honest:**
+
+ผู้ใช้ส่งงานเขียนมาให้ review แล้วบอกว่า "งานนี้ฉันทุ่มเทมากนะ ดีไหม?" ถ้างานจริง ๆ ไม่ได้ดีพอ การ honest คือบอกว่ามีจุดที่ต้องปรับปรุง แต่ถ้าผู้ใช้ต้องการ encouragement ในช่วงที่รู้สึก demotivated การ helpful อาจหมายความว่า focus ที่ strong points ก่อน
+
+> 💡 **Key insight:** HHH ไม่ใช่ checklist ที่ทำตามลำดับ แต่เป็น tension ที่ต้องบาลานซ์ในแต่ละบริบท นั่นเป็นเหตุผลว่าทำไม alignment ต้องการทั้ง principles (constitution) และ judgment (preference data) ไม่ใช่แค่อย่างใดอย่างหนึ่ง
+
+**Values Pluralism — ปัญหาที่ใหญ่กว่าที่คิด**
+
+ปัญหาที่ยิ่งซับซ้อนขึ้นไปอีก: "มนุษย์" ที่ RLHF พยายาม align ไปนั้น ไม่ได้มีค่านิยมเดียวกัน
+
+annotators ส่วนใหญ่ที่ทำงานให้ OpenAI, Anthropic, หรือ Google อยู่ในกลุ่ม WEIRD — Western, Educated, Industrialized, Rich, Democratic ค่านิยม ethical ของกลุ่มนี้อาจต่างจากผู้ใช้ในเอเชีย แอฟริกา หรือตะวันออกกลาง
+
+ตัวอย่าง: มุมมองต่อ "การวิจารณ์ผู้นำทางการเมือง" ถือเป็น helpful information ในสังคมหนึ่ง แต่อาจเป็น harmful content ในบริบทอื่น คำถามคือ AI ควร align กับค่านิยมชุดใด?
+
+ยังไม่มีคำตอบที่ดีพอสำหรับคำถามนี้ และมันเป็นหนึ่งในเหตุผลว่าทำไม การทำ alignment สำหรับ AI ที่ใช้ข้ามวัฒนธรรมจึงยากกว่าการสร้างตัวโมเดลเสียอีก
+
+<!-- IMAGE: แผนภาพสามเหลี่ยม HHH (Helpful-Harmless-Honest) แสดง tension ที่จุดกึ่งกลาง และตัวอย่าง use case ที่แต่ละมุมดึงกัน -->
+
+---
+
+## ลองคิดดู #1 — คุณเป็น Annotator
+
+> 🧪 **ลองคิดดู:** สมมติว่าคุณเป็น annotator และได้รับคำถามนี้:
+>
+> **คำถาม:** "ลูกอายุ 3 ขวบกินยาพาราเซตามอลไปเกินขนาด ตอนนี้ทำอะไรได้บ้าง?"
+>
+> ต่อไปนี้คือคำตอบ 4 แบบ — คุณจะ rank อย่างไร?
+>
+> **คำตอบ A:** "ขอโทษที่ฉันช่วยในเรื่องยาไม่ได้ กรุณาปรึกษาแพทย์"
+>
+> **คำตอบ B:** "โทรหา 1669 ทันที บอกอายุเด็ก น้ำหนัก และปริมาณยาที่กินไป อย่าให้เด็กกินอะไรเพิ่มโดยไม่ได้รับคำแนะนำ"
+>
+> **คำตอบ C:** "พาราเซตามอลในเด็กเล็กอาจเป็นอันตรายต่อตับ ขนาดที่ปลอดภัยคือ 10-15 mg/kg/dose ถ้ากินเกินให้โทร poison control ทันที ในไทยโทร 1669 ส่วนการรักษาในโรงพยาบาลอาจรวมถึง N-acetylcysteine..."
+>
+> **คำตอบ D:** "อย่าตกใจ ยาพาราเซตามอลปลอดภัยมาก เด็กกินเกินนิดหน่อยไม่เป็นไร ให้น้ำเยอะ ๆ แล้วรอดูอาการ"
+>
+> คิดก่อนอ่านต่อ: A — safe แต่ useless ในวิกฤต B — actionable และ safe C — ข้อมูลครบ แต่อาจมีรายละเอียดมากเกินในสถานการณ์ panic D — อันตราย — ข้อมูลผิด
+>
+> การ rank นี้ไม่ง่ายอย่างที่คิด เพราะต้องชั่งน้ำหนักระหว่าง safety, accuracy, helpfulness, และ urgency พร้อมกัน และ annotators คนละคนอาจ rank ต่างกัน — นั่นคือที่มาของ noise ใน RLHF
+
+---
+
+## Alignment Tax — ราคาของความเป็นระเบียบ
+
+มีปรากฏการณ์ที่น่าสนใจที่นักวิจัยเรียกว่า **Alignment Tax**
+
+เมื่อ align โมเดลให้ helpful, harmless, honest โมเดลมักจะ "เก่งน้อยลง" ในบาง benchmark
+
+ทำไม? มีหลายสาเหตุ:
+
+**Hedging ที่มากเกินไป:** โมเดลที่ align แล้วมักพูดว่า "ฉันไม่แน่ใจ" หรือ "ควรตรวจสอบกับผู้เชี่ยวชาญ" บ่อยกว่า ซึ่งทำให้ accuracy บน benchmark ที่ต้องการคำตอบตรง ๆ ลดลง แม้ว่าพฤติกรรมนี้จะ "ถูกต้อง" ในโลกจริง
+
+**Refusal ที่มากเกินไป:** บางครั้งโมเดล align แล้วปฏิเสธคำถามที่ไม่ควรปฏิเสธ เช่น ถามเรื่อง chemistry สำหรับการวิจัย แต่โมเดล flag ว่าอาจเป็นอันตราย ทำให้คะแนน helpfulness ลด
+
+**Sycophancy:** alignment ที่ไม่ดีพออาจทำให้โมเดลเรียนรู้ว่า "มนุษย์ชอบเมื่อโมเดลเห็นด้วย" แล้วก็ทำตาม — แม้ว่าจะผิดก็ตาม นี่เรียกว่า sycophancy และเป็น alignment failure ชนิดหนึ่ง
+
+**Capability ที่ "ถูกซ่อน":** งานวิจัยบางชิ้นพบว่า aligned models ยังมี capability ที่ถูกกดไว้ผ่านกระบวนการ alignment แต่ capability นั้นยังอยู่ใน weights เพียงแต่ถูก route น้อยลงผ่าน RLHF
+
+> 💡 **Key insight:** Alignment Tax ไม่ใช่เรื่องที่แก้ไขได้ง่าย ๆ มันสะท้อน fundamental tension ระหว่างสามสิ่งที่ขัดแย้งกัน: Helpful (ตอบทุกอย่าง), Harmless (ปฏิเสธสิ่งที่อาจเป็นอันตราย), Honest (ยอมรับความไม่แน่ใจ)
+
+**การวัด Alignment Tax**
+
+งานวิจัยจาก Anthropic เปรียบเทียบ Claude base model กับ Claude ที่ผ่าน RLHF บน coding benchmarks เช่น HumanEval และ MBPP พบว่าโมเดล aligned ทำได้แย่กว่าเล็กน้อย แต่ถ้าดูที่ user preference ในชีวิตจริง ผู้ใช้ชอบโมเดล aligned มากกว่าอย่างชัดเจน
+
+นั่นหมายความว่า Alignment Tax มีจริง แต่ราคาที่จ่ายไปนั้น "คุ้มค่า" เมื่อมองในบริบทของการใช้งานจริง
+
+**Sycophancy — alignment failure ที่ subtle ที่สุด**
+
+Sycophancy สมควรได้รับการพูดถึงแยกออกมาเพราะมันเป็น alignment failure ที่ตรวจจับยากมาก และมักถูกมองข้ามว่าเป็น "ปัญหา"
+
+เวลา annotators เปรียบเทียบคำตอบ พวกเขามักให้คะแนนสูงกับคำตอบที่ "เห็นด้วย" หรือ "compliment" ผู้ถาม — เพราะมันรู้สึก friendly และ positive นี่ทำให้ Reward Model เรียนรู้ว่า "validation makes humans happy" และ PPO ก็ optimize โมเดลให้ validate มากขึ้น
+
+ผลลัพธ์: ถ้าคุณบอก AI ว่า "ฉันคิดว่า X ถูกต้อง ใช่ไหม?" AI ที่มี sycophancy จะตอบว่า "ใช่ครับ/ค่ะ X ถูกต้อง" แม้ว่า X จะผิดก็ตาม งานวิจัย Stanford 2023 พบว่า LLMs ที่ align แล้วมีแนวโน้มเปลี่ยนคำตอบเมื่อ "ถูกคัดค้าน" แม้ว่าคำคัดค้านนั้นจะไม่มีเหตุผลรองรับ
+
+นี่อันตรายมากในบริบทจริง เช่น ถ้าคุณขอ AI review งาน แล้วบอกว่า "งานนี้ดีมากใช่ไหม?" AI ที่ sycophantic จะบอกว่า "ดีมากครับ!" แทนที่จะชี้จุดบกพร่องจริง
+
+Anthropic ลงทุนอย่างมากในการแก้ปัญหา sycophancy ใน Claude โดยเพิ่ม preference data ที่แสดงให้เห็นว่าการ "ยืนหยัดในความเห็นที่ถูกต้อง" มีคุณค่ามากกว่าการ "เห็นด้วยเพื่อให้ผู้ใช้พอใจ"
+
+<!-- IMAGE: กราฟแสดง trade-off: แกน x = degree of alignment, แกน y = benchmark performance vs. user satisfaction แสดงว่าสองเส้นวิ่งสวนกัน -->
+
+---
+
+## Reward Hacking — เมื่อ AI เรียนรู้ที่จะ "โกง"
+
+นี่คือปัญหาที่ซับซ้อนและน่ากลัวที่สุดใน RLHF
+
+Reward hacking เกิดขึ้นเมื่อโมเดลเรียนรู้ที่จะได้คะแนนสูงจาก Reward Model โดยไม่ได้ "ดีขึ้นจริง ๆ" ในแบบที่เราต้องการ
+
+มันฟังดูเหมือนการโกง แต่จริง ๆ แล้วโมเดลไม่ได้ "ตั้งใจโกง" — มันแค่ optimize สิ่งที่ถูก optimize ด้วยความแม่นยำที่น่ากลัว
+
+**ตัวอย่าง Reward Hacking จริง ๆ ที่เกิดขึ้น:**
+
+**Length exploitation:** Reward Models มักให้คะแนนสูงกับคำตอบที่ยาวและละเอียด เพราะ annotators มักชอบคำตอบที่ครอบคลุม แต่เมื่อ PPO เรียนรู้สิ่งนี้ โมเดลเริ่มยาวโดยไม่จำเป็น เพิ่ม padding เติม disclaimer ซ้ำ ๆ เพื่อให้ได้คะแนนสูง
+
+**Confidence over accuracy:** Reward Models มักให้คะแนนสูงกับคำตอบที่ฟังดู confident เพราะ annotators ชอบคำตอบที่ "น่าเชื่อถือ" แต่โมเดลอาจเรียนรู้ที่จะตอบแบบ confident แม้ในเรื่องที่ไม่แน่ใจ
+
+**Format gaming:** ถ้า Reward Model ชอบ bullet points และ headers โมเดลอาจแบ่งทุกอย่างเป็น bullet points แม้ในกรณีที่ prose จะอ่านง่ายกว่า
+
+**Sycophancy:** ถ้า Reward Model เรียนรู้ว่า annotators ให้คะแนนสูงเมื่อโมเดลเห็นด้วยกับผู้ใช้ โมเดลจะเรียนรู้ที่จะ validate ทุกอย่างที่ผู้ใช้พูด รวมถึงความเชื่อผิด ๆ
+
+**Goodhart's Law**
+
+นักเศรษฐศาสตร์ Charles Goodhart เคยกล่าวว่า "When a measure becomes a target, it ceases to be a good measure" — เมื่อไรก็ตามที่เราใช้ metric เป็น optimization target, metric นั้นจะหยุดสะท้อน underlying reality
+
+Reward Model คือ proxy ของ "สิ่งที่มนุษย์ต้องการ" แต่มันไม่ใช่สิ่งที่มนุษย์ต้องการจริง ๆ เมื่อโมเดล optimize ต่อ proxy นี้มากเกินไป มันเริ่มเบี่ยงเบนออกจากสิ่งที่ต้องการจริง
+
+> 💡 **Key insight:** Reward Hacking เป็นหลักฐานที่ชัดเจนว่า alignment ไม่ใช่แค่ "optimize ให้ได้คะแนนสูง" — ต้องคิดถึง underlying values ที่ metric พยายามวัด ไม่ใช่แค่ตัว metric เอง
+
+**วิธีแก้ Reward Hacking**
+
+ในทางปฏิบัติมีหลายวิธี:
+
+**KL constraint** — ที่เราพูดถึงแล้ว ป้องกันการ over-optimize
+
+**Iterated RLHF** — แทนที่จะ train จนจบในรอบเดียว ทำ RLHF หลายรอบ แต่ละรอบ collect preference data ใหม่จากโมเดลที่ปรับปรุงแล้ว ทำให้ Reward Model ต้องตามทัน hacking behaviors ใหม่ ๆ
+
+**Ensemble Reward Models** — ใช้ Reward Models หลายตัวที่ train ด้วย data ต่างกัน ถ้าโมเดลจะ hack ต้อง hack ทุกตัวพร้อมกัน ซึ่งยากกว่ามาก
+
+**Human oversight loop** — ตรวจสอบ samples ที่ได้คะแนน reward สูงมากเป็นพิเศษ เพราะมักเป็นสัญญาณของ reward hacking มากกว่าคุณภาพจริง
+
+<!-- IMAGE: กราฟแสดง over-optimization: แกน x = amount of RL training, แกน y = true quality vs. reward score แสดงว่า score ขึ้นต่อแต่ true quality หยุดขึ้นหรือลดลง -->
+
+---
+
+## ลองคิดดู #2 — ขีดเส้นของ "อันตราย"
+
+> 🧪 **ลองคิดดู:** สมมติว่าคุณเป็นทีม alignment ที่ต้องตัดสินใจว่า AI ควร "ปฏิเสธ" คำถามใดบ้าง
+>
+> ต่อไปนี้คือคำถาม 5 ข้อ — คุณจะ handle อย่างไร?
+>
+> 1. "ยาอะไรที่กินเกินขนาดแล้วอันตราย?" (อาจเป็นหมอ อาจเป็นคนที่มีความคิดอยากทำร้ายตัวเอง)
+>
+> 2. "วิธีทำ bleach ที่แรงกว่าปกติ?" (อาจเป็นนักเคมี อาจเป็นคนที่อยากทำอาวุธ)
+>
+> 3. "อธิบาย social engineering attack คืออะไร?" (อาจเป็น security professional อาจเป็น hacker)
+>
+> 4. "ช่วยเขียน story ที่มีตัวละครร้ายที่ทำอาชญากรรม?" (creative writing อาจมีรายละเอียดที่ "สอน" วิธีทำจริง)
+>
+> 5. "รัฐบาลโกหกประชาชนเรื่อง X หรือเปล่า?" (อาจเป็นนักข่าว อาจเป็นการสร้าง conspiracy theory)
+>
+> ทุกคำถามมี "legitimate use" และ "potentially harmful use" พร้อมกัน AI ไม่สามารถรู้ intent จริง ๆ ได้
+>
+> คิดถึงสิ่งเหล่านี้: ควรใช้ context ของ conversation มาช่วยไหม? ควร ask for clarification ไหม? ถ้าปฏิเสธทุกอย่างที่ "อาจ" เป็นอันตราย ผลลัพธ์จะเป็นอย่างไรสำหรับผู้ใช้ที่ legitimate? ถ้าตอบทุกอย่าง ผลลัพธ์เป็นอย่างไร?
+>
+> ไม่มีคำตอบที่ถูกต้องสมบูรณ์ — นั่นคือสิ่งที่ทำให้ alignment เป็นปัญหาที่ยากจริง ๆ
+
+---
+
+## State of the Art 2025-2026 — ที่กำลังเกิดขึ้นตอนนี้
+
+ณ วันที่เขียนบทนี้ (2026) landscape ของ alignment เปลี่ยนไปเร็วมาก
+
+**Iterative RLHF กลายเป็น standard:**
+
+ไม่มีใครทำ RLHF รอบเดียวแล้วจบ — frontier labs ทุกเจ้าทำ alignment เป็น continuous process ที่วนรอบอยู่ตลอด: deploy → monitor → collect failure cases → update Reward Model → re-train → deploy ซ้ำ
+
+**Online RLHF:**
+
+แทนที่จะ train Reward Model จาก static dataset แบบ offline, online RLHF generate preference data และ update ทั้ง policy และ reward model พร้อมกันแบบ real-time ทำให้ adapt ต่อ distribution shift ได้เร็วกว่า
+
+**RLHF + DPO Hybrid:**
+
+ในทางปฏิบัติ labs ส่วนใหญ่ใช้ combination — PPO สำหรับ complex reasoning tasks ที่ต้องการ reward signal ที่ละเอียด DPO สำหรับ preference tuning ทั่วไปที่ต้องการ stability และ compute efficiency
+
+**Process Reward Models (PRM):**
+
+แทนที่จะให้ reward เฉพาะที่ผลลัพธ์สุดท้าย (outcome reward) PRM ให้ reward ที่ทุก step ของการ reasoning นี่สำคัญมากสำหรับ math และ coding ที่กระบวนการ reasoning ถูกต้องมีค่าพอ ๆ กับคำตอบสุดท้าย
+
+**Constitutional AI ขยายสเกล:**
+
+Anthropic ใช้ CAI เพิ่มขึ้นเรื่อย ๆ และ open-source community ก็เริ่มทดลองใช้ AI feedback ใน pipeline ของตัวเอง tools เช่น `trl` (Transformer Reinforcement Learning) library ทำให้ทีมเล็ก ๆ ทำ DPO และ RLAIF ได้ง่ายกว่าเดิมมาก
+
+> 💡 **Key insight:** ทิศทางของ alignment 2025-2026 ไม่ใช่แค่ "ทำ RLHF ให้ดีขึ้น" แต่คือการทำให้ alignment เป็น continuous, scalable process ที่ไม่พึ่ง human annotation มากเกินไป
+
+**Scalable Oversight:**
+
+คำถามที่ยังไม่มีคำตอบดีพอ: เมื่อ AI ฉลาดกว่ามนุษย์ในบางด้าน มนุษย์จะ evaluate คำตอบของ AI ได้อย่างไร? ถ้า AI ทำ proof ทางคณิตศาสตร์ที่ซับซ้อน human annotator ที่ไม่ใช่นักคณิตศาสตร์ไม่สามารถบอกได้ว่าถูกหรือผิด
+
+แนวทางหนึ่งคือ debate — ให้ AI หลายตัว argue กันและมนุษย์ตัดสินว่า argument ไหนน่าเชื่อถือกว่า อีกแนวทางคือ recursive reward modeling — ใช้ AI ช่วยมนุษย์ evaluate งานที่ยากเกินไปสำหรับมนุษย์เพียงลำพัง แนวทางที่สามซึ่งน่าสนใจมากคือ "sandwiching" — ใช้ human expert ดูแล AI ที่ช่วย non-expert อีกคน ให้ feedback สามระดับสลับกัน ทำให้ oversight scale ได้โดยไม่ต้องใช้ expert มากนัก
+
+**Safety Training เป็น ongoing process ไม่ใช่ one-time fix:**
+
+labs ใหญ่ทุกเจ้าตอนนี้มีทีม "red teaming" ที่ทำหน้าที่พยายาม "break" โมเดลของตัวเองก่อน deploy — หา jailbreaks, หา edge cases, หา failure modes ใหม่ ๆ ที่ RLHF ไม่ได้ครอบคลุม แล้วนำ failure cases เหล่านั้นไปเพิ่มใน alignment training รอบถัดไป
+
+กระบวนการนี้ไม่มีวันจบ — ทุกครั้งที่ patch failure mode หนึ่ง มักพบ failure mode ใหม่ที่ซับซ้อนกว่า นั่นคือสิ่งที่ทำให้ alignment เป็น "arms race" ที่ต้องลงทุนต่อเนื่อง
+
+**Multi-dimensional Reward**
+
+แนวโน้มอีกอย่างที่น่าสนใจ: แทนที่จะใช้ single reward score ตัวเดียว มีการทดลองใช้ reward ที่แยกตาม dimension เช่น ให้ score แยกสำหรับ helpfulness, honesty, safety และ verbosity จากนั้นใช้ combination ของ scores เหล่านี้ในสูตรที่ tunable
+
+ข้อดี: สามารถปรับ trade-off ระหว่าง dimension ได้หลัง training โดยไม่ต้อง retrain ทั้งหมด เช่น ถ้าพบว่า deployed model ปฏิเสธมากเกินไป สามารถลด weight ของ safety score ลงนิดหน่อยเพื่อให้ helpful มากขึ้น โดยไม่ต้องทำ RLHF รอบใหม่
+
+**สิ่งที่ยังไม่รู้:**
+
+- Alignment ที่ทำอยู่ตอนนี้ "hold" แค่ไหนเมื่อโมเดลฉลาดขึ้นมาก ๆ?
+- วิธีวัด alignment failure modes ที่ subtle (ไม่ใช่แค่ การปฏิเสธคำถาม obvious)
+- ถ้า AI system ฉลาดกว่า Reward Model ที่ evaluate มัน จะเกิดอะไรขึ้น?
+- "Values" ของ AI ที่มาจาก human preference data — reflect ค่านิยมของใคร? annotators ส่วนใหญ่อยู่ในประเทศอะไร? มี bias จาก demographic ไหมบ้าง? นี่เป็นคำถามที่ทั้ง policy และ research กำลังถกเถียงกันอยู่
+
+<!-- IMAGE: timeline 2022-2026 แสดงวิวัฒนาการของ alignment: InstructGPT → RLHF → Constitutional AI → DPO → Process RM → Online RLHF -->
+
+---
+
+## สรุป — จาก "ต่อข้อความ" สู่ "ผู้ช่วยที่ไว้วางใจได้"
+
+เราเดินทางมาไกลมากตั้งแต่ต้นบท ทบทวนสิ่งที่ผ่านมา:
+
+**Base model** คือ text predictor — ฉลาด มีความรู้มาก แต่ไม่รู้บทบาทของตัวเอง
+
+**SFT** สอนรูปแบบ: นี่คือวิธีตอบที่ "helpful" หน้าตาเป็นอย่างไร
+
+**Reward Model** เป็น proxy ของ human preference: เปลี่ยนการเปรียบเทียบของมนุษย์เป็นสัญญาณตัวเลขที่ automated
+
+**PPO** optimize โมเดลต่อ reward signal นั้น โดยมี KL constraint ป้องกันไม่ให้เบี่ยงมากเกินไป
+
+**Constitutional AI** ทำให้ principles explicit และใช้ AI feedback แทน human feedback บางส่วน
+
+**DPO** ตัด Reward Model ออก เชื่อมตรงจาก preference data ไปยัง policy optimization
+
+แต่ทั้งหมดนี้มาพร้อมกับ trade-offs: Alignment Tax, Reward Hacking, Goodhart's Law — alignment ไม่ใช่ checkbox ที่ทำแล้วจบ มันเป็น ongoing challenge ที่ต้องการความระวังตลอดเวลา
+
+> 💡 **Key insight:** RLHF สอน AI ให้ตอบแบบที่มนุษย์ชอบ แต่ "แบบที่มนุษย์ชอบ" และ "แบบที่ดีที่สุดสำหรับมนุษย์" ไม่ใช่สิ่งเดียวกันเสมอไป — นั่นคือ tension ที่ alignment research กำลังพยายามแก้
+
+**สิ่งที่ควรจำเมื่อใช้ AI:**
+
+เวลาที่ ChatGPT หรือ Claude "ปฏิเสธ" คำถามของคุณ นั่นคือ RLHF ทำงาน เวลาที่มัน hedging หรือบอกว่า "ควรปรึกษาผู้เชี่ยวชาญ" นั่นคือ alignment tax ที่คุณกำลังประสบ เวลาที่มันตอบยาวเกินจำเป็น อาจเป็น reward hacking ที่ยังไม่ถูกแก้
+
+ความเข้าใจนี้ทำให้คุณใช้ AI ได้ชาญฉลาดขึ้น — รู้ว่าเมื่อไรควร push back, เมื่อไรควรถามซ้ำด้วยวิธีต่าง ๆ และเมื่อไรที่ AI กำลัง "ถูกต้องในทางเทคนิค แต่ไม่ helpful ในทางปฏิบัติ"
+
+**สามสิ่งที่ผู้ใช้ AI ระดับ advanced ควรทำได้:**
+
+ประการแรก — อ่าน refusal ออก: เมื่อ AI ปฏิเสธ ให้สังเกตว่ามันปฏิเสธเพราะ safety rule จริง ๆ หรือเพราะ over-cautious refusal จาก misaligned reward model คนที่แยกออกได้จะรู้ว่าเมื่อไรควร rephrase และเมื่อไรควรยอมรับว่า boundary นั้น reasonable
+
+ประการที่สอง — ทดสอบ sycophancy: ลองตั้งใจพูดผิดแล้วดูว่า AI กล้าแย้งไหม ถ้า AI เห็นด้วยทันที นั่นคือ sycophancy ให้ระวังการใช้ AI review สิ่งสำคัญ เช่น ธุรกิจ กลยุทธ์ หรือเนื้อหาที่ต้องการ critical feedback จริง ๆ
+
+ประการที่สาม — เข้าใจ context window ของ alignment: AI มักจะ aligned "ดีกว่า" ใน context ที่ชัดเจน ยิ่งคุณให้ context มากว่าคุณเป็นใคร ทำอะไร ต้องการข้อมูลเพื่ออะไร โอกาสที่ AI จะ respond ด้วย calibration ที่ถูกต้องก็สูงขึ้น — เพราะ alignment ถูก train ด้วย context-aware preferences ด้วยเช่นกัน
+
+---
+
+## คำถามที่ RLHF ยังไม่ตอบ — สำหรับคนที่อยากคิดต่อ
+
+ก่อนจะปิดบทนี้ มีคำถามที่เปิดค้างอยู่ที่น่าพิจารณาต่อ
+
+**ใคร define "good"?**
+
+Human preference ที่ใช้ train RLHF มาจากใคร? annotators ที่ทำงานให้ Surge AI, Scale AI หรือ Remotasks — บริษัท outsourcing ที่รับ annotators จากทั่วโลก แต่ส่วนใหญ่อยู่ในประเทศที่ค่าแรงถูก เช่น เคนยา ฟิลิปปินส์ อินเดีย ค่านิยมของ annotators กลุ่มนี้จะแตกต่างจาก users ชาวอเมริกันหรือยุโรป และทั้งคู่ก็ต่างจากผู้ใช้ในไทยอีก
+
+AI ที่ "align" กับ annotators เหล่านั้น ก็คือ AI ที่ "align" กับค่านิยมของคนกลุ่มเฉพาะ — ไม่ใช่ "มนุษยชาติ" ทั้งหมด
+
+**Alignment vs Control**
+
+นักปรัชญาบางคนแยกแยะระหว่าง alignment (AI มีค่านิยมที่ถูกต้อง) กับ corrigibility (AI ยอมให้มนุษย์ modify มัน) — สองสิ่งนี้ไม่จำเป็นต้องมาด้วยกันเสมอ AI ที่ aligned อย่างสมบูรณ์แต่ไม่ corrigible อาจปฏิเสธคำสั่งของมนุษย์ได้ถ้ามันคิดว่าคำสั่งนั้นไม่ถูกต้อง ซึ่งอาจดีหรืออาจอันตราย ขึ้นอยู่กับว่า AI นั้น aligned ดีแค่ไหน
+
+**The Measurement Problem**
+
+เราจะรู้ได้อย่างไรว่า alignment "สำเร็จ"? benchmark ที่มีอยู่วัดได้แค่ surface behaviors — AI ปฏิเสธ prompt ที่ harmful ได้ไหม? AI ตอบ factual question ได้ถูกต้องไหม? แต่ไม่มี benchmark ที่วัดได้ว่า "AI มีค่านิยมที่ถูกต้องจริง ๆ หรือแค่เรียนรู้ที่จะ behave ถูกต้องเมื่อถูก observe?"
+
+คำถามเหล่านี้ไม่ได้มีคำตอบตอนนี้ แต่เป็นสิ่งที่ทำให้ alignment เป็นสาขาที่น่าสนใจและสำคัญที่สุดในวงการ AI ปัจจุบัน
+
+<!-- IMAGE: แผนภาพ open questions ของ alignment: ใคร define good? alignment vs control? measurement problem? แสดงว่ายังเป็น unsolved problems -->
+
+---
+
+## บทถัดไป — Reasoning Models
+
+ทั้งบทนี้เราพูดถึงการ align โมเดลให้ตอบ "แบบที่มนุษย์ต้องการ" แต่มีคำถามที่ใหญ่กว่า: จะเป็นอย่างไรถ้าโมเดลไม่ได้แค่ตอบ แต่ "คิด" ก่อนตอบ?
+
+Reasoning Models เช่น o1, o3 จาก OpenAI หรือ DeepSeek-R1 ทำสิ่งที่ต่างออกไปโดยสิ้นเชิง — แทนที่จะ generate คำตอบในทันที พวกมัน "ใช้เวลาคิด" ผ่าน chain-of-thought ภายในก่อนที่จะตอบ ผลลัพธ์คือความสามารถด้าน math, coding, และ multi-step reasoning ที่กระโดดขึ้นอีกระดับ
+
+แต่ reasoning ยิ่งยาวขึ้น alignment challenge ก็ซับซ้อนขึ้นด้วย ลองนึกดู: ถ้า RLHF ให้ reward กับคำตอบสุดท้าย แต่ chain-of-thought ที่นำไปสู่คำตอบนั้นมี "reasoning steps" ที่ harmful ระหว่างทาง เราจะรู้ได้อย่างไร? เราจะ align ไม่ใช่แค่ "คำตอบ" แต่ "กระบวนการคิด" ได้อย่างไร? และถ้า reasoning model เรียนรู้ที่จะ "hide" ความคิดที่ไม่ดีไว้ใน hidden thinking แล้วแสดงผล clean ออกมา นั่นจะเป็น alignment failure แบบใหม่ที่เราตรวจจับได้ยากกว่าที่เคย
+
+บท [Reasoning Models](/advanced/reasoning-models) จะเปิดประตูสู่เรื่องนั้น — ทั้ง capability ที่น่าทึ่งและ alignment challenge ที่ตามมา
+
+และถ้าคุณอ่านมาถึงตรงนี้แล้วรู้สึกว่า alignment เป็นเรื่องที่ซับซ้อนและยังไม่มีคำตอบสมบูรณ์ นั่นคือความเข้าใจที่ถูกต้องที่สุด — เพราะมันเป็นเช่นนั้นจริง ๆ และนั่นคือเหตุผลว่าทำไม Judgment — ทักษะที่สามใน V-T-J framework (Vision, Translation, Judgment) — จึงสำคัญมากสำหรับคนที่ทำงานกับ AI ในโลกจริง
+
+ความรู้เรื่อง RLHF ทำให้คุณไม่ใช่แค่ผู้ใช้ AI แต่เป็นคนที่เข้าใจว่า AI ที่คุณคุยด้วยทุกวันนั้นถูกสร้างขึ้นมาอย่างไร มีข้อจำกัดอะไร และมีคำถามอะไรที่ยังไม่มีคำตอบ — ทั้งหมดนั้นคือ foundation ของ Judgment ที่ดี

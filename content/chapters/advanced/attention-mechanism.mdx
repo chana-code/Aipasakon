@@ -1,0 +1,680 @@
+---
+slug: attention-mechanism
+level: advanced
+title: "Attention Mechanism — วิธีที่ AI 'อ่าน' และ 'เข้าใจ' ภาษา"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "Deep dive เข้าไปในกลไก Attention ตั้งแต่ Scaled Dot-Product, Multi-Head, Cross-Attention, Causal Masking จนถึง Flash Attention และ optimization ที่ทำให้ LLM เร็วขึ้น"
+---
+# Attention Mechanism — วิธีที่ AI 'อ่าน' และ 'เข้าใจ' ภาษา
+
+บทที่แล้วคุณเห็นภาพรวมของ Transformer แล้วว่ามันประกอบด้วยชั้นอะไรบ้าง แต่ยังมีคำถามหนึ่งที่ค้างอยู่: ทำไม AI ถึงรู้ว่าคำว่า "มัน" ในประโยค "แมวที่นอนบนโซฟา มันอ้วนมาก" หมายถึงแมว ไม่ใช่โซฟา? บทนี้จะ zoom เข้าไปดูกลไกที่ทำให้ AI "เข้าใจ" ความสัมพันธ์ระหว่างคำได้ — Attention Mechanism ซึ่งเป็นหัวใจของ Transformer ทั้งหมด
+
+<!-- IMAGE: ภาพ zoom เข้าไปในกล่อง Attention inside Transformer block พร้อม arrows แสดงว่า token แต่ละตัวเชื่อมกันยังไง -->
+
+---
+
+## ทบทวน: Attention คืออะไร
+
+ก่อนดูตัวเลขจริง ๆ ลองทำความเข้าใจแนวคิดพื้นฐานก่อน
+
+ลองจินตนาการว่าคุณอ่านประโยคนี้:
+
+> "แมวที่นอนบนโซฟาสีแดง **มัน** อ้วนมาก"
+
+เมื่อคุณอ่านถึงคำว่า "มัน" สมองคุณทำอะไร? มันวิ่งกลับไปหาคำก่อนหน้าเพื่อถามว่า "มัน" = อะไร แล้วสมองก็ตอบ: แมว ไม่ใช่โซฟา ไม่ใช่สี ไม่ใช่อะไรก็ตาม
+
+Attention Mechanism ทำสิ่งเดียวกันนี้ แต่ทำแบบคณิตศาสตร์ ทุกครั้งที่ model ประมวลผล token หนึ่ง ๆ มันจะถามคำถามว่า "token ไหนในประโยคนี้ที่ฉันควรให้ความสนใจมากที่สุด?" แล้วคำตอบจะออกมาเป็นตัวเลข เช่น:
+
+- มัน → แมว: **0.72** (ความสนใจสูง)
+- มัน → โซฟา: **0.05** (ความสนใจต่ำ)
+- มัน → นอน: **0.15** (ความสนใจปานกลาง)
+- มัน → มัน (ตัวเอง): **0.08**
+
+ตัวเลขพวกนี้รวมกันได้ 1.0 เสมอ (เพราะผ่าน softmax) และ model ใช้ตัวเลขเหล่านี้เป็น "น้ำหนัก" ในการดึงข้อมูลจาก token ต่าง ๆ มารวมกันเป็นความหมายของ "มัน"
+
+> 💡 **Key insight:** Attention ไม่ได้ "เลือก" คำใดคำหนึ่ง แต่มันผสมข้อมูลจากทุก token ในสัดส่วนที่แตกต่างกัน เหมือนเปิดก๊อกน้ำหลายก๊อกพร้อมกัน แต่เปิดแต่ละก๊อกในระดับที่ต่างกัน
+
+<!-- IMAGE: ภาพประโยค "แมวที่นอนบนโซฟา มันอ้วนมาก" พร้อม arrows ที่มีความหนาแตกต่างกันชี้จาก "มัน" ไปยังคำอื่น ๆ แสดง attention weights -->
+
+---
+
+## Scaled Dot-Product Attention — สมการจริง
+
+ถึงเวลาดูคณิตศาสตร์จริง ๆ สมการของ Attention มีหน้าตาแบบนี้:
+
+```
+Attention(Q, K, V) = softmax( Q · Kᵀ / √d_k ) · V
+```
+
+มันดูน่ากลัว แต่ถ้าแกะออกทีละขั้น จะเห็นว่าแต่ละส่วนมีเหตุผลชัดเจนมาก
+
+### Q, K, V คืออะไร?
+
+ก่อนอื่นต้องเข้าใจว่า Q, K, V มาจากไหน ทุก token ในประโยคจะถูกแปลงเป็น vector 3 ตัว:
+
+- **Q (Query)** — "คำถาม" ของ token นั้น: "ฉันกำลังมองหาอะไร?"
+- **K (Key)** — "ป้ายชื่อ" ของ token นั้น: "ฉันมีข้อมูลอะไรให้?"
+- **V (Value)** — "เนื้อหาจริง" ของ token นั้น: "ถ้าเธอเลือกฉัน นี่คือสิ่งที่ฉันจะให้"
+
+อุปมาที่ชัดที่สุด: ลองนึกถึงการค้นหาใน YouTube
+
+- **Query** = คำที่คุณพิมพ์ในช่องค้นหา ("แมวน่ารัก")
+- **Key** = ชื่อและ metadata ของแต่ละวิดีโอ
+- **Value** = ตัววิดีโอจริง ๆ
+
+YouTube จับคู่ Query ของคุณกับ Key ของวิดีโอต่าง ๆ แล้วคืน Value ของวิดีโอที่ตรงที่สุดให้คุณ Attention ทำงานแบบเดียวกัน แต่ทำกับทุก token พร้อมกัน
+
+### ขั้นตอนที่ 1: คำนวณ Similarity ด้วย Dot Product (Q · Kᵀ)
+
+ลองใช้ตัวอย่างจริง: ประโยค "แมว นอน บน โซฟา" สี่ token
+
+สมมติว่า vector ขนาด d_k = 4 มิติ (ในโลกจริง GPT-4 ใช้ 128 มิติต่อ head)
+
+Q ของ "นอน":
+```
+Q_นอน = [0.8, 0.2, -0.5, 0.3]
+```
+
+K ของ "แมว":
+```
+K_แมว = [0.9, 0.1, -0.4, 0.2]
+```
+
+K ของ "บน":
+```
+K_บน = [-0.3, 0.7, 0.8, -0.1]
+```
+
+Dot product ระหว่าง Q_นอน กับ K_แมว:
+```
+(0.8)(0.9) + (0.2)(0.1) + (-0.5)(-0.4) + (0.3)(0.2)
+= 0.72 + 0.02 + 0.20 + 0.06
+= 1.00
+```
+
+Dot product ระหว่าง Q_นอน กับ K_บน:
+```
+(0.8)(-0.3) + (0.2)(0.7) + (-0.5)(0.8) + (0.3)(-0.1)
+= -0.24 + 0.14 + (-0.40) + (-0.03)
+= -0.53
+```
+
+สังเกตว่า "นอน" มีคะแนน similarity กับ "แมว" สูงกว่า "บน" มาก — ซึ่งสมเหตุสมผล เพราะ "ใครนอน?" มีคำตอบว่า "แมว" ไม่ใช่ "บน"
+
+### ขั้นตอนที่ 2: Scale ด้วย √d_k
+
+หลังจากคำนวณ dot product แล้ว เราหารด้วย √d_k ก่อน ในตัวอย่างนี้ d_k = 4 ดังนั้น √4 = 2
+
+```
+1.00 / 2 = 0.50   (นอน → แมว)
+-0.53 / 2 = -0.265 (นอน → บน)
+```
+
+**ทำไมต้อง scale?** นี่เป็นรายละเอียดที่สำคัญมาก เมื่อ vector มีมิติสูง (เช่น 128 หรือ 512 มิติ) dot product มีแนวโน้มจะได้ตัวเลขที่ใหญ่มาก เช่น 50, 100, หรือ 200 ตัวเลขที่ใหญ่เกินไปจะทำให้ softmax ในขั้นถัดไปส่งผลลัพธ์ที่ "แข็งตัว" (saturated) — คือ token ที่ชนะจะได้น้ำหนักเกือบ 1.0 และ token ที่แพ้จะได้เกือบ 0.0 ซึ่งทำให้ gradient ไหลกลับได้ยาก (gradient vanishing) การหารด้วย √d_k ทำให้ตัวเลขอยู่ในช่วงที่ softmax ทำงานได้ดี
+
+> 💡 **Key insight:** การ scale ด้วย √d_k ดูเหมือนเรื่องเล็ก แต่ถ้าไม่มีขั้นตอนนี้ model จะ train ได้ยากขึ้นมาก — attention จะ "overconfident" เกินไปและเรียนรู้ได้ช้า
+
+### ขั้นตอนที่ 3: Softmax = เลือก Attention Weights
+
+สมมติว่าเราคำนวณ dot product ที่ scale แล้วสำหรับ "นอน" กับ token ทุกตัว:
+
+```
+นอน → แมว:  0.50
+นอน → นอน:  1.20  (ตัวเอง)
+นอน → บน:  -0.27
+นอน → โซฟา: 0.15
+```
+
+หลังผ่าน softmax:
+```
+นอน → แมว:  0.29
+นอน → นอน:  0.57
+นอน → บน:  0.06
+นอน → โซฟา: 0.08
+                ----
+รวม:         1.00
+```
+
+Softmax ทำสองสิ่ง: (1) แปลงตัวเลขที่เป็นลบให้เป็นบวกได้ (2) ทำให้ทุกค่าบวกและรวมกันได้ 1.0 เสมอ ผลลัพธ์คือ attention weight ที่บอกว่า "นอน" ควรดึงข้อมูลจากแต่ละ token ในสัดส่วนเท่าไหร่
+
+### ขั้นตอนที่ 4: Weighted Sum ของ Values
+
+ขั้นสุดท้าย เราคูณ weight เหล่านี้กับ Value vector ของแต่ละ token แล้วบวกรวมกัน
+
+```
+output_นอน = 0.29 × V_แมว
+            + 0.57 × V_นอน
+            + 0.06 × V_บน
+            + 0.08 × V_โซฟา
+```
+
+output ที่ได้คือ vector ใหม่ที่แทน "นอน" แต่มีข้อมูลจากบริบทของประโยคทั้งหมดรวมอยู่ด้วย โดยเน้น "นอน" ตัวเอง (57%) และ "แมว" (29%) มากที่สุด
+
+<!-- IMAGE: ภาพ diagram 4 ขั้นตอน: dot product → scale → softmax → weighted sum พร้อมตัวเลขตัวอย่าง -->
+
+---
+
+## ลองคิดดู #1: ลองคิด Attention ด้วยมือ
+
+นี่คือ thought experiment ที่ช่วยให้ intuition ชัดขึ้น ไม่ต้องคำนวณจริง แค่ลองนึกตาม
+
+ประโยค: **"หมา กิน ข้าว หมด"** (4 tokens)
+
+สมมติว่า vector เป็นแค่ 2 มิติเพื่อความง่าย:
+
+```
+Token   |  Q           |  K           |  V
+--------|--------------|--------------|------------------
+หมา    |  [1.0, 0.2]  |  [0.9, 0.3]  |  [สัตว์, ผู้กระทำ]
+กิน    |  [0.8, 0.7]  |  [0.7, 0.8]  |  [action, กริยา]
+ข้าว   |  [0.3, 0.9]  |  [0.2, 1.0]  |  [อาหาร, object]
+หมด   |  [0.5, 0.4]  |  [0.4, 0.5]  |  [state, completion]
+```
+
+**คำถาม:** ถ้าคุณเป็น token "กิน" และกำลังถาม Q ของตัวเองกับ K ของ token ต่าง ๆ
+
+- "กิน" กับ "หมา": Q_กิน · K_หมา = (0.8)(0.9) + (0.7)(0.3) = 0.72 + 0.21 = **0.93**
+- "กิน" กับ "ข้าว": Q_กิน · K_ข้าว = (0.8)(0.2) + (0.7)(1.0) = 0.16 + 0.70 = **0.86**
+- "กิน" กับ "หมด": Q_กิน · K_หมด = (0.8)(0.4) + (0.7)(0.5) = 0.32 + 0.35 = **0.67**
+
+"กิน" ให้ความสนใจ "หมา" มากที่สุด รองมาคือ "ข้าว" — ซึ่งสมเหตุสมผลมาก เพราะ "ใครกิน?" = หมา, "กินอะไร?" = ข้าว
+
+**ลองคิดต่อ:** ถ้าเปลี่ยนประโยคเป็น "หมาชอบกินข้าวเย็นทุกวัน" ซึ่งยาวขึ้น attention pattern ของ "กิน" จะเปลี่ยนยังไง? คำว่า "ชอบ" จะมีผลกับ "กิน" ไหม? คำว่า "เย็น" และ "ทุกวัน" จะได้รับความสนใจแค่ไหน? — นี่คือวิธีที่ Attention ช่วยให้ model เข้าใจ context ที่ซับซ้อนขึ้นเรื่อย ๆ
+
+<!-- IMAGE: ภาพตาราง attention matrix 4x4 แสดง scores ของแต่ละ token pair พร้อม color coding ว่า score สูง = สีเข้ม -->
+
+---
+
+## Multi-Head Attention — มองหลายมุมพร้อมกัน
+
+ถ้า Attention ทำงานได้ดีแบบนี้แล้ว ทำไมต้องมี "Multi-Head"?
+
+คำตอบ: ความสัมพันธ์ในภาษาไม่ได้มีมิติเดียว ประโยคหนึ่งประโยคมีหลายมิติของความหมายพร้อมกัน
+
+ลองดูประโยค "ผู้จัดการที่ฉันไม่ชอบลาออกไปแล้ว":
+
+- **มิติ syntax:** ประธานของประโยคหลักคือ "ผู้จัดการ" ไม่ใช่ "ฉัน" — ต้องจับความสัมพันธ์ประธาน-กริยา
+- **มิติ semantic:** "ไม่ชอบ" บอกทัศนคติของ "ฉัน" ต่อ "ผู้จัดการ" — ต้องจับ sentiment
+- **มิติ coreference:** ไม่มีคำสรรพนามในประโยคนี้ แต่ถ้ามีก็ต้องรู้ว่าอ้างถึงใคร
+- **มิติ position:** "ไปแล้ว" อยู่ท้ายประโยค บอก tense ของ action
+
+Attention head เดียวไม่สามารถจับทุกมิติได้พร้อมกัน แต่ถ้ามีหลาย head ทำงานคู่ขนาน แต่ละ head สามารถ "เชี่ยวชาญ" คนละด้านได้
+
+### วิธีที่ Multi-Head ทำงาน
+
+ขั้นตอนมีดังนี้:
+
+**1. Linear Projection — แยกมุมมอง**
+
+สมมติเรามี 8 heads และ embedding มิติ 512 model จะสร้าง projection matrix แยกสำหรับแต่ละ head:
+
+```
+สำหรับ head i แต่ละตัว:
+Qᵢ = X · Wᵢᵠ    (shape: seq_len × 64)
+Kᵢ = X · Wᵢᵏ    (shape: seq_len × 64)
+Vᵢ = X · Wᵢᵛ    (shape: seq_len × 64)
+```
+
+สังเกตว่า 512 / 8 = 64 แต่ละ head ทำงานกับ subspace ขนาด 64 มิติของ embedding ทั้งหมด
+
+**2. Parallel Attention — แต่ละ head ทำ attention แยกกัน**
+
+```
+headᵢ = Attention(Qᵢ, Kᵢ, Vᵢ)
+```
+
+ทั้ง 8 heads ทำงานพร้อมกัน แต่ละ head เรียนรู้ pattern ที่แตกต่างกันจากข้อมูล
+
+**3. Concatenate — รวมมุมมองทั้งหมด**
+
+```
+MultiHead = Concat(head₁, head₂, ..., head₈)
+           = shape: seq_len × 512  (64 × 8 = 512 อีกครั้ง)
+```
+
+**4. Final Projection — สรุปเป็นข้อมูลชุดเดียว**
+
+```
+output = MultiHead · Wᵒ
+```
+
+Projection matrix ตัวสุดท้าย Wᵒ ทำหน้าที่ "สังเคราะห์" ข้อมูลจากทุก head ให้กลายเป็น vector เดียวที่รวมทุกมุมมองไว้
+
+### ตัวเลขจริงจากโมเดลดัง ๆ
+
+เพื่อให้เห็นภาพ ขนาดของ Multi-Head ในโมเดลจริง:
+
+| Model | Heads | d_model | d_k per head |
+|-------|-------|---------|--------------|
+| BERT-base | 12 | 768 | 64 |
+| GPT-2 (medium) | 16 | 1024 | 64 |
+| GPT-3 | 96 | 12288 | 128 |
+| GPT-4 (ประมาณ) | 96 | ~12288 | ~128 |
+| Llama 3 70B | 64 | 8192 | 128 |
+
+GPT-4 มี 96 heads หมายความว่ามันมองประโยคเดียวกัน 96 มุมพร้อมกัน และทุกชั้น (GPT-4 มีประมาณ 96-128 layers) ก็ทำแบบนี้ซ้ำทุกครั้ง
+
+> 💡 **Key insight:** ไม่มีใครบอก model ว่า head ไหนควร "ดู syntax" หรือ "ดู semantics" — pattern เหล่านี้เกิดขึ้นเองจากการ train ตัว model เรียนรู้ว่าการแบ่งงานแบบนี้ช่วยให้ predict ข้อความถัดไปได้ดีขึ้น
+
+<!-- IMAGE: ภาพ parallel heads แต่ละ head มีสี่งแตกต่างกัน แสดงว่าแต่ละตัว attend ไปที่ token ต่างกัน แล้ว concat รวมกัน -->
+
+---
+
+## Cross-Attention vs Self-Attention
+
+ถึงตอนนี้ทุกอย่างที่คุยกันมาคือ **Self-Attention** — ทุก token ใน sequence เดียวกัน attend ซึ่งกันและกัน แต่ยังมี attention อีกแบบที่ใช้ใน architecture บางแบบ
+
+### Self-Attention
+
+```
+Q, K, V ทั้งหมดมาจาก sequence เดียวกัน
+
+ประโยค: "แมว นอน บน โซฟา"
+→ "แมว" attend to "แมว, นอน, บน, โซฟา"
+→ "นอน" attend to "แมว, นอน, บน, โซฟา"
+→ ทุก token เชื่อมกับทุก token ใน sequence เดียวกัน
+```
+
+ใช้ใน: encoder ของ BERT, ทุก layer ของ GPT
+
+### Cross-Attention
+
+```
+Q มาจาก sequence หนึ่ง (decoder)
+K, V มาจากอีก sequence หนึ่ง (encoder output)
+
+ตัวอย่างการแปล "The cat sleeps" → "แมวนอน"
+→ decoder กำลัง generate "แมว"
+→ Q ของ "แมว" (ไทย) ถาม K ของ "The, cat, sleeps" (อังกฤษ)
+→ ค้นหาว่าคำไทยนี้ตรงกับส่วนไหนของประโยคอังกฤษ
+```
+
+ใช้ใน: Translation models, Image Captioning (decoder attend to image features), Whisper (speech-to-text attend to audio features)
+
+### ทำไม GPT จึงไม่ใช้ Cross-Attention?
+
+GPT เป็น decoder-only architecture หมายความว่าไม่มี encoder แยกต่างหาก ทุกอย่างอยู่ใน sequence เดียว (คำถาม + คำตอบ ต่อกันใน context window เดียว) ดังนั้นจึงใช้แค่ Self-Attention ล้วน ๆ
+
+ในทางตรงข้าม T5 และ original Transformer ที่ใช้ใน translation ใช้ encoder-decoder architecture ที่มี Cross-Attention เชื่อม encoder กับ decoder
+
+<!-- IMAGE: เปรียบเทียบ diagram: ซ้าย Self-Attention (arrows ภายใน sequence เดียว), ขวา Cross-Attention (arrows ข้ามสอง sequence) -->
+
+---
+
+## Causal Masking — ทำไม GPT มองได้แค่ซ้ายไปขวา
+
+ลองคิดภาพนี้: ถ้าคุณกำลัง generate คำว่า "นอน" ในประโยค "แมว**นอน**บนโซฟา" และ model รู้อยู่แล้วว่าคำถัดไปคือ "บน" — มันก็จะ "โกง" โดยใช้ข้อมูลจากอนาคตในการทำนาย แทนที่จะเรียนรู้จริง ๆ
+
+Causal Masking คือกลไกที่ป้องกันเรื่องนี้
+
+### วิธีทำงาน
+
+ก่อน softmax เราใส่ mask matrix เข้าไปในการคำนวณ attention scores:
+
+```
+Attention scores (ก่อน mask):
+          แมว   นอน   บน   โซฟา
+แมว  [  1.2   0.8  0.3   0.1 ]
+นอน  [  0.9   1.1  0.7   0.4 ]
+บน   [  0.5   0.6  1.3   0.8 ]
+โซฟา [  0.2   0.4  0.9   1.0 ]
+```
+
+```
+Causal Mask (อนาคต = -∞):
+          แมว   นอน   บน   โซฟา
+แมว  [   0    -∞    -∞    -∞  ]
+นอน  [   0     0    -∞    -∞  ]
+บน   [   0     0     0    -∞  ]
+โซฟา [   0     0     0     0  ]
+```
+
+```
+หลัง mask + softmax:
+          แมว   นอน   บน   โซฟา
+แมว  [ 1.00  0.00  0.00  0.00 ]  ← มองได้แค่ตัวเอง
+นอน  [ 0.45  0.55  0.00  0.00 ]  ← มองได้แค่ซ้าย
+บน   [ 0.28  0.31  0.41  0.00 ]  ← มองได้แค่ซ้าย
+โซฟา [ 0.18  0.22  0.32  0.28 ]  ← มองได้ทั้งหมด
+```
+
+เมื่อ -∞ ผ่าน softmax จะกลายเป็น 0 พอดี ทำให้ token ในอนาคตมีน้ำหนัก 0 เสมอ
+
+### ทำไมเรียก "Causal"?
+
+เพราะเราบังคับว่า "ปัจจุบัน" สามารถได้รับผลจาก "อดีต" ได้เท่านั้น ไม่ใช่ "อนาคต" — นี่คือ causal relationship ในความหมายของเวลา ลำดับมีความสำคัญ
+
+### ต่างจาก BERT ยังไง?
+
+BERT ใช้ **Bidirectional Attention** — ทุก token มองได้ทั้งซ้ายและขวา ไม่มี mask เลย
+
+```
+BERT: "แมว [MASK] บนโซฟา"
+→ [MASK] ดูทั้ง "แมว" ทางซ้ายและ "บน" "โซฟา" ทางขวา
+→ ทำให้ทายได้ว่า [MASK] = "นอน"
+```
+
+BERT ไม่ได้ generate text ทีละคำ แต่ fill-in-the-blank ดังนั้นจึงไม่ต้องการ causal masking
+
+GPT generate ทีละคำจากซ้ายไปขวา ดังนั้นต้อง mask อนาคตไว้เสมอ
+
+> 💡 **Key insight:** Causal masking ไม่ใช่ข้อจำกัด — มันเป็น feature ที่ทำให้ GPT เรียนรู้การ generate ข้อความได้ ถ้าไม่มี mask การ train จะ "โกง" และ model จะไม่มีความสามารถในการ generate จริง ๆ
+
+<!-- IMAGE: ภาพ triangular mask matrix พร้อมสี: ซ้ายล่างสีเขียว (มองได้) ขวาบนสีแดง (blocked) -->
+
+---
+
+## KV Cache — ทำไม Inference เร็วขึ้น
+
+เมื่อเข้าใจ Attention แล้ว มาดู optimization ที่สำคัญที่สุดใน inference: **KV Cache**
+
+### ปัญหา: Repetitive Computation
+
+สมมติ GPT กำลัง generate ประโยค "แมวกินข้าวเย็น" ทีละคำ:
+
+**รอบที่ 1:** Generate "แมว"
+- Input: "แมว"
+- คำนวณ K, V ของ "แมว"
+
+**รอบที่ 2:** Generate "กิน"
+- Input: "แมว กิน"
+- คำนวณ K, V ของ "แมว" ← ซ้ำกับรอบที่แล้ว!
+- คำนวณ K, V ของ "กิน" ← ใหม่
+
+**รอบที่ 3:** Generate "ข้าว"
+- Input: "แมว กิน ข้าว"
+- คำนวณ K, V ของ "แมว" ← ซ้ำอีก!
+- คำนวณ K, V ของ "กิน" ← ซ้ำอีก!
+- คำนวณ K, V ของ "ข้าว" ← ใหม่
+
+ถ้าประโยคยาว 1000 คำ คำสุดท้ายต้องคำนวณ K, V ของ 999 คำซ้ำทั้งหมดโดยไม่จำเป็น!
+
+### วิธีแก้: Cache K และ V ไว้
+
+KV Cache แก้ปัญหานี้ด้วยวิธีง่าย ๆ: เก็บ K และ V ที่คำนวณแล้วไว้ใน memory แล้วนำกลับมาใช้ซ้ำ
+
+**รอบที่ 1:** Generate "แมว"
+- คำนวณ K_แมว, V_แมว → เก็บไว้ใน cache
+
+**รอบที่ 2:** Generate "กิน"
+- ดึง K_แมว, V_แมว จาก cache ← ไม่ต้องคำนวณใหม่!
+- คำนวณ K_กิน, V_กิน → เพิ่มเข้า cache
+
+**รอบที่ 3:** Generate "ข้าว"
+- ดึง K_แมว, V_แมว, K_กิน, V_กิน จาก cache
+- คำนวณ K_ข้าว, V_ข้าว → เพิ่มเข้า cache
+
+แต่ละรอบคำนวณแค่ token ใหม่ตัวเดียว แทนที่จะคำนวณซ้ำทั้งหมด
+
+### Trade-off: Speed vs Memory
+
+KV Cache เร็วขึ้น แต่กิน memory มาก สมมติ Llama 3 70B:
+
+```
+ขนาด KV Cache ต่อ token ≈ 2 × n_layers × n_kv_heads × d_head × 2 bytes (float16)
+= 2 × 80 × 8 × 128 × 2
+≈ 327 KB ต่อ token
+```
+
+Context window 128K tokens จะต้องการ KV Cache:
+```
+327 KB × 128,000 ≈ 40 GB
+```
+
+นี่คือเหตุผลที่ inference server ระดับ production ต้องการ GPU RAM สูงมาก และทำไม context window ที่ยาวถึงแพงกว่า
+
+> 💡 **Key insight:** KV Cache คือ speed-memory trade-off คลาสสิก ทุก GPU เสียบ RAM แลกกับ inference ที่เร็วขึ้น service อย่าง ChatGPT ต้องจัดการ cache เหล่านี้ของผู้ใช้หลายล้านคนพร้อมกัน ซึ่งเป็นหนึ่งในความท้าทายด้าน infrastructure ที่ใหญ่ที่สุด
+
+<!-- IMAGE: ภาพ timeline แสดง generation แต่ละรอบ ส่วนที่ cache ไว้ใช้สีเขียว ส่วนที่ต้องคำนวณใหม่ใช้สีส้ม -->
+
+---
+
+## Flash Attention — Optimization ที่เปลี่ยนเกม
+
+ถ้า KV Cache แก้ปัญหา inference ได้ Flash Attention แก้ปัญหาที่ใหญ่กว่า: **การคำนวณ Attention ตอน training มัน scale แบบ O(N²)**
+
+### ปัญหา: Attention Matrix กิน Memory มหาศาล
+
+ในสมการ Attention ขั้นตอนที่ใช้ memory มากที่สุดคือการสร้าง attention matrix:
+
+```
+S = Q · Kᵀ          ← shape: N × N
+P = softmax(S)       ← shape: N × N
+O = P · V            ← shape: N × d_v
+```
+
+matrix S และ P มีขนาด N × N ถ้า context length N = 4096:
+```
+4096 × 4096 = 16,777,216 elements
+× 4 bytes (float32) = 64 MB ต่อ layer ต่อ head
+```
+
+ถ้ามี 96 layers × 96 heads:
+```
+64 MB × 96 × 96 = 589,824 MB ≈ 576 GB
+```
+
+นี่คือแค่ attention matrix — GPU A100 ที่แพงที่สุดมี RAM แค่ 80 GB ดังนั้น context window ยาว ๆ ในยุคก่อน Flash Attention เป็นไปไม่ได้ในทางปฏิบัติ
+
+### Flash Attention: Tiling แทนที่ Materialization
+
+Flash Attention (Dao et al., 2022) มีไอเดียหลักที่ฉลาดมาก: **ไม่ต้องสร้าง attention matrix ทั้งก้อนให้เต็ม memory**
+
+แทนที่จะเป็นแบบนี้:
+```
+1. สร้าง S ทั้งหมด (N×N) → เก็บใน HBM (GPU main memory)
+2. คำนวณ P = softmax(S) → เก็บใน HBM
+3. คำนวณ O = P·V → เก็บใน HBM
+```
+
+Flash Attention ทำแบบนี้:
+```
+1. แบ่ง Q, K, V ออกเป็น "tiles" (ก้อนเล็ก ๆ)
+2. โหลดทีละ tile เข้า SRAM (fast memory บน chip)
+3. คำนวณ partial attention สำหรับ tile นั้น
+4. ใช้ online softmax algorithm เพื่ออัปเดตผลลัพธ์
+5. วนซ้ำทุก tile โดยไม่ต้องเก็บ N×N matrix เลย
+```
+
+อุปมา: แทนที่จะอ่านหนังสือทั้งเล่มแล้วสรุป Flash Attention อ่านทีละหน้า สรุปบางส่วน แล้วอัปเดตสรุปสะสม โดยไม่เก็บหนังสือทั้งเล่มไว้ในมือ
+
+### ผลลัพธ์ที่ได้
+
+| Metric | Standard Attention | Flash Attention |
+|--------|-------------------|-----------------|
+| Memory complexity | O(N²) | O(N) |
+| Compute | เหมือนกัน | เหมือนกัน (แต่ cache-efficient) |
+| Speed (training) | baseline | 2-4x เร็วขึ้น |
+| Context length feasible | ~4K-8K | 100K+ |
+
+Flash Attention 2 และ 3 (2023-2024) พัฒนาต่อด้วย parallelism ที่ดีขึ้น ทำให้ context window 1 ล้าน tokens ที่เห็นในโมเดลปี 2025-2026 เป็นไปได้จริง
+
+> 💡 **Key insight:** Flash Attention ไม่ได้เปลี่ยน "สิ่งที่ Attention คำนวณ" แต่เปลี่ยน "วิธีที่มันคำนวณ" ผลลัพธ์เลขออกมาเหมือนกันทุกประการ แต่ใช้ memory น้อยกว่าอย่างมาก นี่คือตัวอย่างที่ดีของว่า algorithm engineering สำคัญพอ ๆ กับ architecture design
+
+<!-- IMAGE: เปรียบเทียบ memory access pattern: Standard (ลูกศรเยอะ ขึ้นลง HBM บ่อย) vs Flash Attention (ก้อน tiles ที่อยู่ใน SRAM) -->
+
+---
+
+## Grouped Query Attention (GQA) — Efficiency ระดับถัดไป
+
+เมื่อ context window ยาวขึ้น ปัญหาใหม่โผล่มา: ถ้ามี 96 heads แต่ละ head ก็ต้องการ K, V ของตัวเอง ซึ่งกิน memory และ bandwidth มหาศาล
+
+### สามแนวทาง
+
+**Multi-Head Attention (MHA) — ดั้งเดิม:**
+```
+96 heads → 96 K, 96 V (แต่ละ head มี K/V ของตัวเอง)
+Memory: สูงสุด, Quality: ดีที่สุด
+```
+
+**Multi-Query Attention (MQA):**
+```
+96 Q-heads → แต่ share K เดียว, V เดียว
+Memory: ต่ำที่สุด, Quality: ลดลงบ้าง
+```
+
+**Grouped Query Attention (GQA) — ตรงกลาง:**
+```
+96 Q-heads แบ่งเป็น 8 กลุ่ม → 8 K, 8 V (กลุ่มละชุด)
+Memory: ปานกลาง, Quality: ใกล้เคียง MHA
+```
+
+อุปมา: นึกถึงทีมงาน 96 คน
+
+- **MHA:** ทุกคนมีไฟล์งานของตัวเอง (เร็ว แต่เปลืองพื้นที่)
+- **MQA:** ทุกคน share ไฟล์ชุดเดียว (ประหยัด แต่แย่งกัน)
+- **GQA:** แบ่งเป็น 8 กลุ่ม ๆ ละ 12 คน แต่ละกลุ่มมีไฟล์ชุดของกลุ่ม (สมดุล)
+
+### โมเดลที่ใช้ GQA
+
+| Model | Attention Type | Q-heads | KV-heads |
+|-------|---------------|---------|----------|
+| Llama 2 70B | GQA | 64 | 8 |
+| Llama 3 8B | GQA | 32 | 8 |
+| Llama 3 70B | GQA | 64 | 8 |
+| Mistral 7B | GQA | 32 | 8 |
+| Gemma 2 | GQA | 8 | 4 |
+
+สังเกตว่าโมเดลทันสมัยแทบทุกตัวใช้ GQA เพราะมันให้ balance ระหว่าง quality และ efficiency ที่ดีที่สุดในปัจจุบัน
+
+> 💡 **Key insight:** GQA เป็นตัวอย่างของ design decision ที่เกิดจาก real-world constraint — ถ้าไม่มีข้อจำกัดเรื่อง memory bandwidth ไม่มีใครอยากเสียคุณภาพ แต่เมื่อ model ต้อง serve ผู้ใช้หลายล้านคนพร้อมกัน ทุก MB และ ms มีราคา
+
+<!-- IMAGE: ภาพเปรียบเทียบ MHA vs MQA vs GQA แบบ visual diagram แสดง Q-heads และ KV-heads ที่แตกต่างกัน -->
+
+---
+
+## Context Length และ Attention — ทำไม 1M Tokens ถึงเป็นไปได้
+
+ก่อน Flash Attention context window ปกติอยู่ที่ 2K-4K tokens เพราะ memory และ compute เป็น O(N²) ทำให้ context ที่ยาวขึ้นแพงอย่างรวดเร็ว
+
+แต่ปัจจุบันปี 2025-2026 เรามีโมเดลที่รองรับ context 1 ล้าน tokens (Gemini 1.5 Pro) หรือแม้แต่ 2 ล้าน tokens (Gemini 2) — เกิดขึ้นได้ยังไง?
+
+### วิธีที่ 1: Sparse Attention
+
+แทนที่ทุก token จะ attend ทุก token ใน O(N²) ให้ทำแค่ subset ที่จำเป็น
+
+**Local Window:** แต่ละ token attend แค่ token ใน window ขนาด w รอบ ๆ ตัวเอง
+```
+complexity: O(N × w) แทน O(N²)
+```
+
+**Global Tokens:** เพิ่ม token พิเศษที่ attend ทุกตำแหน่ง ทำหน้าที่เป็น "summary token"
+
+**Strided:** attend แบบกระโดด เช่น ทุก 8 ตำแหน่ง
+
+### วิธีที่ 2: Sliding Window Attention (Mistral)
+
+Mistral 7B ใช้ sliding window ขนาด 4096 tokens หมายความว่าทุก token เห็นแค่ 4096 tokens ล่าสุด ไม่ใช่ทั้ง context
+
+แต่เนื่องจาก information ไหลผ่านหลาย layers ข้อมูลจาก token ที่ไกลออกไปยังส่งต่อกันมาได้ผ่าน layer ที่ซ้อนกัน ทำให้ effective context ใหญ่กว่า window จริง ๆ
+
+### วิธีที่ 3: Ring Attention
+
+สำหรับ context ที่ยาวมาก ๆ (ล้าน tokens) Ring Attention แบ่ง sequence ออกเป็นส่วน ๆ แล้วกระจายการคำนวณ Attention ไปยัง GPU หลาย ๆ ตัว แต่ละ GPU รับผิดชอบ chunk ของ sequence ตัวเอง แล้ว exchange KV blocks กันในรูปแบบ ring (วงกลม)
+
+```
+GPU 0: tokens 0-250K
+GPU 1: tokens 250K-500K
+GPU 2: tokens 500K-750K
+GPU 3: tokens 750K-1M
+
+→ แต่ละ GPU ส่ง KV blocks ให้ GPU ถัดไปในวงกลม
+→ ทุก GPU ได้เห็น full context
+→ Parallelism แบบ perfect
+```
+
+### ลองคิดดู #2: Context Window ของคุณ
+
+สมมติว่าคุณเปิดหนังสือ 300 หน้าให้ GPT อ่านและตอบคำถาม
+
+- หนังสือ 1 หน้า ≈ 500 words ≈ 650 tokens
+- หนังสือ 300 หน้า ≈ 195,000 tokens
+
+Attention computation ถ้าไม่มี optimization:
+```
+O(N²) = 195,000² = 38,025,000,000 operations
+```
+
+แต่ถ้าใช้ Flash Attention + GQA + Sliding Window:
+```
+ลดลงได้ถึง 100-1000x ขึ้นอยู่กับ window size และ architecture
+```
+
+นี่คือเหตุผลที่ Claude, Gemini และ GPT สามารถรับ document ยาว ๆ ได้ใน interface — technology ข้างหลังพัฒนาอย่างรวดเร็วมากในช่วงสองสามปีที่ผ่านมา
+
+ลองคิดต่อ: ถ้า context window ยาวขึ้นเป็น 10 ล้าน tokens ไม่มีข้อจำกัดด้าน memory เลย — use cases อะไรที่จะเป็นไปได้ที่ตอนนี้ยังทำไม่ได้? ทั้งชุด code ของบริษัทคุณ? ทุก email ในชีวิต? บันทึกการประชุม 5 ปีย้อนหลัง?
+
+<!-- IMAGE: ภาพ timeline แสดง context window ที่เพิ่มขึ้นตามปี 2020-2026 จาก 2K tokens ถึง 2M tokens พร้อม technology ที่ทำให้เป็นไปได้ -->
+
+---
+
+## ทุกอย่างเชื่อมกันยังไง — ภาพรวม
+
+ก่อนสรุป ลองประกอบชิ้นส่วนทั้งหมดเข้าด้วยกัน:
+
+```
+Input tokens
+    ↓
+[Embedding + Positional Encoding]
+    ↓
+[Layer 1 ... Layer 96]  ← repeat สำหรับแต่ละ Transformer layer
+    ↓
+┌─────────────────────────────────────────────────┐
+│  Multi-Head Attention Block                      │
+│                                                  │
+│  Q, K, V Projection                             │
+│       ↓                                          │
+│  Split into 96 heads (parallel)                  │
+│       ↓                                          │
+│  Scaled Dot-Product Attention (per head)         │
+│  ┌─────────────────────────────────┐             │
+│  │ Q·Kᵀ / √d_k                    │             │
+│  │      ↓                          │             │
+│  │ + Causal Mask (-∞ for future)  │             │
+│  │      ↓                          │             │
+│  │ Softmax                         │             │
+│  │      ↓                          │             │
+│  │ × V (weighted sum)              │             │
+│  └─────────────────────────────────┘             │
+│       ↓                                          │
+│  Concat all heads                                │
+│       ↓                                          │
+│  Output Projection                               │
+└─────────────────────────────────────────────────┘
+    ↓
+[Feed Forward Network]
+    ↓
+[Next Layer...]
+    ↓
+[Output Logits → Next token probability]
+```
+
+ทุกครั้งที่ GPT generate คำหนึ่งคำ มันวิ่งผ่าน stack ทั้งหมดนี้ ซึ่งหมายความว่า:
+
+- **96 layers** × **96 heads** × **Attention computation** ต่อ token
+- ทั้งหมดนี้ใช้เวลาเพียง milliseconds ต่อ token บน hardware ที่ดี
+- เมื่อรวมกับ Flash Attention, GQA, และ KV Cache จึงทำให้ inference เร็วและ scalable ได้จริงในระดับ production
+
+---
+
+## สรุป
+
+Attention Mechanism คือนวัตกรรมที่เปลี่ยนวงการ NLP อย่างสิ้นเชิง มาดูว่าเราเรียนอะไรไปบ้างในบทนี้:
+
+**แนวคิดหลัก:**
+- Attention ทำให้ทุก token "ถาม" ว่า token ไหนสำคัญ แล้วผสมข้อมูลตาม weight ที่ได้
+- Scaled Dot-Product: Q·Kᵀ / √d_k → softmax → ×V — แต่ละขั้นมีเหตุผลชัดเจน
+- Multi-Head ทำให้ model มองหลายมิติพร้อมกัน: syntax, semantics, position, coreference
+- Causal Masking ป้องกัน GPT "โกง" ดูอนาคต ทำให้ generation ทำงานได้จริง
+- KV Cache เก็บ computation ที่ทำแล้วเพื่อ inference ที่เร็วขึ้น
+- Flash Attention แก้ปัญหา memory O(N²) ด้วย tiling ทำให้ context ยาวเป็นไปได้
+- GQA สร้างสมดุลระหว่าง quality และ memory efficiency
+- Sparse/Ring Attention ขยาย context ไปถึง 1M+ tokens ได้
+
+**สิ่งที่น่าทึ่งที่สุด:** ทั้งหมดนี้เริ่มจากไอเดียง่าย ๆ ว่า "token แต่ละตัวควรมีวิธีให้ความสนใจ token อื่น ๆ แบบ differentiable" — แล้วนักวิจัยค่อย ๆ เพิ่ม optimization ทีละขั้นจนกลายเป็น system ที่ซับซ้อนอย่างที่เห็น
+
+แต่ก่อนที่ Attention จะทำงานได้ model ต้องแปลงคำเป็นตัวเลขก่อน ซึ่งฟังดูง่าย แต่ในความเป็นจริงกระบวนการนี้มีความซับซ้อนและมีผลต่อ performance ของ model อย่างมาก บทถัดไปจะพาดูเรื่อง [Tokenization Deep Dive](/advanced/tokenization-deep-dive) — ว่าทำไมคำว่า "ไม่เป็นไร" ถึงอาจแบ่งเป็น token ต่างกันขึ้นอยู่กับบริบท และทำไม GPT ถึงนับตัวอักษรไม่ถูกบางครั้ง
+
+<!-- IMAGE: ภาพ summary infographic รวมทุก concept ในบทนี้: Attention → Multi-Head → Causal Mask → KV Cache → Flash Attention → GQA เรียงเป็น flowchart -->

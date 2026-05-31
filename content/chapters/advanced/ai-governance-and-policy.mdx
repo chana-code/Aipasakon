@@ -1,0 +1,600 @@
+---
+slug: ai-governance-and-policy
+level: advanced
+title: "AI Governance & Policy — กติกาของโลก AI"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจภูมิทัศน์ AI governance ทั้งระดับองค์กรและระดับโลก — EU AI Act, executive orders, Thailand's AI governance, responsible AI frameworks, model cards, และการสร้าง AI governance ในองค์กร"
+---
+สมมติวันนี้บริษัทคุณกำลังจะ launch AI chatbot ให้ลูกค้าใช้ ทีมงานตื่นเต้น โปรดักต์พร้อม แต่แล้ว legal team เดินมาถามคำถามเดียวที่ทำทุกคนนิ่งงัน: "ถ้า chatbot มันตอบผิดแล้วลูกค้าเสียหาย ใครรับผิดชอบ?"
+
+นั่นแหละคือช่วงเวลาที่ AI governance กลายเป็นเรื่องจริง ไม่ใช่แค่หัวข้อใน conference deck อีกต่อไป
+
+---
+
+## ทำไม AI ถึงต้องมีกติกาพิเศษ
+
+ก่อนจะไปถึงกฎหมายและ framework ต่าง ๆ เราต้องเข้าใจก่อนว่า ทำไม AI ถึงต้องการ "governance" ในแบบที่ software ทั่วไปไม่ต้องการ
+
+ลองเปรียบเทียบง่าย ๆ: เว็บไซต์ e-commerce ที่แสดงราคาสินค้า ถ้าโปรแกรมเมอร์เขียน code ว่า `price = 100` แล้วมันแสดง 100 ทุกครั้ง คุณสามารถ audit ได้ว่าทำไมมันแสดง 100 ตามตรรกะใน code
+
+แต่ถ้าเป็น AI ที่ "แนะนำราคา" ให้ลูกค้าแต่ละคน มันอาจแนะนำ 95 บาทให้คนหนึ่ง แต่ 110 บาทให้อีกคนหนึ่ง — และคุณอาจไม่รู้เลยว่า *ทำไม* มันถึงตัดสินใจแบบนั้น ความแตกต่างนี้คือแก่นของปัญหา AI governance
+
+<!-- IMAGE: ภาพเปรียบเทียบ rule-based system กับ AI system แสดงให้เห็นว่า rule-based มีเส้นทางการตัดสินใจชัดเจน ส่วน AI มีความซับซ้อนภายในที่มองเห็นยาก -->
+
+AI มีคุณสมบัติพิเศษที่ทำให้มันต้องการการดูแลพิเศษ:
+
+**Non-deterministic** — ถามคำถามเดิมสองครั้ง อาจได้คำตอบต่างกัน ไม่เหมือน software ปกติที่ input เดิมให้ output เดิมเสมอ
+
+**Hard to audit** — เราไม่สามารถอ่าน "ความคิด" ของโมเดลได้ตรง ๆ เราบอกได้ว่า output คืออะไร แต่บอกยากว่า *ทำไม* มันถึงให้ output นั้น นักวิทยาศาสตร์เรียกปัญหานี้ว่า "black box problem"
+
+**Bias amplification** — ถ้า training data มีอคติฝังอยู่ (เช่น ประวัติการปล่อยสินเชื่อที่เลือกปฏิบัติมา 20 ปี) AI จะเรียนรู้และขยายอคตินั้นออกไปอีก ยิ่งกว่าคนที่ทำงานช้า ๆ และเหนื่อยล้า AI ทำงานเร็วและไม่เหนื่อย — มันจะ scale อคตินั้นขึ้นไปสู่การตัดสินใจหลักล้านครั้ง
+
+**Scale + Speed** — คนคนหนึ่งอาจทำผิดพลาดได้วันละไม่กี่ครั้ง แต่ AI สามารถทำผิดพลาดแบบเดิมซ้ำ ๆ ได้หลายล้านครั้งต่อวันก่อนที่ใครจะสังเกตเห็น
+
+> 💡 **Key insight:** AI governance ไม่ได้มีไว้เพื่อ "จำกัด" AI แต่มีไว้เพื่อให้เราสามารถใช้ AI ได้อย่างยั่งยืนและสร้างความเชื่อถือ องค์กรที่ไม่มี governance ที่ดีจะพบกับปัญหาที่แก้ยากกว่าและแพงกว่ามากในภายหลัง
+
+---
+
+## ภูมิทัศน์กฎระเบียบ AI ทั่วโลก
+
+โลกกำลังพัฒนากติกา AI อยู่พร้อมกันหลายทิศทาง แต่แต่ละประเทศมีวิธีคิดที่ต่างกัน เราลองดูแต่ละแนวทาง
+
+<!-- IMAGE: แผนที่โลกแสดง AI regulation landscape ในแต่ละภูมิภาค EU (เข้ม), US (ปานกลาง), China (เข้ม แต่ต่างแนวทาง), ASEAN (กำลังพัฒนา) -->
+
+### EU AI Act — มาตรฐานที่เข้มข้นที่สุดในโลก
+
+สหภาพยุโรปผ่าน EU AI Act ในปี 2024 และนี่คือกฎหมาย AI ที่ครอบคลุมที่สุดในโลกจนถึงตอนนี้ แนวคิดหลักของมันคือ **risk-based approach** — ยิ่ง AI เสี่ยงมาก ยิ่งต้องมีกฎเยอะ
+
+EU AI Act แบ่ง AI ออกเป็น 4 ระดับความเสี่ยง:
+
+**Unacceptable Risk (ห้ามใช้เลย)** — AI ที่เป็นอันตรายต่อสิทธิมนุษยชนขั้นพื้นฐาน เช่น Social scoring systems ที่รัฐบาลใช้ให้คะแนนประชาชนแบบที่จีนใช้ หรือ real-time facial recognition ใน public spaces (ยกเว้นกรณีพิเศษมาก ๆ)
+
+**High Risk (ต้องมีระบบดูแลเข้มข้น)** — AI ที่ใช้ในบริบทที่มีผลกระทบสูง เช่น การคัดเลือกพนักงาน, การอนุมัติสินเชื่อ, ระบบสาธารณสุข, โครงสร้างพื้นฐานวิกฤต AI เหล่านี้ต้องผ่านการ audit ก่อน deploy และต้องมีคนควบคุมดูแล
+
+**Limited Risk (ต้องบอกให้รู้ว่าเป็น AI)** — AI ที่ interact กับมนุษย์โดยตรง เช่น chatbots ต้องบอกชัดว่า "คุณกำลังคุยกับ AI นะ" ไม่สามารถแอบทำทีว่าเป็นมนุษย์ได้
+
+**Minimal Risk (ทำได้เลย)** — AI ทั่วไปที่ความเสี่ยงต่ำ เช่น spam filter หรือ game AI
+
+> 💡 **Key insight:** EU AI Act มี "Brussels Effect" — บริษัทเทคโนโลยีที่อยากขายในยุโรปต้องทำตามกฎนี้ ทำให้มันส่งผลกระทบต่อ AI ทั่วโลก แม้แต่บริษัทในไทยที่อยากขายให้ลูกค้ายุโรปก็ต้องสนใจ EU AI Act
+
+### US Executive Order — แนวทางเน้น Innovation
+
+สหรัฐอเมริกาใช้ท่าทีต่างออกไป แทนที่จะออกกฎหมายหนัก Biden Administration ออก Executive Order on AI (ตุลาคม 2023) ที่เน้น voluntary commitments จากบริษัทใหญ่ และให้ NIST (National Institute of Standards and Technology) พัฒนา AI Risk Management Framework
+
+แนวทางอเมริกาคือ "สร้างมาตรฐาน ไม่ใช่กำแพง" — ให้อุตสาหกรรม self-regulate ได้บางส่วน แต่รัฐบาลกลางมีบทบาทในการประสานงานและความมั่นคงแห่งชาติ
+
+ภายใต้ Trump Administration ในปี 2025 ทิศทางเปลี่ยนไปอีกครั้ง โดยเน้น AI leadership และการแข่งขันกับจีน มากกว่าการ regulate เพื่อความปลอดภัย
+
+### จีน — กำกับเพื่อความมั่นคง
+
+จีนมีแนวทางเฉพาะตัวมาก กฎระเบียบ AI ของจีนเน้นที่:
+
+- **Generative AI Regulation** (2023) — กำหนดให้ content ที่สร้างโดย AI ต้องสอดคล้องกับ "socialist core values" และไม่ท้าทายอำนาจรัฐ
+- **Algorithm Recommendation Regulation** — ควบคุม recommendation algorithms ของ platform ใหญ่ ๆ
+- **Data security laws** — ข้อมูลสำคัญไม่ออกนอกประเทศ
+
+โมเดล AI ของจีนต้องผ่านการ approve จากรัฐก่อน deploy ให้สาธารณชน ซึ่งต่างจากแนวทางฝั่งตะวันตกมาก
+
+### ASEAN — กำลังก่อรูป
+
+ในระดับภูมิภาค ASEAN Guide on AI Governance and Ethics ถูกพัฒนาขึ้นเพื่อสร้างกรอบร่วมกัน แต่ยังเป็น soft law — แนวทาง ไม่ใช่กฎหมายบังคับ แต่ละประเทศมีอิสระในการออกแบบกฎระเบียบของตัวเอง
+
+<!-- IMAGE: timeline แสดงพัฒนาการของ AI regulation ทั่วโลกตั้งแต่ 2016-2025 -->
+
+---
+
+## Thailand AI Governance — ของเราอยู่ที่ไหน
+
+สำหรับคนทำงานในไทย สิ่งที่เกี่ยวข้องกับเราโดยตรงมีอยู่หลายชั้น
+
+### PDPA — กฎหมายที่บังคับใช้แล้ว
+
+พระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล (PDPA) ประกาศใช้เต็มรูปแบบในปี 2022 และมีผลกระทบโดยตรงต่อการใช้ AI ในองค์กร เพราะ AI มักต้องการข้อมูลส่วนบุคคลในการ train และ operate
+
+ประเด็น PDPA ที่เชื่อมกับ AI:
+
+**Lawful basis for processing** — ถ้า AI ของคุณประมวลผลข้อมูลส่วนบุคคล คุณต้องมีฐานทางกฎหมายที่ชัดเจน ซึ่งมักหมายถึงต้องได้รับ consent หรือมี legitimate interest ที่พิสูจน์ได้
+
+**Right to explanation** — PDPA มีบทบัญญัติว่าด้วยการตัดสินใจอัตโนมัติ ในหลายกรณีเจ้าของข้อมูลมีสิทธิ์ขอคำอธิบายว่า AI ตัดสินใจอย่างไร
+
+**Data minimization** — เก็บเฉพาะข้อมูลที่จำเป็น ถ้า AI ไม่จำเป็นต้องรู้อายุหรือเพศเพื่อทำงาน ก็ไม่ควรส่งข้อมูลนั้นให้มัน
+
+**Cross-border data transfer** — ถ้าใช้ AI model จากต่างประเทศ (เช่น GPT-4 ของ OpenAI) ข้อมูลลูกค้าที่ส่งไปก็อาจอยู่ภายใต้กฎ cross-border transfer ของ PDPA
+
+### NECTEC และ ETDA — หน่วยงานที่กำลังพัฒนากรอบ
+
+สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ (NECTEC) และสำนักงานพัฒนาธุรกรรมทางอิเล็กทรอนิกส์ (ETDA) กำลังพัฒนา Thailand AI Governance Framework อยู่ โดยเน้น:
+
+- **Ethical AI principles** สำหรับบริบทไทย
+- **Sector-specific guidelines** สำหรับอุตสาหกรรมการเงิน สุขภาพ และภาครัฐ
+- **AI certification** สำหรับระบบที่มีความเสี่ยงสูง
+
+ณ ปัจจุบัน (ปลายปี 2025) ไทยยังไม่มีกฎหมาย AI โดยเฉพาะ แต่กรอบกำลังก่อตัว องค์กรที่เริ่มสร้าง AI governance ตั้งแต่ตอนนี้จะได้เปรียบเมื่อกฎออกมาจริง
+
+> 💡 **Key insight:** ในไทย ตอนนี้ PDPA คือกฎหมายที่ "ใกล้ตัว" ที่สุดสำหรับ AI governance คุณสามารถถูก complain หรือถูก PDPC (คณะกรรมการคุ้มครองข้อมูลส่วนบุคคล) ตรวจสอบได้เลย ถ้า AI ของคุณใช้ข้อมูลส่วนบุคคลไม่ถูกต้อง
+
+### กรณีจริงในไทย
+
+ธนาคารและสถาบันการเงินในไทยอยู่ภายใต้การดูแลของ ธปท. (ธนาคารแห่งประเทศไทย) ซึ่งมีแนวปฏิบัติเกี่ยวกับ AI และ machine learning ใน credit scoring และ fraud detection โดยเฉพาะ ธปท. กำหนดให้สถาบันการเงินต้องสามารถ "explain" การตัดสินใจปฏิเสธสินเชื่อได้ ซึ่งกระทบโดยตรงกับ AI ที่ใช้ในกระบวนการนี้
+
+นอกจากสถาบันการเงิน ยังมีอีกหลายอุตสาหกรรมในไทยที่เริ่มใช้ AI อย่างจริงจัง:
+
+**Healthcare** — โรงพยาบาลใหญ่หลายแห่งใช้ AI อ่านผล X-ray, CT scan ช่วยแพทย์วินิจฉัย ต้องผ่านมาตรฐาน อย. (สำนักงานคณะกรรมการอาหารและยา) สำหรับ medical devices ซึ่ง AI ที่ใช้ตัดสินใจทางการแพทย์อาจจัดเป็น medical device ได้
+
+**Insurance** — บริษัทประกันเริ่มใช้ AI ในการประเมินเคลม ตรวจจับ fraud และ underwriting ซึ่ง คปภ. (คณะกรรมการกำกับและส่งเสริมการประกอบธุรกิจประกันภัย) เริ่มมีแนวทางเกี่ยวกับการใช้ AI ในการกำหนดเบี้ยประกัน
+
+**E-commerce & Retail** — AI recommendation ที่แนะนำสินค้า pricing algorithms ที่ปรับราคาตามพฤติกรรม ตรงนี้อาจเกี่ยวข้องกับ พ.ร.บ.แข่งขันทางการค้า หากมีการกำหนดราคาที่ไม่เป็นธรรม
+
+```python
+# ตรวจสอบ PDPA compliance ก่อน deploy AI
+def pdpa_ai_checklist(ai_system: dict) -> dict:
+    """
+    Checklist ตรวจสอบ PDPA compliance สำหรับ AI system
+    ใช้ก่อน deploy ทุกครั้ง
+    """
+    checks = {
+        "lawful_basis": {
+            "question": "มี lawful basis สำหรับ data processing หรือไม่?",
+            "options": ["consent", "legitimate_interest", "legal_obligation", "vital_interest"],
+            "status": ai_system.get("lawful_basis") is not None
+        },
+        "data_minimization": {
+            "question": "ใช้เฉพาะข้อมูลที่จำเป็นต่อการทำงานของ AI หรือไม่?",
+            "status": ai_system.get("unnecessary_fields", []) == []
+        },
+        "right_to_explanation": {
+            "question": "สามารถอธิบายการตัดสินใจของ AI ให้เจ้าของข้อมูลได้หรือไม่?",
+            "status": ai_system.get("explainability_method") is not None
+        },
+        "cross_border": {
+            "question": "ข้อมูลถูกส่งไปประมวลผลนอกประเทศหรือไม่?",
+            "requires_action": ai_system.get("uses_foreign_api", False),
+            "action": "ต้องมี data protection measures ตามมาตรา 28-29 PDPA"
+        },
+        "retention_policy": {
+            "question": "มีนโยบายลบข้อมูลหลังไม่จำเป็นแล้วหรือไม่?",
+            "status": ai_system.get("retention_days") is not None
+        },
+        "dpia_required": {
+            "question": "ต้องทำ DPIA (Data Protection Impact Assessment) หรือไม่?",
+            "required_if": "AI ใช้ข้อมูลส่วนบุคคลในปริมาณมาก หรือใช้ automated decision-making",
+            "status": ai_system.get("dpia_done", False)
+        }
+    }
+    
+    passed = sum(1 for c in checks.values() if c.get("status", False))
+    total = len(checks)
+    
+    print(f"PDPA AI Compliance: {passed}/{total} ผ่าน")
+    if passed < total:
+        print("⚠️ ยังไม่พร้อม deploy — แก้ไขข้อที่ไม่ผ่านก่อน")
+    else:
+        print("✅ พร้อม deploy (แต่ควร review กับ DPO อีกครั้ง)")
+    
+    return checks
+```
+
+> 💡 **Key insight:** ในไทย อย่ารอให้มี "กฎหมาย AI" ออกมาก่อนค่อยสนใจ PDPA ที่มีอยู่แล้วครอบคลุมการใช้ AI มากกว่าที่หลายคนคิด โดยเฉพาะเรื่อง automated decision-making และ cross-border data transfer ที่เกี่ยวข้องกับทุกองค์กรที่ใช้ API ต่างประเทศ
+
+<!-- IMAGE: แผนผัง AI governance landscape ในไทย แสดง PDPA, ธปท., คปภ., อย., NECTEC, ETDA และความสัมพันธ์กัน -->
+
+---
+
+## AI Governance ในองค์กร — ทำอย่างไรในทางปฏิบัติ
+
+กฎหมายระดับประเทศเป็นเรื่องหนึ่ง แต่สิ่งที่คุณต้องทำวันนี้คือสร้าง governance ภายในองค์กรให้ได้ก่อน
+
+### องค์ประกอบ 5 อย่างของ AI Governance ในองค์กร
+
+**1. AI Ethics Board หรือ AI Review Committee**
+
+ไม่จำเป็นต้องเป็น committee ใหญ่โต แต่ต้องมีคนที่มีอำนาจในการ "ยับยั้ง" การ deploy AI ที่เสี่ยง ที่สำคัญคือ committee นี้ต้องมีคนหลากหลาย — ไม่ใช่แค่ engineer มีทั้ง legal, business, HR, และถ้าเป็นไปได้ มีตัวแทนผู้ใช้ด้วย
+
+**2. AI Acceptable Use Policy**
+
+เอกสารที่กำหนดชัดเจนว่า:
+- AI อะไรที่องค์กรอนุญาตให้ใช้ได้
+- ใช้ทำอะไรได้บ้าง ทำอะไรไม่ได้
+- ข้อมูลอะไรที่ห้ามป้อนเข้า AI ภายนอก (เช่น ข้อมูลลูกค้า, ข้อมูลการเงิน)
+- ใครรับผิดชอบ output ที่ออกมา
+
+**3. AI Risk Assessment Framework**
+
+ก่อน deploy AI ทุกตัว ต้องผ่านการประเมินความเสี่ยง คำถามหลักที่ต้องตอบได้:
+- AI ตัวนี้ทำอะไร และใครได้รับผลกระทบ?
+- ถ้ามันผิดพลาด ผลที่แย่ที่สุดคืออะไร?
+- เราจะตรวจจับความผิดพลาดได้อย่างไร?
+- มีคนดูแลและรับผิดชอบหรือเปล่า?
+
+**4. Model Monitoring และ Audit Trail**
+
+AI ที่ deploy แล้วต้องมีการติดตาม performance อย่างต่อเนื่อง โมเดลที่ดีวันนี้อาจ "drift" ไปเมื่อข้อมูลโลกเปลี่ยน (เรียกว่า model drift) และต้องมี log ที่ตรวจสอบได้ว่า AI ตัดสินใจอะไร เมื่อไหร่ ด้วยข้อมูลอะไร
+
+**5. Incident Response Plan**
+
+เมื่อ AI ทำผิดพลาด (และมันจะทำ ทุก system ทำ) จะทำอะไรก่อน? ใครต้องรู้? จะ rollback อย่างไร? จะแจ้งลูกค้าที่เสียหายอย่างไร?
+
+<!-- IMAGE: framework วงกลม แสดง 5 องค์ประกอบ AI governance ในองค์กรเชื่อมกัน -->
+
+> 🧪 **ลองคิดดู:** คุณเป็น Head of Digital ของบริษัทประกันภัยขนาดกลางในไทย ทีมของคุณเสนอจะ deploy AI เพื่อ auto-approve/reject คำขอเคลม โดยอ้างว่าช่วยลดเวลาจาก 3 วันเป็น 3 นาที ถ้าคุณต้องออกแบบ AI governance framework สำหรับโปรเจกต์นี้ คุณจะกำหนด:
+> 1. ระดับความเสี่ยงของ AI ตัวนี้ว่าอยู่ระดับไหน และทำไม
+> 2. ใครบ้างที่ต้อง approve ก่อน deploy
+> 3. Metric อะไรที่จะใช้ monitor หลัง launch
+> 4. ในกรณีไหนที่คุณจะ "ปิด" AI ทันทีและให้คนตัดสินใจแทน
+>
+> ไม่มีคำตอบถูกผิด แต่ลองคิดว่าถ้า AI ปฏิเสธเคลมอย่างไม่ยุติธรรมจะเกิดอะไรขึ้นกับลูกค้า กับธุรกิจ และกับความเชื่อถือ
+
+---
+
+## Model Cards & Datasheets — เอกสารที่ AI ควรมี
+
+หนึ่งในเครื่องมือที่ดีที่สุดใน responsible AI toolkit คือ **Model Card** — เอกสารที่อธิบาย AI model ในแบบที่คนที่ไม่ใช่ engineer ก็อ่านเข้าใจได้
+
+Model Card เริ่มต้นโดย Google Research (Margaret Mitchell และคณะ) และตอนนี้กลายเป็น standard ที่บริษัทใหญ่ ๆ ใช้ Hugging Face บังคับให้ทุก model ใน platform ต้องมี Model Card ด้วย
+
+### Model Card ประกอบด้วยอะไร
+
+```python
+# ตัวอย่าง Model Card structure (simplified)
+model_card = {
+    "model_details": {
+        "name": "Fairdee Credit Scorer v2.1",
+        "version": "2.1.0",
+        "type": "Binary Classification",
+        "description": "ประเมินความเสี่ยงสินเชื่อสำหรับลูกค้า SME",
+        "developed_by": "Fairdee AI Team",
+        "date": "2025-03",
+        "license": "Proprietary"
+    },
+    
+    "intended_use": {
+        "primary_use": "สนับสนุนการตัดสินใจสินเชื่อ (ไม่ใช่ตัดสินใจแทนมนุษย์)",
+        "intended_users": ["loan officers", "credit committee"],
+        "out_of_scope": [
+            "ตัดสินใจอัตโนมัติโดยไม่มี human review",
+            "ใช้กับลูกค้าประเภทอื่นที่ไม่ใช่ SME",
+            "ใช้นอกประเทศไทย"
+        ]
+    },
+    
+    "training_data": {
+        "sources": "ประวัติสินเชื่อจากปี 2018-2024",
+        "size": "500,000 applications",
+        "known_limitations": "ข้อมูลก่อน COVID อาจไม่สะท้อนพฤติกรรมหลัง COVID"
+    },
+    
+    "performance": {
+        "overall_accuracy": 0.87,
+        "precision": 0.84,
+        "recall": 0.79,
+        # สำคัญมาก: แยก metric ตามกลุ่มประชากร
+        "performance_by_group": {
+            "ธุรกิจขนาดเล็ก": {"precision": 0.82, "recall": 0.81},
+            "ธุรกิจขนาดกลาง": {"precision": 0.88, "recall": 0.76},
+            "ภาคเหนือ": {"precision": 0.85, "recall": 0.80},
+            "ภาคอีสาน": {"precision": 0.79, "recall": 0.78}  # ต่ำกว่า — ต้องตรวจสอบ
+        }
+    },
+    
+    "ethical_considerations": {
+        "known_biases": "Model อาจ underperform สำหรับธุรกิจใน rural areas เนื่องจาก training data เบี่ยงไปทาง urban",
+        "mitigation": "มี human review บังคับสำหรับ edge cases และ borderline decisions",
+        "monitoring": "Review quarterly พร้อม fairness audit"
+    },
+    
+    "limitations": [
+        "ไม่เข้าใจ context พิเศษ เช่น ธุรกิจที่รับผลกระทบจากน้ำท่วม",
+        "ต้องการข้อมูลอย่างน้อย 2 ปีจึงจะให้ผลแม่นยำ",
+        "Confidence score ต่ำกว่า 0.6 ควร escalate ให้ human"
+    ]
+}
+```
+
+<!-- IMAGE: ตัวอย่าง Model Card จริงจาก Hugging Face หรือ Google แสดงให้เห็น sections ต่าง ๆ -->
+
+**Datasheet for Datasets** เป็นแนวคิดคล้ายกันแต่สำหรับข้อมูล แทนที่จะ document model คุณ document dataset ที่ใช้ train model:
+- ข้อมูลนี้มาจากไหน เก็บเมื่อไหร่ อย่างไร
+- ใครอยู่ในข้อมูลนี้บ้าง ใครไม่อยู่ (gap ที่สำคัญมาก)
+- มีการขอ consent หรือเปล่า
+- ข้อมูลนี้หมดอายุเมื่อไหร่
+
+---
+
+## Responsible AI ในทางปฏิบัติ — วัดได้ คิดได้
+
+Responsible AI ฟังดูเป็นนามธรรม แต่จริง ๆ มีเครื่องมือที่จับต้องได้
+
+### Fairness Metrics — ความยุติธรรมวัดได้
+
+สมมติ AI ของคุณตัดสินใจว่าใครจะได้รับการสัมภาษณ์งาน เราจะรู้ได้อย่างไรว่า "ยุติธรรม"?
+
+```python
+import pandas as pd
+import numpy as np
+
+def calculate_fairness_metrics(predictions_df):
+    """
+    คำนวณ fairness metrics สำหรับ AI decision system
+    
+    predictions_df ต้องมีคอลัมน์:
+    - actual: ผลลัพธ์จริง (1=ควรได้งาน, 0=ไม่ควร)
+    - predicted: AI ทำนาย (1=เลือก, 0=ไม่เลือก)  
+    - group: กลุ่มประชากร (เช่น 'หญิง', 'ชาย')
+    """
+    
+    results = {}
+    
+    for group in predictions_df['group'].unique():
+        group_data = predictions_df[predictions_df['group'] == group]
+        
+        # True Positive Rate (Recall) — ในกลุ่มที่ควรได้ผ่าน เปอร์เซ็นต์ที่ AI เลือก
+        positives = group_data[group_data['actual'] == 1]
+        tpr = (positives['predicted'] == 1).mean()
+        
+        # False Positive Rate — ในกลุ่มที่ไม่ควรผ่าน เปอร์เซ็นต์ที่ AI เลือกผิด
+        negatives = group_data[group_data['actual'] == 0]
+        fpr = (negatives['predicted'] == 1).mean()
+        
+        # Selection Rate — สัดส่วนที่ถูกเลือกทั้งหมด
+        selection_rate = (group_data['predicted'] == 1).mean()
+        
+        results[group] = {
+            'tpr': tpr,  # ยิ่งสูงยิ่งดี สำหรับกลุ่มนั้น
+            'fpr': fpr,  # ยิ่งต่ำยิ่งดี
+            'selection_rate': selection_rate,
+            'sample_size': len(group_data)
+        }
+    
+    # Disparate Impact Ratio — กฎ 80% ของ EEOC (US Equal Employment)
+    # ถ้า selection rate ของกลุ่มที่ได้น้อยกว่า หารด้วยกลุ่มที่ได้มากกว่า < 0.8
+    # ถือว่ามี disparate impact (เลือกปฏิบัติโดยไม่ตั้งใจ)
+    selection_rates = [v['selection_rate'] for v in results.values()]
+    di_ratio = min(selection_rates) / max(selection_rates)
+    
+    print(f"Disparate Impact Ratio: {di_ratio:.3f}")
+    if di_ratio < 0.8:
+        print("⚠️ WARNING: อาจมี disparate impact — ต้องตรวจสอบเพิ่มเติม")
+    else:
+        print("✅ Disparate Impact อยู่ในเกณฑ์ที่ยอมรับได้")
+    
+    return results
+
+# ตัวอย่างการใช้งาน
+sample_data = pd.DataFrame({
+    'actual':    [1, 1, 0, 1, 0, 1, 0, 0, 1, 0],
+    'predicted': [1, 1, 0, 0, 0, 1, 1, 0, 1, 0],
+    'group':     ['A', 'A', 'A', 'A', 'A', 'B', 'B', 'B', 'B', 'B']
+})
+
+metrics = calculate_fairness_metrics(sample_data)
+for group, m in metrics.items():
+    print(f"\nกลุ่ม {group}:")
+    print(f"  Selection Rate: {m['selection_rate']:.1%}")
+    print(f"  True Positive Rate: {m['tpr']:.1%}")
+```
+
+<!-- IMAGE: กราฟแสดง fairness metrics เปรียบเทียบระหว่างกลุ่ม แสดง disparity ที่เห็นชัด -->
+
+### Bias Audit Process — ตรวจสอบก่อน deploy
+
+1. **กำหนด sensitive attributes** — อะไรคือสิ่งที่ AI ไม่ควรเอามาตัดสิน เช่น เพศ อายุ ที่อยู่ เชื้อชาติ
+2. **วัด performance แยกตามกลุ่ม** — ไม่ใช่แค่ overall accuracy แต่ต้องดูว่า model ทำงานดีไหมกับแต่ละกลุ่ม
+3. **ตรวจสอบ training data** — ข้อมูลมีตัวแทนทุกกลุ่มพอไหม? กลุ่มไหนอาจถูก underrepresent?
+4. **Test adversarial cases** — ลอง input ที่ออกแบบมาเพื่อหา bias โดยเฉพาะ
+
+---
+
+## AI Liability & Accountability — ใครรับผิดชอบเมื่อ AI ผิดพลาด
+
+นี่คือคำถามที่กฎหมายทั่วโลกยังตอบไม่ชัดเจน และมันซับซ้อนกว่าที่คิด
+
+### Chain of Responsibility
+
+เมื่อ AI ผิดพลาด มักมีผู้เกี่ยวข้องหลายชั้น:
+
+**AI Developer** (เช่น OpenAI, Google, Anthropic) — สร้าง foundation model พวกเขารับผิดชอบสำหรับข้อบกพร่องพื้นฐานในโมเดล แต่โดยทั่วไปมีข้อยกเว้นมากมายใน Terms of Service
+
+**AI Deployer** (บริษัทที่นำ AI ไปใช้) — คุณที่นำ AI ไป deploy ให้ลูกค้า นี่คือจุดที่ความรับผิดชอบมากที่สุดมักตกมาอยู่ คุณเลือกที่จะใช้ AI นั้น คุณกำหนด context การใช้งาน คุณ (ควร) มีกระบวนการตรวจสอบ
+
+**User** — คนที่ใช้ AI ในบางกรณีก็มีความรับผิดชอบด้วย โดยเฉพาะถ้าพวกเขาถูกแจ้งอย่างชัดเจนว่า AI อาจผิดพลาด และเลือกที่จะเชื่อมันโดยไม่ตรวจสอบ
+
+> 💡 **Key insight:** ในกรอบกฎหมายปัจจุบัน "AI deployer" คือจุดที่รับผิดชอบมากที่สุดในทางปฏิบัติ ถ้าบริษัทคุณ deploy AI ให้ลูกค้าใช้ และมันทำให้ลูกค้าเสียหาย คุณมักเป็นคนที่ถูกฟ้องก่อน ไม่ใช่ OpenAI
+
+### ตัวอย่างจริงที่เกิดขึ้นแล้ว
+
+**Air Canada Chatbot Case (2024)** — Air Canada's chatbot แจ้งลูกค้าผิดเรื่อง bereavement fare policy ทำให้ลูกค้าซื้อตั๋วราคาเต็มแล้วมาขอ refund ไม่ได้ ศาลแคนาดาตัดสินว่า Air Canada ต้องรับผิดชอบ — ไม่สามารถอ้างว่า "chatbot พูดเอง ไม่ใช่บริษัท" ได้
+
+**Amazon Recruiting AI (ปิดในปี 2018)** — Amazon พัฒนา AI เพื่อคัดเลือก resume แต่พบว่ามัน downrank ผู้สมัครที่เป็นผู้หญิง เพราะ training data (resume ที่ผ่านมาในอดีต) มี bias ต่อผู้ชายอยู่แล้ว Amazon เลือกที่จะปิด project แทนที่จะ fix เพราะปัญหา bias ฝังลึกเกินไป
+
+<!-- IMAGE: infographic แสดง chain of responsibility ใน AI system จาก developer → deployer → user พร้อม liability ที่แต่ละชั้น -->
+
+> 🧪 **ลองคิดดู:** สมมติ AI ให้คำแนะนำทางการเงินผิดพลาด — บอกว่าหุ้น A เป็นการลงทุนที่ดี แต่มันตก 60% ในสัปดาห์ถัดมา ลูกค้าเสียหาย 500,000 บาท
+>
+> วิเคราะห์ความรับผิดชอบจากมุม governance:
+> - **ถ้า AI บอกชัดว่า "นี่คือคำแนะนำเท่านั้น ไม่ใช่คำแนะนำทางการเงินแบบ professional"** — liability เปลี่ยนไปไหม?
+> - **ถ้าบริษัทไม่มี human advisor review ก่อน** เทียบกับ **มี human review แต่ approve ไป** — ใครรับผิดชอบมากกว่า?
+> - **ถ้า AI model ของ third-party provider มีข้อมูลล้าสมัย** และบริษัทรู้แต่ไม่แจ้งลูกค้า — นี่เปลี่ยนสถานการณ์อย่างไร?
+>
+> การคิดผ่าน scenario เหล่านี้คือสิ่งที่ AI governance framework ที่ดีต้องตอบล่วงหน้า ก่อนที่เหตุการณ์จะเกิดขึ้นจริง
+
+---
+
+## ออกแบบ AI Policy สำหรับองค์กรขนาดกลาง
+
+ถ้าคุณต้องเริ่มวันนี้เลย นี่คือ minimum viable AI governance สำหรับองค์กรขนาดกลางในไทย
+
+### Phase 1: Foundation (1-3 เดือน)
+
+สิ่งแรกคือ **AI Inventory** — รู้ว่าตอนนี้ AI อะไรถูกใช้อยู่ในองค์กรบ้าง แม้แต่สิ่งที่คนไม่คิดว่าเป็น "AI" เช่น spam filter, recommendation engine ใน HR system, fraud detection
+
+จากนั้นเขียน **Acceptable Use Policy** ฉบับแรก ไม่ต้องสมบูรณ์แบบ แต่ต้องชัดเจนในประเด็นที่สำคัญที่สุด: ข้อมูลอะไรห้ามป้อน AI ภายนอก
+
+```markdown
+# ตัวอย่างหัวข้อ AI Acceptable Use Policy
+
+## ข้อมูลที่ห้ามป้อนใน AI ภายนอก (เช่น ChatGPT, Claude, Gemini)
+- ชื่อ ที่อยู่ เบอร์โทร ข้อมูลส่วนตัวของลูกค้า
+- ข้อมูลการเงินของลูกค้าหรือบริษัท
+- รหัสผ่าน API keys หรือ credentials ใด ๆ
+- ข้อมูลทางการแพทย์ของลูกค้า
+- ข้อมูลที่เป็นความลับทางธุรกิจ (pricing strategy, M&A plans)
+
+## การใช้ AI Output
+- AI output ต้องผ่านการตรวจสอบโดยมนุษย์ก่อนส่งถึงลูกค้าเสมอ
+- ห้ามนำ AI output ไปใช้ทางกฎหมาย การแพทย์ หรือการเงินโดยไม่ผ่าน expert review
+- ต้อง disclose ให้ลูกค้ารู้ถ้า content ที่ส่งถึงพวกเขาสร้างโดย AI
+
+## Accountability
+- ผู้ที่ใช้ AI เพื่องานใด ๆ คือผู้รับผิดชอบ output นั้น
+- ไม่สามารถ "โทษ AI" เมื่อเกิดความผิดพลาด
+```
+
+### Phase 2: Risk Assessment Process (3-6 เดือน)
+
+เพิ่มกระบวนการ review ก่อน deploy AI ใหม่ทุกตัว ไม่จำเป็นต้องซับซ้อน แต่ต้องมี checklist อย่างน้อย:
+
+```python
+# AI Deployment Checklist — ตัวอย่าง Python script สำหรับ document process
+
+def ai_deployment_checklist(project_name: str) -> dict:
+    """
+    Checklist สำหรับ review ก่อน deploy AI ใหม่
+    Returns dict พร้อม questions ที่ต้องตอบ
+    """
+    
+    checklist = {
+        "project": project_name,
+        "review_date": "YYYY-MM-DD",
+        "reviewer": "ชื่อผู้รับผิดชอบ",
+        
+        # ส่วนที่ 1: ทำความเข้าใจ AI
+        "understanding": {
+            "what_does_it_do": None,  # อธิบายในภาษาที่ non-technical เข้าใจ
+            "who_is_affected": None,   # ใครได้รับผลกระทบจาก output
+            "is_decision_final": None, # AI ตัดสินใจสุดท้ายหรือแค่ช่วยคน?
+        },
+        
+        # ส่วนที่ 2: ข้อมูล
+        "data": {
+            "what_data_used": None,
+            "is_personal_data": None,   # True/False
+            "pdpa_basis": None,         # consent / legitimate interest / other
+            "data_quality_checked": None,
+        },
+        
+        # ส่วนที่ 3: ความเสี่ยง
+        "risk": {
+            "risk_level": None,          # Low / Medium / High / Critical
+            "worst_case_scenario": None, # ถ้าผิดพลาดร้ายแรงที่สุดคืออะไร
+            "bias_tested": None,         # True/False
+            "human_oversight": None,     # มีคนดูแลอย่างไร
+        },
+        
+        # ส่วนที่ 4: การติดตาม
+        "monitoring": {
+            "success_metrics": None,     # วัด success อย่างไร
+            "failure_indicators": None,  # รู้ได้อย่างไรว่ามันไม่ work
+            "review_frequency": None,    # จะ review บ่อยแค่ไหน
+            "rollback_plan": None,       # ถ้าต้องปิด จะทำอย่างไร
+        },
+        
+        # ส่วนที่ 5: การสื่อสาร
+        "communication": {
+            "users_informed": None,       # ผู้ใช้รู้ว่ากำลังใช้ AI ไหม
+            "disclaimer_in_place": None,  # มี disclaimer หรือเปล่า
+            "complaint_channel": None,    # ร้องเรียนได้ที่ไหน
+        }
+    }
+    
+    return checklist
+```
+
+<!-- IMAGE: flowchart แสดง AI deployment review process ขององค์กร ตั้งแต่ request → review → approve/reject → monitor -->
+
+### Phase 3: Mature Governance (6-12 เดือน)
+
+เมื่อ foundation มั่นคง ค่อยขยับไปสู่:
+- Formal AI Ethics Committee ที่มี meeting schedule
+- Regular bias audits สำหรับ AI ที่ใช้งานอยู่
+- Training ให้พนักงานเข้าใจ AI governance
+- External audit สำหรับ AI ที่มีความเสี่ยงสูง
+
+---
+
+## อนาคตของ AI Governance
+
+โลก AI Governance กำลังเปลี่ยนแปลงเร็วมาก มีประเด็นสำคัญที่ต้องติดตาม
+
+### International Coordination
+
+ความท้าทายใหญ่คือ AI ไม่รู้จักพรมแดน แต่กฎหมายรู้ ถ้าบริษัทในไทยใช้ AI จากสหรัฐ serve ลูกค้าในยุโรป จะอยู่ภายใต้กฎหมายของใคร?
+
+G7, G20 และ UN กำลังพัฒนากรอบ international AI governance ที่จะช่วยประสานงาน แต่ความคืบหน้าช้ากว่าเทคโนโลยีมาก
+
+### Frontier Model Governance
+
+เมื่อ AI models กลายเป็น "powerful" มากขึ้นเรื่อย ๆ คำถามที่เกิดขึ้นคือ ใครควรตัดสินใจว่า AI แบบไหนที่ "ทรงพลังเกินไป" จนต้องควบคุม?
+
+UK เริ่ม AI Safety Institute ก่อนใคร สหรัฐตาม จากนั้นหลายประเทศก็มี safety institutes ของตัวเอง แนวทางนี้เน้นการทดสอบ frontier models ก่อนที่จะ release สู่สาธารณะ
+
+### Open vs. Closed Debate
+
+debate ที่ร้อนมากใน AI community คือ ควร "open source" AI models หรือไม่?
+
+ฝั่ง open source (เช่น Meta กับ Llama) บอกว่า transparency ช่วยให้ตรวจสอบ bias ได้ง่ายกว่า และลดการผูกขาดของบริษัทใหญ่ นอกจากนี้ open models ช่วยให้ประเทศกำลังพัฒนาเข้าถึง AI technology ได้โดยไม่ต้องพึ่งพา vendor ต่างชาติ
+
+ฝั่ง closed (เช่น OpenAI, Anthropic) บอกว่า powerful models ไม่ควรเปิดให้ทุกคนใช้ได้อิสระ เพราะอาจถูก misuse — สร้าง malware, deepfakes, หรือ weapons information ได้ง่ายขึ้น
+
+ตรงกลางมีแนวคิด "structured access" — ไม่ open source 100% แต่ให้ researcher เข้าถึงผ่าน API ที่มี safety guardrails
+
+สำหรับองค์กรในไทย debate นี้มีผลจริง: ถ้าคุณเลือกใช้ open source model (เช่น self-host Llama) คุณแบกความรับผิดชอบทั้งหมดเอง ไม่มี provider รับแทน แต่ถ้าใช้ closed API คุณพึ่งพา provider ในเรื่อง data privacy และ model behavior
+
+ไม่มีคำตอบที่ถูกต้องตายตัว แต่นี่คือ debate ที่จะกำหนดทิศทาง AI governance ในทศวรรษหน้า
+
+### AI Governance สำหรับ Startups vs. Enterprise
+
+ขนาดองค์กรส่งผลต่อ governance approach อย่างมาก:
+
+**Startup (< 50 คน)** — ไม่ต้องมี AI Ethics Board 10 คน แต่ต้องมีอย่างน้อย: AI acceptable use policy 1 หน้า, checklist ก่อน deploy, และคนที่ "own" AI risk (อาจเป็น CTO เอง)
+
+**SME (50-500 คน)** — ควรมี cross-functional review สำหรับ AI projects ที่มีผลกระทบสูง, PDPA compliance process, และ incident response plan
+
+**Enterprise (500+ คน)** — ต้องมี formal AI governance framework, dedicated team หรือ committee, regular audits, และ integration กับ existing risk management
+
+<!-- IMAGE: timeline แสดง predicted milestones ของ AI governance ในอนาคต 2025-2030 -->
+
+> 💡 **Key insight:** AI Governance ไม่ใช่สิ่งที่ "ทำครั้งเดียวแล้วจบ" มันต้องพัฒนาตามเทคโนโลยีและบริบทสังคมอย่างต่อเนื่อง องค์กรที่ประสบความสำเร็จจะเป็นองค์กรที่สร้าง governance muscle ไว้ ไม่ใช่แค่ document ที่ดูดีในกระดาษ
+
+---
+
+## สิ่งที่คุณทำได้วันนี้เลย
+
+AI Governance ฟังดูใหญ่โต แต่มีสิ่งที่คุณเริ่มได้ตอนนี้:
+
+**สำหรับคนทั่วไป:**
+- เข้าใจว่าเมื่อใช้ AI service อะไร ข้อมูลคุณไปอยู่ที่ไหน
+- ตรวจสอบ AI output ก่อนเชื่อ โดยเฉพาะสิ่งที่มีผลกระทบสูง
+
+**สำหรับคนทำงาน:**
+- ถ้าบริษัทยังไม่มี AI policy ลอง draft ฉบับแรกขึ้นมา แม้ไม่สมบูรณ์ก็ยังดีกว่าไม่มี
+- ถามคำถาม "ถ้าผิดพลาดใครรับผิดชอบ?" ก่อน deploy AI ทุกครั้ง
+
+**สำหรับผู้นำองค์กร:**
+- AI governance ไม่ใช่ cost center — มันคือ risk management ที่ป้องกัน cost ที่แพงกว่ามากในอนาคต
+- สร้างวัฒนธรรมที่คนกล้า raise ข้อกังวลเกี่ยวกับ AI ก่อนที่ปัญหาจะเกิดขึ้น
+
+---
+
+## สรุป
+
+AI Governance และ Policy คือ Judgment skill ที่สำคัญที่สุดอย่างหนึ่งในยุคนี้ เพราะมันไม่ใช่เรื่องของ "ทำได้ไหม" แต่เป็นเรื่องของ "ควรทำไหม ทำอย่างไร และถ้าผิดพลาดจะจัดการอย่างไร"
+
+เราได้เดินทางจาก EU AI Act ที่แบ่ง AI ตาม risk tier ผ่าน PDPA ที่บังคับใช้อยู่แล้วในไทย ไปจนถึง practical tools อย่าง Model Cards, Fairness Metrics และ Deployment Checklist ทั้งหมดนี้ไม่ใช่เรื่องนามธรรม — มันคือเครื่องมือที่ช่วยให้ AI ที่ดีอยู่รอดและ AI ที่เสียหายถูกหยุดก่อนที่มันจะเสียหายคน
+
+จากตรงนี้ ทิศทางต่อไปคือการนำ AI governance มาผนวกเข้ากับ strategy ระดับองค์กร — ไม่ใช่แค่ "ใช้ AI ให้ได้" แต่ "ใช้ AI อย่างไรให้สร้าง competitive advantage ที่ยั่งยืน" บทถัดไปจะพูดถึง **AI Strategy สำหรับองค์กร** ว่าจะวางแผน build vs. buy, สร้าง AI roadmap, และบริหาร AI portfolio อย่างไรให้ตอบโจทย์ธุรกิจในระยะยาว
+
+---
+
+*บทนี้เป็นส่วนหนึ่งของซีรีส์ AI ภาษาคน — ความรู้ AI ที่เข้าถึงได้สำหรับทุกคน*

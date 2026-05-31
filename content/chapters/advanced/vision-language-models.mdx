@@ -1,0 +1,601 @@
+---
+slug: vision-language-models
+level: advanced
+title: "Vision-Language Models — เมื่อ AI เข้าใจทั้งภาพและภาษา"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ Vision-Language Models ตั้งแต่ ViT, CLIP, multimodal architectures, วิธี train ให้เข้าใจภาพ+ข้อความพร้อมกัน จนถึง GPT-4V, Claude Vision, Gemini และ video understanding"
+---
+# Vision-Language Models — เมื่อ AI เข้าใจทั้งภาพและภาษา
+
+---
+
+เคยส่งรูปใบเสร็จร้านอาหารให้ ChatGPT แล้วมันอ่านราคาแต่ละรายการออกมาให้เราไหม? หรือส่งกราฟจาก PowerPoint แล้วมันบอกได้ว่าเส้นนี้สูงขึ้นเพราะอะไร?
+
+คำถามที่น่าสนใจกว่าคือ — AI ที่เราคิดว่ามันเข้าใจแค่ "ตัวอักษร" ทำไมถึง "เห็น" ภาพได้ด้วย?
+
+คำตอบไม่ได้ง่ายแบบ "แค่เพิ่ม camera เข้าไป" ข้างในมีสถาปัตยกรรมที่น่าทึ่งมาก และเมื่อเข้าใจแล้ว คุณจะมองภาพ AI ในปัจจุบันเปลี่ยนไปตลอดกาล
+
+---
+
+## จาก Text-Only สู่โลกที่มีทั้งภาพและภาษา
+
+ลองย้อนกลับไปนึกถึง GPT-2 หรือ BERT รุ่นต้น — โมเดลเหล่านั้นถูก train มาจากข้อความล้วนๆ Wikipedia, Reddit, หนังสือ, บทความ สิ่งที่มันเรียนรู้คือความสัมพันธ์ระหว่างคำกับคำ "แมว" อยู่ใกล้กับ "ขน", "เหมียว", "นม" ในพื้นที่ vector ของมัน
+
+แต่โลกจริงไม่ได้มีแค่ข้อความ
+
+ข้อมูลที่มนุษย์ใช้ทำงานทุกวันมีรูปภาพ กราฟ สัญญา สไลด์ประชุม ใบแจ้งหนี้ รูปถ่ายสินค้า วิดีโอสอนงาน ถ้า AI จะเป็นผู้ช่วยที่ "ใช้งานได้จริง" มันต้องเข้าใจสิ่งที่มนุษย์ส่งให้ ไม่ใช่แค่ข้อความที่พิมพ์
+
+<!-- IMAGE: แผนภูมิเปรียบเทียบ text-only LLM vs multimodal VLM แสดง input/output ที่ต่างกัน -->
+
+ปัญหาคือ Transformer ที่ใช้ใน LLM ถูกออกแบบมาสำหรับ sequence ของ tokens ตัวอักษรกลายเป็น subword tokens, tokens เรียงกันเป็น context window แล้วภาพล่ะ? ภาพเป็น grid ของ pixels ไม่ใช่ sequence ของ tokens จะยัดเข้าไปใน Transformer ได้ยังไง?
+
+นั่นคือปัญหาที่นักวิจัยต้องแก้ และคำตอบที่ได้เปลี่ยนวงการ AI ไปอย่างถาวร
+
+> 💡 **Key insight:** ปัญหาหลักของ multimodal AI ไม่ใช่ "จะสอนให้ AI เห็นได้ยังไง" แต่คือ "จะแปลงภาพให้อยู่ในรูปแบบที่ Transformer กินได้ยังไง" — คำตอบคือ Vision Transformer (ViT)
+
+---
+
+## Vision Transformer — ตัดภาพออกเป็นชิ้นๆ แล้วให้ Transformer อ่าน
+
+ปี 2020 ทีม Google Brain เผยแพร่งานชื่อ "An Image is Worth 16x16 Words" ชื่อบอกแนวคิดทั้งหมดเลย
+
+แทนที่จะคิดแบบ CNN (Convolutional Neural Network) ที่กวาดตา convolution filter ไปทั่วภาพ ViT ทำสิ่งที่ดูเหมือนไม่น่าจะได้ผล — ตัดภาพออกเป็นสี่เหลี่ยมเล็กๆ (patches) แล้วแปลงแต่ละ patch เป็น vector แล้วส่งให้ Transformer อ่านเหมือนอ่านประโยค
+
+ลองนึกภาพรูปแมวขนาด 224×224 pixels ViT ตัดมันออกเป็น patches ขนาด 16×16 pixels จะได้กี่ patch? (224/16) × (224/16) = 14×14 = 196 patches แต่ละ patch แบนออกเป็น vector ขนาด 16×16×3 = 768 มิติ (3 สำหรับ RGB)
+
+ก็ได้ sequence ขนาด 196 ตัว แต่ละตัวคือ "คำ" ที่แทน patch หนึ่งของภาพ
+
+<!-- IMAGE: ภาพแมวถูกตัดเป็น 14×14 patches แต่ละ patch กลายเป็น vector แสดง positional encoding ด้วย -->
+
+จากนั้นเพิ่ม **Positional Encoding** เพื่อให้โมเดลรู้ว่า patch ไหนอยู่ตรงไหนในภาพ (patch มุมซ้ายบนต่างจาก patch กลางภาพ) แล้วก็เพิ่ม class token พิเศษไว้หน้าสุด ตัวนี้จะดูดซับ "ความหมาย" ของทั้งภาพ
+
+ส่งทั้งหมดเข้า Transformer encoder หลายชั้น แต่ละชั้นทำ self-attention ระหว่าง patches
+
+ผลลัพธ์? class token ออกมาจาก Transformer ตอนสุดท้าย ก็คือ "ความหมายรวม" ของภาพทั้งใบ ซึ่งสามารถต่อกับ classifier หรือใช้ใน downstream tasks ได้
+
+> 💡 **Key insight:** ViT ไม่ได้ "เห็น" ภาพแบบที่ตามนุษย์เห็น มันอ่านภาพเหมือนอ่านข้อความ — เป็น sequence ของ patches โดยใช้ attention เชื่อมโยงความสัมพันธ์ระหว่าง patches ต่างๆ ซึ่งทำให้มันจับ long-range dependency ได้ดีกว่า CNN แบบเดิม
+
+ข้อดีของแนวทางนี้คือ Transformer ที่ train สำหรับภาษาและ Transformer ที่ train สำหรับภาพใช้ architecture เดียวกัน นั่นหมายความว่าเราสามารถ "เชื่อมต่อ" ทั้งสองเข้าหากันได้
+
+---
+
+## CLIP — สอน AI ให้รู้จักความสัมพันธ์ระหว่างภาพและข้อความ
+
+ถ้า ViT แก้ปัญหาว่า "จะแปลงภาพเป็น vector ได้ยังไง" CLIP แก้ปัญหาที่ยากกว่า — "จะสอน AI ให้รู้ว่าภาพนี้ตรงกับข้อความไหน?"
+
+CLIP ย่อมาจาก Contrastive Language-Image Pretraining พัฒนาโดย OpenAI ปี 2021
+
+แนวคิดหลัก: เอาคู่ภาพ-ข้อความ 400 ล้านคู่จากอินเทอร์เน็ต (รูปพร้อม caption, รูปพร้อม alt text, รูปพร้อมชื่อไฟล์) แล้ว train โมเดลให้รู้ว่าคู่ไหน "match" กัน
+
+ระบบมีสองส่วน: Image Encoder (ViT) และ Text Encoder (Transformer) แต่ละส่วนแปลง input ของตัวเองออกมาเป็น vector ขนาดเท่ากัน (เช่น 512 มิติ)
+
+<!-- IMAGE: แผนภาพ CLIP แสดง Image Encoder และ Text Encoder ส่ง vector ออกมา 512 มิติ พร้อม contrastive loss matrix -->
+
+การ train ใช้ **Contrastive Loss** ลองนึกว่ามี batch ขนาด N คู่ภาพ-ข้อความ ที่ match กัน matrix ความคล้ายคลึง N×N จะมี diagonal (คู่ที่ match จริง) สูง ส่วนที่เหลือต่ำ โมเดลต้องเรียนรู้ให้ทำแบบนั้นได้
+
+ผลลัพธ์ที่น่าทึ่งคือ image vector ของ "รูปแมว" อยู่ใกล้กับ text vector ของ "a photo of a cat" ใน embedding space ทั้งสองแม้มาจาก modality ต่างกัน แต่อยู่ใน "พื้นที่ความหมาย" เดียวกัน
+
+ความสามารถสุดเจ๋งที่เกิดขึ้น? **Zero-shot classification**
+
+ถ้าอยากรู้ว่ารูปนี้คือแมวหรือหมา แค่เทียบ vector ของรูปกับ vector ของ "a photo of a cat" และ "a photo of a dog" — อันไหนใกล้กว่านั้นคือคำตอบ โดยไม่ต้องมี dataset training แบบเดิมๆ เลย
+
+ยิ่งกว่านั้น CLIP ทำ zero-shot บน ImageNet ได้ดีกว่า ResNet-50 ที่ train แบบ supervised เต็มรูปแบบ ซึ่งพิสูจน์ว่า pre-training ในวงกว้างด้วย contrastive loss มีพลังมหาศาล
+
+> 💡 **Key insight:** CLIP สร้าง "ภาษากลาง" ระหว่างภาพและข้อความ ทั้งสองอยู่ใน embedding space เดียวกัน ทำให้สามารถเปรียบเทียบ image กับ text โดยตรงได้ เป็นรากฐานของ multimodal AI เกือบทุกอย่างที่เห็นในปัจจุบัน
+
+---
+
+## Multimodal Architecture Patterns — สามแนวทางหลักในการสร้าง VLM
+
+เมื่อมีอาวุธอย่าง ViT และ CLIP แล้ว ทีมวิจัยต่างๆ นำไปสร้าง Vision-Language Models ด้วยสถาปัตยกรรมที่แตกต่างกันสามแบบหลัก แต่ละแบบมีจุดแข็งและจุดอ่อนต่างกัน
+
+### Pattern 1: Dual Encoder (แบบ CLIP)
+
+สองโมเดลแยกกัน แปลง image และ text ให้เป็น vector แล้วเปรียบเทียบ ดีที่สุดสำหรับงาน retrieval เช่น "ค้นหารูปที่ตรงกับ query นี้" หรือ "หา caption ที่เหมาะกับรูปนี้"
+
+ข้อจำกัดคือมันไม่ถนัดงานที่ต้องการ "cross-attention" ลึกๆ เช่น "อธิบายรายละเอียดของรูปนี้" เพราะ image vector กับ text vector ถูก encode แยกกันตั้งแต่ต้น ไม่มีโอกาสที่ attention จาก text จะ "ถามคำถาม" image ตอน processing
+
+<!-- IMAGE: เปรียบเทียบ Dual Encoder vs Cross-attention architecture แบบ side-by-side -->
+
+### Pattern 2: Vision Encoder + LLM Adapter (แบบ LLaVA)
+
+เอา pre-trained vision encoder (เช่น CLIP ViT) + pre-trained LLM (เช่น LLaMA) แล้วเพิ่ม "adapter" เล็กๆ ตรงกลาง ทำหน้าที่แปลง image features ให้กลายเป็น "visual tokens" ที่ LLM กิน
+
+LLaVA (Large Language and Vision Assistant) เป็นตัวอย่างดัง ขั้นตอนง่ายๆ คือ:
+1. Image เข้า CLIP ViT → image features
+2. Image features เข้า projection layer → visual tokens
+3. Visual tokens รวมกับ text tokens → เข้า LLM ปกติ
+
+ข้อดี: ใช้ LLM ที่ pre-trained ดีๆ อยู่แล้ว ไม่ต้อง train ทุกอย่างใหม่ถอดด้าม ประหยัดทรัพยากรมาก ข้อเสีย: เส้นแบ่งระหว่าง visual encoder กับ LLM ยังชัด อาจมี information bottleneck ที่ adapter
+
+### Pattern 3: Native Multimodal (แบบ Gemini)
+
+สร้างโมเดลที่รับ modalities หลายอย่างตั้งแต่ต้นเลย ไม่มีการแบ่งว่า "นี่คือ vision encoder นี่คือ language encoder" แต่เป็น unified model ที่ process image patches, text tokens, audio tokens ฯลฯ ร่วมกันตั้งแต่ layer แรก
+
+ข้อดีคือ cross-modal attention เกิดขึ้นลึกมากกว่า ข้อเสียคือ train ยากกว่า ต้องการ data และ compute มากกว่า
+
+> 💡 **Key insight:** ไม่มี architecture ไหน "ชนะ" ในทุกมิติ Dual encoder เร็วที่สุดสำหรับ retrieval, Adapter-based ประหยัดทรัพยากรที่สุด, Native multimodal มีศักยภาพสูงสุดแต่ cost สูงสุดด้วย
+
+---
+
+> 🧪 **ลองคิดดู:** สมมติคุณมี LLM ที่ดีอยู่แล้ว (เช่น LLaMA) และอยากเพิ่ม vision capability เข้าไปด้วยงบประมาณจำกัด คุณจะเลือก approach ไหนระหว่าง: (ก) Train ตั้งแต่ต้นเป็น native multimodal (ข) ใช้ CLIP ViT + projection layer เชื่อมต่อ LLM ที่มีอยู่ (ค) Fine-tune แค่ projection layer ส่วน LLM และ ViT freeze ไว้? และ trade-off ของแต่ละทางคืออะไร? (hint: คิดเรื่อง catastrophic forgetting, compute cost, และ data requirement)
+
+---
+
+## GPT-4V, Claude Vision, Gemini — ใครเก่งอะไร?
+
+ปลายปี 2023 ถึง 2024 เป็นช่วงที่ commercial VLMs ระเบิดออกมาพร้อมกัน แต่ละตัวมีจุดเด่นที่แตกต่างกัน
+
+### GPT-4V (และ GPT-4o)
+
+OpenAI ใส่ vision เข้า GPT-4 โดย GPT-4o ไปไกลกว่านั้นด้วยการเป็น "omni" model ที่รับ image, text, audio ได้ในตัวเดียว
+
+จุดแข็ง: วิเคราะห์ภาพซับซ้อนได้ดีมาก อ่านกราฟ/chart ตีความ mathematical notation ในภาพ reasoning เกี่ยวกับ spatial relationship ในรูป ค่อนข้างแม่นยำกับ OCR ภาษาอังกฤษ
+
+จุดที่ต้องระวัง: บางครั้ง hallucinate รายละเอียดที่ไม่มีในรูป เช่น อ่านตัวเลขผิดในใบเสร็จที่ถ่ายไม่คม
+
+### Claude Vision (Claude 3 Sonnet, Opus, Haiku)
+
+Anthropic ออกแบบ Claude 3 ให้มี vision ตั้งแต่ต้น
+
+จุดแข็ง: ค่อนข้าง "honest" เกี่ยวกับสิ่งที่เห็นและไม่เห็น ถ้าภาพพร่ามัวมันจะบอกแทนที่จะเดา document analysis และ table extraction ดีมาก อธิบายขั้นตอนใน diagram ได้ดี
+
+จุดที่ต้องระวัง: บางครั้งระมัดระวังเกินไปจนไม่ยอม infer สิ่งที่ควร infer ได้
+
+### Gemini (Pro, Ultra, Flash)
+
+Google สร้าง Gemini เป็น native multimodal ตั้งแต่ต้น ไม่ได้ bolt-on vision เข้าไปทีหลัง
+
+จุดแข็ง: จัดการ multi-image comparison ได้ดี เข้าใจ context ระหว่างหลายภาพ รองรับ video input (บาง tier) spatial reasoning ดีกว่าหลายคู่แข่ง
+
+จุดที่ต้องระวัง: output quality บางครั้งไม่ consistent ขึ้นกับ version และ prompt ที่ใช้
+
+<!-- IMAGE: ตาราง comparison GPT-4V vs Claude Vision vs Gemini แบ่งตาม use cases: OCR, chart analysis, spatial reasoning, document extraction, code from screenshot -->
+
+ในทางปฏิบัติ สำหรับงาน business ส่วนใหญ่ ทั้งสามตัวทำได้ดีพอๆ กัน ความแตกต่างที่ชัดเจนจะเกิดขึ้นกับงานเฉพาะทาง เช่น Thai OCR (ทุกตัวยังพอสู้ได้แต่ไม่สมบูรณ์แบบ), medical imaging (ต้องการ fine-tuning), หรือ technical diagram ซับซ้อน
+
+**คำแนะนำสำหรับการเลือก:**
+
+| Use Case | แนะนำ | เหตุผล |
+|---|---|---|
+| Document extraction (ภาษาอังกฤษ) | Claude / GPT-4o | แม่นยำสูง, structured output ดี |
+| Document extraction (ภาษาไทย) | Claude / GPT-4o | ยังไม่มีตัวไหนเก่งจริง ต้อง validate |
+| Multi-image comparison | Gemini | Native multi-image ดีกว่า |
+| Video analysis | Gemini 1.5 Pro | รองรับ video input โดยตรง |
+| Cost-sensitive batch | Claude Haiku / GPT-4o mini | ถูกกว่ามากสำหรับงาน simple |
+| Creative interpretation | GPT-4o | ยืดหยุ่นกว่าในการตีความ |
+
+> 💡 **Key insight:** อย่า commit กับ provider เดียว เพราะ VLM landscape เปลี่ยนเร็วมาก สร้าง abstraction layer ที่ swap provider ได้ง่าย และ benchmark กับ use case จริงของคุณก่อน deploy
+
+---
+
+## ใช้งานจริง — Code Examples
+
+พูดทฤษฎีมาพอแล้ว มาดูว่าเรียก Vision API ยังไงในทางปฏิบัติ
+
+### ส่งรูปให้ OpenAI Vision API
+
+```python
+import openai
+import base64
+from pathlib import Path
+
+# อ่านรูปภาพและแปลงเป็น base64
+def encode_image(image_path: str) -> str:
+    """แปลงรูปภาพเป็น base64 string สำหรับส่ง API"""
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode("utf-8")
+
+client = openai.OpenAI()
+
+# ตัวอย่าง: วิเคราะห์ใบเสร็จ
+image_path = "receipt.jpg"
+base64_image = encode_image(image_path)
+
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        # ระบุ data URL พร้อม MIME type
+                        "url": f"data:image/jpeg;base64,{base64_image}",
+                        # detail: "low" เร็วและถูกกว่า, "high" แม่นยำกว่า
+                        "detail": "high"
+                    }
+                },
+                {
+                    "type": "text",
+                    "text": "อ่านรายการและราคาจากใบเสร็จนี้ แล้วสรุปเป็น JSON format"
+                }
+            ]
+        }
+    ],
+    max_tokens=1000
+)
+
+print(response.choices[0].message.content)
+```
+
+### ส่งรูปให้ Claude Vision API
+
+```python
+import anthropic
+import base64
+
+client = anthropic.Anthropic()
+
+# อ่านรูปภาพ
+with open("chart.png", "rb") as f:
+    image_data = base64.standard_b64encode(f.read()).decode("utf-8")
+
+# ส่งให้ Claude วิเคราะห์กราฟ
+message = client.messages.create(
+    model="claude-opus-4-5",
+    max_tokens=1024,
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    # Claude ใช้ format "image" แทน "image_url"
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": image_data,
+                    },
+                },
+                {
+                    "type": "text",
+                    "text": "วิเคราะห์กราฟนี้ บอกว่า trend เป็นอย่างไร และมีจุดน่าสังเกตอะไรบ้าง"
+                }
+            ],
+        }
+    ],
+)
+
+print(message.content[0].text)
+```
+
+### ส่งรูปจาก URL โดยตรง (ไม่ต้อง download ก่อน)
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+# Claude รองรับการส่ง URL ของรูปโดยตรง
+message = client.messages.create(
+    model="claude-opus-4-5",
+    max_tokens=1024,
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        # ใช้ type "url" แทน "base64"
+                        "type": "url",
+                        "url": "https://example.com/product.jpg",
+                    },
+                },
+                {
+                    "type": "text",
+                    "text": "บรรยายสินค้าในภาพนี้สำหรับใช้ในหน้า product listing"
+                }
+            ],
+        }
+    ],
+)
+
+print(message.content[0].text)
+```
+
+<!-- IMAGE: Flow diagram แสดงขั้นตอน image → base64 → API request → vision model → text response -->
+
+### Batch Processing หลายรูปพร้อมกัน
+
+```python
+import anthropic
+import base64
+import asyncio
+from pathlib import Path
+
+client = anthropic.Anthropic()
+
+def process_single_image(image_path: str, prompt: str) -> dict:
+    """วิเคราะห์รูปภาพเดี่ยวและ return ผลลัพธ์"""
+    with open(image_path, "rb") as f:
+        image_data = base64.standard_b64encode(f.read()).decode("utf-8")
+    
+    # ตรวจสอบ format รูป
+    suffix = Path(image_path).suffix.lower()
+    media_type_map = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg", 
+        ".png": "image/png",
+        ".gif": "image/gif",
+        ".webp": "image/webp"
+    }
+    media_type = media_type_map.get(suffix, "image/jpeg")
+    
+    message = client.messages.create(
+        model="claude-haiku-4-5",  # ใช้ Haiku สำหรับ batch งาน ประหยัด cost
+        max_tokens=500,
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": media_type,
+                        "data": image_data,
+                    },
+                },
+                {"type": "text", "text": prompt}
+            ],
+        }]
+    )
+    
+    return {
+        "file": image_path,
+        "result": message.content[0].text
+    }
+
+# วิเคราะห์ใบเสร็จหลายใบพร้อมกัน (sequential สำหรับตัวอย่างนี้)
+receipt_files = ["receipt_jan.jpg", "receipt_feb.jpg", "receipt_mar.jpg"]
+prompt = "สรุปยอดรวมและรายการหลักจากใบเสร็จนี้"
+
+results = []
+for receipt in receipt_files:
+    result = process_single_image(receipt, prompt)
+    results.append(result)
+    print(f"✓ {result['file']}: {result['result'][:100]}...")
+
+print(f"\nวิเคราะห์เสร็จทั้งหมด {len(results)} ใบ")
+```
+
+---
+
+## ไกลกว่าแค่รูปภาพ — Video, OCR, Documents
+
+VLMs ในปัจจุบันไม่ได้ทำได้แค่วิเคราะห์รูปธรรมดา
+
+### Video Understanding
+
+Gemini 1.5 Pro รองรับการส่ง video โดยตรง ทำให้สามารถ:
+- สรุปเนื้อหาของคลิปการประชุม
+- หา timestamp ที่มีการพูดถึง topic เฉพาะ
+- วิเคราะห์การเปลี่ยนแปลงในวิดีโอ (เช่น วิดีโอจากกล้อง CCTV)
+
+ข้อจำกัดปัจจุบัน: ราคาแพงกว่ามาก ต้อง upload video ก่อน และ latency สูง ยังไม่เหมาะกับ real-time applications
+
+### OCR และ Document Analysis
+
+นี่คือ use case ที่ VLMs โดดเด่นมากในทางปฏิบัติ
+
+```python
+# ตัวอย่าง: Extract ข้อมูลจาก business card
+import anthropic
+import base64
+import json
+
+client = anthropic.Anthropic()
+
+def extract_business_card(image_path: str) -> dict:
+    """
+    Extract ข้อมูล structured จาก business card
+    Return dict พร้อม name, company, phone, email ฯลฯ
+    """
+    with open(image_path, "rb") as f:
+        image_data = base64.standard_b64encode(f.read()).decode("utf-8")
+    
+    # บอก Claude ให้ return JSON เลย ไม่ต้องอธิบาย
+    system_prompt = """คุณเป็น data extraction specialist 
+    เมื่อได้รับภาพ business card ให้ return JSON เท่านั้น ไม่มี text อื่น
+    Schema ที่ต้องการ:
+    {
+        "name": "ชื่อ-นามสกุล",
+        "title": "ตำแหน่ง",
+        "company": "ชื่อบริษัท",
+        "phone": ["เบอร์โทร 1", "เบอร์โทร 2"],
+        "email": "อีเมล",
+        "website": "เว็บไซต์",
+        "address": "ที่อยู่",
+        "confidence": 0.0-1.0  // ความมั่นใจในการอ่าน
+    }
+    ถ้าไม่พบข้อมูลใด ให้ใส่ null"""
+    
+    message = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=500,
+        system=system_prompt,
+        messages=[{
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/jpeg",
+                        "data": image_data,
+                    },
+                },
+                {"type": "text", "text": "Extract ข้อมูลจาก business card นี้"}
+            ],
+        }]
+    )
+    
+    # Parse JSON response
+    return json.loads(message.content[0].text)
+
+# ทดสอบ
+card_data = extract_business_card("business_card.jpg")
+print(f"ชื่อ: {card_data['name']}")
+print(f"บริษัท: {card_data['company']}")
+print(f"ความมั่นใจ: {card_data['confidence']:.0%}")
+```
+
+<!-- IMAGE: ตัวอย่าง business card และ JSON output ที่ได้จาก VLM extraction -->
+
+### Spatial Reasoning
+
+VLMs สามารถตอบคำถามเกี่ยวกับตำแหน่งของวัตถุในภาพได้ "กล่องสีแดงอยู่ทางซ้ายหรือขวาของกล่องสีน้ำเงิน?" "มีกี่คนในภาพนี้?" "วัตถุไหนใหญ่ที่สุด?"
+
+แต่ spatial reasoning ยังเป็นหนึ่งใน weakness ใหญ่ของ VLMs ปัจจุบัน โมเดลมักสับสนเรื่อง left/right, ประเมิน scale ผิด, และ struggle กับ overlapping objects
+
+### Chart และ Data Visualization
+
+ส่ง bar chart ให้ VLM แล้วถามว่า "ค่าสูงสุดเดือนไหน?" หรือ "trend เป็นบวกหรือลบ?" ทำได้ดีมาก แต่ถ้าถามว่า "บอกค่าตัวเลขแน่นอนของทุก bar" — นั่นอาจ hallucinate ได้ถ้า labels ในกราฟไม่ชัด
+
+### Multi-Image Comparison
+
+VLMs สมัยใหม่รับหลายรูปพร้อมกันได้ ทำให้เราใช้ในงาน comparison:
+
+```python
+# เปรียบเทียบ 2 versions ของ UI design
+import anthropic, base64
+
+client = anthropic.Anthropic()
+
+def compare_images(image_paths: list[str], question: str) -> str:
+    """ส่งหลายรูปให้ VLM เปรียบเทียบ"""
+    content = []
+    for i, path in enumerate(image_paths):
+        with open(path, "rb") as f:
+            data = base64.standard_b64encode(f.read()).decode("utf-8")
+        content.append({
+            "type": "image",
+            "source": {"type": "base64", "media_type": "image/png", "data": data}
+        })
+        content.append({"type": "text", "text": f"(ภาพที่ {i+1})"})
+    
+    content.append({"type": "text", "text": question})
+    
+    response = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": content}]
+    )
+    return response.content[0].text
+
+# ใช้จริง: เปรียบเทียบ UI mockup 2 versions
+result = compare_images(
+    ["design_v1.png", "design_v2.png"],
+    "เปรียบเทียบ 2 versions นี้: อะไรเปลี่ยน อะไรดีขึ้น อะไรแย่ลง?"
+)
+print(result)
+```
+
+Use cases ที่เหมาะกับ multi-image:
+- **Before/After comparison** — ตรวจสอบงานก่อสร้าง, เปลี่ยนแปลง UI
+- **Product QA** — เปรียบเทียบสินค้าจริงกับ spec sheet
+- **Document versioning** — หาความแตกต่างระหว่าง 2 versions ของสัญญา
+
+<!-- IMAGE: ตัวอย่าง multi-image comparison — ส่ง UI design 2 versions ให้ VLM วิเคราะห์ -->
+
+### Multimodal RAG — เมื่อ VLM พบ Retrieval
+
+หนึ่งใน use cases ที่น่าตื่นเต้นคือการรวม VLM เข้ากับ RAG pipeline ลองนึกถึง:
+
+1. **Index ภาพ**: ใช้ VLM สรุปเนื้อหาของรูปภาพแต่ละรูปเป็น text → embed text นั้น → เก็บใน vector database
+2. **Query**: เมื่อ user ถามคำถาม → search ทั้ง text chunks และ image summaries
+3. **Answer**: ส่งทั้ง text context และ relevant images ให้ VLM ตอบ
+
+```python
+# ขั้นตอนที่ 1: สร้าง image index ด้วย VLM
+def index_image(image_path: str) -> str:
+    """ให้ VLM สรุปเนื้อหาภาพเป็น text สำหรับ indexing"""
+    with open(image_path, "rb") as f:
+        data = base64.standard_b64encode(f.read()).decode("utf-8")
+    
+    response = client.messages.create(
+        model="claude-haiku-4-5",  # ใช้ Haiku ประหยัด — index ทีเดียวใช้ซ้ำได้
+        max_tokens=300,
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": data}},
+                {"type": "text", "text": "อธิบายเนื้อหาในภาพนี้อย่างละเอียดเพื่อใช้ในการค้นหา รวมถึงตัวเลข ข้อความ และ layout"}
+            ]
+        }]
+    )
+    return response.content[0].text  # เอาไป embed ต่อ
+```
+
+แนวทางนี้เปิดประตูสู่ "visual knowledge base" — ถามคำถามเป็น text แล้วระบบดึงทั้งเอกสารและภาพที่เกี่ยวข้องมาตอบ
+
+> 💡 **Key insight:** Multimodal RAG ทำให้ข้อมูลที่เคย "ค้นหาไม่ได้" (รูปภาพ, กราฟ, diagram) กลายเป็นส่วนหนึ่งของ knowledge base ที่ query ด้วยภาษาธรรมชาติได้ นี่คือ paradigm shift ที่หลายองค์กรยังไม่ตระหนัก
+
+---
+
+> 🧪 **ลองคิดดู:** ลองออกแบบ multimodal pipeline สำหรับ automated document processing ของบริษัทประกันภัยที่ต้องรับใบแจ้งหนี้ค่าโรงพยาบาลหลายพันใบต่อวัน คุณจะ: (1) ออกแบบ validation step ยังไงเพื่อลด hallucination? (2) เลือกโมเดลไหนสำหรับ step ไหน (cost vs accuracy trade-off)? (3) handle edge cases อะไรบ้าง เช่น รูปเบลอ, ใบเสร็จถ่ายเอียง, ลายมือ? ลองวาด flow diagram ในหัว ก่อนอ่านต่อ
+
+---
+
+## ความท้าทายและข้อจำกัดที่ต้องรู้
+
+ก่อนจะนำ VLMs ไปใช้ในงานจริง มีข้อจำกัดหลายอย่างที่ต้องเข้าใจ
+
+### 1. Hallucination ในบริบท Visual
+
+Hallucination ใน text-only LLM แย่พอแล้ว ใน VLM มันซับซ้อนกว่า เพราะโมเดลอาจ "เห็น" สิ่งที่ไม่มีในรูป หรือ "อ่าน" ตัวเลขผิดจากใบเสร็จ
+
+วิธีลดความเสี่ยง:
+- ขอให้โมเดลบอก confidence หรือ uncertainty
+- ใช้ structured output และ validate schema
+- สำหรับงาน critical เช่น financial data ควรมี human review อยู่ใน loop
+
+<!-- IMAGE: ตัวอย่าง hallucination — ภาพใบเสร็จกับ VLM ที่อ่านตัวเลขผิด -->
+
+### 2. Spatial Reasoning Limitations
+
+VLMs ยังไม่ถนัดนับวัตถุที่ซ้อนกัน, ระบุตำแหน่งแน่นอน (pixel coordinate), หรือ compare size ของวัตถุที่อยู่ห่างกันในภาพ
+
+ตัวอย่างที่พลาดบ่อย: "บอกพิกัดของ bounding box รอบวัตถุนี้" — VLMs ส่วนใหญ่ไม่ได้ถูก train มาสำหรับงานนี้โดยตรง ต้องใช้ specialized model เช่น YOLO หรือ Grounding DINO แทน
+
+### 3. Resolution และ Detail
+
+รูปที่ส่งให้โมเดลจะถูก resize และ compress ก่อน ตัวอักษรเล็กมากหรือ detail ละเอียดมากอาจหายไปในกระบวนการนี้ ถ้างาน OCR ต้องการความแม่นยำสูง ควรใช้ high-resolution mode (มีค่าใช้จ่ายเพิ่ม) หรือ crop ส่วนที่สำคัญก่อนส่ง
+
+### 4. Bias ใน Training Data
+
+ภาพ 400 ล้านคู่ที่ใช้ train CLIP มาจากอินเทอร์เน็ต ซึ่ง reflect bias ของผู้สร้างและผู้บริโภคเนื้อหา โมเดลอาจ associate ภาพผู้หญิงกับอาชีพบางอย่าง หรือตีความวัฒนธรรมที่ไม่คุ้นเคยผิด
+
+สำหรับงานที่ sensitive เช่น HR screening หรือ medical diagnosis ต้องระวังและทดสอบ bias อย่างละเอียด
+
+### 5. ราคาและ Latency
+
+ส่งรูปแต่ละใบมีต้นทุนสูงกว่า text เยอะ การ process รูปขนาด 1024×1024 ด้วย "high detail" ของ GPT-4o ใช้ token ประมาณ 1445 tokens ต่อรูป ถ้า batch process หมื่นรูปต่อวัน ค่าใช้จ่ายพุ่งเร็วมาก
+
+> 💡 **Key insight:** VLMs เป็นเครื่องมือที่ทรงพลัง แต่ไม่ใช่ silver bullet สำหรับงาน vision ทุกประเภท การ combine VLMs กับ specialized computer vision models (เช่น OCR engine แบบ traditional, object detection models) มักให้ผลดีกว่าการพึ่ง VLMs อย่างเดียว
+
+---
+
+## สรุป — เมื่อภาษาและภาพไม่ใช่สองโลกที่แยกกัน
+
+เราเริ่มจากคำถามว่า AI ที่ train จากข้อความถึง "เห็น" ภาพได้ยังไง
+
+คำตอบคือ Vision Transformer แปลงภาพเป็น sequence ของ patches ที่ Transformer กินได้ CLIP สร้าง shared embedding space ที่ image vector และ text vector อยู่ในโลกเดียวกัน และ multimodal architectures ต่างๆ ใช้สิ่งเหล่านี้เป็นฐานในการสร้าง models ที่เข้าใจทั้งสองโลก
+
+ในทางปฏิบัติ VLMs เปิดประตูสู่ use cases ที่เมื่อก่อนต้องใช้ทีม ML specialist เต็มทีม — document extraction, automated QA บน visual content, multimodal customer service
+
+<!-- IMAGE: แผนภาพ timeline ของ VLM evolution ตั้งแต่ CLIP (2021) ถึง GPT-4o และ Gemini Ultra (2024) -->
+
+แต่สิ่งสำคัญที่สุดที่ต้องจำ: ยิ่ง AI ทำอะไรได้มาก ยิ่งต้องใช้ Judgment ในการออกแบบระบบมากขึ้น จะ trust VLM ในงานไหน จะ validate ยังไง จะ handle failure cases ยังไง — นั่นคือทักษะของคนที่ deploy AI ไม่ใช่ของ AI เอง
+
+---
+
+**บทต่อไป** เราจะออกจากโลกของ "AI ทำอะไรได้" มาสู่คำถามที่ลึกกว่า — "AI ที่ทรงพลังขนาดนี้ ควรถูก deploy ยังไงให้ปลอดภัย?" บทถัดไปคือ **AI Safety Overview** ซึ่งจะพาคุณเข้าใจว่าทำไม labs อย่าง Anthropic ถึงทุ่มทรัพยากรมหาศาลกับปัญหาที่ดูเหมือน "ปรัชญา" แต่จริงๆ แล้วส่งผลต่อทุกบรรทัดของ code ที่พวกเขาเขียน
+
+---
+
+*ระดับ: Advanced | เวลาอ่าน: 18 นาที | VTJ Skill: Vision*

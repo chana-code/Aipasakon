@@ -1,0 +1,574 @@
+---
+slug: pretraining
+level: advanced
+title: "Pretraining — กว่าจะได้ LLM หนึ่งตัว ต้อง train อะไรบ้าง"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจกระบวนการ pretraining ของ LLM ตั้งแต่ data collection, data cleaning, training objective (next-token prediction), hardware requirements, training dynamics จนถึง cost ที่แท้จริง"
+---
+ทุกครั้งที่ GPT-4 ตอบคำถามคุณใน 3 วินาที มีบางสิ่งที่เกิดขึ้นก่อนหน้านั้นนานหลายเดือน — ข้อมูลหลายล้านล้านคำ, GPU หลายหมื่นตัวทำงานพร้อมกัน, เงินหลายร้อยล้านดอลลาร์ที่ถูกใช้ไปในห้องเซิร์ฟเวอร์ที่คุณไม่เคยเห็น นี่คือเรื่องราวของ **pretraining** — ขั้นตอนที่แปลงข้อความดิบจากอินเทอร์เน็ตให้กลายเป็น intelligence ที่พูดคุยกับคุณได้
+
+ถ้าคุณผ่านบทก่อนหน้ามาแล้ว คุณรู้แล้วว่า transformer architecture ทำงานยังไง รู้ว่า attention mechanism คืออะไร และรู้ว่าทำไม LLM ถึงตอบได้เหมือนมีคนอยู่อีกฝั่ง แต่มีคำถามที่ยังค้างอยู่ — weights ทั้งหมดของ model นั้นมาจากไหน? ใครใส่ "ความรู้" เหล่านั้นเข้าไป? และทำไมถึงต้องใช้เงินมากขนาดนั้น?
+
+คำตอบทั้งหมดอยู่ที่ pretraining บทนี้จะพาคุณเข้าไปดูว่าเกิดอะไรขึ้นจริง ๆ ตั้งแต่ข้อมูลดิบจาก Common Crawl ไปจนถึง base model ที่พร้อม deploy — ทั้งกระบวนการ, ตัวเลขจริง, และ trade-off ที่ทีม engineering ต้องตัดสินใจทุกวัน
+
+<!-- IMAGE: ภาพ timeline แสดง pretraining → fine-tuning → RLHF → deployment โดยมี pretraining ใหญ่สุดและยาวที่สุด -->
+
+---
+
+## Pretraining คืออะไร และต่างจาก fine-tuning ยังไง
+
+ถ้าคุณเคยได้ยินคำว่า "train the model" หรือ "fine-tune" มาบ้างแล้ว สิ่งสำคัญที่ต้องแยกให้ออกคือ — ทั้งสองคำนี้ไม่ใช่สิ่งเดียวกัน และมีขนาด, ต้นทุน, จุดประสงค์ที่แตกต่างกันอย่างสิ้นเชิง ความสับสนระหว่างสองคำนี้พบบ่อยมาก และมักทำให้ประเมิน cost และ effort ผิดพลาดอย่างมีนัยสำคัญ
+
+**Pretraining** คือขั้นตอนแรกสุดและหนักที่สุด เป็นการสอนให้ model "เข้าใจภาษา" จากศูนย์ ใช้ข้อมูลมหาศาลจากทั่วอินเทอร์เน็ต ไม่ว่าจะเป็นบทความ, โค้ด, หนังสือ, Wikipedia, ฟอรัม ฯลฯ ผลลัพธ์ที่ได้คือ **base model** หรือ **foundation model** — ซึ่งเก่งมากในการ "ต่อข้อความ" แต่ยังไม่รู้จักการตอบคำถามในแบบที่คนคุ้นเคย
+
+**Fine-tuning** คือขั้นตอนที่สอง เอา base model มา "ขัดเกลา" ด้วยข้อมูลที่เฉพาะเจาะจงกว่า เช่น ตัวอย่างการสนทนา, คำตอบที่มนุษย์ rating ว่าดี ฯลฯ ผลลัพธ์คือ model ที่ "ตอบคำถาม" ได้อย่าง ChatGPT
+
+ลองนึกภาพแบบนี้: pretraining คือการเลี้ยงเด็กตั้งแต่แรกเกิด ให้อ่านหนังสือ ดูหนัง ฟังเพลง สัมผัสโลก ส่วน fine-tuning คือการส่งเด็กคนนั้นไปเรียนหลักสูตรพิเศษด้าน "การสื่อสารกับมนุษย์" เด็กที่ไม่ได้รับการเลี้ยงดูมาก่อน ต่อให้ไปเรียนหลักสูตรนั้น ก็ยังสู้เด็กที่ผ่าน pretraining มาดีไม่ได้
+
+ความแตกต่างด้านขนาดก็สะท้อนความสำคัญนี้ Pretraining ของ Llama 3 405B ใช้เงินประมาณ $60 ล้านดอลลาร์และใช้เวลาหลายเดือน ในขณะที่การ fine-tune model เดียวกันสำหรับ task เฉพาะอาจใช้เงินหลักพันถึงหลักหมื่นดอลลาร์และใช้เวลาเพียงไม่กี่วัน อัตราส่วนความสำคัญและความยากนั้นสะท้อนกัน
+
+> 💡 **Key insight:** Base model ที่ดีคือรากฐานของทุกอย่าง ChatGPT, Claude, Gemini ทั้งหมดล้วนเริ่มจาก base model ที่ผ่าน pretraining มาก่อน fine-tuning เป็นเพียงชั้นบนสุด ถ้า base model อ่อนแอ ต่อให้ fine-tune อย่างไรก็ยากที่จะดีได้มาก
+
+<!-- IMAGE: ภาพเปรียบเทียบ base model (ต่อประโยค) กับ chat model (ตอบคำถาม) ด้วยตัวอย่าง prompt เดียวกัน -->
+
+---
+
+## Data Collection — ข้อมูลมาจากไหน และมากแค่ไหน
+
+จุดเริ่มต้นของ pretraining คือข้อมูล และเมื่อพูดถึงขนาดของข้อมูลที่ LLM ต้องใช้ ตัวเลขจะดูเหมือนพิมพ์ผิด
+
+**Llama 3** ของ Meta ใช้ข้อมูล **15 ล้านล้าน tokens** (15 trillion tokens) ในการ train ถ้าสมมติว่าคนอ่านหนังสือ 1 เล่ม = ประมาณ 100,000 คำ และ 1 คำ ≈ 1.3 tokens นั่นหมายความว่าข้อมูลที่ Llama 3 เห็นเทียบเท่ากับหนังสือประมาณ **115 ล้านเล่ม** — ห้องสมุดสาธารณะทั่วไปมีหนังสือแค่หลักหมื่นถึงแสนเล่ม
+
+แหล่งข้อมูลหลักที่ LLM ใช้มีหลายกลุ่ม:
+
+**Common Crawl** คือฐานข้อมูลที่ใหญ่ที่สุด เป็น snapshot ของเว็บทั้งอินเทอร์เน็ตที่ถูก crawl มาอย่างสม่ำเสมอตั้งแต่ปี 2008 มีขนาดหลัก petabytes และเป็นแหล่งข้อมูลหลักของ LLM เกือบทุกตัว ปัญหาคือมันดิบมาก — มีทั้งข้อมูลดี, สแปม, เนื้อหาที่ไม่ดี, ข้อมูลซ้ำ ฯลฯ
+
+**Wikipedia** ทุกภาษา เป็น "ทองคำ" ของข้อมูล เพราะถูกเขียนด้วยภาษากลาง มีการอ้างอิง มีการแก้ไขโดยชุมชน แม้จะมีขนาดเล็กกว่า Common Crawl มาก แต่ quality สูงกว่ามาก
+
+**หนังสือและงานวิชาการ** เช่น Project Gutenberg (หนังสือที่หมดลิขสิทธิ์), ArXiv (งานวิจัย), Semantic Scholar LLM ที่ train บนหนังสือมักมีความสามารถด้านการเล่าเรื่องและการโต้แย้งที่ดีกว่า หนังสือยังมีความสอดคล้องในระดับ long-form ที่ web pages ปกติไม่มี — นิยาย 300 หน้าต้องรักษา character consistency ตลอดเล่ม ซึ่งสอน model ให้ maintain coherence ในระยะยาว
+
+**โค้ดจาก GitHub** สำคัญมากจนต้องพูดถึงแยก LLM ที่ train บนโค้ดมากจะเก่งด้าน reasoning เพราะโค้ดมีโครงสร้างตรรกะที่ชัดเจน งานวิจัยหลายชิ้นชี้ว่าการใส่โค้ดลงใน pretraining data ช่วย improve ความสามารถด้าน math และ logical reasoning แม้กับงานที่ไม่เกี่ยวกับโปรแกรมเลย โค้ดยังมีสิ่งที่ text ธรรมดาไม่มี — unit tests ที่บอกว่า code ทำงานถูกหรือไม่ ซึ่งเป็น signal คุณภาพที่ชัดเจนมาก
+
+> 💡 **Key insight:** ทำไมถึงต้องมีโค้ดใน pretraining data? เพราะโค้ดสอน model ให้เรียนรู้ "ตรรกะ" และ "ลำดับขั้นตอน" ซึ่ง transfer ไปสู่ความสามารถด้าน reasoning ในภาษาธรรมดาด้วย
+
+### ทำไมภาษาไทยมีสัดส่วนน้อยมาก
+
+ถ้าสังเกตดี LLM ส่วนใหญ่ภาษาอังกฤษจะดีกว่าภาษาไทยมาก และนี่ไม่ใช่เรื่องบังเอิญ
+
+ใน Common Crawl ข้อมูลภาษาอังกฤษมีสัดส่วนประมาณ **45-50%** ของทั้งหมด ภาษาไทยมีประมาณ **0.5-1%** เท่านั้น ตัวเลขนี้สะท้อนความเป็นจริงของอินเทอร์เน็ต — เนื้อหาภาษาอังกฤษถูกสร้างขึ้นมากกว่าภาษาอื่นรวมกันมาก
+
+ผลที่ตามมาคือ model รู้จัก "pattern" ของภาษาอังกฤษมากกว่าอย่างมีนัยสำคัญ และเมื่อ reason ด้วยภาษาไทย model กำลัง "แปลง" แนวคิดที่เรียนมาเป็นภาษาอังกฤษกลับมาเป็นภาษาไทย ซึ่งมีโอกาสผิดพลาดมากกว่า
+
+### Data Mix — การตัดสินใจที่ซ่อนอยู่
+
+ตัวเลขสัดส่วนที่แต่ละบริษัทใช้ใน pretraining data ไม่ได้เป็น "ค่าธรรมชาติ" ที่หยิบมาจาก Common Crawl เลย — มันเป็นการตัดสินใจเชิงวิศวกรรมอย่างจงใจ
+
+ตัวอย่างเช่น ทีม Llama 3 ของ Meta ตัดสินใจเพิ่มสัดส่วน code data ให้มากกว่าที่มีอยู่ใน Common Crawl ตามธรรมชาติ เพราะเชื่อว่าโค้ดช่วย improve reasoning ทั่วไป ขณะเดียวกันก็เพิ่มสัดส่วน multilingual data เพื่อให้ Llama 3 รองรับหลายภาษาได้ดีกว่า Llama 2
+
+การตัดสินใจเรื่อง data mix มีผลต่อ model character อย่างมาก:
+- Model ที่ใช้ Wikipedia เยอะมักมี factual accuracy สูงแต่ response style เป็นทางการ
+- Model ที่ใช้ forum/Reddit เยอะมักตอบสนองและ casual กว่า แต่อาจ pickup ภาษาที่ไม่ดีด้วย
+- Model ที่ใช้ code เยอะมักเก่ง structured thinking แต่อาจ verbose ในภาษาธรรมดา
+- Model ที่ใช้ scientific papers เยอะมักมีความสามารถ technical reasoning ดีกว่า แต่อาจ overthink คำถามง่าย ๆ
+
+ไม่มีสูตรสำเร็จ ทีมต้องทดลอง **ablation studies** — train model เล็ก ๆ (เช่น 1B parameters) หลาย variant ด้วย data mix ต่างกัน evaluate ผล แล้วเลือก recipe ที่ดีที่สุดก่อนที่จะ commit กับ full run ที่ใช้เงินหลายสิบล้านดอลลาร์ นี่คือ "cheap experiment before expensive commitment" — หลักการพื้นฐานของ ML engineering ที่ดี
+
+<!-- IMAGE: ภาพ pie chart แสดงสัดส่วนภาษาใน Common Crawl โดยมีภาษาอังกฤษครองส่วนใหญ่ และภาษาไทยเป็นส่วนเล็กมาก -->
+
+---
+
+## Tokenization — ก่อน train ต้องแปลงภาษาเป็นตัวเลขก่อน
+
+ก่อนที่ข้อมูลจะเข้า model ได้ มีขั้นตอนที่หลายคนมองข้ามแต่สำคัญมาก — **tokenization**
+
+คอมพิวเตอร์ไม่รู้จัก "คำ" มันรู้จักแค่ตัวเลข ดังนั้น text ทุกชิ้นต้องถูกแปลงเป็นลำดับของตัวเลขก่อนด้วย algorithm อย่าง **BPE (Byte Pair Encoding)** ที่ merge ตัวอักษรที่พบบ่อยเป็น subword units และเพราะ tokenizer ถูก train บนภาษาอังกฤษเป็นหลัก ภาษาไทยจึงโดนแตกเป็น tokens มากกว่าหลายเท่า ("ประเทศไทย" อาจเป็น 5-8 tokens ส่วน "Thailand" เป็น 1-2) — context เต็มเร็วกว่าและแพงกว่าตั้งแต่ก่อน pretraining จะเริ่มด้วยซ้ำ
+
+กลไก BPE และปัญหา Thai-token แบบเต็ม อยู่ในบท [Tokenization Deep Dive](/advanced/tokenization-deep-dive) ที่เราเจาะลึกไปแล้ว ในที่นี้สิ่งที่ต้องจำคือ token efficiency เริ่มมีผลตั้งแต่ขั้น pretraining
+
+<!-- IMAGE: ภาพเปรียบเทียบการ tokenize ประโยคภาษาอังกฤษกับภาษาไทยที่มีความหมายเดียวกัน แสดง token count ที่ต่างกัน -->
+
+---
+
+## Data Cleaning — ทำไมขยะล้านล้านชิ้นถึงอันตราย
+
+ถ้า Common Crawl คือทะเล ข้อมูลดีที่ต้องการคือปลา และขยะทุกประเภทคือสิ่งอื่นทั้งหมดที่ลอยอยู่ในนั้น กระบวนการ data cleaning คือการ "ร่อน" ทะเลนั้นก่อนที่จะเอาไป train
+
+**Garbage in, garbage out at scale** — ถ้า train บนข้อมูลที่มีสแปม 10% model จะเรียนรู้รูปแบบของสแปมด้วย ถ้า train บนข้อมูลที่มีข้อเท็จจริงผิด model จะเชื่อสิ่งผิดนั้น ยิ่งข้อมูลมากเท่าไหร่ ผลกระทบของขยะยิ่งขยายใหญ่ขึ้นเท่านั้น
+
+ขั้นตอนหลักของ data cleaning มีดังนี้:
+
+**Deduplication** คือการตัดข้อมูลที่ซ้ำออก ฟังดูง่าย แต่ซับซ้อนมากในทางปฏิบัติ เพราะข้อมูล "ซ้ำ" อาจซ้ำแบบ exact copy, ซ้ำแบบ near-duplicate (เปลี่ยนคำ 2-3 คำ), หรือซ้ำแบบ semantic (เนื้อหาเหมือนกันแต่เขียนต่างกัน) ถ้าไม่ deduplicate model จะ "จำ" ข้อมูลที่ซ้ำมากกว่าปกติ และอาจ memorize แทนที่จะ generalize
+
+**Quality Filtering** เป็นการกรองเนื้อหาที่มี quality ต่ำออก เช่น หน้าเว็บที่เป็นแค่ list ของคีย์เวิร์ด SEO, เนื้อหาที่ auto-generated, spam email, ฟอรัมที่มีแต่ "ขอบคุณ" และ "ดีมากครับ" วิธีหนึ่งที่ใช้กันคือ train classifier ง่าย ๆ ให้ predict ว่าข้อมูลนี้คล้าย Wikipedia/หนังสือมากแค่ไหน แล้วกรองเอาเฉพาะที่ได้คะแนนสูง
+
+**Toxicity Removal** กรองเนื้อหาที่เป็นอันตราย เช่น hate speech, เนื้อหาที่ส่งเสริมความรุนแรง, เนื้อหาที่ผิดกฎหมาย ถ้าไม่ทำขั้นตอนนี้ model จะ "ชิน" กับภาษาพิษและอาจ reproduce มันในการตอบกลับ
+
+**PII Scrubbing** (Personally Identifiable Information) ลบข้อมูลส่วนตัวออก เช่น เลขบัตรประชาชน, หมายเลขโทรศัพท์, อีเมล, ที่อยู่ เพราะถ้า model เรียนรู้ข้อมูลเหล่านี้ มันอาจ "จำ" และ reproduce มันได้เมื่อถูก prompt แบบเฉพาะเจาะจง
+
+**Language Identification** แยกข้อมูลตามภาษา เพื่อควบคุม data mix ว่าอยากให้ภาษาไหนมีสัดส่วนเท่าไหร่
+
+ตัวอย่าง dataset ที่ทำ cleaning อย่างโปร่งใสและเปิดเป็น open source ได้แก่ **Dolma** (จาก Allen AI), **FineWeb** (จาก Hugging Face), และ **RedPajama** (จาก Together AI) ซึ่งทั้งหมดนี้เปิด recipe การ cleaning ให้ศึกษาได้
+
+### ปัญหาของ copyright และ consent
+
+ประเด็นที่ไม่ได้พูดถึงในเชิงเทคนิคแต่สำคัญมากคือ — ข้อมูลที่ใช้ train นั้น "มีสิทธิ์" ใช้หรือเปล่า?
+
+Common Crawl crawl เว็บโดยไม่ได้ขอ permission เนื้อหาที่ถูก crawl อาจเป็นบทความที่นักข่าวเขียน, โค้ดที่ programmer สร้าง, หนังสือที่นักเขียนเขียน — ทั้งหมดนี้ถูกใช้ train model โดยที่ผู้สร้างไม่ได้รับค่าตอบแทนและไม่ได้ consent
+
+ข้อถกเถียงนี้กำลัง play out ในศาลหลายแห่ง นักเขียน, ศิลปิน, และบริษัทหนังสือพิมพ์หลายรายฟ้อง OpenAI, Meta, และบริษัท AI อื่น ๆ ในข้อหา copyright infringement ยังไม่มีคำตัดสินที่ชัดเจน และกฎหมาย copyright กับ AI ยังเป็นพื้นที่ที่ evolve อยู่
+
+สำหรับ pretraining ในอนาคต อาจต้องเปลี่ยนไปสู่ data ที่มี license ชัดเจน ซึ่งจะส่งผลต่อทั้ง cost และ availability ของ data อย่างมีนัยสำคัญ
+
+> 💡 **Key insight:** งานวิจัยของ Hugging Face ที่สร้าง FineWeb พบว่า quality filtering ที่ดีสามารถให้ผลลัพธ์เทียบเท่ากับการใช้ข้อมูลดิบมากกว่า 10 เท่า — หมายความว่า "ข้อมูลดี 1 ล้าน tokens อาจดีกว่าขยะ 10 ล้าน tokens"
+
+<!-- IMAGE: ภาพ pipeline แสดงขั้นตอน data cleaning ตั้งแต่ Common Crawl ดิบ จนถึง clean dataset พร้อม train -->
+
+---
+
+## Training Objective — ทำไม "ทายคำถัดไป" ถึงสร้าง intelligence ได้
+
+นี่คือส่วนที่น่าทึ่งที่สุดของ pretraining: วิธีที่ model เรียนรู้นั้นง่ายมากจนฟังดูงี่เง่า
+
+**Next-token prediction** หรือ autoregressive language modeling คือการสอนให้ model ทำสิ่งเดียว — **ทายว่าคำถัดไปคืออะไร** เท่านั้น
+
+สมมติว่า input คือ: `"กรุงเทพฯ เป็นเมืองหลวงของ"`
+model ต้องทาย: `"ประเทศไทย"` (หรือ token ที่น่าจะตามมา)
+
+ฟังดูง่ายใช่ไหม? แต่ลองคิดดูว่าเพื่อจะทาย token ถัดไปได้ถูกต้องในทุกบริบท model ต้องเรียนรู้อะไรบ้าง:
+
+- **ไวยากรณ์** — ต้องรู้ว่าหลังกริยาควรมีอะไร, คำนามอยู่ตรงไหนในประโยค
+- **ความหมาย** — ต้องรู้ว่า "เมืองหลวง" หมายถึงอะไร และ "ของ" ตามมาด้วยชื่อประเทศ
+- **ความรู้เกี่ยวกับโลก** — ต้องรู้ว่า กรุงเทพฯ เป็นเมืองหลวงของประเทศไทย ไม่ใช่ประเทศอื่น
+- **บริบทระยะยาว** — ในเรื่องสั้น ถ้าพูดถึง "เขา" ต้องรู้ว่าหมายถึงตัวละครคนไหนที่กล่าวถึงก่อนหน้า
+
+ความ "ง่าย" ของ objective นี้คือของขวัญ เพราะมันทำให้ไม่ต้องมี label ใด ๆ จากมนุษย์เลย ข้อความทุกประโยคในโลกคือ training data ในตัวมันเอง — คุณแค่เอาประโยค, ซ่อนคำสุดท้าย, แล้วถามว่าคำนั้นคืออะไร ทำแบบนี้กับข้อความ 15 ล้านล้าน tokens และนั่นคือ pretraining
+
+### Cross-Entropy Loss — วัดความผิดพลาดยังไง
+
+เมื่อ model ทาย token ผิด ระบบต้องมีวิธีบอกว่า "ผิดมากแค่ไหน" เพื่อปรับ parameter ของ model ให้ดีขึ้น ตัวชี้วัดที่ใช้คือ **cross-entropy loss**
+
+ลองนึกภาพแบบนี้: model output ออกมาเป็น probability distribution ว่าแต่ละ token มีโอกาสเป็นคำตอบที่ถูกต้องแค่ไหน เช่น "ประเทศไทย" = 80%, "เอเชีย" = 10%, "อื่น ๆ" = 10%
+
+Cross-entropy loss บอกว่า probability ของคำตอบที่ถูกต้องนั้นห่างจาก 100% มากแค่ไหน ถ้า model confident และถูก loss ต่ำ ถ้า model confident แต่ผิด loss สูงมาก ถ้า model ไม่ confident loss ปานกลาง
+
+กระบวนการ training คือการลด loss นี้ลงเรื่อย ๆ ผ่านการปรับ billions of parameters ทีละนิดด้วย gradient descent — ทำซ้ำหลายล้านครั้งจนกว่า loss จะนิ่ง
+
+### Emergence — เมื่อ capability ไม่ได้ถูก program แต่โผล่ขึ้นมาเอง
+
+หนึ่งในปรากฏการณ์ที่น่าสนใจที่สุดใน pretraining คือ **emergent capabilities** — ความสามารถที่ไม่ได้ถูก "สอน" โดยตรง แต่ปรากฏขึ้นเมื่อ model มีขนาดใหญ่พอ
+
+ตัวอย่างที่ถูก document ไว้:
+- **Few-shot learning** — ความสามารถในการเรียนรู้จากตัวอย่าง 2-3 ชิ้นใน prompt โดยไม่ต้องผ่านการ fine-tune ปรากฏขึ้นอย่างชัดเจนใน GPT-3 (175B parameters) แต่แทบไม่มีใน model ที่เล็กกว่า
+- **Chain-of-thought reasoning** — เมื่อ prompt ให้ model "คิดทีละขั้น" model ขนาดใหญ่พอจะ perform ดีขึ้นอย่างมีนัยสำคัญ ในขณะที่ model เล็กกว่าแทบไม่ได้ประโยชน์อะไร
+- **Arithmetic** — ความสามารถในการคำนวณเลขหลายหลักโผล่ขึ้นมาที่ scale ระดับหนึ่ง แม้จะไม่มีการ "สอนคณิตศาสตร์" โดยตรง
+
+ทำไม emergence ถึงเกิดขึ้น? ยังไม่มีคำตอบที่ชัดเจน hypothesis หนึ่งคือ task ที่ซับซ้อนต้องการ "circuit" ภายใน model หลาย component ทำงานร่วมกัน และ component เหล่านั้นจะมีมากพอก็ต่อเมื่อ model ใหญ่ถึงระดับหนึ่ง
+
+> 💡 **Key insight:** ไม่มีใคร "สอน" model ว่าอะไรคือไวยากรณ์ที่ถูกต้อง หรืออะไรคือความรู้เกี่ยวกับโลก ทั้งหมดนี้ emerge ขึ้นมาจากการพยายามทำ task ง่าย ๆ ชิ้นเดียว — ทาย token ถัดไปให้ถูก — ซ้ำแล้วซ้ำเล่ากับข้อมูลมหาศาล และเมื่อ scale ใหญ่พอ สิ่งที่ไม่ได้ตั้งใจ train ก็โผล่ขึ้นมาด้วย
+
+<!-- IMAGE: ภาพแสดง next-token prediction: ข้อความ input → model → probability distribution ของ token ถัดไป → เปรียบเทียบกับ token จริง → compute loss → update model -->
+
+---
+
+## Hardware — GPU เท่าไหร่ถึงพอ
+
+นี่คือส่วนที่ทำให้ pretraining ไม่ใช่สิ่งที่ใครก็ทำได้
+
+**GPU คือหัวใจของ training** โดยเฉพาะ GPU ของ NVIDIA ซีรีส์ A100 และ H100 ที่ถูกออกแบบมาเพื่องาน deep learning โดยเฉพาะ H100 ตัวเดียวมีราคาประมาณ **$25,000-$40,000** และ train LLM ขนาดใหญ่ใช้ GPU หลายหมื่นตัว
+
+### Parameters คืออะไรในทางกายภาพ
+
+ก่อนอื่น ต้องเข้าใจว่า "parameter" คืออะไร เพราะตัวเลข "70 billion parameters" ฟังดูน่าทึ่ง แต่มันหมายความว่าอะไรในทางปฏิบัติ
+
+Parameter คือตัวเลข floating point หนึ่งตัวที่เก็บไว้ใน weight matrix ของ model ในรูปแบบง่ายที่สุด model ก็คือชุดของ matrix ขนาดต่าง ๆ ที่เชื่อมกัน และการ train คือการค้นหาค่าตัวเลขใน matrix เหล่านั้นที่ทำให้ model ทำ next-token prediction ได้ดีที่สุด
+
+ขนาดของ model ในหน่วย bytes: model 70B parameters ใน FP16 (2 bytes ต่อ parameter) ใช้หน่วยความจำ 70 × 10^9 × 2 bytes = **140 GB** แค่สำหรับเก็บ weights ยังไม่รวม memory ที่ต้องใช้ระหว่าง training (ซึ่งรวม gradients, optimizer states ฯลฯ อาจเป็น 4-6 เท่าของขนาด model)
+
+H100 GPU หนึ่งตัวมี 80 GB VRAM ดังนั้น model 70B ไม่สามารถ fit ใน GPU เดียวได้ ต้องกระจายข้ามหลาย GPU นี่คือที่มาของ distributed training ทุกรูปแบบที่กล่าวถึงด้านล่าง
+
+ตัวเลขจริงจากงานที่เปิดเผยสาธารณะ:
+- **Llama 3 405B**: ใช้ **16,384 H100 GPUs** train นาน 54 วัน
+- **Llama 3 70B**: ใช้ H100 จำนวนน้อยกว่าและ train สั้นกว่า
+- **GPT-4**: OpenAI ไม่เปิดเผย แต่ estimate อยู่ที่หลักหมื่น GPU เช่นกัน
+
+แต่ทำไมต้องใช้มากขนาดนี้? เพราะ model ขนาดใหญ่ไม่สามารถ fit ใน GPU ตัวเดียวได้ จึงต้องแบ่งงานออกเป็นหลายรูปแบบ:
+
+**Data Parallelism** — แบ่ง batch ของข้อมูลให้ GPU แต่ละตัวทำ model เดียวกันกับข้อมูลต่างชุด แล้วรวม gradient มา update model
+
+**Tensor Parallelism** — แบ่ง matrix ขนาดใหญ่ (เช่น weight matrix ใน attention) ให้ GPU หลายตัวถือคนละส่วน แล้วทำงานพร้อมกัน
+
+**Pipeline Parallelism** — แบ่ง layer ของ model ให้ GPU แต่ละตัวถือคนละชุด layer ข้อมูลไหลผ่าน GPU ทีละตัวเหมือน assembly line
+
+ในการ deploy จริงอาจใช้ทั้งสามแบบพร้อมกัน เรียกว่า **3D Parallelism**
+
+### Mixed Precision Training — ประหยัด memory โดยไม่เสีย accuracy
+
+เทคนิคสำคัญอีกอย่างที่ทำให้ train model ขนาดใหญ่เป็นไปได้คือ **mixed precision training** แทนที่จะเก็บ weights ทุกตัวเป็น 32-bit floating point (FP32) model จะเก็บส่วนใหญ่ใน 16-bit (FP16 หรือ BF16) ซึ่งใช้ memory ครึ่งหนึ่ง และ GPU ประมวลผล 16-bit ได้เร็วกว่ามาก
+
+โดยปกติแล้ว 16-bit มี precision ต่ำกว่าอาจทำให้ training ไม่เสถียร ดังนั้นจึงใช้ "mixed" — เก็บ master copy ของ weights เป็น FP32 ไว้ แต่ compute ด้วย FP16 แล้วค่อย update master copy ทีหลัง วิธีนี้ได้ทั้ง speed และ memory efficiency โดยไม่เสีย accuracy มากนัก
+
+H100 ของ NVIDIA ถูกออกแบบมาให้ทำ BF16 (Brain Floating Point) ได้เร็วเป็นพิเศษ — ที่จริงแล้ว performance ที่โฆษณาไว้สำหรับ AI training ส่วนใหญ่วัดจาก BF16 ไม่ใช่ FP32
+
+### Interconnect — ความเร็วของสายไฟก็สำคัญ
+
+เมื่อ GPU ทำงานร่วมกัน ต้องส่งข้อมูลระหว่างกันตลอดเวลา ความเร็วของการส่งข้อมูลนี้กลายเป็น bottleneck สำคัญ ภายใน server เดียว NVIDIA ใช้ **NVLink** ที่มี bandwidth สูงมาก ระหว่าง server ใช้ **InfiniBand** ซึ่งเร็วกว่า Ethernet ทั่วไปหลายสิบเท่า ระบบ networking ของ cluster GPU ขนาดใหญ่อาจมีราคาสูงกว่า GPU เองด้วยซ้ำ
+
+ทำไม bandwidth ถึงสำคัญขนาดนี้? ลองนึกภาพ Data Parallelism: หลัง step หนึ่ง GPU ทุกตัวต้องส่ง gradient ของตัวเองให้ GPU อื่น ๆ ทั้งหมด แล้ว average มาก่อน update ถ้า cluster มี 16,000 GPUs และ model มี 405B parameters (ในรูป FP32 = 1.6 TB) การ synchronize gradient ทุก step หมายถึงต้องส่งข้อมูลขนาดมหาศาลนี้ระหว่าง GPU ทุก ๆ ไม่กี่มิลลิวินาที ถ้า network ช้า GPU จะต้อง idle รอ ซึ่งคือเงินที่สูญเปล่าทุกวินาที
+
+> 💡 **Key insight:** Llama 3 405B ใช้ 16,384 H100 GPUs ถ้าซื้อ GPUs พวกนี้เองจะราคาประมาณ $410 ล้านดอลลาร์ และนั่นยังไม่รวมระบบ cooling, power, networking, และค่าเช่า data center
+
+<!-- IMAGE: ภาพ diagram แสดง GPU cluster ที่มีหลาย server เชื่อมต่อกันด้วย NVLink และ InfiniBand พร้อม label อธิบาย -->
+
+---
+
+## ลองคิดดู #1 — ถ้าคุณต้อง pretrain LLM ภาษาไทย
+
+สมมติคุณมี budget และ GPU เพียงพอ แต่เจอปัญหานี้: ข้อมูลภาษาไทยบนอินเทอร์เน็ตมีแค่ประมาณ 0.5-1% ของ Common Crawl ทั้งหมด ขณะที่ภาษาอังกฤษมีเกือบ 50%
+
+ถ้าคุณ train model บนข้อมูล "ตามธรรมชาติ" — model จะเก่งภาษาอังกฤษมากและภาษาไทยน้อยมาก
+
+**วิธีที่ 1: Oversample ภาษาไทย** — เอาข้อมูลภาษาไทยที่มีอยู่มาใช้ซ้ำหลาย epoch (หลายรอบ) เพื่อให้ model เห็นภาษาไทยบ่อยกว่าสัดส่วนจริง ปัญหาคือถ้า oversample มากเกินไป model จะ memorize ข้อมูลภาษาไทยแทนที่จะ generalize
+
+**วิธีที่ 2: สร้างข้อมูลภาษาไทยเพิ่ม** — ใช้ LLM ที่มีอยู่แล้วสร้าง synthetic data ภาษาไทย แต่นี่มีความเสี่ยงที่เรียกว่า "model collapse" — ถ้า train บน output ของ model อื่น คุณภาพจะลดลงรุ่นต่อรุ่น
+
+**วิธีที่ 3: Cross-lingual transfer** — เน้น train ภาษาอังกฤษให้ดีมากก่อน แล้วค่อย fine-tune ด้วยภาษาไทย สมมติฐานคือ model ที่ understand ภาษาอังกฤษดีพอจะ transfer ความรู้มาสู่ภาษาไทยได้ นี่คือ approach ที่ multilingual model อย่าง mGPT หรือ SeaLLM ใช้
+
+**วิธีที่ 4 (ที่หลายคนคิดไม่ถึง): เพิ่มคุณภาพ ไม่ใช่ปริมาณ** — แทนที่จะหาข้อมูลภาษาไทยมากขึ้น ลงทุนกับ quality filtering ภาษาไทยให้ดีมากขึ้น ข้อมูลภาษาไทย quality สูง 1 ล้าน tokens อาจมีค่ากว่าขยะ 10 ล้าน tokens ตามที่ FineWeb ชี้ให้เห็น
+
+คำถามสำหรับคิดต่อ: ถ้าคุณต้องเลือกวิธีใดวิธีหนึ่ง และ budget จำกัด คุณจะเลือกอะไร และทำไม? ไม่มีคำตอบผิดถูก — นี่คือ trade-off จริงที่นักวิจัย AI ถกเถียงกันอยู่ทุกวัน และ projects อย่าง WangchanBERTa, OpenThaiGPT, และ Typhoon จาก SCB Tech X ก็ล้วนเผชิญ dilemma เดียวกันนี้ในบริบทของภาษาไทย
+
+<!-- IMAGE: ภาพเปรียบเทียบ 3 วิธีด้านบนในรูปแบบ table แสดง pros/cons ของแต่ละ approach -->
+
+---
+
+## Training Dynamics — เกิดอะไรขึ้นระหว่าง train
+
+การ train LLM ไม่ใช่แค่กด run แล้วรอ — มันเป็นกระบวนการที่ต้องติดตาม ปรับ และตัดสินใจตลอดเวลา
+
+### Learning Rate Schedule
+
+**Learning rate** คือตัวควบคุมว่าแต่ละ step จะปรับ parameter มากแค่ไหน ถ้าสูงเกิน model จะ "กระโดด" ไปมาและไม่ converge ถ้าต่ำเกิน train นานมากและยังอาจติดอยู่ใน local minimum
+
+Pattern ที่ใช้กันคือ:
+
+**Warmup phase** — เริ่มต้นด้วย learning rate ต่ำมาก แล้วค่อย ๆ เพิ่มขึ้นใน 1,000-2,000 steps แรก เพราะตอนเริ่มต้น parameters ถูก initialize แบบ random การ update ด้วย learning rate สูงทันทีอาจทำให้ model ผิดทิศไปไกล
+
+**Peak phase** — ใช้ learning rate สูงสุดช่วงกลางของ training เพื่อ explore parameter space อย่างมีประสิทธิภาพ
+
+**Decay phase** — ค่อย ๆ ลด learning rate ลงตาม schedule (cosine decay เป็นที่นิยม) เพื่อให้ model "settle" ลงใน solution ที่ดี
+
+### Batch Size และ Gradient Accumulation
+
+**Batch size** คือจำนวน examples ที่ process ก่อน update parameters ครั้งหนึ่ง ยิ่ง batch ใหญ่ยิ่ง training stable แต่ต้องใช้ memory มากขึ้น
+
+เนื่องจาก GPU memory จำกัด เทคนิคที่ใช้คือ **gradient accumulation** — ทำ forward/backward pass หลายครั้งโดยไม่ update parameter แล้วค่อย accumulate gradient ก่อน update ทีเดียว เหมือนกับมี batch ใหญ่จริง ๆ แต่ใช้ memory น้อยกว่า
+
+### Loss Curves และการอ่าน Signal
+
+ตลอดการ train ทีม engineering จะ monitor **loss curves** อย่างใกล้ชิด:
+
+**Training loss ลดลงสม่ำเสมอ** — ดี แสดงว่า model กำลัง learn
+
+**Training loss ลดแต่ validation loss เพิ่ม** — ปัญหา! นี่คือ overfitting — model กำลัง memorize training data แทนที่จะ generalize
+
+**Loss สะดุด หรือ spike ขึ้นกะทันหัน** — อาจเกิดจาก bad batch ของข้อมูล หรือ learning rate สูงเกินไป ต้องตรวจสอบทันที
+
+**Loss plateau** — loss ไม่ลดแล้ว อาจถึงเวลา evaluate ว่าควร train ต่อ ลด learning rate หรือหยุด
+
+### Gradient Clipping — ป้องกัน training ระเบิด
+
+ปัญหาที่เกิดขึ้นบ่อยใน training คือ **exploding gradients** — gradient บางครั้งมีค่าสูงมากเป็นพิเศษ (อาจเกิดจาก bad data batch หรือ learning rate สูงเกินไปในจังหวะนั้น) ถ้าปล่อยให้ gradient ใหญ่มากไป update parameters ทีเดียว model จะ "กระโดด" ไปในทิศที่ผิดไกลมาก และ training อาจ diverge หรือพังทันที
+
+**Gradient clipping** แก้ปัญหานี้โดยการ "จำกัด" ขนาดสูงสุดของ gradient ก่อน update เหมือนมีเพดานว่า "ห้าม update แรงกว่านี้" ทำให้ training มีเสถียรภาพมากขึ้น โดยเฉพาะในช่วงแรกที่ model ยังไม่ได้เรียนรู้อะไรเลยและ gradient อาจ chaotic มาก
+
+### Checkpointing — สำรองข้อมูล model ตลอดทาง
+
+การ train ใช้เวลาหลายเดือน และ hardware อาจ fail ได้ ระบบ checkpointing จะ save state ของ model ทุก ๆ ชั่วโมงหรือตาม step ที่กำหนด ถ้า training crash ก็กลับมาต่อจาก checkpoint ล่าสุดได้ ไม่ต้องเริ่มใหม่ทั้งหมด
+
+state ที่ต้อง save ใน checkpoint มีหลายส่วน: weights ของ model, state ของ optimizer (ซึ่งใหญ่พอ ๆ กับ model เอง), learning rate schedule ณ จุดนั้น, และ random seed เพื่อให้ reproduce ได้ ทั้งหมดนี้อาจมีขนาดหลายสิบ TB สำหรับ model ขนาดใหญ่
+
+> 💡 **Key insight:** ทีม Meta เคยเผยใน Llama 3 paper ว่าการ train เจอ hardware failure หลายร้อยครั้ง ระบบ fault tolerance และ checkpointing ที่ดีจึงสำคัญเท่ากับ GPU จำนวนมาก — ไม่มีใคร train frontier model โดยไม่พัง ทุกคนพัง แล้วกู้คืน
+
+<!-- IMAGE: ภาพ loss curve ทั่วไปแสดง warmup, peak, และ decay phase พร้อมจุด overfitting และ checkpoint markers -->
+
+---
+
+## Cost — ตัวเลขที่แท้จริงของการ train LLM
+
+ถามคนในวงการว่า train GPT-4 ราคาเท่าไหร่ คำตอบที่ได้มักจะแตกต่างกันมาก เพราะ OpenAI ไม่เคยเปิดเผยข้อมูลนี้ อย่างไรก็ตามมี estimate จากนักวิจัยภายนอกและบริษัทที่เปิดเผยตัวเลขของตัวเอง:
+
+| Model | Organization | Estimated Compute Cost |
+|-------|-------------|----------------------|
+| GPT-4 | OpenAI | ~$100M+ (estimate) |
+| Llama 3 405B | Meta | ~$60M in compute |
+| Llama 3 70B | Meta | ~$15M in compute |
+| Mistral 7B | Mistral AI | ~$2M in compute |
+| Falcon 180B | TII | ~$10M in compute |
+
+*หมายเหตุ: ตัวเลขเหล่านี้เป็น estimate จาก public reporting และ compute analysis ไม่ใช่ตัวเลขทางการ*
+
+ค่าใช้จ่ายมาจากหลายส่วน:
+
+**ค่า compute (GPU hours)** เป็นส่วนใหญ่ H100 ในปัจจุบันมีราคาเช่าประมาณ $2-3 ต่อ GPU-hour บน cloud ถ้าใช้ 16,384 GPUs เป็นเวลา 54 วัน คิดเป็น 16,384 × 24 × 54 ≈ 21 ล้าน GPU-hours ที่ราคา $2/hour = **$42 ล้านดอลลาร์** แค่ค่า compute
+
+**ค่าไฟฟ้า** H100 แต่ละตัวใช้ไฟประมาณ 700W cluster 16,384 ตัวใช้ไฟประมาณ 11.5 เมกะวัตต์ ตลอด 54 วัน = ไฟฟ้าหลายสิบล้านกิโลวัตต์-ชั่วโมง
+
+**ค่าวิศวกรและนักวิจัย** ทีมที่ดูแล training run ขนาดนี้อาจมี 50-100+ คน ทำงานกันหลายเดือน ค่าจ้างคนเหล่านี้ไม่ถูก
+
+**ค่า data** การซื้อ license ข้อมูล, ค่าจ้างคนทำ annotation, ค่า infrastructure สำหรับ data pipeline
+
+**Lost opportunity cost** ถ้า training crash ในสัปดาห์ที่ 8 จาก 10 สัปดาห์ และต้องเริ่มใหม่ นั่นคือเงินและเวลาที่หายไป
+
+### ค่าใช้จ่ายที่ "ถูกลง" แต่ยังแพงอยู่
+
+น่าสังเกตว่า compute cost ต่อ FLOP (floating point operation) ถูกลงอย่างต่อเนื่องตาม Moore's Law และนวัตกรรมของ NVIDIA แต่ค่าของ frontier training run กลับไม่ได้ถูกลง เพราะบริษัทเลือกที่จะ train model ที่ใหญ่ขึ้นและดีขึ้นแทนที่จะ train model เดิมในราคาถูกลง
+
+ปรากฏการณ์นี้เรียกว่า **Jevons Paradox** — เมื่อทรัพยากรถูกลง คนมักใช้มันมากขึ้น ไม่ใช่ประหยัดมากขึ้น ใน AI หมายความว่า compute ที่ถูกลงกระตุ้นให้ scale ใหญ่ขึ้นเรื่อย ๆ
+
+> 💡 **Key insight:** ค่า pretraining เป็นเหตุผลหลักที่ทำให้มีเพียงไม่กี่บริษัทในโลกที่ train frontier model ได้ ทุนเริ่มต้นเพียงอย่างเดียวก็กีดกัน player ส่วนใหญ่ออกไปแล้ว แต่ model ขนาดกลาง-เล็ก (7B-70B) กลับ accessible มากขึ้นเรื่อย ๆ สำหรับองค์กรที่มีทุนหลักล้านดอลลาร์
+
+<!-- IMAGE: ภาพ breakdown ของ cost components ของ training LLM ขนาดใหญ่ แสดงสัดส่วน compute vs electricity vs human cost -->
+
+---
+
+## Evaluation During Training — รู้ได้ยังไงว่าดีพอแล้ว
+
+การวัดคุณภาพของ model ระหว่าง training เป็นทั้งศาสตร์และศิลป์
+
+### Perplexity
+
+**Perplexity** คือค่าที่วัดว่า model "งุนงง" แค่ไหนกับ text ที่ไม่เคยเห็น ถ้า perplexity ต่ำ แปลว่า model สามารถ predict ข้อความนั้นได้ดี ถ้าสูง แปลว่า model งงกับข้อความนั้นมาก
+
+สูตรง่าย ๆ คือ perplexity = e^(cross-entropy loss) ดังนั้นถ้า loss ลดลง perplexity ก็ลดลงด้วย
+
+แต่ perplexity มีปัญหา — มันวัดว่า model ทาย text ได้ดีแค่ไหน ไม่ใช่ว่า model "똑똑" แค่ไหนในงานจริง model ที่ memorize training data จะมี perplexity ต่ำมาก แต่อาจ generalize ไม่ได้เลย นอกจากนี้ perplexity ยังไม่สามารถเปรียบเทียบข้าม tokenizer ได้ตรง ๆ เพราะขนาด vocabulary และวิธีแบ่ง token ต่างกัน
+
+### Downstream Benchmarks
+
+ดังนั้นจึงต้องใช้ **benchmark** จริง ๆ ควบคู่กัน:
+
+**MMLU** (Massive Multitask Language Understanding) — ข้อสอบ multiple choice ครอบคลุม 57 วิชา ตั้งแต่ประวัติศาสตร์ถึงคณิตศาสตร์ถึงกฎหมาย วัดความรู้ทั่วไปของ model
+
+**HumanEval** — ชุดโจทย์เขียนโค้ด Python วัดความสามารถด้านการเขียนโปรแกรม
+
+**GSM8K** — โจทย์คณิตศาสตร์ระดับประถม วัดความสามารถด้าน reasoning
+
+**HellaSwag, WinoGrande** — วัด commonsense reasoning
+
+ทีม training จะ evaluate บน benchmark เหล่านี้ทุก ๆ ไม่กี่ checkpoints เพื่อดูว่า performance กำลัง improve หรือ plateau
+
+ข้อควรระวังของ benchmark: เมื่อ benchmark เป็นที่รู้จักมาก มีความเสี่ยงที่ training data จะ "ปนเปื้อน" ด้วยคำตอบของ benchmark นั้น (data contamination) ทำให้ score สูงแต่ไม่สะท้อน capability จริง นักวิจัยจึงต้องระวังว่า benchmark ที่ใช้ test ไม่ได้อยู่ใน training data ด้วย
+
+ปัญหา benchmark saturation ก็เกิดขึ้นเช่นกัน — เมื่อ model ส่วนใหญ่ได้คะแนน MMLU ใกล้เคียงกันมากจนแยกกันไม่ออก วงการต้องสร้าง benchmark ใหม่ที่ยากขึ้น เช่น **MMLU-Pro**, **GPQA** (graduate-level science questions), และ **FrontierMath** ที่ออกแบบมาเพื่อ model ยุคถัดไปโดยเฉพาะ
+
+### Scaling Laws และการ predict
+
+ทบทวนเร็ว ๆ: **Chinchilla scaling laws** (DeepMind, 2022) แสดงว่าประสิทธิภาพของ model predict ได้จากสมการที่เชื่อม model size, data, และ compute — และที่สำคัญคือ model ขนาดเล็กกว่าที่ train บน data มากกว่าอาจดีกว่า model ใหญ่ที่ train บน data น้อย (สัดส่วน compute-optimal ≈ data 20 เท่าของ parameters) นั่นคือเหตุผลที่ขั้น pretraining ต้องวางสัดส่วน data ต่อ model size ให้พอดีกับ compute budget ตั้งแต่ต้น
+
+รายละเอียดสมการ ที่มา และข้อถกเถียงหลัง Chinchilla (เช่นทำไม Llama ถึง "overtrain") อยู่ในบท [Scaling Laws](/advanced/scaling-laws) ที่อธิบายไปเต็ม ๆ
+
+<!-- IMAGE: ภาพ scaling law curve แสดงความสัมพันธ์ระหว่าง compute, model size, data size และ performance -->
+
+---
+
+## ลองคิดดู #2 — Base Model vs Chat Model
+
+นี่คือ thought experiment ที่จะทำให้เห็นความแตกต่างระหว่าง base model กับ chat model ชัดเจนมาก
+
+สมมติว่าคุณสามารถ access base model (ที่ผ่านแค่ pretraining ยังไม่ fine-tune) และพิมพ์ข้อความนี้ไปว่า:
+
+`"ฉันรู้สึกเศร้าและไม่มีความสุขกับชีวิต ควรทำอะไรดี?"`
+
+**Chat model** อย่าง ChatGPT หรือ Claude จะตอบว่า: "ขอโทษที่ได้ยินแบบนี้ ความรู้สึกเศร้าเป็นเรื่องปกติ อยากให้ลองพูดคุยกับคนที่ไว้วางใจ..."
+
+**Base model** จะไม่ "ตอบ" — มันจะ "ต่อข้อความ" ต่อจากที่คุณพิมพ์ ผลลัพธ์อาจออกมาเป็น: `"...วันนี้ เมื่อคืนเจ้าของร้านมาบอกว่า..."` หรืออาจต่อด้วยบทสนทนาของตัวละครในนิยาย หรืออาจต่อด้วยโพสต์ forum อีกชิ้น
+
+ทำไม? เพราะ base model เรียนรู้ pattern ของข้อความบนอินเทอร์เน็ต ประโยคแบบนั้นมักปรากฏใน forum, บล็อก, นิยาย — และข้อความที่ตามมาในบริบทพวกนั้นคือสิ่งที่ base model จะสร้างขึ้น
+
+**นัยสำคัญ:** fine-tuning ไม่ได้แค่ "สอนมารยาท" ให้ model มันเปลี่ยน behavior พื้นฐาน — จาก "ต่อข้อความ" เป็น "ตอบคำถาม" และจาก "สร้างเนื้อหาที่น่าจะตามมา" เป็น "ช่วยเหลือผู้ใช้"
+
+คำถามสำหรับคิดต่อ: ถ้า base model ไม่ได้ถูก "ออกแบบ" ให้ตอบคำถาม แต่มัน "emerge" ขึ้นมาจากการ predict text — แล้ว behavior ของ chat model ที่ตอบคำถามนั้น "อยู่ที่ไหน" ใน model? มันถูก "ใส่" เข้าไปหรือถูก "ปลดล็อค" ออกมา?
+
+<!-- IMAGE: ภาพเปรียบเทียบ output ของ base model กับ chat model จาก prompt เดียวกัน แสดงความแตกต่างของ behavior -->
+
+---
+
+## Open vs Closed Pretraining — ข้อถกเถียงที่ยังไม่จบ
+
+วงการ LLM แบ่งออกเป็นสองค่ายที่มีปรัชญาต่างกันชัดเจน:
+
+### ค่าย Open — Meta เป็นผู้นำ
+
+Meta เลือก release **Llama** series เป็น open weights — แปลว่าใครก็ download weights ของ model ไปใช้ได้ฟรี จะ fine-tune, จะ deploy, จะดัดแปลงก็ได้ (มีเงื่อนไขการใช้งานเชิงพาณิชย์บางข้อ)
+
+ยิ่งไปกว่านั้น Meta ยัง release training data บางส่วน (เช่น dataset specifications ของ Llama 3) และ paper อธิบาย methodology อย่างละเอียด
+
+**เหตุผลที่ Meta ทำแบบนี้:**
+- Meta ใช้ AI ภายในบริษัทเป็นหลัก ไม่ได้ขาย API เหมือน OpenAI
+- Ecosystem ที่แข็งแกร่งรอบ Llama ช่วย improve model ผ่าน community research
+- เป็น competitive move — ถ้า open source model ดีพอ ลูกค้าของ OpenAI อาจย้ายมา
+
+### ค่าย Closed — OpenAI และ Anthropic
+
+OpenAI ไม่เปิดเผย architecture จริงของ GPT-4, training data, หรือ weights ผู้ใช้เข้าถึงได้ผ่าน API เท่านั้น Anthropic มี approach คล้ายกัน
+
+**เหตุผลที่ให้:**
+- ความปลอดภัย — model ที่ทรงพลังอาจถูก misuse
+- ความได้เปรียบทางธุรกิจ — weights คือ intellectual property
+- Control over deployment — รู้ว่าใครใช้ model ทำอะไร
+
+### Mistral — ทางที่สาม
+
+Mistral AI จากฝรั่งเศสเลือก **open weights แต่ไม่เปิด training data** Release model เช่น Mistral 7B และ Mixtral 8x7B เป็น open weights แต่ไม่บอกว่า train ด้วยอะไร
+
+### ข้อถกเถียงที่ยังไม่จบ
+
+ฝั่งที่สนับสนุน open pretraining โต้แย้งว่า:
+- ความโปร่งใสทำให้ตรวจสอบได้ว่า model safe จริงไหม
+- ชุมชนวิจัยที่กว้างกว่าหมายถึงความก้าวหน้าเร็วกว่า
+- การ concentrate AI power ในไม่กี่บริษัทอันตรายกว่า
+
+ฝั่งที่สนับสนุน closed โต้แย้งว่า:
+- Model ที่ทรงพลังใน public domain ทำให้ bad actor เข้าถึงได้ง่าย
+- เงินจาก commercial API หล่อเลี้ยงการวิจัย safety
+- บางสิ่งควรมี responsible deployment กว่าแค่ "ปล่อยให้ทุกคนใช้"
+- การรู้ว่าใครใช้ model ทำให้สามารถ enforce usage policy และ monitor misuse ได้
+
+ข้อสังเกตที่น่าสนใจคือ Meta ซึ่งเป็น champion ของ open weights มีผลประโยชน์ทางธุรกิจที่ตรงกัน — Meta ไม่ได้ขาย API ดังนั้นการที่ OpenAI และ Anthropic ต้องลงทุน R&D มหาศาลเพื่อแข่งกับ Llama ทำให้ค่า LLM ในตลาดลดลง ซึ่งเป็นประโยชน์ต่อ Meta ในฐานะ AI user ยักษ์ใหญ่ เรื่องนี้ไม่ได้ทำให้ open release ของ Meta ไม่ดี แต่ remind เราว่า decision ทุก decision มี incentive ซ่อนอยู่
+
+ยังไม่มีคำตอบที่ชัดเจน และ debate นี้จะดำเนินต่อไปอีกนาน
+
+### ผลกระทบต่อ ecosystem
+
+ในแง่ปฏิบัติ การมี open weights model อย่าง Llama ทำให้เกิด ecosystem ขนาดใหญ่:
+- บริษัทขนาดกลางและเล็กสามารถ fine-tune Llama ด้วยต้นทุนต่ำกว่ามากเมื่อเทียบกับการ train จากศูนย์
+- นักวิจัยอิสระสามารถศึกษา behavior ของ model อย่างลึกซึ้งในแบบที่ทำกับ closed model ไม่ได้
+- เกิด derivative models มากมาย เช่น model ที่ fine-tune สำหรับภาษาไทย, สำหรับการแพทย์, สำหรับกฎหมาย ฯลฯ
+
+สำหรับประเทศที่ต้องการพัฒนา AI สำหรับภาษาท้องถิ่น open weights model คือจุดเริ่มต้นที่สำคัญมาก เพราะแทนที่จะต้อง pretrain ใหม่ทั้งหมด (ซึ่งแพงมาก) สามารถ fine-tune จาก Llama ได้ — นี่คือ approach ที่หลายทีมในเอเชียตะวันออกเฉียงใต้ใช้อยู่
+
+> 💡 **Key insight:** คำว่า "open source" ในวงการ AI ยังไม่มีนิยามเดียว บางคนหมายถึง open weights (ดาวน์โหลด model ได้), บางคนหมายถึง open data (รู้ว่า train ด้วยอะไร), บางคนหมายถึง open research (paper อธิบาย methodology) Llama เป็น open weights แต่ไม่ open data GPT-4 ไม่เปิดทั้งคู่
+
+<!-- IMAGE: ภาพ comparison table ระหว่าง OpenAI, Meta, Mistral, Anthropic แสดง open/closed ในมิติต่าง ๆ เช่น weights, data, paper -->
+
+---
+
+## Model Card — เอกสารที่บอกว่า model ถูก train ยังไง
+
+เมื่อ model ถูก release บริษัทที่ดีจะออก **model card** — เอกสารที่อธิบาย pretraining methodology, data sources, ข้อจำกัด, และ intended use
+
+Meta ออก model card สำหรับ Llama series ทุกตัว Hugging Face บังคับให้ model ที่ upload มีส่วน model card ที่กรอกข้อมูล Google และ Anthropic ออก technical reports ที่ครอบคลุมมากขึ้นเรื่อย ๆ
+
+ทำไม model card สำคัญ? เพราะมันทำให้ผู้ใช้สามารถ evaluate ได้ว่า model นี้เหมาะกับ use case ของตัวเองหรือเปล่า ก่อนที่จะ commit ใช้งาน การที่ OpenAI ไม่ออก model card ที่ครอบคลุมสำหรับ GPT-4 ถูก criticize อย่างมากในชุมชนวิจัย เพราะทำให้ประเมิน limitation และ appropriate use ได้ยาก
+
+ในฐานะคนที่ทำงานกับ AI อย่างจริงจัง การ skim model card ก่อนใช้ model ใหม่เป็น practice ที่ดี — มันมักบอกความจริงที่ marketing ไม่บอก
+
+---
+
+## เมื่อ Pretraining จบ — ได้อะไร และยังขาดอะไร
+
+เมื่อ pretraining เสร็จสิ้น คุณมี base model ที่:
+
+**ทำได้:**
+- เข้าใจและสร้างภาษาได้อย่างคล่องแคล่ว ทั้งภาษาอังกฤษและภาษาอื่น ๆ ในสัดส่วนที่มีใน training data
+- รู้เรื่องราวเกี่ยวกับโลกเป็นจำนวนมาก — ประวัติศาสตร์, วิทยาศาสตร์, วัฒนธรรม, โค้ด
+- ต่อข้อความได้อย่างสอดคล้องและสมเหตุสมผล
+- เขียนโค้ด, แต่งกวี, สร้างเรื่องราวได้ถ้าถูก prompt ถูกวิธี
+
+**ยังทำไม่ได้หรือทำได้ไม่ดี:**
+- Follow instructions อย่างที่ผู้ใช้คาดหวัง
+- ตอบคำถามในรูปแบบ Q&A ที่มีประโยชน์
+- ปฏิเสธคำขอที่เป็นอันตราย
+- มี "personality" ที่สอดคล้องและน่าไว้ใจ
+- Calibrate ความมั่นใจ (รู้ว่าตัวเองไม่รู้อะไร)
+
+นี่คือเหตุผลที่ต้องมีขั้นตอนถัดไป: **RLHF และ Alignment** — กระบวนการที่เปลี่ยน base model ให้กลายเป็น assistant ที่มนุษย์ใช้งานได้จริงและไว้ใจได้
+
+---
+
+## Continual Pretraining — อัปเดต model โดยไม่ต้อง train ใหม่ทั้งหมด
+
+มีแนวทางที่อยู่ระหว่าง pretraining เต็มรูปแบบกับ fine-tuning ธรรมดา เรียกว่า **continual pretraining** หรือ **domain-adaptive pretraining**
+
+แนวคิดคือ เอา base model ที่ผ่าน pretraining มาแล้ว แล้ว train ต่อด้วยข้อมูล domain เฉพาะด้วย objective เดียวกัน (next-token prediction) แต่ใช้ข้อมูลน้อยกว่าและ learning rate ต่ำกว่า pretraining จริง
+
+ตัวอย่างที่เห็นชัดในงานวิจัย:
+- **Code Llama** — เอา Llama 2 มา continual pretrain บน code เพิ่มอีก 500B tokens ผลคือ model ที่เก่งโค้ดกว่า Llama 2 มากโดยยังรักษา general capability ไว้
+- **Medical LLMs** — เอา base model มา train บน medical textbooks, clinical notes, research papers เพื่อให้ domain knowledge ด้านการแพทย์ดีขึ้น
+- **Thai language models** — approach ที่ทีมในประเทศไทยหลายทีมทดลอง คือ continual pretrain จาก Llama ด้วยข้อมูลภาษาไทย
+
+ความเสี่ยงหลักของ continual pretraining คือ **catastrophic forgetting** — model อาจ "ลืม" สิ่งที่เรียนรู้จาก pretraining เดิมเมื่อ train บน domain ใหม่ การจัดการกับ catastrophic forgetting (เช่น ผสม domain data กับ general data ในสัดส่วนที่เหมาะสม) คือ challenge ที่นักวิจัยยังทำงานอยู่
+
+> 💡 **Key insight:** Continual pretraining เป็นทางลัดที่ทำให้บริษัทและทีมวิจัยขนาดกลางสามารถสร้าง domain-specific model ที่ดีได้โดยไม่ต้องใช้ budget ระดับ Meta หรือ OpenAI
+
+---
+
+## Knowledge Cutoff — ทำไม model ไม่รู้เรื่องที่เกิดขึ้นหลัง train จบ
+
+ข้อจำกัดที่สำคัญและหลายคนเข้าใจผิดเกี่ยวกับ LLM: **knowledge cutoff**
+
+เมื่อ pretraining จบ model จะ "frozen" ความรู้ทั้งหมดที่มีไว้ ณ จุดนั้น ถ้า training data ถูก collect จนถึงเดือนมิถุนายน 2024 model จะไม่รู้เรื่องที่เกิดขึ้นหลังจากนั้นเลย — ไม่ว่าจะเป็นข่าว, งานวิจัยใหม่, หรือแม้แต่ว่าตัวเองถูกแซงหน้าโดย model ที่ดีกว่าแล้ว
+
+สาเหตุที่ knowledge cutoff เป็นเรื่อง non-trivial:
+
+**Data collection ต้องใช้เวลา** — การ crawl, clean, และ deduplicate ข้อมูลจาก Common Crawl ใช้เวลาหลายเดือน ดังนั้น training data ที่ "สด" สุดก็ยังล้าหลังจากปัจจุบันอยู่พอสมควรเมื่อ training เริ่ม
+
+**Training เองก็ใช้เวลา** — Train นาน 2-3 เดือน บวกกับ data collection อีก 2-3 เดือน รวมแล้ว knowledge อาจล้าหลังจากวัน release ครึ่งปีหรือมากกว่า
+
+**การ update ราคาแพงมาก** — การ pretrain ใหม่ทั้งหมดเพื่ออัปเดตความรู้ใช้เงินหลายสิบล้านดอลลาร์ ดังนั้นบริษัทส่วนใหญ่จึงไม่ทำบ่อย ๆ
+
+วิธีที่ใช้แก้ปัญหานี้ในทางปฏิบัติคือ **Retrieval-Augmented Generation (RAG)** — ไม่ update model แต่ให้ model ค้นหาข้อมูลล่าสุดจาก database ภายนอกก่อนตอบ ซึ่งเป็น topic ของบทอื่น
+
+> 💡 **Key insight:** เมื่อ ChatGPT บอกว่า "ผมมีข้อมูลถึงแค่ต้นปี 2024" นั่นไม่ใช่ข้อแก้ตัว แต่คือข้อเท็จจริงทางเทคนิค — ความรู้ทั้งหมดถูก "อบ" เข้าไปใน weights ระหว่าง pretraining และไม่มีทางอัปเดตได้โดยไม่ train ใหม่
+
+<!-- IMAGE: ภาพ timeline แสดง data collection → training → evaluation → deployment โดยมี knowledge cutoff อยู่ที่จุดหนึ่ง และ time gap ระหว่าง cutoff กับ deployment date -->
+
+---
+
+## Pretraining matter กับคุณในฐานะผู้ใช้ยังไง
+
+คุณอาจถามว่า "รู้เรื่อง pretrainingแล้วได้อะไร ฉันแค่อยากใช้ AI ให้ทำงานได้ดี"
+
+คำตอบคือ: การเข้าใจ pretraining เปลี่ยนวิธีที่คุณใช้และเลือก AI อย่างเป็นรูปธรรม
+
+**เลือก model ให้ถูกงาน** — Model ที่ train บน data mix ต่างกันเก่งคนละเรื่อง Claude ที่ train บน constitutional AI approach มักดีด้าน nuance และ reasoning GPT-4 ที่มี code training เยอะดีด้าน programming Gemini ที่ Google ใส่ data ไว้มากมีจุดแข็งด้าน multilingual และ multimodal รู้ว่า base ของแต่ละ model ถูก pretrain ยังไงช่วยเลือกได้ดีขึ้น
+
+**เข้าใจ limitation อย่างถูกต้อง** — เมื่อ model ตอบผิดเรื่องที่เกิดขึ้นหลัง knowledge cutoff มันไม่ใช่ความโง่หรือขี้เกียจ มันคือผลจากกระบวนการ pretraining ที่ freeze knowledge ไว้ ณ จุดหนึ่ง เมื่อ model ตอบภาษาไทยได้ไม่ดีเท่าภาษาอังกฤษ มันคือผลของ data distribution และ tokenizer ไม่ใช่ความตั้งใจของบริษัท เมื่อ model hallucinate ข้อเท็จจริง มันมักเกิดจากพื้นที่ที่ training data น้อยหรือ conflicting — ซึ่งทั้งหมดนี้ trace กลับมาที่ pretraining ได้
+
+**ตั้ง expectation ที่สมเหตุสมผล** — Frontier model อย่าง GPT-4 หรือ Claude ได้รับการ pretrain บน data และ compute ที่มากกว่า model รุ่นเล็กมาก ความแตกต่างของ performance ที่เห็นไม่ใช่แค่เรื่อง fine-tuning — รากฐานของทั้งสองก็แตกต่างกันแล้ว ในทางกลับกัน model ขนาดกลางที่ถูก pretrain ด้วย data quality สูงอาจทำงานได้ดีกว่า model ขนาดใหญ่กว่าที่ pretrain บนข้อมูลด้อยคุณภาพ ตามที่ Chinchilla และ FineWeb ชี้ให้เห็น — quality beats quantity ในหลายกรณี
+
+> 💡 **Key insight:** ความเข้าใจ pretraining ช่วยให้คุณ debug งาน AI ได้ดีขึ้น เมื่อ model ทำงานได้ไม่ดี คุณจะรู้ว่าปัญหาอยู่ที่ base model, fine-tuning, หรือ prompting — และนั่นทำให้แก้ปัญหาได้ตรงจุด
+
+---
+
+## สรุป
+
+Pretraining คือรากฐานของ LLM ทุกตัวที่คุณใช้อยู่ กระบวนการนี้ประกอบด้วยส่วนสำคัญที่ต้องทำงานร่วมกัน:
+
+**Data** — ข้อมูลมหาศาลหลายล้านล้าน tokens จาก Common Crawl, Wikipedia, หนังสือ, และโค้ด ที่ผ่านการ clean, deduplicate, และ filter อย่างพิถีพิถัน คุณภาพของ data มีผลต่อคุณภาพของ model มากกว่าอะไรทั้งหมด และ data mix ที่เลือกใช้กำหนด "character" ของ model ในระดับหนึ่ง
+
+**Tokenization** — ก่อน train ต้องแปลงข้อความเป็น tokens ก่อน วิธีที่ tokenize ส่งผลโดยตรงต่อว่าภาษาไหนจะมีประสิทธิภาพดี ภาษาที่มีข้อมูลน้อยใน tokenizer training data จะได้ token efficiency ต่ำและ performance ที่ด้อยกว่า
+
+**Objective** — การสอนให้ model ทาย token ถัดไปนั้นง่ายในเชิง concept แต่เพื่อจะทำได้ดี model ต้องเรียนรู้ภาษา, ความหมาย, และความรู้เกี่ยวกับโลกโดยปริยาย ความ elegant ของ objective นี้คือไม่ต้อง label ข้อมูลเลย ข้อความทุกชิ้นในโลกคือ training signal ในตัวมันเอง และ emergent capabilities โผล่ขึ้นมาเองเมื่อ scale ใหญ่พอ
+
+**Hardware** — GPU clusters ขนาดมหึมาที่ทำงานร่วมกันผ่าน distributed training หลายรูปแบบ ต้นทุนระดับสิบถึงร้อยล้านดอลลาร์ทำให้ pretraining กลายเป็น privilege ของไม่กี่บริษัทในโลก แต่ open weights models ทำให้คนอื่นสามารถ build ต่อจากฐานนั้นได้
+
+**Dynamics** — learning rate schedules, gradient clipping, loss monitoring, checkpointing และการ evaluate ด้วย benchmarks จริงตลอดการ train ไม่ใช่แค่รอให้เสร็จแล้วค่อยดู Scaling laws ช่วยให้ทีมวางแผนและตัดสินใจการลงทุนได้ก่อนที่จะ commit
+
+**Knowledge cutoff** — เมื่อ pretrain จบ ความรู้ถูก "freeze" ไว้ ณ จุดนั้น การอัปเดตต้องผ่าน fine-tuning หรือ RAG ไม่ใช่การ pretrain ใหม่ทั้งหมด
+
+**Continual pretraining** — ทางสายกลางที่ทำให้ขยาย domain knowledge ของ model ได้โดยไม่ต้องเริ่มใหม่ทั้งหมด เป็น approach ที่ทีมในประเทศกำลังพัฒนาหลายทีมใช้สร้าง model ภาษาท้องถิ่น
+
+สิ่งที่ทำให้ pretraining น่าทึ่งที่สุดคือความเรียบง่ายของ core idea — ทายคำถัดไป — แต่ความซับซ้อนของ engineering ที่อยู่รอบ ๆ เพื่อทำให้ idea นั้นทำงานได้จริงในระดับ trillion tokens กับ GPU หมื่นตัว นี่คือสิ่งที่แยก "วิจัยใน paper" กับ "model ที่คนใช้งานได้จริงหลายร้อยล้านคน"
+
+และจากมุมมองของ "AI ภาษาคน" — pretraining คือเหตุผลที่ LLM "รู้" อะไรหลาย ๆ อย่างโดยไม่มีใคร program มันเข้าไปตรง ๆ ความรู้นั้น emerge ขึ้นมาจากการอ่านข้อมูลมนุษย์ในปริมาณมหาศาล และนั่นคือทั้ง superpower และ limitation ของ LLM ในเวลาเดียวกัน
+
+เมื่อ pretraining จบ คุณมี base model ที่ทรงพลังแต่ยังไม่ "ฟัง" คุณ ยังไม่รู้จักการตอบคำถาม ยังไม่มีค่านิยมว่าอะไรดีอะไรไม่ดี และยังไม่ปลอดภัยพอที่จะปล่อยให้ผู้ใช้ทั่วไปโต้ตอบด้วย ขั้นตอนที่เปลี่ยนมันให้กลายเป็น assistant ที่มนุษย์ไว้ใจได้คือสิ่งที่บทถัดไปจะพูดถึง — **RLHF และ Alignment** กระบวนการที่ซับซ้อน, ก่อให้เกิดข้อถกเถียงมากที่สุด, และอาจสำคัญที่สุดในทั้งหมด ทั้งในแง่ความสามารถและในแง่ว่า AI ควรเป็นอย่างไร
+
+ถ้า pretraining สร้าง brain — RLHF คือกระบวนการที่ใส่ values เข้าไป
+
+แต่ก่อนไปถึงตรงนั้น ลองย้อนกลับมาชื่นชมสิ่งที่ pretraining ทำได้สักครู่ ด้วย objective ง่าย ๆ อย่าง "ทายคำถัดไป" กับข้อมูลมหาศาล มนุษย์สร้างระบบที่สามารถเขียนกวีนิพนธ์, อธิบาย black holes, debug โค้ด Python, แปลภาษาที่ไม่เคยเห็น, และสนทนาเรื่องปรัชญาได้ โดยไม่มีใครเขียน rule เหล่านี้เข้าไปสักข้อเดียว นั่นคือ magic ของ scale และ emergence ที่ pretraining ปลดล็อคออกมา
+
+[อ่านบทถัดไป: RLHF and Alignment →](/advanced/rlhf-and-alignment)

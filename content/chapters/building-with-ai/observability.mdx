@@ -1,0 +1,682 @@
+---
+slug: observability
+level: building-with-ai
+title: "LLM Observability — มองเห็นทุกอย่างที่เกิดขึ้นในระบบ AI"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ LLM Observability ตั้งแต่ทำไมต้อง monitor, อะไรต้อง log, tracing สำหรับ chains/agents, เครื่องมือ (LangSmith, Langfuse, Helicone) จนถึงการตั้ง alerts"
+---
+# LLM Observability — มองเห็นทุกอย่างที่เกิดขึ้นในระบบ AI
+
+ระบบ AI ของคุณ deploy แล้ว ลูกค้าใช้งานอยู่ 1,000 requests ต่อวัน ทุกอย่างดูเรียบร้อยดี จนกระทั่งวันหนึ่งมีคนส่ง message มาบ่นว่า "bot ตอบผิดเรื่องราคา" — แค่นั้นเอง ไม่มีรายละเอียดอะไรเพิ่มเติม คุณจะรู้ได้ยังไงว่าผิดตรงไหน? prompt ที่ส่งไปหน้าตาเป็นยังไง? model ใช้ context อะไรในการตอบ? ใช้ token ไปเท่าไหร่? เกิดขึ้นครั้งเดียวหรือเกิดซ้ำทุกวัน? ถ้าคุณไม่ได้เตรียมระบบ Observability ไว้ คำตอบของทุกคำถามนั้นคือ "ไม่รู้" — และนั่นคือปัญหาที่ใหญ่มาก
+
+<!-- IMAGE: ภาพแสดงระบบ AI ที่ทำงานอยู่โดยไม่มี observability เปรียบเทียบกับระบบที่มี dashboard ที่มองเห็น request flow ทุก step -->
+
+---
+
+## ทำไม console.log ไม่พอ
+
+ถ้าคุณเคย build web application มาก่อน คุณอาจคิดว่า logging แบบเดิมก็น่าจะพอแล้ว print ว่า API call สำเร็จ บันทึก error เมื่อมี exception เกิดขึ้น แล้วก็จบ แต่ LLM ไม่ใช่ API ธรรมดา
+
+API ทั่วไปเป็น deterministic — ถ้าส่ง input เดิม ได้ output เดิมเสมอ ถ้า status code 200 แปลว่าสำเร็จ ถ้า 500 แปลว่าพัง ตรรกะมันชัดเจน
+
+LLM ไม่เป็นแบบนั้น ส่ง prompt เดิมสองครั้ง ได้คำตอบต่างกันได้ API call return status 200 แต่คำตอบที่ได้อาจไม่มีประโยชน์เลย ไม่มี error ไม่มี exception แต่ผลลัพธ์ก็ยังห่วยได้
+
+นั่นหมายความว่า success ในโลก LLM มีหลายระดับ
+
+ระดับที่ 1 คือ Technical success — API ไม่ error, response กลับมา
+ระดับที่ 2 คือ Output quality — คำตอบถูกต้อง ตรงประเด็น มีประโยชน์
+ระดับที่ 3 คือ Business value — ผู้ใช้ได้รับสิ่งที่ต้องการและพอใจ
+
+console.log บอกได้แค่ระดับที่ 1 แต่คุณต้องการรู้ทั้ง 3 ระดับ
+
+<!-- IMAGE: ภาพ pyramid สามชั้นแสดง Technical Success ที่ฐาน, Output Quality กลาง, Business Value บนสุด พร้อม label ว่า console.log ครอบคลุมแค่ชั้นล่าง -->
+
+นอกจากนี้ยังมีมิติอื่นที่ traditional logging ไม่ได้ออกแบบมาสำหรับ LLM
+
+**Cost** — ทุก token มีราคา ถ้าไม่ track ค่าใช้จ่ายแบบ real-time คุณอาจพบว่าบิลสิ้นเดือนสูงกว่าที่คาดไว้ 5 เท่า
+
+**Prompt versioning** — คุณแก้ system prompt แล้ว response ดีขึ้นไหม? ถ้าไม่ log ทั้ง prompt เก่าและใหม่พร้อม output ก็ไม่มีทางรู้ได้
+
+**Latency patterns** — request ช้าทุก request หรือช้าแค่บางช่วงเวลา? บาง user ช้ากว่าคนอื่นไหม?
+
+**Chain debugging** — ถ้าใช้ RAG หรือ agent ที่มีหลาย step ขั้นตอนไหนที่ใช้เวลาส่วนใหญ่? ขั้นตอนไหนที่ทำให้คุณภาพต่ำลง?
+
+> 💡 **Key insight:** ใน traditional software ถ้า output ถูก แปลว่าโปรแกรมทำงานถูก แต่ใน LLM application output อาจดูถูกต้องแต่มาจาก reasoning ที่ผิด หรืออาจผิดทั้งหมดแต่ไม่มี error เลย Observability คือวิธีเดียวที่จะรู้ความจริง
+
+---
+
+## 3 เสาหลักของ LLM Observability
+
+Observability สำหรับ LLM แบ่งออกเป็น 3 ส่วนหลักที่ทำงานร่วมกัน ขาดส่วนไหนไปก็จะมองเห็นได้ไม่ครบ
+
+<!-- IMAGE: ภาพไดอะแกรมสามเสาที่ค้ำโครงสร้างเดียวกัน แต่ละเสา label ว่า Logging, Tracing, Evaluation -->
+
+**เสาที่ 1 — Logging: บันทึกทุกสิ่งที่เกิดขึ้น**
+
+Logging คือการบันทึกข้อมูลดิบของทุก interaction — ส่ง prompt อะไรไป ได้ response อะไรกลับมา ใช้ token เท่าไหร่ ใช้เวลานานแค่ไหน เกิด error หรือเปล่า เปรียบเหมือน black box recorder บนเครื่องบิน ข้อมูลดิบทุกอย่างอยู่ในนั้น พร้อมสำหรับการตรวจสอบหลังเกิดเหตุ
+
+**เสาที่ 2 — Tracing: ติดตาม Flow ทั้งหมด**
+
+Tracing คือการ map ว่า request หนึ่งชิ้นผ่านขั้นตอนอะไรบ้าง และแต่ละขั้นตอนใช้เวลาเท่าไหร่ ถ้า Logging คือ "บันทึกว่าเกิดอะไร" Tracing คือ "บันทึกว่าเกิดอะไร ที่ไหน เมื่อไหร่ และเชื่อมกันยังไง" สำคัญมากสำหรับ system ที่ซับซ้อนอย่าง RAG pipeline หรือ multi-step agent
+
+**เสาที่ 3 — Evaluation: วัดคุณภาพอย่างเป็นระบบ**
+
+Evaluation คือการวัดว่า output ดีแค่ไหน ไม่ใช่แค่ "สำเร็จหรือเปล่า" แต่ "ดีพอไหม" อาจเป็น automated scoring โดย LLM อีกตัว หรือ human feedback หรือ metric เฉพาะทางเช่น factual accuracy Evaluation เป็น topic ใหญ่มากพอที่จะมีบทแยกต่างหาก — ดูได้ที่ [บท Evaluation และ Testing](/building-with-ai/evals-and-benchmarks)
+
+ในบทนี้จะ focus ที่ Logging และ Tracing ซึ่งเป็นรากฐานที่ต้องทำก่อน
+
+---
+
+## อะไรต้อง Log
+
+เมื่อ LLM call เกิดขึ้นทุกครั้ง ข้อมูลต่อไปนี้ควรถูกบันทึกเอาไว้
+
+<!-- IMAGE: ภาพ log entry ในรูปแบบ JSON ที่มี annotation บอกว่าแต่ละ field สำคัญอย่างไร -->
+
+**ข้อมูลพื้นฐาน (ต้องมีเสมอ)**
+
+- `timestamp` — เวลาที่ request เกิดขึ้น ทั้ง request start และ response received
+- `request_id` — unique ID สำหรับแต่ละ request เพื่อ trace กลับได้
+- `model` — model name และ version เช่น `gpt-4o-2024-08-06` ไม่ใช่แค่ `gpt-4o` เพราะ version ต่างกันอาจให้ผลต่างกัน
+- `input_prompt` — full prompt ที่ส่งไป รวม system prompt และ user message ทั้งหมด
+- `output_response` — full response ที่ได้กลับมา ไม่ใช่แค่ summary
+
+**ข้อมูล Performance**
+
+- `input_tokens` — จำนวน token ใน prompt
+- `output_tokens` — จำนวน token ใน response
+- `total_tokens` — รวมทั้งหมด
+- `latency_ms` — เวลาตั้งแต่ส่ง request จนได้ response เป็น milliseconds
+- `time_to_first_token_ms` — สำหรับ streaming response, เวลาจนกว่า token แรกจะมาถึง
+
+**ข้อมูล Cost**
+
+- `cost_usd` — ค่าใช้จ่ายของ request นี้ คำนวณจาก token count คูณ price per token ของ model นั้น
+
+**ข้อมูล Context**
+
+- `user_id` — ระบุว่า user ไหน request นี้มาจากใคร สำคัญสำหรับ debugging และ personalization
+- `session_id` — ระบุ conversation session เพื่อ group requests ที่อยู่ใน conversation เดียวกัน
+- `environment` — `production`, `staging`, `development`
+- `application_version` — version ของ application ของคุณ ไม่ใช่ model version
+
+**ข้อมูล Error**
+
+- `error_type` — ประเภทของ error ถ้าเกิดขึ้น เช่น `rate_limit_error`, `context_length_exceeded`
+- `error_message` — รายละเอียด error message
+- `retry_count` — retry กี่ครั้งก่อนสำเร็จหรือล้มเหลว
+
+ตัวอย่าง log entry จริงที่ครบถ้วนหน้าตาเป็นแบบนี้
+
+```json
+{
+  "timestamp": "2024-11-15T09:23:41.502Z",
+  "request_id": "req_8f2a91bc4d",
+  "session_id": "sess_user_7720_20241115",
+  "user_id": "user_7720",
+  "environment": "production",
+  "application_version": "2.3.1",
+  "model": "gpt-4o-2024-08-06",
+  "input_tokens": 847,
+  "output_tokens": 312,
+  "total_tokens": 1159,
+  "latency_ms": 2840,
+  "time_to_first_token_ms": 620,
+  "cost_usd": 0.00812,
+  "input_prompt": "...",
+  "output_response": "...",
+  "error_type": null,
+  "error_message": null,
+  "retry_count": 0
+}
+```
+
+> 💡 **Key insight:** หลายคน log แค่ output แต่ไม่ log full input prompt เมื่อเกิดปัญหาจึง debug ไม่ได้ เพราะไม่รู้ว่าถามว่าอะไร การ log full prompt อาจทำให้ data มีขนาดใหญ่ขึ้น แต่เป็นสิ่งที่ขาดไม่ได้
+
+---
+
+## Tracing — ติดตาม Flow ที่ซับซ้อน
+
+ถ้า application ของคุณเรียก LLM แค่ครั้งเดียวต่อ request Logging ก็เพียงพอแล้ว แต่ระบบส่วนใหญ่ในโลกจริงซับซ้อนกว่านั้น
+
+<!-- IMAGE: ภาพ flow chart แสดง RAG pipeline ตั้งแต่ user query จนถึง final response โดยแต่ละ step มี timing label -->
+
+**ตัวอย่าง: RAG Pipeline**
+
+เมื่อ user ถามคำถาม ระบบ RAG ทำงานดังนี้
+
+Step 1 — Embedding: แปลง query ของ user เป็น vector (เรียก embedding model)
+Step 2 — Search: ค้นหา documents ที่เกี่ยวข้องใน vector database
+Step 3 — Reranking: เรียงลำดับ documents ตาม relevance อีกรอบ
+Step 4 — LLM Call: ส่ง documents ที่เลือกแล้วพร้อม query ไปให้ LLM สร้าง answer
+
+ถ้ามี request ที่ช้ากว่าปกติ คุณต้องรู้ว่า step ไหนที่ช้า อาจเป็นที่ vector search ที่ไม่ได้ index ดี อาจเป็นที่ reranker ที่ประมวลผลนานเกิน หรืออาจเป็นที่ LLM call ตรงปลาย ถ้าไม่มี tracing คุณได้แค่ total latency ไม่รู้ว่าปัญหาอยู่ที่ไหน
+
+**ตัวอย่าง: Multi-step Agent**
+
+Agent ที่ซับซ้อนกว่าอาจทำงานแบบนี้
+
+Step 1 — Planning: LLM วิเคราะห์ task และวาง plan
+Step 2 — Tool use 1: เรียก search tool ดึงข้อมูล
+Step 3 — Tool use 2: เรียก calculator tool คำนวณ
+Step 4 — Tool use 3: เรียก database query ดึงข้อมูลเพิ่ม
+Step 5 — Synthesis: LLM รวม results และสร้าง final answer
+
+ถ้า final answer ผิดพลาด ปัญหาอาจเกิดจาก planning ที่ไม่ดี tool ที่ return ข้อมูลผิด หรือ synthesis ที่ตีความข้อมูลผิด Tracing ช่วยให้คุณ drill down ไปดู input/output ของแต่ละ step ได้
+
+**Trace คืออะไร**
+
+Trace คือโครงสร้างต้นไม้ของ spans โดย span คือหน่วยของงานหนึ่งชิ้น เช่น "การ embed query" หรือ "การเรียก LLM ครั้งที่สอง"
+
+```
+Trace: user_question_7720
+├── Span: embed_query (45ms)
+├── Span: vector_search (120ms)
+│   └── Span: db_query (98ms)
+├── Span: rerank_documents (310ms)
+└── Span: llm_generation (2100ms)
+    ├── Span: tokenize_input (5ms)
+    └── Span: model_inference (2095ms)
+```
+
+ในตัวอย่างนี้ทันทีที่ดู trace คุณรู้เลยว่า llm_generation กินเวลาส่วนใหญ่ และใน llm_generation นั้น model_inference คือ bottleneck จริง ๆ ถ้าคุณต้องการลด latency นี่คือจุดที่ควรเริ่ม
+
+> 💡 **Key insight:** Tracing ไม่ได้มีประโยชน์แค่ตอน debug ปัญหา แต่ยังช่วยให้คุณ optimize ได้ด้วย เพราะคุณรู้แน่ชัดว่า time และ cost ถูกใช้ไปที่ไหนมากที่สุด
+
+---
+
+## ลองทำดู #1: Basic Logging ด้วย Python
+
+ก่อนจะไปใช้ tool ภายนอก ลองสร้าง logging system ขั้นพื้นฐานด้วยตัวเองก่อน เพื่อให้เข้าใจว่า data อะไรบ้างที่เราต้องการจริง ๆ
+
+<!-- IMAGE: ภาพ code editor ที่แสดง Python code สำหรับ LLM logging wrapper พร้อม output ที่เป็น JSON log file -->
+
+สร้าง wrapper function ที่ wrap รอบ OpenAI call ทุกครั้ง
+
+```python
+import time
+import json
+import uuid
+import sqlite3
+from datetime import datetime, timezone
+from openai import OpenAI
+
+client = OpenAI()
+
+# ราคา per 1,000 tokens ของแต่ละ model (อัปเดตตาม pricing page จริง)
+MODEL_PRICING = {
+    "gpt-4o": {"input": 0.0025, "output": 0.01},
+    "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
+    "gpt-4o-2024-08-06": {"input": 0.0025, "output": 0.01},
+}
+
+def calculate_cost(model: str, input_tokens: int, output_tokens: int) -> float:
+    """คำนวณค่าใช้จ่ายเป็น USD จาก token counts"""
+    # ดึง pricing สำหรับ model นี้ ถ้าไม่มีใน dict ใช้ gpt-4o เป็น default
+    pricing = MODEL_PRICING.get(model, MODEL_PRICING["gpt-4o"])
+    input_cost = (input_tokens / 1000) * pricing["input"]
+    output_cost = (output_tokens / 1000) * pricing["output"]
+    return round(input_cost + output_cost, 6)
+
+def logged_llm_call(
+    messages: list,
+    model: str = "gpt-4o",
+    user_id: str = "anonymous",
+    session_id: str = None,
+    **kwargs
+) -> str:
+    """
+    Wrapper function สำหรับ OpenAI call ที่ log ทุก request โดยอัตโนมัติ
+    ใช้แทน client.chat.completions.create() ได้เลย
+    """
+    # สร้าง IDs สำหรับ request นี้
+    request_id = f"req_{uuid.uuid4().hex[:10]}"
+    if not session_id:
+        session_id = f"sess_{user_id}_{datetime.now(timezone.utc).strftime('%Y%m%d')}"
+
+    # บันทึกเวลาเริ่มต้น
+    start_time = time.time()
+    error_type = None
+    error_message = None
+    response_text = None
+    input_tokens = 0
+    output_tokens = 0
+
+    try:
+        # เรียก OpenAI API จริง ๆ
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            **kwargs
+        )
+
+        # ดึงข้อมูลจาก response
+        response_text = response.choices[0].message.content
+        input_tokens = response.usage.prompt_tokens
+        output_tokens = response.usage.completion_tokens
+
+    except Exception as e:
+        # บันทึก error แต่ไม่ให้ crash — log ก่อนแล้ว re-raise
+        error_type = type(e).__name__
+        error_message = str(e)
+        raise
+
+    finally:
+        # คำนวณ metrics — ทำใน finally เพื่อให้ log เสมอ ทั้ง success และ error
+        latency_ms = round((time.time() - start_time) * 1000)
+        cost_usd = calculate_cost(model, input_tokens, output_tokens)
+
+        # สร้าง log entry
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "request_id": request_id,
+            "session_id": session_id,
+            "user_id": user_id,
+            "model": model,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
+            "latency_ms": latency_ms,
+            "cost_usd": cost_usd,
+            # เก็บแค่ 2000 ตัวอักษรแรกเพื่อประหยัด storage (ปรับได้ตามต้องการ)
+            "input_prompt": json.dumps(messages)[:2000],
+            "output_response": (response_text or "")[:2000],
+            "error_type": error_type,
+            "error_message": error_message,
+        }
+
+        # บันทึกลง JSON Lines file (หนึ่ง JSON object ต่อบรรทัด)
+        with open("llm_logs.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(log_entry, ensure_ascii=False) + "\n")
+
+    return response_text
+
+# ทดสอบใช้งาน — เรียกแบบเดียวกับ OpenAI call ปกติ แต่ได้ log ฟรี
+response = logged_llm_call(
+    messages=[
+        {"role": "system", "content": "คุณเป็นผู้ช่วยที่เป็นประโยชน์"},
+        {"role": "user", "content": "อธิบาย observability สั้น ๆ หน่อย"}
+    ],
+    model="gpt-4o-mini",
+    user_id="user_001",
+)
+print(response)
+```
+
+ลอง run code นี้แล้ว check ไฟล์ `llm_logs.jsonl` จะเห็น log entry ที่มีข้อมูลครบในทุก call
+
+ขั้นต่อไปอาจเพิ่ม function สำหรับ query log ที่บันทึกไว้
+
+```python
+def get_daily_stats(date_str: str = None) -> dict:
+    """สรุปสถิติประจำวัน — total requests, cost, avg latency"""
+    if not date_str:
+        date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    total_requests = 0
+    total_cost = 0
+    total_latency = 0
+    errors = 0
+
+    with open("llm_logs.jsonl", "r", encoding="utf-8") as f:
+        for line in f:
+            entry = json.loads(line)
+            # กรองเฉพาะวันที่ต้องการ
+            if entry["timestamp"].startswith(date_str):
+                total_requests += 1
+                total_cost += entry["cost_usd"]
+                total_latency += entry["latency_ms"]
+                if entry["error_type"]:
+                    errors += 1
+
+    if total_requests == 0:
+        return {"date": date_str, "message": "ไม่มี requests วันนี้"}
+
+    return {
+        "date": date_str,
+        "total_requests": total_requests,
+        "total_cost_usd": round(total_cost, 4),
+        "avg_latency_ms": round(total_latency / total_requests),
+        "error_rate": round(errors / total_requests * 100, 2),
+    }
+
+# ดูสถิติวันนี้
+print(get_daily_stats())
+```
+
+การทำแบบนี้ไม่ได้สวยงามเท่า tool พิเศษ แต่ช่วยให้คุณเข้าใจว่าข้อมูลอะไรอยู่ที่ไหน ก่อนจะย้ายไปใช้ platform ที่ทำสิ่งนี้ให้อัตโนมัติ
+
+---
+
+## เครื่องมือ Observability — เลือกใช้อะไรดี
+
+ในโลกจริงไม่มีใคร build logging system เองตั้งแต่ต้นสำหรับ production มี tools หลายตัวที่ทำให้ครบกว่า สวยงามกว่า และมี features ที่คุณจะต้องการในอนาคต
+
+<!-- IMAGE: ภาพ dashboard ของ Langfuse แสดง trace tree, latency chart, และ cost breakdown -->
+
+**LangSmith**
+
+ทำโดย LangChain team เหมาะมากถ้าคุณใช้ LangChain หรือ LangGraph อยู่แล้ว เพราะ integrate ได้ด้วยการเปลี่ยนแค่ environment variable ไม่กี่บรรทัด มี UI ที่สวยและ features ครบสำหรับ evaluation ด้วย แต่ไม่ใช่ open-source และถ้าใช้งานหนักค่าใช้จ่ายอาจสูง
+
+**Langfuse**
+
+Open-source และสามารถ self-host ได้ ทำให้ data อยู่ใน infrastructure ของคุณเอง เหมาะสำหรับทีมที่มีข้อกำหนดด้าน data privacy สูง มี SDK สำหรับ Python, JavaScript/TypeScript และ integrate ได้กับ framework ส่วนใหญ่ มี cloud version ฟรี tier ด้วย
+
+**Helicone**
+
+ทำงานในรูปแบบ proxy — คุณเปลี่ยน base URL ของ OpenAI SDK ไปชี้ที่ Helicone แทน Helicone จะ intercept ทุก request โดยอัตโนมัติ วิธีนี้ใช้งานง่ายมากเพราะแทบไม่ต้องเปลี่ยน code เลย แต่ข้อเสียคือ data ผ่าน server ของ Helicone ซึ่งอาจเป็นข้อกังวลสำหรับบาง use case
+
+**Arize Phoenix**
+
+Open-source เหมาะสำหรับ ML teams ที่ต้องการ evaluation และ experimentation features เชิงลึก มี integration กับ OpenTelemetry ซึ่งเป็น standard ของวงการ observability
+
+**ตารางเปรียบเทียบ**
+
+| Tool | Open-source | Self-host | Free Tier | ใช้งานง่าย | เหมาะสำหรับ |
+|---|---|---|---|---|---|
+| LangSmith | ไม่ | ไม่ | ใช่ (จำกัด) | สูงมาก | LangChain users |
+| Langfuse | ใช่ | ใช่ | ใช่ | ปานกลาง | ทีมที่ต้องการ privacy |
+| Helicone | บางส่วน | บางส่วน | ใช่ | สูงมาก | เริ่มต้นเร็ว |
+| Arize Phoenix | ใช่ | ใช่ | ใช่ | ปานกลาง | ML teams |
+
+สำหรับคนที่เพิ่งเริ่ม แนะนำ Langfuse เพราะ open-source สามารถ self-host ได้เมื่อพร้อม และ documentation ดี
+
+---
+
+## ลองทำดู #2: ใช้ Langfuse กับ OpenAI
+
+ลอง setup Langfuse ที่เป็น cloud version ฟรี เพื่อดู trace แบบ visual ทันที
+
+<!-- IMAGE: ภาพ step-by-step แสดงการ setup Langfuse จาก sign up จนถึงหน้า dashboard ที่มี trace แรก -->
+
+**Step 1 — สมัครและรับ API keys**
+
+ไปที่ [langfuse.com](https://langfuse.com) สมัคร account ฟรี จากนั้นสร้าง project และคัดลอก Secret Key และ Public Key มา
+
+**Step 2 — ติดตั้ง library**
+
+```bash
+pip install langfuse openai
+```
+
+**Step 3 — Integration ด้วย @observe decorator**
+
+วิธีที่ง่ายที่สุดคือใช้ decorator `@observe` ซึ่ง Langfuse จะ track ทุก function call ให้อัตโนมัติ
+
+```python
+import os
+from langfuse.decorators import observe, langfuse_context
+from langfuse.openai import openai  # ใช้ openai จาก langfuse แทน openai ตรง ๆ
+
+# ตั้งค่า environment variables (หรือจะใส่ใน .env file)
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-..."   # จาก Langfuse dashboard
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-..."   # จาก Langfuse dashboard
+os.environ["LANGFUSE_HOST"] = "https://cloud.langfuse.com"
+os.environ["OPENAI_API_KEY"] = "sk-..."           # OpenAI key ปกติ
+
+@observe()  # decorator นี้คือทั้งหมดที่ต้องเพิ่ม — Langfuse track ให้อัตโนมัติ
+def search_documents(query: str) -> list:
+    """จำลอง document search step ใน RAG pipeline"""
+    # ในระบบจริงจะ query vector database ที่นี่
+    return [
+        f"Document 1 เกี่ยวกับ {query}",
+        f"Document 2 เกี่ยวกับ {query}",
+    ]
+
+@observe()
+def generate_answer(query: str, documents: list) -> str:
+    """เรียก LLM เพื่อสร้าง answer จาก documents"""
+    context = "\n".join(documents)
+
+    # openai ที่ import มาจาก langfuse.openai จะ track token counts ให้อัตโนมัติ
+    response = openai.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "ตอบคำถามโดยอ้างอิงจาก context ที่ให้มาเท่านั้น"
+            },
+            {
+                "role": "user",
+                "content": f"Context:\n{context}\n\nคำถาม: {query}"
+            }
+        ]
+    )
+    return response.choices[0].message.content
+
+@observe()  # top-level function นี้จะเป็น root ของ trace tree
+def rag_pipeline(user_query: str, user_id: str) -> str:
+    """RAG pipeline ทั้งหมด — Langfuse จะสร้าง trace tree ให้อัตโนมัติ"""
+
+    # เพิ่ม user info เข้าไปใน trace
+    langfuse_context.update_current_trace(
+        user_id=user_id,
+        tags=["rag", "production"]
+    )
+
+    # แต่ละ function call กลายเป็น span ใน trace tree
+    documents = search_documents(user_query)
+    answer = generate_answer(user_query, documents)
+
+    return answer
+
+# ทดสอบ
+result = rag_pipeline(
+    user_query="ขอบเขตของสัญญาประกันภัยรถยนต์คืออะไร",
+    user_id="user_7720"
+)
+print(result)
+```
+
+**Step 4 — ดู trace ใน dashboard**
+
+หลัง run code แล้วรอสักครู่ ไปเปิด Langfuse dashboard แล้ว click ที่ "Traces" จะเห็น trace tree แสดง rag_pipeline เป็น root ข้างใน มี search_documents และ generate_answer เป็น child spans แต่ละ span บอก latency และ cost ของตัวเอง คุณสามารถ click เข้าไปดู exact input/output ของทุก step ได้
+
+> 💡 **Key insight:** สังเกตว่าทุกที่ที่ต้องเปลี่ยนคือเพิ่ม `@observe()` และเปลี่ยน import จาก `openai` เป็น `from langfuse.openai import openai` นั่นคือ design ของ Langfuse ที่ minimize code changes เพื่อให้ adoption ง่าย
+
+---
+
+## Dashboards และ Metrics ที่ต้อง Track
+
+เมื่อมี data ไหลเข้า Langfuse หรือ tool อื่น สิ่งที่ควร monitor อยู่ทุกวันมีดังนี้
+
+<!-- IMAGE: ภาพ dashboard layout แสดง KPI cards, line charts สำหรับ latency และ cost, และ error rate gauge -->
+
+**KPIs หลักที่ต้อง monitor ทุกวัน**
+
+**Average Latency** — ค่าเฉลี่ยของเวลาตอบสนอง user ควรกำหนด baseline ว่า "ปกติ" ของระบบคุณคือเท่าไหร่ แล้ว alert เมื่อเบี่ยงเบนไปมาก
+
+**P95 Latency** — latency ที่ 95th percentile หมายความว่า 95% ของ requests เร็วกว่านี้ ค่านี้สำคัญกว่า average เพราะ average ถูก pull ขึ้นโดย outliers น้อยมาก แต่ P95 บอกว่า "คนส่วนใหญ่" ได้รับประสบการณ์ยังไง
+
+**Error Rate** — สัดส่วน requests ที่ fail ทั้งหมด ควรต่ำกว่า 1% ถ้าสูงกว่า 5% ต้องแจ้งเตือนทันที
+
+**Average Tokens per Request** — ถ้าค่านี้เพิ่มขึ้นโดยไม่มีเหตุผล อาจแปลว่า prompt ของคุณยาวขึ้น หรือ conversation history สะสมมากเกินไปจน bloat token count
+
+**Daily Cost** — ค่าใช้จ่ายรวมต่อวัน เปรียบเทียบกับ budget ที่ตั้งไว้ และดู trend ว่าเพิ่มขึ้นสอดคล้องกับ user growth หรือไม่
+
+**Quality Score** — ถ้ามี evaluation setup แล้ว metric นี้บอกว่า output quality เป็นยังไงโดยเฉลี่ย ดูบท [Evaluation และ Testing](/building-with-ai/evals-and-benchmarks) สำหรับวิธีวัด
+
+**Dashboard Layout ที่แนะนำ**
+
+แบ่ง dashboard ออกเป็น 3 ส่วน
+
+Section 1 — Health Overview: Error rate, Avg latency, P95 latency ในรูปแบบ number cards ที่เห็นได้ทันที พร้อม status indicator ว่า healthy/warning/critical
+
+Section 2 — Volume และ Cost: Requests per hour (line chart), Daily cost (bar chart), Token usage breakdown (input vs output)
+
+Section 3 — Quality: Quality score trend ถ้ามี, Top errors ที่เกิดซ้ำ, User sessions ที่น่าสังเกต
+
+---
+
+## Alerts — รู้ก่อนลูกค้าบ่น
+
+Observability ที่ดีไม่ได้แปลว่าคุณต้องนั่งจ้อง dashboard ตลอดเวลา แต่ระบบต้องบอกคุณเองเมื่อมีอะไรผิดปกติ
+
+<!-- IMAGE: ภาพ flow chart แสดงการ set up alert: metric threshold → alert trigger → notification channel → on-call response -->
+
+**Alert ที่ต้องมีเป็นอันดับแรก**
+
+**Error Rate Alert** — เมื่อ error rate > 5% ใน 10 นาทีที่ผ่านมา ส่ง alert ทันที สาเหตุที่ใช้ window 10 นาทีเพราะ error อาจ spike ชั่วคราวได้ แต่ถ้าสูงนานกว่านั้นแปลว่ามีปัญหาจริง
+
+**Latency Alert** — เมื่อ P95 latency > 15 วินาที (หรือ 3x ค่า baseline ปกติ) สาเหตุที่ใช้ P95 ไม่ใช่ average เพราะ average อาจยังดูดีแม้ว่าผู้ใช้บางส่วนรอนานมาก
+
+**Daily Budget Alert** — เมื่อ cost วันนี้ถึง 80% ของ daily budget ให้ส่ง warning เมื่อถึง 100% ให้ส่ง critical alert พร้อมบอกว่า trend ปัจจุบันถ้าไม่หยุด จะใช้เงินรวมเดือนนี้เท่าไหร่
+
+**Quality Drop Alert** — เมื่อ quality score ลดลงมากกว่า 15% จากค่าเฉลี่ยสัปดาห์ก่อน อาจแปลว่า model มีการเปลี่ยนแปลง หรือ user input patterns เปลี่ยนไปในแบบที่ system ไม่ handle ได้ดี
+
+**Volume Anomaly Alert** — เมื่อ request volume สูงหรือต่ำกว่าปกติอย่างผิดปกติ เช่น volume ลดลง 80% กะทันหัน อาจแปลว่า system ไม่ได้รับ traffic เลย (deployment ล้มเหลว) ไม่ใช่แค่ user ไม่ใช้งาน
+
+**วิธี setup alert ง่าย ๆ**
+
+ถ้าใช้ Langfuse cloud สามารถตั้ง alert ใน dashboard ได้โดยตรง สำหรับระบบที่ต้องการ flexibility มากกว่า วิธีที่ practical คือ query log ทุก ๆ 5 นาทีด้วย scheduled function แล้วส่ง notification ผ่าน Line Notify, Slack, หรือ email เมื่อ threshold ถูกข้าม
+
+```python
+import requests
+from datetime import datetime, timezone, timedelta
+
+def check_error_rate_alert(threshold_pct: float = 5.0) -> None:
+    """
+    ตรวจสอบ error rate ใน 10 นาทีที่ผ่านมา
+    เรียก function นี้ทุก 5 นาทีด้วย cron job หรือ scheduler
+    """
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
+
+    total = 0
+    errors = 0
+
+    with open("llm_logs.jsonl", "r", encoding="utf-8") as f:
+        for line in f:
+            entry = json.loads(line)
+            entry_time = datetime.fromisoformat(entry["timestamp"])
+            if entry_time >= cutoff:
+                total += 1
+                if entry["error_type"]:
+                    errors += 1
+
+    if total == 0:
+        return  # ไม่มี traffic — ไม่ต้อง alert เรื่อง error rate
+
+    error_rate = (errors / total) * 100
+
+    if error_rate > threshold_pct:
+        message = (
+            f"🚨 LLM Error Rate Alert\n"
+            f"Error rate: {error_rate:.1f}% (threshold: {threshold_pct}%)\n"
+            f"Errors: {errors}/{total} requests ใน 10 นาทีล่าสุด\n"
+            f"Time: {datetime.now(timezone.utc).isoformat()}"
+        )
+        send_line_notify(message)
+
+def send_line_notify(message: str) -> None:
+    """ส่ง alert ผ่าน Line Notify"""
+    token = os.environ.get("LINE_NOTIFY_TOKEN")
+    if not token:
+        print("LINE_NOTIFY_TOKEN ไม่ได้ตั้งค่า — print แทน")
+        print(message)
+        return
+
+    requests.post(
+        "https://notify-api.line.me/api/notify",
+        headers={"Authorization": f"Bearer {token}"},
+        data={"message": message}
+    )
+```
+
+Schedule function นี้ด้วย cron หรือ APScheduler แล้วคุณจะได้รับ notification ทุกครั้งที่มีปัญหา โดยไม่ต้องนั่งดู dashboard ตลอดเวลา
+
+> 💡 **Key insight:** Alert fatigue เป็นปัญหาจริง ถ้า alert ดังบ่อยเกินไปโดยที่ไม่ใช่ปัญหาจริง คนจะเริ่มเพิกเฉย เริ่มจาก alert น้อย ๆ ที่ critical จริง ๆ แล้วค่อยเพิ่มเมื่อเข้าใจ pattern ของระบบดีขึ้น
+
+---
+
+## Observability ใน Production — สิ่งที่ต้องระวัง
+
+มีเรื่องปฏิบัติบางอย่างที่ต้องคิดเมื่อ setup observability สำหรับระบบที่ใช้จริง
+
+<!-- IMAGE: ภาพแสดง trade-off ระหว่าง data completeness กับ cost/privacy ในรูปแบบ balance scale -->
+
+**Privacy และ Data Retention**
+
+Prompt ของ user อาจมีข้อมูลส่วนตัวหรือข้อมูลธุรกิจที่ sensitive เช่น ชื่อ เลขบัตรประชาชน หรือข้อมูลทางการเงิน ก่อน log full prompt ต้องถามว่าคุณมีสิทธิ์เก็บข้อมูลนี้ไหม ภายใต้ PDPA ของไทยหรือ GDPR ถ้ามีผู้ใช้ในยุโรป
+
+วิธีแก้คือ PII masking ก่อน log — แทนที่เลขบัตร 13 หลักด้วย `[REDACTED]` ก่อนที่จะบันทึก หรือกำหนด retention policy ว่า log จะเก็บแค่กี่วันแล้วลบทิ้ง
+
+**Sampling สำหรับ High-volume System**
+
+ถ้าระบบรับ request วันละ 100,000 ครั้ง การ log 100% อาจมีค่าใช้จ่ายสูงมาก และ storage ก็จะเติบโตเร็วมาก วิธีที่ใช้กันคือ sampling — log แค่ 10% ของ requests แต่ log 100% ของ requests ที่มี error
+
+```python
+import random
+
+def should_log(error_occurred: bool, sample_rate: float = 0.1) -> bool:
+    """
+    กำหนดว่า request นี้ควร log ไหม
+    Log ทุก error request และ sample บาง success requests
+    """
+    if error_occurred:
+        return True  # error ต้อง log เสมอ
+    return random.random() < sample_rate  # sample 10% ของ success
+```
+
+**Async Logging เพื่อไม่ให้ latency เพิ่ม**
+
+การ write ไฟล์หรือส่ง data ไป Langfuse ทุกครั้งอาจเพิ่ม latency ให้ user เพื่อแก้ปัญหานี้ ให้ log แบบ async โดยใช้ background thread หรือ queue
+
+```python
+import threading
+from queue import Queue
+
+# Queue สำหรับ log entries ที่รอส่ง
+log_queue = Queue()
+
+def background_logger():
+    """Worker thread ที่รับ log entries จาก queue และบันทึกใน background"""
+    while True:
+        entry = log_queue.get()
+        if entry is None:  # sentinel value เพื่อหยุด thread
+            break
+        with open("llm_logs.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        log_queue.task_done()
+
+# เริ่ม background thread ตอน startup
+logger_thread = threading.Thread(target=background_logger, daemon=True)
+logger_thread.start()
+
+# ใน logged_llm_call เปลี่ยนจาก write ตรง ๆ เป็น queue
+# แทนที่บรรทัด open() ด้วย:
+log_queue.put(log_entry)  # return ทันที ไม่รอ write เสร็จ
+```
+
+---
+
+## ทุกอย่างเชื่อมกันยังไง — ภาพรวมของระบบ Observability
+
+ลองนึกถึงภาพรวมของ observability stack ที่ complete
+
+<!-- IMAGE: ภาพ architecture diagram แสดง LLM Application ที่มี logging layer → Langfuse → Dashboard → Alert System เชื่อมต่อกัน -->
+
+**Layer 1 — Instrumentation**: Code ของคุณที่มี `@observe()` decorators และ logging wrappers นี่คือจุดที่ collect data
+
+**Layer 2 — Storage**: Langfuse (cloud หรือ self-hosted) ที่รับ data และ store อย่างมีโครงสร้าง พร้อม search และ query ได้
+
+**Layer 3 — Visualization**: Dashboard ที่แสดง metrics และ trends ในรูปแบบที่มนุษย์อ่านได้
+
+**Layer 4 — Alerting**: ระบบที่ watch metrics และ notify ทีมเมื่อมี anomaly
+
+**Layer 5 — Action**: ทีมของคุณที่รับ alert แล้ว debug, แก้ไข, และ improve ระบบ
+
+Observability ที่ดีทำให้ loop นี้หมุนเร็ว — จากเกิดปัญหาจนถึงแก้ไขเสร็จใช้เวลาน้อยที่สุด
+
+---
+
+## สรุป
+
+ระบบ AI ที่ deploy แล้วโดยไม่มี observability เปรียบเหมือนขับรถในคืนที่มืดสนิทโดยไม่เปิดไฟหน้า คุณอาจรอดไปได้สักพัก แต่ก็แค่รอวันที่จะชน
+
+สิ่งที่ต้องจำจากบทนี้คือ observability มี 3 เสาหลัก ได้แก่ Logging ที่บันทึกทุก request, Tracing ที่ติดตาม flow ทั้งหมดของ chains และ agents, และ Evaluation ที่วัดคุณภาพ output อย่างเป็นระบบ
+
+เริ่มต้นง่าย ๆ ด้วยการ log ทุก LLM call พร้อมข้อมูลที่สำคัญ จากนั้น integrate Langfuse ซึ่งทำ tracing visual ให้โดยอัตโนมัติ ตั้ง dashboard สำหรับ metrics หลัก และ alert ที่จะบอกคุณก่อนที่ลูกค้าจะบ่น
+
+เมื่อคุณมองเห็นระบบ AI ของคุณแบบ real-time แล้ว คำถามต่อไปที่เกิดขึ้นเองคือ "ทำยังไงให้ถูกลง?" ค่าใช้จ่ายที่เห็นใน dashboard สามารถลดได้อย่างเป็นระบบ — บทถัดไปเรื่อง [Cost Engineering](/building-with-ai/cost-engineering) จะพาคุณผ่าน strategies ทั้งหมดตั้งแต่ model selection ไปจนถึง caching และ prompt compression ที่ช่วยให้คุณใช้งบประมาณเดิมแต่ได้ throughput มากขึ้น

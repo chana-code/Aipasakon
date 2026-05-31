@@ -1,0 +1,887 @@
+---
+slug: multi-agent-systems
+level: building-with-ai
+title: "Multi-Agent Systems — เมื่อ AI ตัวเดียวไม่พอ ต้องทำงานเป็นทีม"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ Multi-Agent Systems ตั้งแต่ทำไม agent เดียวไม่พอ, patterns การทำงานร่วมกัน (supervisor, pipeline, debate), วิธีออกแบบ communication protocol จนถึง frameworks จริง"
+---
+ลองนึกภาพนี้: เจ้านายส่งไฟล์ Excel มาให้ตอนบ่ายสาม พร้อมบอกว่า "ช่วยวิเคราะห์รายงานการเงินไตรมาสนี้ 50 หน้า สรุปเป็น bullet points ภาษาไทย แล้วสร้าง slides สรุป ส่งอีเมลหาทีมก่อนประชุมตอน 5 โมงด้วยนะ"
+
+งานนี้มีหลายขั้น หลายทักษะ หลายเครื่องมือ ถ้าคุณเคยสร้าง [AI agent มาแล้วจากบทก่อนหน้า](/building-with-ai/agents-and-orchestration) คุณอาจถามว่า — ใช้ agent ตัวเดียวทำทั้งหมดได้ไหม?
+
+ได้ แต่ไม่ดี และบทนี้จะอธิบายว่าทำไม — แล้วเราจะออกแบบระบบที่ดีกว่านั้นยังไง
+
+<!-- IMAGE: ภาพ AI agent ตัวเดียวพยายามทำงานหลายอย่างพร้อมกัน vs. ทีม agents แบ่งงานกัน -->
+
+---
+
+## ทำไม Agent ตัวเดียวถึงมีข้อจำกัด
+
+ก่อนจะไปถึง Multi-Agent เราต้องเข้าใจก่อนว่า agent ตัวเดียวสะดุดตรงไหน เพราะถ้าเข้าใจปัญหา เราจะเลือกวิธีแก้ได้ถูก
+
+### ปัญหาที่ 1: Context Window ยาวขึ้นก็ไม่ช่วยเท่าที่คิด
+
+หลายคนเชื่อว่า — "ถ้า model มี context window 200,000 tokens ก็ยัดทุกอย่างเข้าไปได้เลย ปัญหาหมด"
+
+แต่มีงานวิจัยชื่อ "Lost in the Middle" (Liu et al., 2023) ที่พิสูจน์ว่า LLM จำข้อมูลตอนต้นและตอนท้ายของ context ได้ดี แต่ข้อมูลที่อยู่ตรงกลางมักหายหรือถูกมองข้าม ลองนึกภาพคุณให้ AI อ่านเอกสาร 50 หน้า ข้อมูลสำคัญที่อยู่หน้า 25-30 อาจถูกลืมในการตอบสรุปสุดท้าย
+
+ยิ่ง context ยาว ยิ่งเสี่ยง ไม่ใช่ยิ่งดี
+
+### ปัญหาที่ 2: Agent ต้อง Switch Roles ตลอดเวลา
+
+Agent ตัวเดียวที่ทำงานหลายขั้นต้องเปลี่ยนบทบาทตัวเองไปเรื่อย ๆ — ตอนนี้เป็นนักวิเคราะห์ข้อมูล ต่อไปเป็นนักเขียน แล้วก็เป็นนักออกแบบ slides แล้วก็เป็นคนเขียนอีเมล
+
+ปัญหาคือแต่ละบทบาทต้องการวิธีคิดและ "สไตล์" การตอบที่ต่างกัน การสลับบทบาทบ่อย ๆ ใน prompt เดียวทำให้ผลลัพธ์ไม่นิ่ง บางทีโทนวิเคราะห์ข้อมูลหลุดออกมาตอนเขียนอีเมล หรือสไตล์การเขียน slides กลายเป็นแบบรายงานวิชาการ
+
+> 💡 **Key insight:** ความเชี่ยวชาญเฉพาะทางเกิดจากการโฟกัส ไม่ใช่การทำทุกอย่างพร้อมกัน ทั้งกับคนและ AI
+
+### ปัญหาที่ 3: Error Propagation
+
+สมมติ agent วิเคราะห์ตัวเลขผิดไปในขั้นแรก ข้อผิดพลาดนั้นจะถูกส่งต่อไปทุกขั้นถัดไป slides จะผิด อีเมลก็จะผิด โดยไม่มีจุดตรวจสอบระหว่างทาง
+
+เหมือนโรงงานที่ไม่มี QC ระหว่างสายการผลิต ถ้าวัตถุดิบในขั้นแรกเสีย ผลิตภัณฑ์สุดท้ายก็เสียทั้งหมด
+
+### ปัญหาที่ 4: ไม่มี Checks and Balances
+
+คนเราทำงานคนเดียวมักตรวจงานตัวเองได้ไม่ดีเท่าให้คนอื่นตรวจ AI ก็เช่นกัน agent ที่เพิ่งเขียน draft จะมีแนวโน้มคิดว่า draft ของตัวเองดีอยู่แล้ว การมี agent แยกมาตรวจสอบจะให้มุมมองที่เป็นกลางกว่า
+
+<!-- IMAGE: ไดอะแกรมแสดง error propagation ใน single agent vs. multi-agent ที่มีจุดตรวจสอบ -->
+
+---
+
+## Multi-Agent Patterns — รูปแบบการทำงานร่วมกัน
+
+ไม่มี pattern เดียวที่ดีที่สุดสำหรับทุกสถานการณ์ เราต้องเลือก pattern ให้ตรงกับโครงสร้างของปัญหา นี่คือ 4 patterns หลักที่ใช้จริงในโลก production
+
+### Pattern 1: Supervisor-Worker
+
+โครงสร้างนี้ตรงที่สุดกับโครงสร้างองค์กรคนทั่วไป มี agent หัวหน้า (Supervisor) ที่รับโจทย์ใหญ่ แล้วแบ่งงานให้ worker agents หลายตัวทำแบบขนาน แล้ว Supervisor รวมผลลัพธ์กลับมา
+
+```
+[User] → [Supervisor Agent]
+                ↓
+    ┌───────────┼───────────┐
+    ↓           ↓           ↓
+[Worker 1]  [Worker 2]  [Worker 3]
+(Research)  (Analysis)  (Writing)
+    ↓           ↓           ↓
+    └───────────┼───────────┘
+                ↓
+        [Supervisor Agent]
+        (รวมและตรวจสอบผล)
+                ↓
+            [User]
+```
+
+เหมาะกับ: งานที่แบ่งได้เป็น subtasks อิสระต่อกัน เช่น วิเคราะห์ข้อมูลจาก 3 แหล่งพร้อมกัน หรือสร้างเนื้อหาสำหรับ 5 ตลาดต่างกันพร้อมกัน
+
+ข้อดี: ทำงานขนานได้ เร็วกว่า pipeline หลายเท่า มี Supervisor คอยรวมคุณภาพ
+
+### Pattern 2: Pipeline
+
+งานส่งต่อกันแบบสายพานการผลิต แต่ละ agent รับ output จาก agent ก่อนหน้า ทำงาน แล้วส่งต่อให้ตัวถัดไป
+
+```
+[Input] → [Agent 1: Research] → [Agent 2: Write] → [Agent 3: Review] → [Output]
+```
+
+เหมาะกับ: งานที่มีลำดับชัดเจน ต้องทำขั้นหนึ่งให้เสร็จก่อนจึงจะเริ่มขั้นถัดไปได้ เช่น Research → Draft → Edit → Publish
+
+ข้อดี: เข้าใจง่าย debug ง่าย รู้ว่างานอยู่ที่ขั้นไหน ทำ QC ระหว่างขั้นได้
+
+ข้อเสีย: ถ้า agent ตัวใดตัวหนึ่งล้มเหลว ทั้ง pipeline หยุด และทำงานแบบ sequential ซึ่งช้ากว่า parallel
+
+### Pattern 3: Debate / Consensus
+
+สองหรือมากกว่า agent รับโจทย์เดียวกัน แต่โต้แย้งกัน หาจุดอ่อนในคำตอบของกันและกัน จนได้ข้อสรุปที่แข็งแกร่งกว่า
+
+```
+[โจทย์] → [Agent A: ฝ่าย Pro] ──→ [Mediator Agent] → [ข้อสรุป]
+         → [Agent B: ฝ่าย Con] ──→
+```
+
+เหมาะกับ: งานที่ต้องการ critical thinking สูง เช่น วิเคราะห์ความเสี่ยง ประเมินกลยุทธ์ ตัดสินใจเรื่องใหญ่ที่ผิดพลาดไม่ได้
+
+ข้อดี: ลด confirmation bias ได้ดีมาก คำตอบสุดท้ายผ่านการกลั่นกรองจากหลายมุม
+
+ข้อเสีย: ใช้ API calls มากกว่า ราคาสูงขึ้น ใช้เวลานานกว่า
+
+> 💡 **Key insight:** Debate pattern ไม่ได้แปลว่า agents ทะเลาะกัน แต่แปลว่า agents ถูกออกแบบให้มีมุมมองต่างกันโดยตั้งใจ เพื่อสร้าง productive tension
+
+### Pattern 4: Hierarchical
+
+รวม Supervisor-Worker หลายชั้น เหมาะกับงานซับซ้อนมากที่ต้องการโครงสร้างองค์กรจริง ๆ
+
+```
+[CEO Agent]
+    ↓
+[Manager Agent A]        [Manager Agent B]
+    ↓                        ↓
+[Worker 1] [Worker 2]    [Worker 3] [Worker 4]
+```
+
+เหมาะกับ: ระบบขนาดใหญ่มาก เช่น content factory ที่ผลิตเนื้อหาหลายช่องทาง หรือ research system ที่ต้องขุดข้อมูลลึกมาก ๆ
+
+ข้อเสีย: ซับซ้อนมาก debug ยาก latency สูง ค่าใช้จ่ายสูง — ใช้เฉพาะเมื่อจำเป็นจริง ๆ
+
+<!-- IMAGE: ไดอะแกรมแสดง 4 patterns เรียงกัน พร้อม use case ของแต่ละแบบ -->
+
+---
+
+## Communication Protocol — Agent คุยกันยังไง
+
+ถ้า patterns คือโครงสร้างองค์กร communication protocol คือกฎการประชุมและการส่งเอกสารระหว่างแผนก ถ้า protocol ไม่ชัด agents ก็จะส่งข้อมูลที่คนรับเข้าใจผิด
+
+มีสามวิธีหลักที่ agents ใช้สื่อสารกัน
+
+### วิธีที่ 1: Shared Memory
+
+agents ทุกตัวเข้าถึง "กระดานข้อมูลกลาง" เดียวกัน อ่านและเขียนลงไปได้ เหมือนห้องทำงานที่มีไวท์บอร์ดกลาง ทุกคนเห็นสิ่งเดียวกัน
+
+```python
+# shared_state คือ dict กลางที่ทุก agent ใช้ร่วมกัน
+shared_state = {
+    "research_results": None,
+    "draft": None,
+    "review_comments": None,
+    "status": "pending"
+}
+```
+
+ข้อดี: ง่าย ทุก agent เห็นภาพรวมเดียวกัน
+
+ข้อเสีย: ถ้า agent หนึ่งเขียนข้อมูลผิดพลาด agents ทุกตัวได้รับผลกระทบ ต้องมีกลไก locking ถ้า agents หลายตัวทำงานพร้อมกัน
+
+### วิธีที่ 2: Message Passing
+
+agents ส่ง "ข้อความ" หากันแบบ structured คล้าย API call ระหว่าง services แต่ละ agent รับ input ที่ชัดเจน ทำงาน แล้วส่ง output ที่ชัดเจนออกไป ไม่แตะ state ของคนอื่น
+
+```python
+# Agent 2 รับ message จาก Agent 1
+message = {
+    "from": "research_agent",
+    "to": "writing_agent",
+    "payload": {
+        "research_summary": "...",
+        "key_points": ["...", "..."],
+        "sources": ["...", "..."]
+    },
+    "metadata": {
+        "timestamp": "2026-05-25T09:00:00",
+        "confidence_score": 0.87
+    }
+}
+```
+
+ข้อดี: แต่ละ agent เป็น independent unit debug ง่ายกว่า ง่ายต่อการ scale
+
+### วิธีที่ 3: Structured Handoff
+
+วิธีที่ผสมสองอย่างข้างต้น — มี handoff document ที่มีโครงสร้างชัดเจนที่ส่งต่อกันระหว่างขั้น พร้อม checkpoint แต่ละจุด
+
+```python
+handoff_doc = {
+    "task_id": "report_analysis_001",
+    "completed_steps": ["research"],
+    "current_step": "writing",
+    "data": {
+        "research_output": "...",
+    },
+    "quality_check": {
+        "research_verified": True,
+        "word_count": 1500
+    },
+    "next_agent": "writing_agent",
+    "instructions_for_next": "ใช้ข้อมูลด้านบนเขียน executive summary 300 คำ"
+}
+```
+
+> 💡 **Key insight:** Garbage in, garbage out ใช้ได้กับ agent-to-agent ด้วย ถ้า agent ตัวแรกส่งข้อมูลที่คลุมเครือ agent ตัวถัดไปจะตีความผิด ความชัดเจนของ protocol คือ backbone ของทั้งระบบ
+
+<!-- IMAGE: ภาพ 3 วิธี communication เรียงกัน แสดงข้อมูลไหลยังไงใน shared memory, message passing, structured handoff -->
+
+---
+
+## ลองทำดู #1: Pipeline ง่าย ๆ — Research → Write → Review
+
+ถึงเวลาเขียน code จริง เราจะสร้าง pipeline 3 ขั้น ตัวที่ 1 ค้นหาและสรุปข้อมูล ตัวที่ 2 เขียน draft ตัวที่ 3 ตรวจและแนะนำการปรับปรุง
+
+```python
+import anthropic
+
+# สร้าง client
+client = anthropic.Anthropic(api_key="YOUR_API_KEY")
+
+def run_agent(system_prompt: str, user_message: str, model: str = "claude-opus-4-5") -> str:
+    """Helper function ที่ทุก agent ใช้"""
+    response = client.messages.create(
+        model=model,
+        max_tokens=2000,
+        system=system_prompt,
+        messages=[{"role": "user", "content": user_message}]
+    )
+    return response.content[0].text
+
+
+# === Agent 1: Research Agent ===
+research_system = """คุณคือ Research Agent เชี่ยวชาญการค้นหาและสรุปข้อมูล
+งานของคุณคือ:
+1. วิเคราะห์หัวข้อที่ได้รับ
+2. สรุปข้อมูลสำคัญที่ควรรู้
+3. ระบุ key points อย่างน้อย 5 ข้อ
+4. ส่งข้อมูลในรูปแบบที่ Writing Agent ใช้งานได้ทันที
+
+ตอบเป็นภาษาไทย ชัดเจน มีโครงสร้าง"""
+
+def research_agent(topic: str) -> dict:
+    print(f"[Research Agent] กำลังวิเคราะห์หัวข้อ: {topic}")
+    
+    result = run_agent(
+        system_prompt=research_system,
+        user_message=f"ค้นหาและสรุปข้อมูลเกี่ยวกับ: {topic}"
+    )
+    
+    return {
+        "topic": topic,
+        "research_output": result,
+        "agent": "research",
+        "status": "completed"
+    }
+
+
+# === Agent 2: Writing Agent ===
+writing_system = """คุณคือ Writing Agent เชี่ยวชาญการเขียนบทความ
+งานของคุณคือ:
+1. รับข้อมูล research จาก Research Agent
+2. เขียน draft บทความที่อ่านเข้าใจง่าย
+3. มีโครงสร้างชัดเจน: intro, body, conclusion
+4. ความยาว 400-600 คำ
+
+เขียนให้อ่านง่าย ไม่ใช้ศัพท์เทคนิคโดยไม่จำเป็น"""
+
+def writing_agent(research_data: dict) -> dict:
+    print(f"[Writing Agent] กำลังเขียน draft จากข้อมูล research")
+    
+    prompt = f"""
+    Research ที่ได้รับมา:
+    {research_data['research_output']}
+    
+    กรุณาเขียนบทความเกี่ยวกับ: {research_data['topic']}
+    """
+    
+    draft = run_agent(
+        system_prompt=writing_system,
+        user_message=prompt
+    )
+    
+    # ส่งต่อข้อมูลทั้งหมด + draft ใหม่
+    return {
+        **research_data,
+        "draft": draft,
+        "writing_agent": "writing",
+        "status": "draft_ready"
+    }
+
+
+# === Agent 3: Review Agent ===
+review_system = """คุณคือ Review Agent เชี่ยวชาญการตรวจและปรับปรุงเนื้อหา
+งานของคุณคือ:
+1. อ่าน draft ที่ได้รับ
+2. ประเมินความถูกต้อง ความชัดเจน และความน่าอ่าน
+3. ระบุจุดที่ต้องปรับปรุง พร้อมคำแนะนำเฉพาะเจาะจง
+4. ให้คะแนน 1-10 พร้อมเหตุผล
+5. สร้าง final version ที่ปรับปรุงแล้ว
+
+ตรวจสอบอย่างเข้มงวด แต่ให้คำแนะนำที่นำไปใช้ได้จริง"""
+
+def review_agent(writing_data: dict) -> dict:
+    print(f"[Review Agent] กำลังตรวจสอบ draft")
+    
+    prompt = f"""
+    Draft ที่ต้องตรวจ:
+    {writing_data['draft']}
+    
+    หัวข้อต้นฉบับ: {writing_data['topic']}
+    
+    กรุณาตรวจสอบและสร้าง final version
+    """
+    
+    review_result = run_agent(
+        system_prompt=review_system,
+        user_message=prompt
+    )
+    
+    return {
+        **writing_data,
+        "review": review_result,
+        "status": "completed"
+    }
+
+
+# === เรียกใช้ Pipeline ===
+def run_pipeline(topic: str) -> dict:
+    print(f"\n{'='*50}")
+    print(f"เริ่ม Pipeline สำหรับ: {topic}")
+    print(f"{'='*50}\n")
+    
+    # ขั้น 1: Research
+    research_result = research_agent(topic)
+    print("✓ Research เสร็จแล้ว\n")
+    
+    # ขั้น 2: Writing
+    writing_result = writing_agent(research_result)
+    print("✓ Draft เสร็จแล้ว\n")
+    
+    # ขั้น 3: Review
+    final_result = review_agent(writing_result)
+    print("✓ Review เสร็จแล้ว\n")
+    
+    return final_result
+
+
+# ทดสอบ
+result = run_pipeline("ผลกระทบของ AI ต่อตลาดแรงงานในไทย")
+print("\n=== ผลลัพธ์สุดท้าย ===")
+print(result["review"])
+```
+
+สิ่งที่น่าสังเกตในโค้ดนี้: แต่ละ agent มี system prompt ที่โฟกัสเฉพาะบทบาทของตัวเอง และแต่ละขั้นส่ง dict ที่มีข้อมูลทั้งหมดต่อ ๆ กันมา ทำให้ Review Agent เห็น context เต็มรูปแบบตั้งแต่ topic จนถึง draft
+
+> 🧪 **ลองทำดู:** รันโค้ดนี้กับ topic ที่คุณสนใจ แล้วสังเกตว่า Review Agent จับข้อผิดพลาดหรือจุดอ่อนอะไรใน draft ที่ Writing Agent สร้าง ลองเปลี่ยน system prompt ของ Review Agent ให้เข้มงวดขึ้นหรือนุ่มนวลลง แล้วดูว่าผลต่างกันไหม
+
+<!-- IMAGE: ภาพ terminal แสดง output จากการรัน pipeline ทั้ง 3 ขั้น พร้อม print statements -->
+
+---
+
+## State Management — ใครทำอะไรไปแล้ว ข้อมูลอยู่ไหน
+
+ใน pipeline ง่าย ๆ เราส่ง dict ต่อกันไป แต่ในระบบจริงที่ซับซ้อนกว่า เราต้องการ state management ที่แข็งแกร่งกว่านั้น
+
+### ทำไม State ถึงสำคัญ
+
+ลองนึกถึงสถานการณ์: pipeline กำลังทำงานอยู่ขั้นที่ 7 จาก 10 แล้ว internet หลุด หรือ API เกิด error ถ้าเราไม่บันทึก state ไว้ เราต้องเริ่มใหม่ตั้งแต่ต้น ซึ่งแปลว่าเสีย API cost ทั้งหมดที่จ่ายไปแล้ว
+
+### Shared State Dictionary
+
+รูปแบบพื้นฐานที่ใช้งานได้ดีสำหรับ pipeline ขนาดเล็กถึงกลาง
+
+```python
+import json
+import time
+from datetime import datetime
+
+class PipelineState:
+    def __init__(self, task_id: str):
+        self.state = {
+            "task_id": task_id,
+            "created_at": datetime.now().isoformat(),
+            "status": "running",
+            "current_step": None,
+            "completed_steps": [],
+            "failed_steps": [],
+            "data": {},           # ผลลัพธ์จากแต่ละ agent
+            "errors": [],         # error logs
+            "metadata": {
+                "total_api_calls": 0,
+                "total_tokens_used": 0
+            }
+        }
+    
+    def update_step(self, step_name: str, result: any, tokens_used: int = 0):
+        """บันทึกผลลัพธ์ของขั้นที่เสร็จแล้ว"""
+        self.state["completed_steps"].append(step_name)
+        self.state["data"][step_name] = result
+        self.state["current_step"] = step_name
+        self.state["metadata"]["total_api_calls"] += 1
+        self.state["metadata"]["total_tokens_used"] += tokens_used
+        
+        # บันทึกลง file เผื่อระบบพัง
+        self.save_checkpoint()
+    
+    def log_error(self, step_name: str, error: str):
+        """บันทึก error พร้อม context"""
+        self.state["failed_steps"].append(step_name)
+        self.state["errors"].append({
+            "step": step_name,
+            "error": error,
+            "timestamp": datetime.now().isoformat()
+        })
+    
+    def save_checkpoint(self):
+        """บันทึก state ลง disk เพื่อ resume ได้"""
+        filename = f"checkpoint_{self.state['task_id']}.json"
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(self.state, f, ensure_ascii=False, indent=2)
+    
+    @classmethod
+    def load_checkpoint(cls, task_id: str):
+        """โหลด state เก่าเพื่อ resume จากจุดที่ค้างไว้"""
+        filename = f"checkpoint_{task_id}.json"
+        try:
+            with open(filename, "r", encoding="utf-8") as f:
+                state_data = json.load(f)
+            instance = cls(task_id)
+            instance.state = state_data
+            return instance
+        except FileNotFoundError:
+            return None
+    
+    def is_step_done(self, step_name: str) -> bool:
+        """เช็คว่า step นี้ทำเสร็จแล้วหรือยัง (สำหรับ resume)"""
+        return step_name in self.state["completed_steps"]
+```
+
+### Conversation History
+
+สำหรับ agents ที่ต้องจำบริบทของการสนทนา เราต้องเก็บประวัติ
+
+```python
+class AgentMemory:
+    def __init__(self, agent_name: str, max_history: int = 10):
+        self.agent_name = agent_name
+        self.max_history = max_history
+        self.messages = []
+    
+    def add_message(self, role: str, content: str):
+        self.messages.append({"role": role, "content": content})
+        # จำกัดประวัติไม่ให้ context ยาวเกินไป
+        if len(self.messages) > self.max_history * 2:
+            # เก็บแค่ครึ่งหลัง
+            self.messages = self.messages[-self.max_history:]
+    
+    def get_history(self) -> list:
+        return self.messages
+```
+
+> 💡 **Key insight:** Checkpoint/Resume คือสิ่งที่แยก "prototype" ออกจาก "production system" ถ้า pipeline ของคุณรันนาน 30 นาทีและไม่มี checkpoint คุณกำลังพนันกับ network stability และ API reliability
+
+<!-- IMAGE: ไดอะแกรมแสดง checkpoint บันทึกลง disk และการ resume จากจุดที่ค้างไว้ -->
+
+---
+
+## Error Handling ใน Multi-Agent — ถ้า Agent ตัวหนึ่งพัง จะเกิดอะไรขึ้น
+
+นี่คือคำถามที่ต้องตอบก่อน deploy ระบบจริงเสมอ เพราะคำตอบเปลี่ยนวิธีออกแบบทั้งหมด
+
+### Retry Strategy
+
+กลยุทธ์พื้นฐานที่สุด ถ้า agent ล้มเหลว ลองใหม่ แต่ต้องออกแบบให้ดี ไม่ใช่แค่ลองซ้ำแบบ brute force
+
+```python
+import time
+import anthropic
+
+def run_agent_with_retry(
+    system_prompt: str,
+    user_message: str,
+    agent_name: str,
+    max_retries: int = 3,
+    base_delay: float = 1.0
+) -> str:
+    """
+    รัน agent พร้อม exponential backoff retry
+    - ครั้งที่ 1 fail: รอ 1 วินาที แล้วลองใหม่
+    - ครั้งที่ 2 fail: รอ 2 วินาที แล้วลองใหม่
+    - ครั้งที่ 3 fail: รอ 4 วินาที แล้วลองใหม่
+    - ถ้ายังไม่ได้ ยอมแพ้แล้ว raise exception
+    """
+    client = anthropic.Anthropic()
+    
+    for attempt in range(max_retries):
+        try:
+            print(f"[{agent_name}] attempt {attempt + 1}/{max_retries}")
+            
+            response = client.messages.create(
+                model="claude-opus-4-5",
+                max_tokens=2000,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}]
+            )
+            return response.content[0].text
+            
+        except anthropic.RateLimitError:
+            # Rate limit: รอนานขึ้น
+            delay = base_delay * (2 ** attempt) * 2
+            print(f"[{agent_name}] Rate limit hit. รอ {delay}s...")
+            time.sleep(delay)
+            
+        except anthropic.APIError as e:
+            delay = base_delay * (2 ** attempt)
+            print(f"[{agent_name}] API error: {e}. รอ {delay}s...")
+            time.sleep(delay)
+    
+    raise RuntimeError(f"[{agent_name}] ล้มเหลวหลังจากลอง {max_retries} ครั้ง")
+```
+
+### Fallback Agent
+
+ถ้า primary agent ล้มเหลวหลัง retry ครบแล้ว ให้ fallback agent ที่ง่ายกว่าทำงานแทน
+
+```python
+def run_with_fallback(
+    primary_system: str,
+    fallback_system: str,
+    user_message: str
+) -> tuple[str, str]:
+    """
+    ลอง primary agent ก่อน ถ้าพังใช้ fallback
+    return: (result, agent_used)
+    """
+    try:
+        result = run_agent_with_retry(primary_system, user_message, "primary")
+        return result, "primary"
+    except RuntimeError:
+        print("Primary agent ล้มเหลว กำลังใช้ fallback agent...")
+        result = run_agent_with_retry(fallback_system, user_message, "fallback")
+        return result, "fallback"
+```
+
+### Circuit Breaker
+
+Pattern ที่มาจากวิศวกรรมไฟฟ้า ถ้า agent ล้มเหลวบ่อยเกินไปในช่วงเวลาสั้น ๆ ให้หยุดเรียกมันชั่วคราวเพื่อไม่ให้ระบบ overload
+
+```python
+class CircuitBreaker:
+    def __init__(self, failure_threshold: int = 5, reset_timeout: float = 60.0):
+        self.failure_threshold = failure_threshold  # ล้มกี่ครั้งถึงปิดวงจร
+        self.reset_timeout = reset_timeout          # รอกี่วินาทีก่อนเปิดใหม่
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.state = "closed"  # closed=ปกติ, open=หยุดทำงาน, half-open=ทดสอบ
+    
+    def can_execute(self) -> bool:
+        if self.state == "closed":
+            return True
+        
+        if self.state == "open":
+            # เช็คว่าถึงเวลา reset หรือยัง
+            if time.time() - self.last_failure_time > self.reset_timeout:
+                self.state = "half-open"
+                return True
+            return False
+        
+        return True  # half-open: ลองดู 1 ครั้ง
+    
+    def record_success(self):
+        self.failure_count = 0
+        self.state = "closed"
+    
+    def record_failure(self):
+        self.failure_count += 1
+        self.last_failure_time = time.time()
+        if self.failure_count >= self.failure_threshold:
+            self.state = "open"
+            print(f"Circuit breaker เปิดแล้ว จะ reset ใน {self.reset_timeout}s")
+```
+
+### Timeout ต่อ Agent
+
+อย่าลืมกำหนด timeout ให้แต่ละ agent ไม่งั้นถ้า agent ค้างอยู่ ทั้งระบบก็ค้าง
+
+```python
+import signal
+
+def timeout_handler(signum, frame):
+    raise TimeoutError("Agent ใช้เวลานานเกินไป")
+
+def run_agent_with_timeout(system_prompt: str, user_message: str, timeout_seconds: int = 30) -> str:
+    # ตั้ง alarm
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(timeout_seconds)
+    
+    try:
+        result = run_agent(system_prompt, user_message)
+        signal.alarm(0)  # ยกเลิก alarm
+        return result
+    except TimeoutError:
+        print(f"Agent หมดเวลา ({timeout_seconds}s)")
+        raise
+```
+
+> 💡 **Key insight:** ระบบที่แข็งแกร่งไม่ใช่ระบบที่ไม่พัง แต่คือระบบที่พังแล้วกู้คืนได้อย่างสง่างาม ออกแบบ failure mode ก่อน success mode เสมอ
+
+<!-- IMAGE: State diagram แสดง Circuit Breaker states: closed → open → half-open → closed -->
+
+---
+
+## Frameworks สำหรับ Multi-Agent — เลือกอะไรดี
+
+ไม่ต้องสร้างทุกอย่างจากศูนย์ มี frameworks ที่ทำ boilerplate ให้แล้ว แต่แต่ละตัวมีปรัชญาการออกแบบต่างกัน เข้าใจ approach ก่อน แล้วค่อยเลือก
+
+### CrewAI — Role-Based Collaboration
+
+CrewAI คิดเรื่อง agents เหมือนสมาชิกทีมที่มีบทบาทชัดเจน คุณกำหนด role, goal, backstory ให้แต่ละคน แล้ว framework จัดการ collaboration ให้
+
+ปรัชญา: "AI ทำงานดีขึ้นเมื่อรู้ว่าตัวเองเป็นใคร"
+
+เหมาะกับ: content teams, research teams, งานที่มีบทบาทชัดเจนและ natural ในโลกจริง
+
+ไม่เหมาะกับ: data pipelines, งานที่ต้องการ fine-grained control ของ state
+
+### AutoGen — Conversation-Based
+
+AutoGen ของ Microsoft มองว่า multi-agent คือการสนทนาแบบ multi-turn ระหว่าง agents agents โต้ตอบกันเหมือนคนคุยกัน จนได้ข้อสรุป
+
+ปรัชญา: "การสนทนาคือ interface ที่ flexible ที่สุด"
+
+เหมาะกับ: research tasks ที่ต้องการ back-and-forth, Debate pattern, coding tasks ที่ต้องการ review loop
+
+ไม่เหมาะกับ: งานที่ต้องการความแน่นอนของ output format เพราะ conversation flow ควบคุมยาก
+
+### LangGraph — Graph-Based State Machine
+
+LangGraph ของ LangChain มองว่า multi-agent คือ graph ที่มี nodes (agents) และ edges (connections) คุณออกแบบกราฟ ระบบเดินตาม
+
+ปรัชญา: "workflow ที่ชัดเจนและ predictable ดีกว่า autonomy ที่ควบคุมไม่ได้"
+
+เหมาะกับ: production systems, workflows ที่ซับซ้อน, ต้องการ visibility และ debugging ดี
+
+ไม่เหมาะกับ: prototyping เร็ว เพราะมี boilerplate เยอะ
+
+### Claude Agent SDK (Anthropic)
+
+SDK ของ Anthropic สำหรับสร้าง agents ที่ใช้ Claude โดยตรง รองรับ tool use, multi-turn conversations, และ orchestration patterns
+
+ปรัชญา: "ใช้ capability ของ Claude ได้เต็มที่ในโครงสร้างที่ยืดหยุ่น"
+
+เหมาะกับ: ระบบที่ใช้ Claude เป็นหลัก ต้องการ native integration กับ Anthropic features
+
+| Framework | จุดแข็ง | เหมาะกับ | Complexity |
+|-----------|---------|----------|------------|
+| CrewAI | Role clarity, ง่ายเริ่มต้น | Content/Research teams | ต่ำ |
+| AutoGen | Flexible conversations | Debate/Research loops | กลาง |
+| LangGraph | Production-ready, debug ดี | Complex workflows | สูง |
+| Claude SDK | Native Claude features | Claude-first systems | กลาง |
+
+<!-- IMAGE: ตาราง comparison framework พร้อม icons แต่ละตัว -->
+
+---
+
+## ลองทำดู #2: Supervisor Pattern ด้วย CrewAI
+
+มาสร้าง Supervisor pattern จริง ๆ ด้วย CrewAI ซึ่งเหมาะกับ pattern นี้มากที่สุดเพราะ role-based
+
+ก่อนอื่นติดตั้ง dependencies
+
+```bash
+pip install crewai crewai-tools anthropic
+```
+
+แล้วเขียน code
+
+```python
+from crewai import Agent, Task, Crew, Process
+from crewai_tools import SerperDevTool  # tool ค้นหาข้อมูล
+
+# === กำหนด Agents ===
+
+# Agent 1: Researcher
+researcher = Agent(
+    role="นักวิจัยอาวุโส",
+    goal="ค้นหาและสรุปข้อมูลที่ถูกต้อง ครบถ้วน และน่าเชื่อถือ",
+    backstory="""คุณเป็นนักวิจัยที่มีประสบการณ์มากกว่า 10 ปี 
+    เชี่ยวชาญการหาข้อมูลจากหลายแหล่งและสังเคราะห์ข้อมูลที่ขัดแย้งกัน
+    คุณให้ความสำคัญกับความถูกต้องมากกว่าความเร็ว""",
+    verbose=True,
+    allow_delegation=False,
+    # tools=[SerperDevTool()]  # ถ้ามี API key สำหรับ search
+)
+
+# Agent 2: Writer
+writer = Agent(
+    role="นักเขียนเนื้อหา",
+    goal="เขียนเนื้อหาที่อ่านง่าย น่าสนใจ และตรงกับกลุ่มเป้าหมาย",
+    backstory="""คุณเป็นนักเขียนที่เชี่ยวชาญการแปลงข้อมูลซับซ้อน
+    ให้เป็นเนื้อหาที่คนทั่วไปเข้าใจและอยากอ่านต่อ
+    คุณเน้นความชัดเจนและ storytelling""",
+    verbose=True,
+    allow_delegation=False,
+)
+
+# Agent 3: Editor
+editor = Agent(
+    role="บรรณาธิการ",
+    goal="ตรวจสอบและปรับปรุงเนื้อหาให้มีคุณภาพสูงสุด",
+    backstory="""คุณเป็นบรรณาธิการที่มีสายตาคมกริบ
+    มองเห็นข้อผิดพลาดที่คนอื่นมองข้าม ทั้งด้านข้อเท็จจริง
+    โครงสร้าง และสไตล์การเขียน คุณโหดในการตรวจ แต่ยุติธรรม""",
+    verbose=True,
+    allow_delegation=True,  # Editor สั่งให้คนอื่นแก้ได้
+)
+
+
+# === กำหนด Tasks ===
+
+research_task = Task(
+    description="""ค้นหาและสรุปข้อมูลเกี่ยวกับ {topic}
+    
+    ผลลัพธ์ที่ต้องการ:
+    1. ภาพรวมของเรื่อง (2-3 ย่อหน้า)
+    2. Key facts อย่างน้อย 5 ข้อ พร้อม source
+    3. ประเด็นที่น่าสนใจหรือยังไม่มีคนรู้มากนัก
+    4. คำถามที่ยังเปิดอยู่ในสาขานี้
+    
+    ตอบเป็นภาษาไทย""",
+    expected_output="สรุปการวิจัยที่ครบถ้วน พร้อม key facts และ sources",
+    agent=researcher,
+)
+
+writing_task = Task(
+    description="""ใช้ข้อมูล research ที่ได้รับ เขียนบทความเกี่ยวกับ {topic}
+    
+    รูปแบบที่ต้องการ:
+    - ชื่อบทความที่ดึงดูด
+    - Introduction ที่ hook ผู้อ่านใน 2 ประโยคแรก
+    - Body: 3-4 หัวข้อย่อย แต่ละหัวข้อ 150-200 คำ
+    - Conclusion ที่สรุปและให้ทิศทาง
+    - ความยาวรวม: 600-800 คำ
+    
+    เขียนสำหรับผู้อ่านทั่วไปที่ไม่ใช่ผู้เชี่ยวชาญ""",
+    expected_output="บทความสมบูรณ์ 600-800 คำ มีโครงสร้างชัดเจน",
+    agent=writer,
+    context=[research_task],  # รับข้อมูลจาก research task
+)
+
+editing_task = Task(
+    description="""ตรวจสอบบทความที่ได้รับ และสร้าง final version
+    
+    ตรวจสอบ:
+    1. ความถูกต้องของข้อเท็จจริง (เทียบกับ research)
+    2. ความชัดเจนของโครงสร้าง
+    3. ความสอดคล้องของโทนและสไตล์
+    4. Grammar และการเขียนภาษาไทย
+    5. ความน่าสนใจของ hook และ conclusion
+    
+    ส่งมอบ:
+    - Feedback ระบุจุดที่ต้องแก้ไข
+    - Final version ที่ปรับปรุงแล้ว
+    - คะแนน 1-10 พร้อมเหตุผล""",
+    expected_output="บทความ final version พร้อม editorial feedback",
+    agent=editor,
+    context=[research_task, writing_task],
+)
+
+
+# === สร้าง Crew และรัน ===
+
+crew = Crew(
+    agents=[researcher, writer, editor],
+    tasks=[research_task, writing_task, editing_task],
+    process=Process.sequential,  # ทำตามลำดับ
+    verbose=True
+)
+
+# รัน crew
+result = crew.kickoff(inputs={"topic": "การประยุกต์ใช้ AI ในวงการแพทย์ไทย"})
+print("\n=== ผลลัพธ์สุดท้าย ===")
+print(result)
+```
+
+สิ่งที่ CrewAI จัดการให้เราโดยอัตโนมัติ: การส่งข้อมูลระหว่าง tasks ผ่าน `context`, การ orchestrate ลำดับการทำงาน, และ verbose logging ที่บอกว่าแต่ละ agent คิดอะไรอยู่
+
+> 🧪 **ลองทำดู:** เปลี่ยน `process=Process.sequential` เป็น `Process.hierarchical` แล้วดูว่า CrewAI จัดการ delegation อย่างไร ในโหมด hierarchical ระบบจะสร้าง manager agent ขึ้นมาอัตโนมัติเพื่อประสานงาน ลอง log ดูว่า manager ตัดสินใจอะไรบ้าง
+
+<!-- IMAGE: CrewAI dashboard หรือ terminal output แสดง agents ทำงานและ handoff ระหว่างกัน -->
+
+---
+
+## ข้อควรระวัง — สิ่งที่ต้องคิดก่อน Scale
+
+Multi-agent ทรงพลัง แต่มีต้นทุนที่มองไม่เห็นหลายอย่าง
+
+### ค่าใช้จ่าย (Cost Explosion)
+
+นี่คือเรื่องแรกที่ต้องคิด สมมติ agent ตัวเดียวใช้ 10,000 tokens ต่อ request ถ้าคุณมี 5 agents และแต่ละตัวทำงาน 3 รอบ คุณจะใช้ 150,000 tokens — 15 เท่า
+
+ใน Debate pattern ที่ agents โต้กันหลายรอบ cost พุ่งขึ้นได้รวดเร็วมาก สมมติ cost ต่อ 1 million tokens คือ $15 USD และ pipeline ของคุณรัน 100 ครั้งต่อวัน ค่าใช้จ่ายรายเดือนอาจเป็นหมื่นบาท
+
+กลยุทธ์ลด cost: ใช้ model เล็กกว่าสำหรับ simple tasks (เช่น claude-haiku สำหรับ formatting), กำหนด token limit ต่อ agent, cache ผลลัพธ์ที่ซ้ำกัน
+
+### Latency สูงขึ้น
+
+Pipeline 3 ขั้น แต่ละขั้นใช้ 5 วินาที = รวม 15 วินาที อย่างน้อย ถ้าผู้ใช้รอ response จากระบบ นี่อาจนานเกินไป
+
+แก้ด้วย: ทำ parallel ในส่วนที่ทำได้, streaming output ให้ผู้ใช้เห็น progress, optimize prompt ให้สั้นลง
+
+### Debugging ยากขึ้น 10 เท่า
+
+ในระบบ agent ตัวเดียว ถ้าผลลัพธ์ผิด เราดู prompt และ response ก็รู้ทันที แต่ใน multi-agent ถ้าผลลัพธ์สุดท้ายผิด ปัญหาอาจอยู่ที่ agent ตัวไหนก็ได้ในห่วงโซ่
+
+คำแนะนำ: log ทุก agent's input และ output อย่างละเอียด ใช้ unique ID ติดตามแต่ละ request ตลอดทั้ง pipeline สร้าง "observability" ก่อนคิดเรื่อง optimization
+
+```python
+import logging
+import uuid
+
+# ตั้งค่า logging ที่ดี
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(name)s] %(levelname)s: %(message)s'
+)
+
+def run_agent_with_logging(agent_name: str, system: str, message: str, request_id: str = None) -> str:
+    if not request_id:
+        request_id = str(uuid.uuid4())[:8]
+    
+    logger = logging.getLogger(agent_name)
+    logger.info(f"[{request_id}] รับ input: {message[:100]}...")
+    
+    result = run_agent(system, message)
+    
+    logger.info(f"[{request_id}] ส่ง output: {result[:100]}...")
+    return result
+```
+
+### Agents ขัดแย้งกัน
+
+ใน Debate pattern agents อาจขัดแย้งกันจนไม่ได้ข้อสรุป หรือใน Supervisor pattern worker agents อาจตีความ instructions ต่างกันจนผลลัพธ์ไม่สอดคล้อง
+
+แก้ด้วย: กำหนด "tiebreaker rule" ชัดเจนในกรณีที่ตกลงกันไม่ได้, กำหนด max iterations ของ Debate loop, ทำให้ Supervisor มีอำนาจตัดสินสุดท้ายเสมอ
+
+### ไม่ต้อง Multi-Agent ทุกปัญหา
+
+นี่คือข้อสำคัญที่สุด หลายคนตื่นเต้นกับ multi-agent แล้วนำไปใช้กับทุกงาน แต่ถ้างานง่ายพอที่ agent ตัวเดียวทำได้ดี การเพิ่ม agents ให้ระบบแค่ทำให้ซับซ้อนและแพงขึ้นโดยไม่จำเป็น
+
+ใช้ multi-agent เมื่อ:
+- งานมีหลายขั้นที่ต้องการทักษะต่างกันชัดเจน
+- context window ไม่พอสำหรับงานทั้งหมด
+- ต้องการ parallel processing เพื่อความเร็ว
+- ต้องการ checks and balances เพราะ error แพงมาก
+
+ไม่ต้องใช้ multi-agent เมื่อ:
+- agent ตัวเดียวทำได้ดีอยู่แล้ว
+- budget จำกัด
+- latency สำคัญมาก
+- ยังอยู่ระหว่าง prototype
+
+> 💡 **Key insight:** วิศวกรที่ดีรู้ว่าเมื่อไหร่ไม่ควรใช้เครื่องมือที่ตัวเองชอบ ความซับซ้อนไม่ใช่ความสามารถ ความเรียบง่ายที่ทำงานได้คือเป้าหมาย
+
+<!-- IMAGE: Decision tree แสดงว่าควรใช้ single agent หรือ multi-agent ขึ้นอยู่กับ criteria ต่าง ๆ -->
+
+---
+
+## สรุป
+
+Multi-Agent Systems แก้ปัญหาจริงที่ single agent ทำไม่ได้ — context ยาวเกินไป งานซับซ้อนเกินสำหรับบทบาทเดียว และต้องการ quality checks ระหว่างขั้น
+
+สิ่งที่ได้เรียนรู้ในบทนี้:
+
+**ทำไม agent ตัวเดียวไม่พอ** — Lost in the Middle, role switching, error propagation, ไม่มี checks and balances
+
+**4 patterns หลัก** — Supervisor-Worker สำหรับงาน parallel, Pipeline สำหรับงาน sequential, Debate สำหรับงานที่ต้องการ critical thinking, Hierarchical สำหรับระบบขนาดใหญ่
+
+**Communication protocol** — Shared memory, message passing, structured handoff แต่ละแบบมี tradeoff ต่างกัน
+
+**State management** — Checkpoint และ resume คือความต่างระหว่าง prototype และ production
+
+**Error handling** — Retry, fallback, circuit breaker, timeout เป็น toolkit ที่ต้องมีก่อน deploy
+
+**Framework selection** — CrewAI สำหรับ role-based, AutoGen สำหรับ conversation-based, LangGraph สำหรับ production-grade graph
+
+**ข้อควรระวัง** — Cost, latency, debugging complexity, และที่สำคัญที่สุด — รู้ว่าเมื่อไหร่ไม่ควรใช้
+
+Multi-agent คือเครื่องมืออันทรงพลัง แต่เหมือนทุกเครื่องมือที่ทรงพลัง มันต้องการ judgment ในการใช้ ไม่ใช่แค่ทักษะทางเทคนิค
+
+เมื่อคุณมีระบบ multi-agent ที่ซับซ้อนขึ้น คำถามที่ตามมาทันทีคือ "แล้วจะรู้ได้ยังไงว่ามันทำงานได้ดีจริง?" — pipeline ที่มีหลาย agent ยิ่งวัดยาก เพราะความผิดพลาดเล็ก ๆ ในขั้นต้นอาจลามไปทั้งระบบ **บทถัดไปเรื่อง [Evals](/building-with-ai/evals-and-benchmarks)** จะพาไปดูวิธีวัดและปรับปรุงคุณภาพของระบบอย่างเป็นระบบ (ถ้าอยากให้ agent เก่งขึ้นด้วยการปรับ model เอง ดูเรื่อง [Fine-tuning](/building-with-ai/fine-tuning-vs-prompting) ที่อธิบายไว้ก่อนหน้านี้ได้)

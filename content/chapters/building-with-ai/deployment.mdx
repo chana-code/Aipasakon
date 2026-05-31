@@ -1,0 +1,897 @@
+---
+slug: deployment
+level: building-with-ai
+title: "Deploy ระบบ AI — จาก Notebook สู่ Production จริง"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เรียนรู้วิธี deploy ระบบ LLM สู่ production ตั้งแต่ architecture patterns, API gateway, rate limiting, error handling, staging/production workflow จนถึง CI/CD สำหรับ LLM apps"
+---
+# Deploy ระบบ AI — จาก Notebook สู่ Production จริง
+
+คุณสร้าง prototype ใน Jupyter Notebook ได้แล้ว demo ให้หัวหน้าดู ทุกคนในห้องตื่นเต้น หัวหน้าพยักหน้า "เอาขึ้น production เลยได้เลย!" — และนั่นคือจุดที่หลายคนรู้สึกเย็นวาบขึ้นมาที่ท้อง เพราะระหว่าง notebook ที่ทำงานดีบนเครื่องคุณ กับระบบที่รับ traffic จริง 24/7 ไม่ crash ไม่รั่ว API key และคิดเงินผู้ใช้ได้ถูกต้อง มีช่องว่างขนาดใหญ่มากที่ต้องข้าม
+
+บทนี้คือแผนที่สำหรับข้ามช่องว่างนั้น ตั้งแต่ทำความเข้าใจว่า production คืออะไร ไปจนถึงเขียน code จริง deploy จริง และมี checklist ก่อน go-live ที่ใช้ได้กับทุกโปรเจกต์
+
+<!-- IMAGE: ภาพเปรียบเทียบ Jupyter Notebook ที่มี cell กระจัดกระจาย vs diagram ระบบ production ที่มี API, database, monitoring, users เชื่อมกัน -->
+
+---
+
+## Notebook vs Production — ต่างกันยังไง
+
+ก่อนจะ deploy ต้องเข้าใจก่อนว่าทำไม notebook ถึงใช้ production ตรง ๆ ไม่ได้ ไม่ใช่เพราะ notebook แย่ แต่เพราะมันถูกออกแบบมาสำหรับคนละสถานการณ์กัน
+
+ลองนึกภาพร้านอาหาร notebook คือครัวที่คุณทดลองทำอาหารคนเดียว ลองสูตรใหม่ได้ตลอด แต่งรสชาติระหว่างทำ ไม่ต้องกังวลเรื่องเวลา production คือร้านอาหารจริงที่ต้องรับลูกค้า 200 คนพร้อมกัน เสิร์ฟให้ได้ภายใน 10 นาที ถ้าครัวไฟดับต้องมีแผนสำรอง และทุกจานต้องได้มาตรฐานเดียวกัน
+
+| ด้าน | Notebook | Production |
+|---|---|---|
+| ผู้ใช้พร้อมกัน | 1 คน (คุณ) | หลายร้อย-พันคน |
+| Error handling | ไม่มี — cell crash แล้วแก้ | ต้องจัดการทุก error ไม่ให้ระบบล่ม |
+| API Keys | Hardcode ใน code | เก็บใน secrets manager |
+| Timeout | รอได้ไม่จำกัด | ต้องตอบภายใน X วินาที |
+| Monitoring | ดู output เอง | ต้องมี logs, alerts อัตโนมัติ |
+| Restart | รัน cell ใหม่ | ต้อง auto-restart เมื่อ crash |
+| Scaling | เพิ่มไม่ได้ | เพิ่ม instance ได้ตามโหลด |
+| Cost control | ไม่มี — ยิง API ได้เรื่อย ๆ | ต้องมี budget alerts, rate limits |
+
+> 💡 **Key insight:** หลายทีมทำพลาดตรงที่คิดว่า "แค่เอา code ใน notebook ไปรัน" ก็พอ แต่ปัญหาจริงคือ notebook ไม่มี structure ที่รองรับ concurrent users, ไม่มี error recovery, และมักเต็มไปด้วย magic variables ที่ทำงานได้เพราะ cell ก่อนหน้าเคยรัน ถ้าเอาไปรัน production ตรง ๆ ระบบจะล่มครั้งแรกที่มีคนสองคนใช้พร้อมกัน
+
+<!-- IMAGE: ไดอะแกรมแสดง notebook cell ที่พึ่งพา state จาก cell ก่อนหน้า เปรียบเทียบกับ stateless API function ที่รับ input และ return output ชัดเจน -->
+
+---
+
+## Architecture Patterns สำหรับ LLM Apps
+
+ก่อน deploy ต้องเลือก architecture ก่อน เหมือนก่อนสร้างบ้านต้องวาด blueprint ไม่งั้นสร้างเสร็จแล้วต้องรื้อ LLM apps มี pattern หลัก ๆ สี่แบบ
+
+### Pattern 1: Simple API Wrapper
+
+เหมาะสำหรับ: แอปขนาดเล็ก-กลาง ทีมเล็ก traffic ไม่หนักมาก
+
+```
+User → FastAPI → LLM API → User
+```
+
+เป็น pattern ที่ง่ายที่สุด คุณสร้าง API endpoint ขึ้นมาหนึ่งตัว รับ request จาก user ส่งต่อไปยัง LLM แล้ว return ผลกลับมา เหมาะกับ MVP หรือ internal tools ที่ traffic ไม่มาก
+
+ข้อดี: setup เร็ว ดูแลง่าย debug ง่าย
+ข้อเสีย: ถ้า LLM ช้า user ต้องรอ, scale ยากถ้า traffic พุ่ง
+
+### Pattern 2: Queue-Based Architecture
+
+เหมาะสำหรับ: งานที่ใช้เวลานาน เช่น สรุปเอกสาร 50 หน้า, สร้าง report รายสัปดาห์
+
+```
+User → API → Queue → Worker → LLM API → Database → User (polling/webhook)
+```
+
+แทนที่จะรอผลทันที user ส่ง request แล้วได้ job_id กลับมา worker ดึง job จาก queue ไปประมวลผล พอเสร็จ notify user queue ช่วยรองรับ spike ของ traffic ได้ดีมาก
+
+ข้อดี: ไม่มี timeout ปัญหา, รองรับ spike ได้ดี, retry อัตโนมัติเมื่อ fail
+ข้อเสีย: ซับซ้อนกว่า, user ต้องรอและ poll ผล
+
+### Pattern 3: Microservice
+
+เหมาะสำหรับ: ทีมใหญ่ที่มีหลาย feature, ระบบที่ต้องการ scale บางส่วนแยกกัน
+
+```
+API Gateway → Auth Service
+           → LLM Service → LLM API
+           → Storage Service → Database
+           → Notification Service
+```
+
+แยก LLM logic ออกจาก business logic อื่น ๆ ชัดเจน ทำให้ทีมต่าง ๆ ทำงานแยกกันได้ และ scale เฉพาะส่วนที่ต้องการ
+
+ข้อดี: scale ได้ยืดหยุ่น, ทีมทำงานแยกกันได้, fault isolation ดี
+ข้อเสีย: overhead สูง ไม่เหมาะกับทีมเล็ก, network latency เพิ่ม
+
+### Pattern 4: Serverless
+
+เหมาะสำหรับ: traffic ที่ไม่สม่ำเสมอ เช่น มีช่วงพุ่งสูงแล้วเงียบ
+
+```
+User → API Gateway → Lambda/Cloud Function → LLM API
+```
+
+ไม่ต้องดูแล server เลย จ่ายเงินเฉพาะตอนมี request Cold start อาจช้า แต่ถ้า traffic ไม่สม่ำเสมอประหยัดมาก
+
+ข้อดี: ไม่ต้องดูแล server, ประหยัดถ้า traffic ต่ำ, scale อัตโนมัติ
+ข้อเสีย: cold start ช้า, timeout จำกัด, debug ยากกว่า
+
+> 💡 **Key insight:** สำหรับทีมส่วนใหญ่ที่เริ่มต้น Pattern 1 (Simple API Wrapper) คือคำตอบที่ถูกต้อง อย่า over-engineer ตั้งแต่แรก เริ่มด้วย simple แล้วค่อย migrate ไป queue หรือ microservice เมื่อเจอ bottleneck จริง ๆ
+
+<!-- IMAGE: ไดอะแกรมเปรียบเทียบ 4 patterns แสดง complexity vs scalability พร้อม use case ที่เหมาะสมของแต่ละแบบ -->
+
+---
+
+## ลองทำดู #1: Wrap LLM เป็น API ด้วย FastAPI
+
+ถึงเวลาเขียน code จริง เราจะสร้าง FastAPI app ที่รับ prompt จาก user เรียก OpenAI แล้ว return ผลกลับ พร้อม error handling, timeout, และ rate limiting พื้นฐาน
+
+ก่อนอื่น install dependencies:
+
+```bash
+pip install fastapi uvicorn openai python-dotenv slowapi
+```
+
+แล้วสร้างไฟล์ `main.py`:
+
+```python
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from pydantic import BaseModel
+from openai import OpenAI, APITimeoutError, RateLimitError
+import os
+from dotenv import load_dotenv
+import logging
+
+# โหลด environment variables จากไฟล์ .env
+load_dotenv()
+
+# ตั้งค่า logging เพื่อ track ว่าเกิดอะไรขึ้นใน production
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# ตั้งค่า rate limiter — จำกัด 10 requests ต่อนาทีต่อ IP
+limiter = Limiter(key_func=get_remote_address)
+
+app = FastAPI(title="LLM API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# อนุญาต CORS สำหรับ frontend (ปรับ origins ตาม domain จริง)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://yourapp.com"],  # อย่าใช้ "*" ใน production
+    allow_methods=["POST"],
+    allow_headers=["*"],
+)
+
+# สร้าง OpenAI client — API key มาจาก environment variable เท่านั้น
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    timeout=30.0  # timeout 30 วินาที ไม่รอไม่จบ
+)
+
+# กำหนด schema ของ request ที่รับได้
+class PromptRequest(BaseModel):
+    prompt: str
+    max_tokens: int = 500  # default ป้องกัน response ยาวเกินไป
+
+class PromptResponse(BaseModel):
+    result: str
+    tokens_used: int
+
+@app.post("/generate", response_model=PromptResponse)
+@limiter.limit("10/minute")  # rate limit ต่อ endpoint นี้
+async def generate(request: Request, body: PromptRequest):
+    # validate input — ป้องกัน prompt ยาวเกิน
+    if len(body.prompt) > 2000:
+        raise HTTPException(status_code=400, detail="Prompt ยาวเกิน 2000 ตัวอักษร")
+
+    logger.info(f"รับ request: prompt length={len(body.prompt)}")
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": body.prompt}],
+            max_tokens=body.max_tokens,
+        )
+
+        result_text = response.choices[0].message.content
+        tokens = response.usage.total_tokens
+
+        logger.info(f"สำเร็จ: {tokens} tokens ใช้ไป")
+
+        return PromptResponse(result=result_text, tokens_used=tokens)
+
+    except APITimeoutError:
+        # LLM ตอบช้าเกิน 30 วินาที
+        logger.error("OpenAI timeout")
+        raise HTTPException(status_code=504, detail="ระบบ AI ตอบช้าเกินไป กรุณาลองใหม่")
+
+    except RateLimitError:
+        # เราถูก OpenAI rate limit
+        logger.error("OpenAI rate limit reached")
+        raise HTTPException(status_code=429, detail="ระบบยุ่งอยู่ กรุณารอสักครู่")
+
+    except Exception as e:
+        # error อื่น ๆ ที่ไม่คาดคิด
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="เกิดข้อผิดพลาด กรุณาลองใหม่")
+
+@app.get("/health")
+async def health_check():
+    # endpoint นี้ใช้ monitor ว่า service ยังรันอยู่ไหม
+    return {"status": "healthy"}
+```
+
+รันด้วยคำสั่ง:
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
+
+ทดสอบด้วย curl:
+
+```bash
+curl -X POST "http://localhost:8000/generate" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "สรุป AI ใน 3 ประโยค"}'
+```
+
+สังเกตสิ่งสำคัญใน code นี้: มี logging ทุก request, จำกัด prompt length, timeout ชัดเจน, และ error แต่ละประเภทตอบ HTTP status code ที่ถูกต้อง ไม่ใช่แค่ 500 ทุกอย่าง
+
+> 🧪 **ลองทำดู:** สร้างไฟล์นี้บนเครื่องของคุณ รัน แล้วลอง curl ไปหา `/health` ดูก่อน ถ้าได้ `{"status": "healthy"}` กลับมา แปลว่า server ทำงานแล้ว แล้วค่อย test `/generate` ด้วย prompt จริง
+
+<!-- IMAGE: ภาพ terminal แสดงการรัน uvicorn และผล curl response ที่ได้กลับมา -->
+
+---
+
+## Secrets Management — อย่า Hardcode API Key เด็ดขาด
+
+นี่คือความผิดพลาดที่แพงที่สุดที่นักพัฒนาทำกัน คือเขียน API key ตรง ๆ ใน code:
+
+```python
+# อย่าทำแบบนี้เด็ดขาด!
+client = OpenAI(api_key="sk-proj-abc123xyz...")
+```
+
+ถ้าคุณ push code นี้ขึ้น GitHub แม้แต่ครู่เดียว มี bot ที่ scan GitHub ตลอดเวลาเพื่อหา API keys และภายใน 30 วินาทีหลัง commit key นั้นจะถูกใช้งานโดยคนอื่น บิลของคุณจะพุ่งขึ้น OpenAI มีรายงานว่าคนโดน charge หลายแสนบาทจาก key ที่รั่วแบบนี้
+
+### วิธีที่ 1: .env ไฟล์ + python-dotenv (สำหรับ local development)
+
+สร้างไฟล์ `.env` ในโปรเจกต์:
+
+```
+OPENAI_API_KEY=sk-proj-abc123xyz...
+DATABASE_URL=postgresql://user:password@localhost/mydb
+```
+
+เพิ่ม `.env` ใน `.gitignore` ทันที:
+
+```bash
+echo ".env" >> .gitignore
+```
+
+แล้วใช้ใน Python:
+
+```python
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # โหลดจากไฟล์ .env
+
+api_key = os.getenv("OPENAI_API_KEY")  # อ่านจาก environment variable
+```
+
+### วิธีที่ 2: Environment Variables (สำหรับ production servers)
+
+บน server จริงไม่มีไฟล์ .env ให้ตั้งค่า environment variable ตรง ๆ บน platform:
+
+- Railway/Render: ไปที่ Settings → Environment Variables
+- AWS: ใช้ Parameter Store หรือ Secrets Manager
+- Docker: ใช้ `--env-file` หรือ docker secrets
+
+```bash
+# ตั้งค่าบน Linux server
+export OPENAI_API_KEY="sk-proj-abc123xyz..."
+```
+
+### วิธีที่ 3: Cloud Secrets Manager (สำหรับองค์กร)
+
+AWS Secrets Manager และ GCP Secret Manager ให้ความปลอดภัยสูงสุด เพราะ:
+- ไม่มีใครเห็น key ตรง ๆ แม้แต่ developer
+- หมุนเวียน key ได้อัตโนมัติทุก X วัน
+- มี audit log ว่าใครดึง key ไปใช้เมื่อไหร่
+
+```python
+import boto3
+import json
+
+def get_secret(secret_name):
+    client = boto3.client("secretsmanager", region_name="ap-southeast-1")
+    response = client.get_secret_value(SecretId=secret_name)
+    return json.loads(response["SecretString"])
+
+# ใช้งาน
+secrets = get_secret("myapp/openai")
+api_key = secrets["OPENAI_API_KEY"]
+```
+
+> 💡 **Key insight:** rule ง่าย ๆ ที่จำง่ายที่สุดคือ "ถ้ามันเป็น secret ไม่ควรอยู่ใน code" — ไม่ว่าจะเป็น API key, database password, JWT secret, หรือ webhook signing key ทั้งหมดต้องไปอยู่ใน environment variable หรือ secrets manager เท่านั้น
+
+<!-- IMAGE: ไดอะแกรมแสดง flow ของ secrets management ตั้งแต่ development (.env) → staging (env vars) → production (secrets manager) -->
+
+---
+
+## Rate Limiting และ Throttling
+
+ลองนึกภาพว่าระบบของคุณไม่มี rate limit แล้วมีคนเขียน script วนส่ง request ทุก 0.1 วินาที หรือมีคน share ลิงก์ระบบของคุณในกลุ่ม Facebook แล้วมีคนเข้ามา 500 คนพร้อมกัน ค่า OpenAI ของคุณจะพุ่งขึ้นหลายพันบาทภายในชั่วโมงเดียว
+
+Rate limiting แก้ปัญหาสองอย่างพร้อมกัน: ป้องกันค่าใช้จ่ายบานปลาย และป้องกันไม่ให้ผู้ใช้คนเดียวกินทรัพยากรจนคนอื่นใช้ไม่ได้
+
+### วิธีที่ 1: Per-Request Rate Limit ด้วย slowapi
+
+เราใช้ slowapi กับ FastAPI แล้วใน code ตัวอย่างด้านบน นี่คือการขยาย pattern:
+
+```python
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+
+# 10 requests ต่อนาที ต่อ IP address
+@app.post("/generate")
+@limiter.limit("10/minute")
+async def generate(request: Request, body: PromptRequest):
+    ...
+
+# endpoint ที่ sensitive กว่า จำกัดเข้มขึ้น
+@app.post("/summarize-document")
+@limiter.limit("3/minute")
+async def summarize_document(request: Request, body: DocumentRequest):
+    ...
+```
+
+### วิธีที่ 2: Token-Based Rate Limiting
+
+วิธีนี้ฉลาดกว่า เพราะจำกัดตาม tokens ที่ใช้ ไม่ใช่แค่จำนวน request เพราะ request ที่ถาม "สวัสดี" กับ request ที่ขอสรุปหนังสือ 300 หน้ากินต้นทุนต่างกันมาก
+
+```python
+import redis
+from fastapi import HTTPException
+
+# ใช้ Redis เก็บ token counter ต่อ user
+r = redis.Redis(host="localhost", port=6379)
+
+def check_token_budget(user_id: str, tokens_requested: int) -> bool:
+    key = f"tokens:{user_id}:{today()}"
+
+    # ดึง token ที่ใช้ไปแล้วในวันนี้
+    used = int(r.get(key) or 0)
+
+    # budget 50,000 tokens ต่อวัน ต่อ user
+    budget = 50000
+
+    if used + tokens_requested > budget:
+        return False
+
+    # อัปเดต counter (expire หลังเที่ยงคืน)
+    r.incrby(key, tokens_requested)
+    r.expireat(key, tomorrow_midnight())
+    return True
+
+@app.post("/generate")
+async def generate(request: Request, body: PromptRequest):
+    # ประมาณ tokens ก่อนเรียก API
+    estimated_tokens = len(body.prompt.split()) * 1.3
+
+    if not check_token_budget(body.user_id, estimated_tokens):
+        raise HTTPException(
+            status_code=429,
+            detail="คุณใช้ AI ครบ quota ของวันนี้แล้ว มาใหม่พรุ่งนี้"
+        )
+    ...
+```
+
+> 💡 **Key insight:** rate limiting ไม่ใช่แค่ป้องกันตัวเอง แต่คือการ design ที่ fair สำหรับผู้ใช้ทุกคน ระบบที่ไม่มี rate limit มักจะโดนผู้ใช้ที่ aggressive กว่าแย่งทรัพยากรจนคนอื่นใช้ไม่ได้
+
+<!-- IMAGE: กราฟแสดง traffic spike ก่อนและหลัง rate limiting พร้อมค่า API cost ที่ลดลง -->
+
+---
+
+## Error Handling ที่ Production ต้องมี
+
+LLM API ไม่ใช่ service ที่ reliable 100% มีหลายอย่างที่เกิดขึ้นได้เสมอ
+
+**สิ่งที่ผิดพลาดได้บ่อยในระบบ LLM:**
+- **API Timeout**: LLM ใช้เวลานานกว่าที่ตั้งไว้
+- **Rate Limit Error**: คุณส่ง request ถี่เกินที่ provider อนุญาต
+- **Context Length Error**: prompt ยาวเกิน model รองรับได้
+- **Content Filter Block**: model ปฏิเสธตอบเพราะเนื้อหาผิดนโยบาย
+- **Invalid JSON Response**: ถ้าคุณขอ structured output และ model ตอบไม่ตรง schema
+- **Service Unavailable**: provider มี downtime
+
+วิธีจัดการคือ Retry with Exponential Backoff:
+
+```python
+import time
+import random
+from openai import APITimeoutError, RateLimitError, APIStatusError
+
+def call_llm_with_retry(prompt: str, max_retries: int = 3) -> str:
+    """
+    เรียก LLM พร้อม retry อัตโนมัติเมื่อเกิด transient errors
+    """
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+                timeout=30.0
+            )
+            return response.choices[0].message.content
+
+        except RateLimitError:
+            if attempt == max_retries - 1:
+                raise  # retry หมดแล้ว ส่ง error ขึ้นไปเลย
+
+            # รอนานขึ้นเรื่อย ๆ: 1s, 2s, 4s (+ random เพื่อไม่ให้ thundering herd)
+            wait_time = (2 ** attempt) + random.uniform(0, 1)
+            logger.warning(f"Rate limited, รอ {wait_time:.1f} วินาที (attempt {attempt+1})")
+            time.sleep(wait_time)
+
+        except APITimeoutError:
+            if attempt == max_retries - 1:
+                raise
+
+            wait_time = (2 ** attempt) + random.uniform(0, 1)
+            logger.warning(f"Timeout, retry {attempt+1}")
+            time.sleep(wait_time)
+
+        except APIStatusError as e:
+            # 4xx errors ส่วนใหญ่ไม่ควร retry (เช่น invalid request)
+            if e.status_code < 500:
+                raise
+            # 5xx server errors ลอง retry ได้
+            if attempt == max_retries - 1:
+                raise
+            time.sleep(2 ** attempt)
+
+    raise Exception("ไม่สามารถเรียก LLM ได้หลังจาก retry หลายครั้ง")
+```
+
+### Fallback Model Strategy
+
+ถ้า primary model ล่ม ให้ fallback ไปใช้ model สำรอง:
+
+```python
+async def generate_with_fallback(prompt: str) -> str:
+    models = ["gpt-4o", "gpt-4o-mini"]
+
+    for model in models:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                timeout=20.0
+            )
+            return response.choices[0].message.content
+
+        except Exception as e:
+            logger.warning(f"Model {model} failed: {e}, ลอง fallback...")
+            continue
+
+    raise Exception("ทุก model ไม่ตอบสนอง")
+```
+
+### Graceful Degradation
+
+บางครั้ง error ไม่ควรทำให้ระบบทั้งหมดล่ม ถ้า AI feature ใดหนึ่งใช้ไม่ได้ ระบบยังควรทำงานต่อได้ในโหมดพื้นฐาน:
+
+```python
+async def get_ai_summary(text: str) -> str:
+    try:
+        return await call_llm(f"สรุปข้อความนี้: {text}")
+    except Exception:
+        # ถ้า AI ล่ม ให้ return ข้อความเดิม 200 ตัวแรกแทน
+        logger.error("AI summary failed, ใช้ fallback text truncation")
+        return text[:200] + "..."
+```
+
+> 💡 **Key insight:** error handling ที่ดีไม่ได้แค่ป้องกัน crash แต่คือการออกแบบ user experience สำหรับทุก scenario รวมถึงเมื่อสิ่งต่าง ๆ ไม่ได้ดั่งใจ ผู้ใช้ควรเห็น error message ที่บอกว่าเกิดอะไรขึ้นและทำอะไรได้บ้าง ไม่ใช่แค่หน้าขาว
+
+<!-- IMAGE: flow chart แสดงวิธีจัดการ error types ต่าง ๆ: timeout → retry, rate limit → exponential backoff, content filter → user message, server error → fallback model -->
+
+---
+
+## Staging → Production Workflow
+
+ทีม software ส่วนใหญ่รู้จัก concept ของ staging environment แต่สำหรับ LLM apps มีมิติพิเศษที่ต้องระวังเพิ่มขึ้น
+
+### ทำไม LLM Apps ต้องการ Staging มากกว่าปกติ
+
+ใน traditional app ถ้าคุณแก้ business logic แล้ว unit test ผ่าน มักจะมั่นใจได้พอสมควรว่า production จะทำงานถูกต้อง แต่ LLM apps มีตัวแปรที่ควบคุมยากกว่า: prompt
+
+การเปลี่ยน prompt แม้แค่คำเดียวอาจเปลี่ยน output ทั้งหมด และ model updates จาก provider อาจทำให้ prompt เดิมที่เคยทำงานดีกลายเป็นไม่ดีได้ ดังนั้น staging environment สำหรับ LLM apps ต้องรองรับ:
+
+- **Prompt versioning**: เก็บ history ของ prompt ทุก version
+- **Eval runs**: วิ่ง automated evaluation บน test cases ก่อน deploy
+- **Model pinning**: ระบุ model version ชัดเจน ไม่ใช้ "latest"
+- **A/B testing prompts**: ทดสอบ prompt สองแบบพร้อมกันกับ traffic จริง
+
+### ตั้งค่า Environment ด้วย Config
+
+```python
+import os
+from enum import Enum
+
+class Environment(str, Enum):
+    DEVELOPMENT = "development"
+    STAGING = "staging"
+    PRODUCTION = "production"
+
+# อ่าน environment จาก env var
+ENV = Environment(os.getenv("APP_ENV", "development"))
+
+# config แตกต่างกันตาม environment
+config = {
+    Environment.DEVELOPMENT: {
+        "model": "gpt-4o-mini",  # ถูกที่สุดสำหรับ dev
+        "rate_limit": "100/minute",  # ไม่จำกัดมากสำหรับ dev
+        "log_level": "DEBUG",
+    },
+    Environment.STAGING: {
+        "model": "gpt-4o-mini",  # ใช้ model เดียวกับ production
+        "rate_limit": "20/minute",
+        "log_level": "INFO",
+    },
+    Environment.PRODUCTION: {
+        "model": "gpt-4o-mini",
+        "rate_limit": "10/minute",
+        "log_level": "WARNING",
+    },
+}
+
+current_config = config[ENV]
+```
+
+### Feature Flags สำหรับ Gradual Rollout
+
+แทนที่จะ deploy feature ใหม่ให้ทุกคนพร้อมกัน ใช้ feature flags เพื่อค่อย ๆ เปิด:
+
+```python
+def is_feature_enabled(feature_name: str, user_id: str) -> bool:
+    """
+    ตรวจสอบว่า user นี้เข้าถึง feature นี้ได้ไหม
+    ใช้สำหรับ gradual rollout: 10% → 50% → 100%
+    """
+    rollout_percentages = {
+        "new_summarization_prompt": 10,  # เปิดแค่ 10% ของ users
+        "gpt4o_upgrade": 50,             # เปิด 50%
+        "streaming_responses": 100,      # เปิดทุกคน
+    }
+
+    if feature_name not in rollout_percentages:
+        return False
+
+    # hash user_id เป็นตัวเลข 0-99 สม่ำเสมอ
+    user_bucket = hash(user_id) % 100
+    return user_bucket < rollout_percentages[feature_name]
+```
+
+> 💡 **Key insight:** prompt เป็น code ชนิดหนึ่ง ควรได้รับการ version, review, test และ deploy ด้วย process เดียวกับ code จริง อย่าแก้ prompt ตรง ๆ ใน production โดยไม่ผ่าน staging
+
+<!-- IMAGE: ไดอะแกรม staging pipeline แสดง development → staging (eval run) → production พร้อม feature flags -->
+
+---
+
+## ลองทำดู #2: Docker + Deploy บน Railway
+
+ถึงเวลา deploy ระบบที่เราสร้างขึ้น production จริง เราจะใช้ Docker เพื่อ package app และ Railway เพื่อ host เพราะ Railway ง่ายที่สุดสำหรับคนที่เริ่มต้น ไม่ต้องตั้งค่า server เลย
+
+### ขั้นตอนที่ 1: สร้าง Dockerfile
+
+```dockerfile
+# ใช้ Python 3.11 slim เพื่อให้ image เล็กลง
+FROM python:3.11-slim
+
+# ตั้งค่า working directory ใน container
+WORKDIR /app
+
+# copy requirements ก่อน (caching layer)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# copy source code
+COPY . .
+
+# บอก Docker ว่า app รันบน port 8000
+EXPOSE 8000
+
+# คำสั่งรัน app
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+สร้าง `requirements.txt`:
+
+```
+fastapi==0.111.0
+uvicorn==0.30.1
+openai==1.35.3
+python-dotenv==1.0.1
+slowapi==0.1.9
+pydantic==2.7.4
+```
+
+สร้าง `.dockerignore`:
+
+```
+.env
+__pycache__/
+*.pyc
+.git
+*.md
+```
+
+### ขั้นตอนที่ 2: ทดสอบ Docker บนเครื่อง
+
+```bash
+# build image
+docker build -t my-llm-api .
+
+# รัน container โดย pass environment variables
+docker run -p 8000:8000 \
+  -e OPENAI_API_KEY=sk-proj-xxx \
+  my-llm-api
+
+# ทดสอบ
+curl http://localhost:8000/health
+```
+
+### ขั้นตอนที่ 3: Deploy บน Railway
+
+1. ไปที่ [railway.app](https://railway.app) สมัครบัญชีฟรี
+2. คลิก "New Project" → "Deploy from GitHub repo"
+3. เลือก repo ของคุณ Railway จะ detect Dockerfile อัตโนมัติ
+4. ไปที่ Variables tab เพิ่ม `OPENAI_API_KEY` และ environment variables อื่น ๆ
+5. คลิก Deploy Railway จะ build และ deploy ให้เอง
+
+Railway จะให้ URL สาธารณะที่เข้าถึงได้จากทั่วโลก เช่น `https://my-llm-api.railway.app`
+
+> 🧪 **ลองทำดู:** ลอง deploy app นี้บน Railway ดู ใช้เวลาไม่เกิน 15 นาที Railway มี free tier ที่ใช้ทดสอบได้ พอ deploy สำเร็จให้ลอง call `/health` endpoint จาก URL สาธารณะ ถ้า response กลับมาแปลว่าคุณ deploy production ระบบ AI สำเร็จแล้ว
+
+### ทางเลือกอื่น ๆ
+
+- **Render**: คล้าย Railway มี free tier
+- **Fly.io**: เร็วกว่า เหมาะกับ apps ที่ต้องการ latency ต่ำ
+- **AWS App Runner**: ถ้าอยู่ใน AWS ecosystem
+- **Google Cloud Run**: Serverless container บน GCP
+
+<!-- IMAGE: screenshot Railway dashboard แสดง deployment สำเร็จ พร้อม URL และ health check status -->
+
+---
+
+## CI/CD สำหรับ LLM Apps
+
+CI/CD (Continuous Integration / Continuous Deployment) คือระบบที่ทำให้ทุกครั้งที่คุณ push code ขึ้น GitHub ระบบจะ run tests และ deploy อัตโนมัติ สำหรับ LLM apps มีขั้นตอนพิเศษที่ต้องเพิ่มเข้าไปคือ "LLM Evals" ก่อน deploy
+
+### ทำไม LLM CI/CD ถึงต่างจาก Traditional CI/CD
+
+Traditional app: push code → run unit tests → deploy
+LLM app: push code → run unit tests → **run prompt evals** → **check output quality** → deploy
+
+ถ้าไม่มี evals ขั้นตอน คุณอาจ deploy prompt ที่เสียหายไปโดยไม่รู้ตัว เช่น เปลี่ยน prompt แล้ว model ตอบภาษาอังกฤษแทนภาษาไทย หรือ format output เปลี่ยนจนทำให้ downstream parsing พัง
+
+### GitHub Actions Workflow
+
+สร้างไฟล์ `.github/workflows/deploy.yml`:
+
+```yaml
+name: Test and Deploy LLM API
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ตั้งค่า Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: ติดตั้ง dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/unit/ -v
+
+      - name: Run LLM Evals
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python evals/run_evals.py \
+            --model gpt-4o-mini \
+            --threshold 0.85  # ต้องผ่าน 85% ของ test cases
+
+  deploy:
+    needs: test  # deploy เฉพาะเมื่อ test ผ่าน
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # deploy เฉพาะ main branch
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          npm install -g @railway/cli
+          railway up --service my-llm-api
+```
+
+### Prompt Versioning
+
+เก็บ prompt แบบ version ใน code ไม่ใช่ hardcode ใน function:
+
+```python
+# prompts/v1.py
+SUMMARIZE_PROMPT_V1 = """
+คุณคือผู้เชี่ยวชาญด้านการสรุปเนื้อหา
+สรุปข้อความด้านล่างเป็นภาษาไทย ไม่เกิน 3 ประโยค
+
+ข้อความ: {text}
+"""
+
+# prompts/v2.py — version ใหม่ที่กำลังทดสอบ
+SUMMARIZE_PROMPT_V2 = """
+คุณคือผู้เชี่ยวชาญด้านการสรุปเนื้อหาภาษาไทย
+กรุณาสรุปข้อความด้านล่างให้กระชับ ชัดเจน เข้าใจง่าย
+ความยาว: 2-3 ประโยค
+ภาษา: ภาษาไทยเท่านั้น
+
+ข้อความ: {text}
+"""
+```
+
+### Model Version Pinning
+
+อย่าใช้ชื่อ model แบบ alias ที่เปลี่ยนได้ ให้ pin version ชัดเจน:
+
+```python
+# อย่าทำ — "gpt-4o" อาจเปลี่ยนเป็น version ใหม่โดยไม่รู้ตัว
+model = "gpt-4o"
+
+# ดีกว่า — pin ไว้กับ snapshot ที่ทดสอบแล้ว
+model = "gpt-4o-2024-08-06"
+```
+
+> 💡 **Key insight:** model provider อัปเดต model อยู่ตลอดเวลา บางครั้งทำให้ prompt ที่เคยทำงานดีกลายเป็นไม่ดี การ pin model version และมี evals ที่รันอัตโนมัติจะช่วยให้คุณรู้ก่อนที่ user จะรู้
+
+<!-- IMAGE: ไดอะแกรม CI/CD pipeline แสดง stages ตั้งแต่ push code → unit tests → LLM evals → deploy → monitoring -->
+
+---
+
+## Scaling — เมื่อผู้ใช้มากขึ้น
+
+เมื่อ traffic เพิ่ม ระบบต้องรองรับได้ มีสองวิธีหลัก:
+
+### Horizontal Scaling
+
+แทนที่จะทำให้ server เครื่องเดียวแรงขึ้น (vertical) ให้เพิ่มจำนวน server (horizontal) พร้อมมี load balancer กระจาย traffic:
+
+```
+                    ┌─── Instance 1 ─── LLM API
+User → Load Balancer ─── Instance 2 ─── LLM API
+                    └─── Instance 3 ─── LLM API
+```
+
+Railway และ Render ทำ horizontal scaling ให้อัตโนมัติ แค่ตั้งค่า min/max instances
+
+### Connection Pooling
+
+แต่ละ request ไม่ควรสร้าง HTTP connection ใหม่ไปยัง LLM API ทุกครั้ง ให้ reuse connection ผ่าน httpx client:
+
+```python
+import httpx
+from openai import AsyncOpenAI
+
+# สร้าง client ครั้งเดียวตอนเริ่ม app
+# ไม่สร้างใหม่ทุก request
+http_client = httpx.AsyncClient(
+    limits=httpx.Limits(
+        max_keepalive_connections=20,  # เก็บ connection ไว้ 20 อัน
+        max_connections=100,           # รับ request พร้อมกันสูงสุด 100
+    )
+)
+
+client = AsyncOpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+    http_client=http_client
+)
+```
+
+### Queue-Based Architecture สำหรับ Heavy Workloads
+
+ถ้ามี workload หนักเช่น process เอกสาร 1,000 หน้า ให้ใช้ queue แทนการรอ response ตรง ๆ ตัวเลือกที่ใช้งานง่าย:
+
+- **Redis Queue (RQ)**: ง่ายที่สุด เหมาะกับ apps ขนาดเล็ก-กลาง
+- **Celery + Redis/RabbitMQ**: feature ครบ เหมาะกับ production
+- **AWS SQS**: ถ้าอยู่บน AWS ecosystem
+- **Cloud Tasks (GCP)**: ถ้าอยู่บน GCP
+
+```python
+from rq import Queue
+from redis import Redis
+
+redis_conn = Redis()
+q = Queue(connection=redis_conn)
+
+@app.post("/process-document")
+async def process_document(file: UploadFile):
+    # แทนที่จะรอ LLM process เสร็จ
+    # ส่งงานเข้า queue แล้ว return job_id ทันที
+    job = q.enqueue(
+        process_with_llm,  # function ที่รัน background
+        args=[file.content],
+        job_timeout=300    # timeout 5 นาที
+    )
+
+    return {"job_id": job.id, "status": "queued"}
+
+@app.get("/job/{job_id}")
+async def get_job_status(job_id: str):
+    job = q.fetch_job(job_id)
+    if job.is_finished:
+        return {"status": "done", "result": job.result}
+    elif job.is_failed:
+        return {"status": "failed", "error": str(job.exc_info)}
+    else:
+        return {"status": "processing"}
+```
+
+<!-- IMAGE: ไดอะแกรมแสดง scaling architecture ทั้งแบบ horizontal scaling และ queue-based สำหรับ heavy workloads -->
+
+---
+
+## Production Checklist — 15 ข้อก่อน Go-Live
+
+อย่า deploy โดยไม่ผ่านรายการนี้ ใช้เวลาแค่ 30 นาที แต่ป้องกันปัญหาที่แก้ยากในภายหลังได้มาก
+
+### Security
+- [ ] **1. ไม่มี API key hardcode ใน code** — ตรวจสอบด้วย `grep -r "sk-" .` ถ้า grep ไม่เจออะไร แปลว่าผ่าน
+- [ ] **2. .env อยู่ใน .gitignore** — ตรวจ `.gitignore` ว่ามี `.env` ไหม
+- [ ] **3. CORS ตั้งค่าถูกต้อง** — `allow_origins` ไม่ใช้ `"*"` ใน production
+- [ ] **4. Input validation มีครบ** — มี max length สำหรับทุก input field
+
+### Error Handling
+- [ ] **5. มี retry logic สำหรับ LLM calls** — exponential backoff พร้อม
+- [ ] **6. มี timeout สำหรับทุก API call** — ไม่มี request ที่รอได้ไม่จำกัด
+- [ ] **7. Error messages ไม่รั่ว internal detail** — user เห็นแค่ "เกิดข้อผิดพลาด" ไม่เห็น stack trace
+
+### Rate Limiting & Cost
+- [ ] **8. Rate limiting เปิดอยู่** — ทดสอบโดยส่ง request เกิน limit แล้วดูว่าได้ 429
+- [ ] **9. มี cost alerts** — ตั้ง budget alert บน OpenAI dashboard ให้ notify เมื่อค่าใช้จ่ายเกิน threshold
+- [ ] **10. Max tokens ตั้งไว้** — ทุก LLM call มี `max_tokens` ชัดเจน ไม่ปล่อยให้ response ยาวไม่จบ
+
+### Monitoring & Logging
+- [ ] **11. มี logging สำหรับ request ทุกตัว** — รู้ว่ามี request เท่าไหร่ ใช้ tokens เท่าไหร่
+- [ ] **12. Health check endpoint พร้อม** — `/health` ตอบ 200 เสมอเมื่อระบบปกติ
+- [ ] **13. มี alerting เมื่อ error rate สูง** — ไม่รู้จาก user complaint แต่รู้จาก monitoring ก่อน
+
+### Deployment Process
+- [ ] **14. Staging environment ผ่านการทดสอบ** — รัน evals บน staging ก่อน deploy production
+- [ ] **15. Rollback plan ชัดเจน** — ถ้า deploy แล้วมีปัญหา รู้วิธี rollback ใน 5 นาที
+
+> 💡 **Key insight:** checklist นี้ไม่ใช่ bureaucracy แต่คือ institutional memory ของทีมที่โดนปัญหาเหล่านี้มาแล้ว ทุก checkbox มีเรื่องเจ็บปวดอยู่เบื้องหลัง
+
+<!-- IMAGE: checklist visual ที่สวยงาม แสดง 15 ข้อแบ่งเป็น sections: Security, Error Handling, Rate Limiting & Cost, Monitoring, Deployment -->
+
+---
+
+## สรุป
+
+ถ้าคุณอ่านมาถึงตรงนี้และทำตามได้ แสดงว่าคุณพร้อมสร้างระบบ AI จริงแล้ว ไม่ใช่แค่ prototype
+
+เส้นทางที่ผ่านมาใน section Building with AI นี้ครอบคลุมทุกทักษะที่นักพัฒนา AI ต้องมี ตั้งแต่ [การเรียก LLM API ครั้งแรก](/building-with-ai/llm-apis) ไปจนถึง [การจัดการ output ให้ได้ structure ที่ต้องการ](/building-with-ai/structured-output-and-json-mode) ค้นหาข้อมูลด้วย [RAG](/building-with-ai/rag-retrieval-augmented-generation) สร้าง [AI agent](/building-with-ai/agents-and-orchestration) ที่ตัดสินใจเองได้ [วัดผลด้วย evals](/building-with-ai/evals-and-benchmarks) ดูแล [ความปลอดภัย](/building-with-ai/prompt-injection-and-security) ควบคุม [ค่าใช้จ่าย](/building-with-ai/cost-engineering) และสุดท้ายคือ deploy ที่บทนี้
+
+ทักษะทั้งหมดนี้รวมกันเป็น Translation ใน V-T-J Framework ความสามารถในการแปลความต้องการทางธุรกิจออกมาเป็นระบบ AI ที่ทำงานได้จริง ไม่ใช่แค่ไอเดียในหัวหรือ demo ที่ล่มเมื่อมีคนสองคนใช้พร้อมกัน
+
+คุณสร้างได้แล้ว คุณ deploy ได้แล้ว คุณรู้ว่าต้องตรวจสอบอะไรก่อน go-live ยินดีต้อนรับสู่โลกของ AI builders
+
+ขั้นต่อไปคือ Judgment — เรียนรู้วิธีตัดสินใจเชิงกลยุทธ์ว่าควรสร้าง AI feature ไหน เมื่อไหร่ และอย่างไร เพื่อให้คุ้มค่าจริง ๆ กับธุรกิจ ไม่ใช่แค่เพราะ AI กำลัง hype
+
+<!-- IMAGE: ภาพสรุปเส้นทางการเรียนรู้ทั้งหมด Building with AI section แสดง chapters ที่ผ่านมาและทิศทางต่อไป -->

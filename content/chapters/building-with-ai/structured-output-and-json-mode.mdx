@@ -1,0 +1,717 @@
+---
+slug: structured-output-and-json-mode
+level: building-with-ai
+title: "Structured Output — สั่งให้ AI ตอบเป็น JSON ที่โปรแกรมอ่านได้"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เรียนรู้วิธีบังคับให้ LLM ตอบกลับเป็น JSON ที่มีโครงสร้างแน่นอน ด้วย JSON Mode, Function Calling schema, และ Structured Output ของ OpenAI/Anthropic"
+---
+# Structured Output — สั่งให้ AI ตอบเป็น JSON ที่โปรแกรมอ่านได้
+
+คุณเคยขอให้ ChatGPT สร้างรายการสินค้า 20 รายการพร้อมราคาและคำอธิบาย แล้วได้ข้อความยาวเป็นหน้ากลับมา จากนั้นต้องนั่ง copy-paste ทีละบรรทัดลง Excel ด้วยมือไหม? หรือเคยให้ AI สรุปรีวิวลูกค้า 100 รายการ แต่ได้ผลลัพธ์ที่ format ต่างกันทุกครั้ง จนนำไปใช้ต่อในโปรแกรมไม่ได้เลย?
+
+ปัญหาเหล่านี้ไม่ได้เกิดจาก AI ไม่ฉลาด แต่เกิดจากการที่เราไม่ได้บอกให้มันตอบในรูปแบบที่โปรแกรมอ่านได้ บทนี้จะสอนให้คุณบังคับ LLM ให้ตอบกลับมาเป็น JSON ที่มีโครงสร้างแน่นอน ซึ่งโค้ดของคุณสามารถหยิบไปใช้ต่อได้ทันทีโดยไม่ต้องแปลงอะไรเพิ่ม
+
+<!-- IMAGE: ภาพเปรียบเทียบสองฝั่ง — ซ้ายเป็น prose paragraph ยาวจาก AI, ขวาเป็น JSON block ที่อ่านได้ทันที -->
+
+---
+
+## ทำไมคำตอบแบบ prose ถึงใช้กับโปรแกรมไม่ได้
+
+ลองนึกถึงสถานการณ์นี้: คุณกำลังสร้างระบบอ่านรีวิวสินค้าอัตโนมัติ คุณส่ง prompt ให้ AI ว่า "สรุปรีวิวนี้ให้หน่อย: [รีวิว]" และต้องการได้ข้อมูล 3 อย่างคือ คะแนนความรู้สึก (positive/negative/neutral), เหตุผลหลัก, และคำแนะนำสำหรับทีมสินค้า
+
+ครั้งที่ 1 AI อาจตอบว่า:
+```
+รีวิวนี้มีความรู้สึกเชิงบวก ผู้ใช้ชอบคุณภาพของสินค้าเป็นพิเศษ 
+แต่มีข้อกังวลเรื่องการจัดส่งที่ช้า ทีมสินค้าควรพิจารณาปรับปรุง
+กระบวนการส่งของให้เร็วขึ้น
+```
+
+ครั้งที่ 2 ถามคำถามเดิมกับรีวิวใหม่ อาจได้:
+```
+**Sentiment:** Positive
+**เหตุผล:** คุณภาพดี แต่ราคาสูงไปนิด
+**คำแนะนำ:** ลดราคาหรือเพิ่ม value
+```
+
+ครั้งที่ 3 อาจได้:
+```
+โดยรวมแล้วลูกค้ารู้สึกพอใจ (sentiment: neutral-positive)...
+```
+
+สังเกตไหมว่าทั้งสามครั้งมี format ต่างกันหมด? บางครั้งใช้ภาษาไทย บางครั้งผสมอังกฤษ บางครั้งใส่ Markdown bold บางครั้งไม่ใส่ บางครั้งใส่ข้อมูลครบ บางครั้งขาด field ไป นี่คือปัญหาของ free-text response ที่ LLM สร้างมาตามธรรมชาติ
+
+<!-- IMAGE: ภาพแสดง 3 คำตอบที่ format ต่างกันจาก prompt เดียวกัน พร้อมลูกศรชี้ว่า parse ยากมาก -->
+
+ถ้าคุณเขียนโค้ดเพื่อดึงข้อมูลออกมา คุณต้องเขียน regex หรือ string parsing ที่ซับซ้อนมาก และก็ยังมีโอกาสพังอยู่ดีเมื่อ format เปลี่ยน ลองนึกดูว่าถ้าต้องประมวลผลรีวิว 10,000 รายการต่อวัน แค่ความไม่แน่นอนของ format เพียงอย่างเดียวก็ทำให้ระบบไม่น่าเชื่อถือแล้ว
+
+> 💡 **Key insight:** LLM ถูกฝึกมาให้ตอบแบบมนุษย์ — เป็น prose ที่อ่านลื่น ไม่ใช่ข้อมูลที่เครื่องอ่าน การสั่งให้ตอบเป็น JSON ในแค่ prompt อย่างเดียวจึงได้ผลไม่แน่นอน เราต้องใช้ feature พิเศษของ API
+
+---
+
+## JSON คืออะไร และทำไมถึงสำคัญ
+
+ก่อนเข้าเรื่อง JSON Mode ขอปูพื้นให้หน่อยสำหรับคนที่ยังไม่คุ้น JSON หรือ JavaScript Object Notation คือรูปแบบข้อมูลที่ทั้งมนุษย์อ่านได้และโปรแกรมอ่านได้ มันเป็นภาษากลางของ API ทั่วโลก
+
+ตัวอย่าง JSON ที่แสดงข้อมูลสินค้า:
+
+```json
+{
+  "product_id": "SKU-001",
+  "name": "หูฟังไร้สาย Pro X",
+  "price": 2990,
+  "in_stock": true,
+  "tags": ["electronics", "audio", "wireless"],
+  "rating": {
+    "average": 4.5,
+    "total_reviews": 128
+  }
+}
+```
+
+JSON มีกฎง่าย ๆ แค่ไม่กี่ข้อ ข้อมูลอยู่ใน `{}` ถ้าเป็น object, ใน `[]` ถ้าเป็น list, ชื่อ field ใส่ `""`, ค่าที่เป็นข้อความก็ใส่ `""`, ตัวเลขและ true/false ไม่ต้องใส่ และคั่นแต่ละ field ด้วย `,`
+
+เมื่อโปรแกรม Python ได้รับ JSON มา มันสามารถแปลงเป็น dictionary ได้ทันที:
+
+```python
+import json
+
+# สมมติได้ text นี้มาจาก AI
+json_text = '{"sentiment": "positive", "score": 0.85}'
+
+# แปลงเป็น Python dictionary
+data = json.loads(json_text)
+
+# ใช้งานได้เลย
+print(data["sentiment"])  # positive
+print(data["score"])      # 0.85
+```
+
+นี่คือเหตุผลว่าทำไม JSON ถึงสำคัญ — เมื่อ AI ตอบเป็น JSON เราไม่ต้องทำ string parsing ยุ่งยาก แค่ `json.loads()` บรรทัดเดียว แล้วข้อมูลก็พร้อมใช้ได้ทันที
+
+<!-- IMAGE: ภาพแสดง flow จาก AI response → json.loads() → Python dict → ใช้งานในโปรแกรม -->
+
+---
+
+## JSON Mode — วิธีแรกที่ง่ายที่สุด
+
+OpenAI เพิ่ม feature ที่เรียกว่า JSON Mode ซึ่งเป็นการบอก API ว่า "คราวนี้ฉันต้องการให้ response เป็น valid JSON เสมอ" มันทำงานโดยการเพิ่ม parameter เดียวในการเรียก API:
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o",
+    response_format={"type": "json_object"},  # บรรทัดนี้แหละที่เปิด JSON Mode
+    messages=[...]
+)
+```
+
+เมื่อเปิด JSON Mode API จะ guarantee ว่า response จะเป็น valid JSON เสมอ หมายความว่า `json.loads()` จะไม่ throw error เพราะ format ผิด อย่างไรก็ตาม JSON Mode มีข้อจำกัดสำคัญที่ต้องรู้:
+
+**สิ่งที่ JSON Mode ทำได้:**
+- Guarantee ว่า response เป็น valid JSON (เปิด `{}` แล้วต้องปิด, comma ถูกที่, ไม่มี trailing comma)
+- ป้องกัน model จากการตอบเป็น prose หรือ Markdown
+- ลด parsing error ได้เกือบ 100%
+
+**สิ่งที่ JSON Mode ทำไม่ได้:**
+- ไม่ guarantee ว่า JSON จะมี field อะไรบ้าง
+- ไม่ guarantee ว่า field จะมีประเภทข้อมูลอะไร (อาจให้ตัวเลขเป็น string ก็ได้)
+- ไม่ guarantee ว่าจะมีครบทุก field ที่เราต้องการ
+
+> 💡 **Key insight:** JSON Mode เหมือนการบอกให้คนส่งข้อมูลมาในกล่อง แต่ไม่ได้บอกว่าในกล่องต้องมีอะไร ส่วน Structured Output คือการส่ง template ของกล่องไปด้วยพร้อมระบุว่าช่องไหนต้องมีอะไร
+
+ข้อสำคัญอีกอย่างคือเมื่อใช้ JSON Mode **คุณต้องบอกใน system prompt ว่าให้ตอบเป็น JSON** ถ้าไม่บอก API จะ error หรือได้ผลลัพธ์แปลก ๆ เพราะ model ไม่รู้ว่าควรสร้าง JSON แบบไหน
+
+<!-- IMAGE: ภาพแสดง JSON Mode เหมือน "กล่อง" ที่ guarantee รูปร่าง แต่ไม่ guarantee เนื้อหาข้างใน -->
+
+---
+
+## ลองทำดู #1 — JSON Mode กับ OpenAI
+
+มาลองเขียนโค้ดจริงกัน สมมติเราต้องการสร้างระบบวิเคราะห์รีวิวสินค้าและดึงข้อมูล 3 อย่างคือ sentiment, เหตุผลหลัก, และคะแนน 1-10
+
+> 🧪 **ลองทำดู:** คัดลอกโค้ดด้านล่างไปรัน ถ้ายังไม่มี OpenAI API key ดู[บทที่แล้ว](/building-with-ai/llm-apis)ก่อน แล้วลองเปลี่ยน review_text เป็นรีวิวสินค้าจริงของคุณ
+
+```python
+import json
+from openai import OpenAI
+
+client = OpenAI()  # ใช้ OPENAI_API_KEY จาก environment variable
+
+def analyze_review(review_text: str) -> dict:
+    """
+    วิเคราะห์รีวิวสินค้าและส่งคืนข้อมูลเป็น dict
+    """
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # ใช้ mini เพราะงานนี้ไม่ต้องการ model ใหญ่
+        response_format={"type": "json_object"},  # เปิด JSON Mode
+        messages=[
+            {
+                "role": "system",
+                "content": """คุณเป็นผู้เชี่ยวชาญวิเคราะห์รีวิวสินค้า
+                ตอบกลับเป็น JSON เสมอ โดยมี field ดังนี้:
+                - sentiment: "positive", "negative", หรือ "neutral"
+                - main_reason: เหตุผลหลักของรีวิว (string ภาษาไทย)
+                - score: คะแนนความพึงพอใจ 1-10 (number)
+                - recommendation: คำแนะนำสำหรับทีมสินค้า (string ภาษาไทย)
+                """
+            },
+            {
+                "role": "user",
+                "content": f"วิเคราะห์รีวิวนี้: {review_text}"
+            }
+        ]
+    )
+    
+    # ดึง content ออกมาจาก response
+    content = response.choices[0].message.content
+    
+    # แปลงจาก string เป็น Python dict
+    result = json.loads(content)
+    
+    return result
+
+
+# ทดสอบ
+review = """
+สินค้าดีมากเลยครับ หูฟังเสียงชัดมาก bass หนักพอดี ใส่สบาย
+แต่แบตอยู่ได้แค่ 4 ชั่วโมง น้อยกว่าที่โฆษณาไว้มาก ราคา 3,500
+ยังโอเคอยู่ถ้าแบตดีกว่านี้ได้
+"""
+
+result = analyze_review(review)
+
+# ใช้ข้อมูลได้เลย
+print(f"Sentiment: {result['sentiment']}")
+print(f"เหตุผล: {result['main_reason']}")
+print(f"คะแนน: {result['score']}/10")
+print(f"คำแนะนำ: {result['recommendation']}")
+```
+
+ผลลัพธ์ที่ควรได้:
+```
+Sentiment: neutral
+เหตุผล: คุณภาพเสียงดี แต่แบตเตอรี่ไม่ตรงตามที่โฆษณา
+คะแนน: 6/10
+คำแนะนำ: ปรับปรุงความจุแบตเตอรี่หรือแก้ไขข้อมูลการตลาดให้ตรงความจริง
+```
+
+สังเกตว่าตอนนี้เราสามารถเรียก `result['sentiment']` ได้โดยตรงโดยไม่ต้องทำ string parsing เลย และถ้าเราจะประมวลผล 1,000 รีวิว ก็แค่วน loop เรียก function นี้ซ้ำ แล้วเก็บ result เข้า list หรือ database ได้เลย
+
+<!-- IMAGE: ภาพแสดง flow จาก review text → API call → JSON response → dict → database/spreadsheet -->
+
+---
+
+## Structured Output — บังคับ schema จริงจัง
+
+JSON Mode ดีพอสำหรับงานหลายอย่าง แต่มันยังมีช่องโหว่ บางครั้ง model อาจเพิ่ม field ที่เราไม่ได้ขอ บางครั้งอาจให้ score เป็น string `"8"` แทนที่จะเป็น number `8` หรือในกรณีเลวร้าย อาจลืม field ใด field หนึ่งไปเลย
+
+Structured Output แก้ปัญหาเหล่านี้โดยให้คุณส่ง JSON Schema ไปด้วย ซึ่งเป็นการกำหนดอย่างเป๊ะว่า response ต้องมี field อะไร แต่ละ field เป็นประเภทอะไร และ field ไหนบ้างที่ต้องมี (required)
+
+### JSON Schema คืออะไร
+
+JSON Schema คือ "แบบแปลน" ของข้อมูล JSON เหมือนกับที่สถาปนิกวาดแบบบ้านก่อนสร้าง Schema บอกว่าข้อมูลควรมีหน้าตาเป็นอย่างไร
+
+ตัวอย่าง Schema สำหรับผลวิเคราะห์รีวิว:
+
+```json
+{
+  "type": "object",
+  "properties": {
+    "sentiment": {
+      "type": "string",
+      "enum": ["positive", "negative", "neutral"],
+      "description": "ความรู้สึกโดยรวมของรีวิว"
+    },
+    "main_reason": {
+      "type": "string",
+      "description": "เหตุผลหลักของรีวิวเป็นภาษาไทย"
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "คะแนนความพึงพอใจ 1-10"
+    },
+    "recommendation": {
+      "type": "string",
+      "description": "คำแนะนำสำหรับทีมสินค้า"
+    }
+  },
+  "required": ["sentiment", "main_reason", "score", "recommendation"],
+  "additionalProperties": false
+}
+```
+
+Schema นี้บอกว่า:
+- `sentiment` ต้องเป็น string และต้องเป็นหนึ่งใน "positive", "negative", "neutral" เท่านั้น
+- `score` ต้องเป็น integer (ไม่ใช่ float) และต้องอยู่ระหว่าง 1-10
+- ทุก field ใน `required` ต้องมีอยู่ใน response เสมอ
+- `additionalProperties: false` ห้าม model เพิ่ม field ที่ไม่ได้ระบุใน schema
+
+> 💡 **Key insight:** JSON Schema เหมือนสัญญาสองฝ่าย เราบอก model ว่า "ฉันต้องการข้อมูลในรูปแบบนี้" และ API จะ enforce ว่า model ต้องส่งข้อมูลในรูปแบบนั้นจริง ๆ ถ้า model ไม่สามารถทำได้ API จะ error แทนที่จะส่งข้อมูลผิด format มา
+
+---
+
+## ลองทำดู #2 — Structured Output ด้วย Pydantic
+
+ในทางปฏิบัติ นักพัฒนา Python ส่วนใหญ่ไม่ได้เขียน JSON Schema เองด้วยมือ เพราะมันยาวและอ่านยาก แต่ใช้ library ที่ชื่อ **Pydantic** ซึ่งให้เราเขียน Python class แล้วแปลงเป็น Schema อัตโนมัติ
+
+> 🧪 **ลองทำดู:** ติดตั้ง pydantic ด้วย `pip install pydantic` แล้วลองรันโค้ดด้านล่าง ลองเปลี่ยน field ใน ReviewAnalysis class เพิ่มลบตามที่คุณต้องการ แล้วดูว่า model ปรับตามได้ไหม
+
+```python
+from pydantic import BaseModel, Field
+from openai import OpenAI
+from typing import Literal
+
+client = OpenAI()
+
+# กำหนด schema ด้วย Pydantic class — อ่านง่ายกว่า JSON Schema มาก
+class ReviewAnalysis(BaseModel):
+    sentiment: Literal["positive", "negative", "neutral"] = Field(
+        description="ความรู้สึกโดยรวมของรีวิว"
+    )
+    main_reason: str = Field(
+        description="เหตุผลหลักของรีวิวเป็นภาษาไทย"
+    )
+    score: int = Field(
+        ge=1, le=10,  # ge = greater or equal, le = less or equal
+        description="คะแนนความพึงพอใจ 1-10"
+    )
+    recommendation: str = Field(
+        description="คำแนะนำสำหรับทีมสินค้า"
+    )
+    has_shipping_complaint: bool = Field(
+        description="รีวิวมีการกล่าวถึงปัญหาการจัดส่งหรือไม่"
+    )
+
+
+def analyze_review_structured(review_text: str) -> ReviewAnalysis:
+    """
+    วิเคราะห์รีวิวด้วย Structured Output
+    ส่งคืน ReviewAnalysis object ที่มี type safety เต็มรูปแบบ
+    """
+    # ใช้ .parse() แทน .create() เพื่อรับ Pydantic object โดยตรง
+    completion = client.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",  # ต้องใช้ model ที่รองรับ Structured Output
+        messages=[
+            {
+                "role": "system",
+                "content": "คุณเป็นผู้เชี่ยวชาญวิเคราะห์รีวิวสินค้า วิเคราะห์รีวิวที่ได้รับและตอบตาม schema ที่กำหนด"
+            },
+            {
+                "role": "user",
+                "content": f"วิเคราะห์รีวิวนี้: {review_text}"
+            }
+        ],
+        response_format=ReviewAnalysis,  # ส่ง Pydantic class แทน JSON Schema
+    )
+    
+    # ได้ ReviewAnalysis object กลับมาโดยตรง — ไม่ต้อง json.loads() เอง
+    return completion.choices[0].message.parsed
+
+
+# ทดสอบ
+review = """
+สั่งของรอ 2 อาทิตย์ กว่าจะมาถึง ตัวสินค้าดีนะ หูฟังเสียงดีมาก
+แต่รอนานเกินไปจริง ๆ ครั้งหน้าอาจไม่ซื้ออีกแล้ว
+"""
+
+result = analyze_review_structured(review)
+
+# Type safety — IDE จะ autocomplete field ได้ถูกต้อง
+print(f"Sentiment: {result.sentiment}")
+print(f"Score: {result.score}")  # guarantee เป็น int เสมอ
+print(f"มีปัญหาการส่ง: {result.has_shipping_complaint}")  # guarantee เป็น bool
+```
+
+ความแตกต่างสำคัญระหว่าง JSON Mode และ Structured Output ด้วย Pydantic:
+
+เมื่อใช้ JSON Mode คุณได้ Python dict กลับมา และต้องเขียน `result["score"]` ซึ่งถ้า model ลืม field score ไป โค้ดจะ crash ด้วย KeyError ตอน runtime เมื่อใช้ Structured Output คุณได้ Pydantic object กลับมา และ IDE จะ autocomplete ให้ รู้ล่วงหน้าว่า field มีอะไรบ้าง และถ้า model ไม่สามารถสร้าง field ที่ required ได้ API จะ error ตั้งแต่ก่อนที่ข้อมูลผิดจะมาถึงโค้ดคุณ
+
+<!-- IMAGE: ภาพแสดงสองฝั่ง — ซ้ายเป็น dict ที่ IDE ไม่รู้ว่า key มีอะไร, ขวาเป็น Pydantic object ที่ IDE autocomplete ได้ -->
+
+---
+
+## Anthropic Claude กับ Structured Output
+
+Anthropic มีวิธีการที่แตกต่างออกไปนิดหน่อย ณ ปัจจุบัน (2025) Claude ยังไม่มี native Structured Output แบบ OpenAI แต่มีสองวิธีหลักที่ใช้ได้:
+
+**วิธีที่ 1: Prompt-based (ง่ายที่สุด)**
+
+บอกอย่างชัดเจนใน system prompt และใช้ XML tags ช่วย Claude เป็นพิเศษตอบสนองต่อ XML tags ได้ดี:
+
+```python
+import anthropic
+import json
+
+client = anthropic.Anthropic()
+
+def analyze_with_claude(review_text: str) -> dict:
+    message = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=1024,
+        system="""คุณวิเคราะห์รีวิวสินค้า ตอบกลับเป็น JSON เสมอ ไม่มีข้อความอื่น
+        
+        JSON ต้องมี field เหล่านี้:
+        {
+          "sentiment": "positive" หรือ "negative" หรือ "neutral",
+          "main_reason": "เหตุผลหลักเป็นภาษาไทย",
+          "score": ตัวเลข 1-10,
+          "recommendation": "คำแนะนำเป็นภาษาไทย"
+        }
+        
+        ห้ามใส่ข้อความก่อนหรือหลัง JSON""",
+        messages=[
+            {"role": "user", "content": f"วิเคราะห์: {review_text}"}
+        ]
+    )
+    
+    # Claude มักตอบสะอาด แต่ทำ strip() ไว้ก่อนเพื่อความปลอดภัย
+    content = message.content[0].text.strip()
+    return json.loads(content)
+```
+
+**วิธีที่ 2: Tool Use trick (แม่นยำกว่า)**
+
+วิธีที่ชาว Anthropic แนะนำคือใช้ tool_use feature โดยกำหนด "tool" ปลอม ๆ ที่มี input schema เป็น JSON Schema ที่เราต้องการ แล้วบังคับให้ model "เรียก tool" นั้น ซึ่งทำให้ได้ structured output ที่น่าเชื่อถือกว่า prompt-based:
+
+```python
+def analyze_with_claude_tool(review_text: str) -> dict:
+    # กำหนด schema ผ่าน tool definition
+    tools = [
+        {
+            "name": "save_review_analysis",
+            "description": "บันทึกผลการวิเคราะห์รีวิว",
+            "input_schema": {
+                "type": "object",
+                "properties": {
+                    "sentiment": {
+                        "type": "string",
+                        "enum": ["positive", "negative", "neutral"]
+                    },
+                    "main_reason": {"type": "string"},
+                    "score": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10
+                    },
+                    "recommendation": {"type": "string"}
+                },
+                "required": ["sentiment", "main_reason", "score", "recommendation"]
+            }
+        }
+    ]
+    
+    message = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=1024,
+        tools=tools,
+        tool_choice={"type": "tool", "name": "save_review_analysis"},  # บังคับให้ใช้ tool นี้
+        messages=[
+            {"role": "user", "content": f"วิเคราะห์รีวิวนี้: {review_text}"}
+        ]
+    )
+    
+    # ดึง input จาก tool_use block
+    for block in message.content:
+        if block.type == "tool_use":
+            return block.input  # นี่คือ dict ที่ตรง schema แน่นอน
+    
+    raise ValueError("Model ไม่ได้เรียก tool")
+```
+
+> 💡 **Key insight:** Tool Use trick ทำงานได้เพราะ model ถูก train มาให้ส่ง structured data ตอนเรียก tool อยู่แล้ว เราแค่หยิบ behavior นั้นมาใช้สำหรับ structured output โดยไม่ต้องมี tool จริง ๆ
+
+<!-- IMAGE: ภาพแสดง Anthropic Tool Use trick — model ส่ง structured input ไปยัง "tool" ที่เราสร้างขึ้น -->
+
+---
+
+## เปรียบเทียบ 3 วิธี — ใช้อะไรในสถานการณ์ไหน
+
+| วิธี | ความซับซ้อน | ความน่าเชื่อถือ | Flexibility | เหมาะกับ |
+|------|------------|----------------|-------------|---------|
+| Free text + prompt | ต่ำสุด | ต่ำ | สูง | prototype, งาน one-time |
+| JSON Mode | ต่ำ | กลาง | กลาง | งาน internal ที่ยอมรับ error ได้ |
+| Structured Output | กลาง | สูง | ต่ำ (ต้อง define schema) | production system, pipeline อัตโนมัติ |
+
+ให้คิดง่าย ๆ แบบนี้: ถ้าคุณแค่ต้องการทดสอบไอเดียในวันเดียวและจะดูผลด้วยตาเอง ใช้ prompt ธรรมดาก็พอ ถ้าคุณสร้างระบบที่รันอัตโนมัติแต่ยังมีคนมาตรวจสอบผลอยู่ JSON Mode เพียงพอ ถ้าคุณสร้าง production pipeline ที่ข้อมูลผิด format จะทำให้ระบบอื่นพังด้วย ใช้ Structured Output
+
+**สัญญาณที่บอกว่าต้องอัพเกรดจาก JSON Mode เป็น Structured Output:**
+- Pipeline ของคุณรันวันละ 1,000+ ครั้ง
+- Error ใน JSON format ทำให้ต้องหยุด process ทั้งหมด
+- ข้อมูลที่ได้ไปบันทึกลง database โดยตรงโดยไม่มีคนตรวจ
+- ทีมหลายคนใช้ output ในระบบที่ต่างกัน
+
+<!-- IMAGE: ภาพ decision tree แสดงว่าสถานการณ์แบบไหนควรใช้วิธีไหน -->
+
+---
+
+## Validation และ Error Handling — เมื่อ JSON ยังพัง
+
+แม้แต่ Structured Output ก็ยังมีโอกาสล้มเหลวได้ในกรณีพิเศษ เช่น network timeout, model overload, หรือ input ที่ทำให้ model สับสน การเขียนโค้ดที่ดีต้องรองรับกรณีเหล่านี้ไว้ด้วย
+
+```python
+import json
+import time
+from openai import OpenAI
+
+client = OpenAI()
+
+def safe_analyze_review(review_text: str, max_retries: int = 3) -> dict | None:
+    """
+    วิเคราะห์รีวิวพร้อม error handling และ retry logic
+    """
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                response_format={"type": "json_object"},
+                messages=[
+                    {
+                        "role": "system",
+                        "content": """วิเคราะห์รีวิวและตอบเป็น JSON ที่มี field:
+                        sentiment (positive/negative/neutral), score (1-10 integer),
+                        main_reason (string), recommendation (string)"""
+                    },
+                    {"role": "user", "content": f"รีวิว: {review_text}"}
+                ]
+            )
+            
+            content = response.choices[0].message.content
+            
+            # พยายาม parse JSON
+            data = json.loads(content)
+            
+            # ตรวจสอบว่า field ที่ต้องการมีครบไหม
+            required_fields = ["sentiment", "score", "main_reason", "recommendation"]
+            missing = [f for f in required_fields if f not in data]
+            
+            if missing:
+                raise ValueError(f"ขาด field: {missing}")
+            
+            # ตรวจสอบ type ของ score
+            if not isinstance(data["score"], (int, float)):
+                raise ValueError(f"score ต้องเป็นตัวเลข แต่ได้ {type(data['score'])}")
+            
+            # ตรวจสอบค่า sentiment
+            valid_sentiments = ["positive", "negative", "neutral"]
+            if data["sentiment"] not in valid_sentiments:
+                raise ValueError(f"sentiment ไม่ถูกต้อง: {data['sentiment']}")
+            
+            return data  # สำเร็จ!
+            
+        except json.JSONDecodeError as e:
+            print(f"Attempt {attempt + 1}: JSON parse error — {e}")
+        except ValueError as e:
+            print(f"Attempt {attempt + 1}: Validation error — {e}")
+        except Exception as e:
+            print(f"Attempt {attempt + 1}: Unexpected error — {e}")
+        
+        # รอก่อน retry เพื่อไม่ให้กด API เร็วเกินไป
+        if attempt < max_retries - 1:
+            time.sleep(1 * (attempt + 1))  # exponential backoff อย่างง่าย
+    
+    # ถ้าล้มเหลวทุก attempt ส่งคืน None
+    print(f"ล้มเหลวหลัง {max_retries} attempts")
+    return None
+
+
+# ใช้งาน
+result = safe_analyze_review("สินค้าดีมาก ชอบมาก แนะนำเลย!")
+
+if result is not None:
+    print(f"วิเคราะห์สำเร็จ: {result['sentiment']}")
+else:
+    # Handle กรณีที่วิเคราะห์ไม่ได้
+    print("ไม่สามารถวิเคราะห์รีวิวนี้ได้ บันทึกไว้เพื่อตรวจสอบด้วยมือ")
+```
+
+Error handling strategy ที่แนะนำสำหรับ production:
+
+1. **Retry 2-3 ครั้ง** ก่อนยอมแพ้ เพราะ error บางอย่างเกิดจาก transient issue ชั่วคราว
+2. **Log ทุก error** พร้อม input ที่ทำให้เกิด error เพื่อนำมาปรับปรุง prompt ภายหลัง
+3. **Fallback gracefully** ถ้าวิเคราะห์ไม่ได้ ให้บันทึก raw text ไว้ให้คนมาตรวจสอบแทนที่จะ crash
+4. **Monitor error rate** ถ้า error เพิ่มขึ้นมากกว่า 5% ให้รีบดู prompt หรือ schema
+
+<!-- IMAGE: ภาพ flowchart แสดง retry logic — try → success/fail → retry → log → fallback -->
+
+---
+
+## Use Cases จริง — Structured Output ช่วยได้อะไรบ้าง
+
+### 1. Product Catalog Builder
+
+สร้าง catalog สินค้าจาก description ยาว ๆ:
+
+```python
+class ProductInfo(BaseModel):
+    name: str
+    price_thb: float
+    category: str
+    key_features: list[str] = Field(max_length=5)
+    target_audience: str
+    seo_keywords: list[str] = Field(max_length=10)
+
+def extract_product_info(description: str) -> ProductInfo:
+    completion = client.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "สร้างข้อมูลสินค้าจาก description ที่ได้รับ"},
+            {"role": "user", "content": description}
+        ],
+        response_format=ProductInfo,
+    )
+    return completion.choices[0].message.parsed
+```
+
+แทนที่จะต้องให้ copywriter นั่งกรอก catalog ทีละชิ้น คุณแค่ส่ง description ดิบแล้วได้ structured data กลับมาทันที พร้อม SEO keywords และ feature list ที่จัดเรียงแล้ว
+
+### 2. Entity Extraction จากบทความ
+
+สกัดชื่อคน องค์กร และวันที่ จากบทความข่าว:
+
+```python
+class NewsEntities(BaseModel):
+    people: list[str]
+    organizations: list[str]
+    dates: list[str]
+    locations: list[str]
+    main_topic: str
+
+def extract_entities(article_text: str) -> NewsEntities:
+    completion = client.beta.chat.completions.parse(
+        model="gpt-4o-2024-08-06",
+        messages=[
+            {"role": "system", "content": "สกัด entities จากบทความที่ได้รับ"},
+            {"role": "user", "content": article_text}
+        ],
+        response_format=NewsEntities,
+    )
+    return completion.choices[0].message.parsed
+
+# ใช้งาน — ส่ง 1,000 บทความ วิเคราะห์แล้วบันทึกลง database อัตโนมัติ
+```
+
+### 3. Sentiment Analysis Pipeline
+
+วิเคราะห์ comment ใน social media แบบ batch:
+
+```python
+class SentimentResult(BaseModel):
+    sentiment: Literal["positive", "negative", "neutral", "mixed"]
+    confidence: float = Field(ge=0.0, le=1.0)
+    topics: list[str]
+    requires_response: bool
+    urgency: Literal["low", "medium", "high"]
+
+# รัน batch analysis
+import asyncio
+
+async def analyze_batch(comments: list[str]) -> list[SentimentResult]:
+    # วิเคราะห์ทั้งหมด parallel
+    tasks = [analyze_comment_async(c) for c in comments]
+    return await asyncio.gather(*tasks)
+```
+
+### 4. Form Auto-fill จาก Document
+
+แปลง PDF หรือ email เป็นข้อมูลที่กรอกฟอร์มได้:
+
+```python
+class InsuranceClaimForm(BaseModel):
+    claimant_name: str
+    id_number: str
+    incident_date: str  # format: YYYY-MM-DD
+    incident_description: str
+    claimed_amount: float
+    supporting_documents: list[str]
+    contact_phone: str
+
+def extract_claim_info(document_text: str) -> InsuranceClaimForm:
+    # ส่ง OCR text ของเอกสาร แล้วได้ structured data กลับมา
+    # พร้อมกรอกฟอร์มทันที
+    ...
+```
+
+กรณีนี้เปลี่ยนงานที่เคยใช้เวลา 20 นาทีต่อเอกสาร (คนนั่งอ่านแล้วกรอกฟอร์ม) เป็น 10 วินาทีต่อเอกสาร โดยที่ accuracy ยังสูงพอที่จะให้คนมาตรวจแค่ edge cases
+
+<!-- IMAGE: ภาพแสดง 4 use cases ในรูป icon grid — product catalog, entity extraction, sentiment, form auto-fill -->
+
+---
+
+## Schema Design Tips — ออกแบบ Schema ให้ดี
+
+ก่อนจบ ขอแชร์หลักการออกแบบ schema ที่ดีจากประสบการณ์จริง:
+
+**ใช้ enum เมื่อค่าเป็น set ที่จำกัด**
+
+แทนที่จะให้ `category` เป็น string ทั่วไปที่ model จะตอบอะไรก็ได้ ระบุ enum ไปเลย:
+
+```python
+category: Literal["electronics", "clothing", "food", "beauty", "sports"]
+```
+
+วิธีนี้ป้องกัน model จากการตอบ "เสื้อผ้า" บางครั้งและ "clothing" บางครั้ง ทำให้ downstream code ที่ต้อง filter ตาม category ไม่พัง
+
+**แยก field ที่ compute ได้ออก**
+
+ถ้า `total_price` คำนวณได้จาก `unit_price * quantity` อย่าใส่ทั้งสามใน schema เลือกใส่แค่ `unit_price` และ `quantity` แล้วคำนวณ `total_price` ในโค้ดเอง เพราะ model อาจคำนวณผิดได้
+
+**เพิ่ม description ใน schema**
+
+```python
+score: int = Field(
+    ge=1, le=10,
+    description="คะแนน 1-10 โดย 1=แย่มาก, 5=กลาง ๆ, 10=ดีมาก"
+)
+```
+
+description ช่วยให้ model เข้าใจว่าแต่ละ field หมายถึงอะไร ยิ่งชัดยิ่งดี
+
+**เริ่มง่าย ๆ แล้วค่อยขยาย**
+
+อย่าออกแบบ schema ที่มี 20 field ตั้งแต่แรก เริ่มจาก 5-6 field ที่จำเป็นจริง ๆ แล้วค่อยเพิ่มตามที่ต้องการ schema ที่ซับซ้อนเกินไปทำให้ model สับสนและ error มากขึ้น
+
+> 💡 **Key insight:** schema ที่ดีคือ schema ที่เล็กที่สุดที่ตอบโจทย์ได้ ไม่ใช่ schema ที่ครอบคลุมทุกกรณีที่อาจเกิดขึ้น
+
+<!-- IMAGE: ภาพแสดงตัวอย่าง schema ที่ดี (ซ้าย) vs schema ที่ซับซ้อนเกินไป (ขวา) -->
+
+---
+
+## Common Mistakes — ข้อผิดพลาดที่คนทำบ่อย
+
+**1. ลืมบอกใน system prompt ว่าให้ตอบเป็น JSON**
+
+เมื่อใช้ JSON Mode ต้องระบุใน system prompt ด้วย ถ้าไม่ระบุ API อาจ error หรือได้ JSON ที่ไม่มีข้อมูลที่ต้องการ
+
+**2. ใส่ logic ใน prompt แทนที่จะใส่ใน schema**
+
+แทนที่จะเขียนใน prompt ว่า "ถ้า score น้อยกว่า 5 ให้ set priority เป็น high" ให้เพิ่ม field `priority` ใน schema และอธิบายใน description ว่า priority กำหนดอย่างไร model จะเข้าใจได้ดีกว่า
+
+**3. parse JSON โดยไม่มี error handling**
+
+```python
+# อย่าทำแบบนี้ใน production
+data = json.loads(response.content)  # ไม่มี try-except
+
+# ทำแบบนี้
+try:
+    data = json.loads(response.content)
+except json.JSONDecodeError:
+    # handle gracefully
+```
+
+**4. ใช้ JSON Mode กับงานที่ต้องการ Structured Output จริง ๆ**
+
+ถ้าข้อมูลผิด field จะทำให้ระบบ downstream พัง อย่าประหยัดโดยใช้ JSON Mode แทน Structured Output ค่า API ต่างกันเล็กน้อยแต่ความน่าเชื่อถือต่างกันมาก
+
+---
+
+## สรุป
+
+เราเรียนรู้มาสามวิธีในการควบคุม format ของ LLM response ตั้งแต่ JSON Mode ที่ง่ายที่สุดและ guarantee แค่ว่า response เป็น valid JSON ไปจนถึง Structured Output ด้วย Pydantic ที่ enforce schema อย่างเข้มงวดและให้ type safety เต็มรูปแบบ
+
+กุญแจสำคัญคือการเลือกให้เหมาะกับสถานการณ์ ไม่ต้องใช้ Structured Output ทุกงาน แต่เมื่อ pipeline ต้องการความน่าเชื่อถือสูง schema ที่ชัดเจนจะช่วยให้ระบบทำงานได้อย่างมั่นคงแม้รัน 24/7
+
+ตอนนี้คุณสามารถสั่งให้ LLM ตอบเป็นข้อมูลที่โปรแกรมอ่านได้แล้ว แต่คุณรู้ไหมว่า LLM สามารถทำมากกว่านั้น? มันไม่ได้แค่ตอบคำถาม — มันสามารถ **เรียกใช้ function ในระบบของคุณได้โดยตรง** ลองนึกดูว่าถ้า LLM ค้น database ได้เอง ส่งอีเมลได้เอง หรืออัพเดต CRM ได้เองตามที่ผู้ใช้บอก นั่นคือสิ่งที่ Function Calling ทำได้ และ[บทถัดไป](/building-with-ai/function-calling)จะสอนให้คุณสร้าง AI ที่ลงมือทำแทนมนุษย์ได้จริง ๆ

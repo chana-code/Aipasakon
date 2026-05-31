@@ -1,0 +1,587 @@
+---
+slug: scaling-laws
+level: advanced
+title: "Scaling Laws — ทำไมโมเดลยิ่งใหญ่ยิ่งเก่ง (และเมื่อไหร่จะหยุด)"
+status: reviewed
+prerequisites: []
+last_reviewed: 2026-05-25
+tldr: "เข้าใจ Scaling Laws ตั้งแต่ Kaplan et al. และ Chinchilla, ความสัมพันธ์ระหว่าง parameters/data/compute กับ performance, compute-optimal training จนถึงคำถามว่า scaling จะมีจุดสิ้นสุดหรือไม่"
+---
+ปี 2020 OpenAI ปล่อย GPT-3 ออกมาพร้อมตัวเลขที่ทำให้ทุกคนอ้าปากค้าง — 175 พันล้าน parameters ใหญ่กว่า GPT-2 รุ่นก่อนหน้าถึง 100 เท่า และโลก AI ก็ไม่เหมือนเดิมอีกต่อไป แต่คำถามที่น่าสนใจกว่าตัวเลขนั้นคือ ทำไมบริษัท AI ทุกเจ้าถึงยังคงแข่งกันสร้าง model ที่ใหญ่ขึ้นเรื่อย ๆ ไม่หยุด? คำตอบไม่ใช่แค่ "ใหญ่กว่าดีกว่า" แต่เป็นเพราะมีกฎทางคณิตศาสตร์ที่พิสูจน์แล้วว่า ความสัมพันธ์ระหว่าง size กับ performance นั้น คาดเดาได้อย่างแม่นยำ — และกฎนั้นมีชื่อว่า **Scaling Laws**
+
+ถ้าคุณอ่านข่าว AI มาสักพักจะเห็น pattern หนึ่งซ้ำแล้วซ้ำเล่า: model ใหม่ออกมา บอกว่าใหญ่กว่า train มากกว่า และดีกว่าบน benchmark ทุกตัว แต่ทำไม? ทำไมการทุ่ม compute มากขึ้นถึงได้ผลเสมอ? และถ้าได้ผลเสมอ ทำไมทุกคนถึงไม่ทำ? ทำไมยังมี model เล็ก ๆ อยู่? Scaling Laws ตอบคำถามเหล่านี้ได้ทั้งหมด — ด้วยคณิตศาสตร์ที่ elegance กว่าที่คิด
+
+<!-- IMAGE: กราฟแสดงการเติบโตของ model size ตั้งแต่ GPT-2 ถึง GPT-4 เปรียบเทียบกับ performance บน benchmark ต่าง ๆ -->
+
+---
+
+## Power Laws — เมื่อ AI พัฒนาตาม "กฎกำลัง"
+
+ก่อนจะเข้าใจ Scaling Laws ต้องเข้าใจ Power Law ก่อน
+
+Power Law คือความสัมพันธ์ในรูปแบบ `y = x^k` หรือถ้าพูดให้เข้าใจง่ายกว่านั้นคือ: ถ้าคุณเพิ่ม x ขึ้น 10 เท่า y จะเพิ่มขึ้นในอัตราที่สม่ำเสมอและคาดเดาได้ ไม่ใช่เพิ่มขึ้น 10 เท่าตาม แต่เพิ่มขึ้นในสัดส่วนที่แน่นอนตามตัวชี้กำลัง k
+
+ในบริบทของ language model สูตรที่นักวิจัยค้นพบคือ:
+
+```
+L ∝ N^(-α)
+```
+
+โดยที่ L คือ loss (ค่าที่บอกว่า model ผิดพลาดมากแค่ไหน ยิ่งน้อยยิ่งดี), N คือจำนวน parameters, และ α คือค่าคงที่ที่แต่ละ architecture จะมีค่าต่างกันไป
+
+ความสำคัญของสูตรนี้ไม่ใช่ตัวเลข แต่คือสิ่งที่มันบอก: **performance ดีขึ้นแบบ smooth และต่อเนื่อง** ทุกครั้งที่เพิ่ม model size ขึ้น ไม่มีจุดที่มันหยุดทำงานหรือพังทลาย และที่สำคัญกว่านั้น — มันคาดเดาได้
+
+> 💡 **Key insight:** Power Law ไม่ใช่ linear — เพิ่ม parameters 2 เท่าไม่ได้ทำให้ model ดีขึ้น 2 เท่า แต่ดีขึ้นในสัดส่วนที่น้อยกว่า อย่างไรก็ตาม ความสัมพันธ์นี้ smooth และ predictable มาก หมายความว่าถ้าคุณรู้ว่า model ขนาด A ทำได้ดีแค่ไหน คุณสามารถ predict ได้ว่า model ขนาด 10A จะทำได้ดีแค่ไหน — ก่อนที่จะ train จริง
+
+ลองเปรียบเทียบกับกฎธรรมชาติอื่น ๆ กฎความโน้มถ่วงบอกว่าแรงดึงดูดระหว่างสองวัตถุแปรผันกับระยะทาง — ไม่มีข้อยกเว้น ไม่มีวันที่ gravity จะ "หยุดทำงาน" เช่นเดียวกัน Scaling Laws ในโลก AI ก็ดูเหมือนจะเป็นกฎพื้นฐานที่ไม่มีข้อยกเว้น อย่างน้อยในระยะที่ผ่านมา
+
+สิ่งที่ทำให้นักวิจัยตื่นเต้นมากที่สุดคือ กฎนี้ใช้ได้ข้ามหลาย order of magnitude — ตั้งแต่ model เล็ก ๆ ไม่กี่ล้าน parameters ไปจนถึง model ระดับพันล้านพันล้าน ความสัมพันธ์ยังคงถือ
+
+**ทำไม Power Law ไม่ใช่ Linear?**
+
+ลองทำความเข้าใจผ่านตัวอย่างที่จับต้องได้ สมมติ model ขนาด 1B parameters มี loss = 3.0 ถ้า relationship เป็น linear การเพิ่มเป็น 10B จะให้ loss = 0.3 แต่ในความเป็นจริงตาม power law การเพิ่ม 10x ของ parameters อาจลด loss ได้แค่ประมาณ 40-50% หมายความว่า loss จะอยู่ที่ประมาณ 1.5-1.8 ไม่ใช่ 0.3
+
+แต่ก็ยังดีขึ้นอย่างมีนัยสำคัญ และที่สำคัญกว่านั้น: ดีขึ้นในอัตราที่ consistent ทุกครั้งที่เพิ่ม scale ขึ้น 10x ลด loss ลงได้ประมาณ 40-50% เสมอ ไม่ว่าจะอยู่ที่ scale ไหน สิ่งนี้ทำให้ plot ใน log-log scale ออกมาเป็นเส้นตรงที่สวยงาม
+
+ฟังดูน้อยกว่าที่หวัง แต่นั่นคือสิ่งที่ทำให้มันมีค่า — เพราะถ้ารู้ว่า model 1B ให้ loss 3.0 คุณสามารถ predict ได้อย่างแม่นยำว่า 10B จะให้ loss เท่าไหร่ และ 100B จะให้เท่าไหร่ โดยไม่ต้อง train จริง
+
+นี่คือเหตุผลที่ OpenAI, Google, และ Anthropic สามารถ "วางแผนล่วงหน้า" ว่าต้องใช้ compute เท่าไหร่เพื่อให้ได้ performance ระดับที่ต้องการ — ก่อนที่จะลงมือ train จริงด้วยเงินหลายร้อยล้านดอลลาร์
+
+**Log-Log Plot — วิธีดู Power Law**
+
+เวลานักวิจัยพูดถึง Scaling Laws มักแสดงผ่าน log-log plot — กราฟที่ทั้งแกน x (scale) และแกน y (loss) เป็น logarithmic scale ถ้าความสัมพันธ์เป็น power law จริง กราฟจะออกมาเป็นเส้นตรง นี่คือสิ่งที่ Kaplan และ Chinchilla พิสูจน์ได้ — บน log-log plot ความสัมพันธ์ระหว่าง scale กับ performance ออกมาเป็นเส้นตรงอย่างน่าประหลาดใจ ข้ามหลาย orders of magnitude
+
+<!-- IMAGE: กราฟ power law เปรียบเทียบกับ linear relationship แสดงให้เห็นว่า diminishing returns แต่ยังคงเป็น smooth curve ที่คาดเดาได้ และ log-log version ที่เป็นเส้นตรง -->
+
+---
+
+## Kaplan et al. (2020) — บทความที่เปลี่ยนเกม
+
+เดือนมกราคม 2020 ทีม OpenAI ตีพิมพ์ paper ชื่อ "Scaling Laws for Neural Language Models" และโลก AI ก็เปลี่ยนไปตลอดกาล
+
+Jared Kaplan และทีมงานค้นพบสิ่งที่ไม่มีใครคาดไว้ก่อน: performance ของ language model ขึ้นอยู่กับ **3 ตัวแปรหลัก** และแต่ละตัวสัมพันธ์กับ performance ตาม power law อย่างชัดเจน
+
+**N — Number of Parameters (ขนาดของ model)**
+
+จำนวน parameters คือ "น้ำหนัก" ทั้งหมดใน neural network ถ้านึกภาพไม่ออก ลองนึกถึง parameters เป็นเหมือน "การตั้งค่า" ของสมองดิจิทัล — มากขึ้น หมายถึงสมองสามารถเก็บและประมวลผล pattern ที่ซับซ้อนได้มากขึ้น
+
+**D — Data (จำนวน training tokens)**
+
+Token คือหน่วยข้อความที่ model ประมวลผล โดยประมาณ 1 คำภาษาอังกฤษ ≈ 1-1.5 tokens ข้อความ "The quick brown fox" ≈ 4 tokens ถ้าบอกว่า train ด้วย 1 trillion tokens หมายความว่า model เห็นข้อความรวมกันประมาณ 750 พันล้านคำ
+
+**C — Compute (FLOPs)**
+
+FLOPs ย่อมาจาก Floating Point Operations — จำนวนการคำนวณทั้งหมดที่ต้องใช้ในการ train model หนึ่งครั้ง Compute คือทรัพยากรจริง ๆ ที่แปลงเป็นเงิน ไฟฟ้า และเวลา
+
+ข้อค้นพบที่สำคัญที่สุดของ Kaplan et al. คือ: **ถ้ามี compute budget จำกัด ควรจัดสรรส่วนใหญ่ไปที่ model size แล้วยอม train น้อยกว่า optimal**
+
+นั่นหมายความว่าในปี 2020 ถ้าคุณมีเงิน $1 ล้านสำหรับ train model คำแนะนำคือสร้าง model ขนาดใหญ่ แล้วยอมให้ data น้อยกว่าที่ควร เพราะ parameters มีผลต่อ performance มากกว่า
+
+> 💡 **Key insight:** Kaplan et al. เปลี่ยนวิธีที่บริษัท AI คิดเรื่อง resource allocation — จากเดิมที่ "train นาน ๆ ด้วย model ปานกลาง" กลายเป็น "สร้าง model ใหญ่สุดที่ทำได้ แม้จะ train ได้ไม่นาน"
+
+<!-- IMAGE: ไดอะแกรม 3 ตัวแปรหลักของ Scaling Laws: N (parameters), D (data tokens), C (compute/FLOPs) พร้อม power law curve ของแต่ละตัว -->
+
+สิ่งที่ทำให้ paper นี้ทรงพลังมากคือมันให้ recipe ที่ชัดเจน: ถ้าอยากได้ model ที่ดีขึ้น X% คุณต้องเพิ่ม compute ขึ้นเท่าไหร่ นักวิจัยสามารถ extrapolate ไปข้างหน้าได้ว่า model รุ่นถัดไปจะต้องใหญ่แค่ไหนจึงจะดีกว่า รุ่นปัจจุบันอย่างมีนัยสำคัญ
+
+**วิธีที่ Kaplan ทดลอง**
+
+สิ่งที่ทำให้ paper นี้น่าเชื่อถือคือ methodology — ทีมไม่ได้แค่สังเกตผลของ model ขนาดใหญ่สองสามตัว แต่ train model หลายร้อยตัวในขนาดต่าง ๆ อย่างเป็นระบบ ตั้งแต่ model เล็กมากไปจนถึงใหญ่มาก แล้วทำแบบเดียวกันสำหรับ data size และ compute budget แยกกัน
+
+ผลที่ได้คือ scaling curves ที่ชัดเจน — เส้นตรงบน log-log plot ที่ยืนยันว่า power law ใช้ได้จริงข้ามหลาย orders of magnitude
+
+ข้อสังเกตที่น่าสนใจอีกอย่างจาก Kaplan คือ: แต่ละตัวแปรมี "โควตา" ของตัวเอง ถ้าคุณ fix N และ D ไว้ แล้วเพิ่ม C อย่างเดียว performance จะดีขึ้นแค่เล็กน้อย การเพิ่ม C ให้ดีขึ้นจริงต้องมาพร้อมกับการเพิ่ม N และ D ด้วย ทั้ง 3 ตัวต้องขยายพร้อมกัน เพียงแต่สัดส่วนที่ดีที่สุดคืออะไรนั้น Kaplan และ Chinchilla มีคำตอบต่างกัน
+
+แต่ Kaplan et al. ไม่ใช่คำตอบสุดท้าย
+
+---
+
+## Chinchilla (2022) — DeepMind แก้สมการใหม่
+
+สองปีต่อมา DeepMind ตีพิมพ์ paper ที่มีชื่อเล่นว่า "Chinchilla" (ตามชื่อ model ที่ใช้ทดสอบ) และมันพลิกความเข้าใจเดิมอย่างสิ้นเชิง
+
+Jordan Hoffmann และทีมงานถามคำถามที่ฟังดูง่ายแต่ไม่มีใครทดสอบจริง ๆ: "ถ้ามี compute budget คงที่ อัตราส่วนที่ optimal ระหว่าง model size กับ data size ควรเป็นเท่าไหร่?"
+
+Kaplan บอกว่า model size สำคัญกว่า Chinchilla บอกว่า **data สำคัญพอ ๆ กับ model size** และอัตราส่วนที่ optimal คือประมาณ 1:20 — parameters 1 ตัวควรได้เห็น training data ประมาณ 20 tokens
+
+ถ้าแปลงเป็นตัวเลขที่จับต้องได้: model ขนาด 70 พันล้าน parameters ควร train ด้วยข้อมูลประมาณ 1.4 trillion tokens (70B × 20 = 1.4T) ถึงจะเรียกว่า compute-optimal
+
+แล้วพิสูจน์ยังไง? DeepMind สร้าง Chinchilla ขนาด 70B parameters และ train ด้วย data มากขึ้นกว่าที่ Kaplan แนะนำ แล้วนำไปเปรียบเทียบกับ Gopher ซึ่งเป็น model 280B ของ DeepMind เอง
+
+ผลคือ: **Chinchilla 70B ชนะ Gopher 280B บนเกือบทุก benchmark**
+
+model ที่เล็กกว่า 4 เท่า เก่งกว่า — เพราะ train ด้วยข้อมูลในสัดส่วนที่ถูกต้อง
+
+> 💡 **Key insight:** บทเรียนจาก Chinchilla คือ "ใหญ่กว่า" ไม่ได้แปลว่า "ดีกว่า" ถ้า train มาไม่ดีพอ model ที่ balanced ระหว่าง size และ data จะชนะ model ที่ใหญ่มากแต่ under-trained เสมอ
+
+<!-- IMAGE: กราฟเปรียบเทียบ Chinchilla 70B กับ Gopher 280B บน various benchmarks แสดงให้เห็นว่า smaller but better-trained model ชนะ -->
+
+การค้นพบนี้ทำให้เกิดแนวคิด "compute-optimal training" — การออกแบบ training process ที่ใช้ budget ที่มีอยู่ได้อย่างมีประสิทธิภาพที่สุด ไม่ใช่แค่สร้าง model ใหญ่สุดที่เป็นไปได้
+
+ความน่าสนใจอีกอย่างคือ ก่อน Chinchilla paper นักวิจัยหลายคนตั้งข้อสังเกตว่า model รุ่นใหม่ ๆ ที่ใหญ่มาก เช่น Gopher หรือ GPT-3 ดูเหมือนจะ "under-trained" เมื่อเทียบกับ size — Chinchilla ยืนยันและอธิบายสาเหตุได้อย่างชัดเจน
+
+**ผลกระทบต่อ Industry**
+
+หลังจาก Chinchilla ออกมา บริษัท AI หลายเจ้าต้องกลับไปทบทวน roadmap ใหม่ แทนที่จะแข่งกันสร้าง model ที่ใหญ่ที่สุด บางส่วนหันมา focus ที่การหา data มากขึ้นแทน
+
+ตัวอย่างที่เห็นชัดคือ Llama series ของ Meta — แทนที่จะทำ model ใหญ่ขึ้นเรื่อย ๆ Meta เลือกที่จะ train model ขนาดกลางด้วยข้อมูลมากกว่า Chinchilla optimal มาก ผลลัพธ์คือ model ที่เล็กพอจะ run บน consumer hardware แต่ดีพอจะแข่งกับ model ใหญ่กว่าได้
+
+Google ก็ปรับ approach กับ Gemini — แทนที่จะประกาศแค่ parameter count มีการพูดถึง training data ด้วย เพราะตลาดรู้แล้วว่าตัวเลขเดียวไม่เพียงพอสำหรับการประเมิน model
+
+---
+
+## 3 แกนของ Scaling — และความสัมพันธ์ระหว่างกัน
+
+เมื่อเข้าใจ Kaplan และ Chinchilla แล้ว ลองมาดูภาพรวมของ 3 แกนหลักที่ scaling เกิดขึ้น
+
+**แกนที่ 1: Parameters (N)**
+
+Parameters คือขนาดของ model วัดในหน่วยล้าน (M) หรือพันล้าน (B) ตัวอย่าง:
+- GPT-2: 1.5B parameters
+- GPT-3: 175B parameters
+- Llama 3: 8B, 70B, 405B
+- GPT-4: ไม่เปิดเผย แต่ประมาณการณ์ว่าใหญ่กว่า GPT-3 มาก
+
+Parameters มากขึ้น = model สามารถเก็บ pattern ซับซ้อนกว่า เข้าใจ nuance ได้มากกว่า แต่ก็ใช้ memory มากขึ้นและ inference ช้าลงด้วย
+
+**แกนที่ 2: Data Tokens (D)**
+
+Training data วัดใน tokens ตัวอย่างสเกลของข้อมูล:
+- GPT-3: 300B tokens
+- Llama 2: 2T tokens
+- Llama 3: 15T tokens
+- Gemini Ultra: ไม่เปิดเผย แต่คาดว่าหลาย tens of trillions
+
+Data มากขึ้น = model เห็น pattern หลากหลายกว่า generalizes ได้ดีกว่า แต่ก็ต้องการ compute มากขึ้นในการ train
+
+**แกนที่ 3: Compute (C)**
+
+Compute วัดใน FLOPs (Floating Point Operations) โดยมีสูตรประมาณการณ์ง่าย ๆ:
+
+```
+C ≈ 6 × N × D
+```
+
+ถ้าสร้าง model 70B parameters และ train ด้วย 1.4T tokens:
+```
+C ≈ 6 × 70,000,000,000 × 1,400,000,000,000
+C ≈ 5.88 × 10^23 FLOPs
+```
+
+ตัวเลขนี้ดูงงมาก แต่ถ้าแปลงเป็นความเป็นจริง — GPU ระดับ H100 ทำได้ประมาณ 10^15 FLOPs ต่อวินาที train model ขนาดนี้ใช้เวลาหลายพันชั่วโมง GPU
+
+<!-- IMAGE: ไดอะแกรม isoflop curves แสดงให้เห็นว่าด้วย compute budget เดียวกัน combinations ต่าง ๆ ของ N และ D ให้ผลลัพธ์ต่างกัน และมี optimal point อยู่ -->
+
+**Isoflop Curves คืออะไร**
+
+เมื่อ compute budget คงที่ คุณสามารถเลือกใช้ budget นั้นได้หลายวิธี:
+- Model ใหญ่มาก + data น้อย
+- Model เล็ก + data มาก
+- หรือจุดกึ่งกลางที่ optimal
+
+Isoflop curve คือเส้นที่แสดงทุก combinations ที่ใช้ compute เท่ากัน และจุดที่ performance ดีที่สุดบนเส้นนั้นคือ compute-optimal point ตามสูตร Chinchilla
+
+**ทำไม 3 แกนต้องสมดุลกัน**
+
+ลองนึกภาพว่าคุณกำลังสอนเด็กคนหนึ่ง แกน N เหมือนกับ "ความจุสมอง" — สมองที่ใหญ่กว่าสามารถเรียนรู้สิ่งที่ซับซ้อนกว่าได้ แกน D เหมือนกับ "ประสบการณ์" — ยิ่งเห็นตัวอย่างมาก ยิ่งเข้าใจ pattern ได้หลากหลายกว่า แกน C เหมือนกับ "เวลาในการฝึกซ้อม" — ต่อให้สมองดีแค่ไหน ถ้าไม่ฝึกก็ไม่เก่ง
+
+ความผิดพลาดที่ Kaplan ทำคือสรุปว่า "สมองใหญ่" สำคัญที่สุด แต่ Chinchilla แสดงให้เห็นว่า สมองใหญ่ที่ฝึกน้อยเกินไปแพ้สมองเล็กที่ฝึกมากกว่า — อัตราส่วนของทั้งคู่ต้องสมดุลกัน
+
+**ความสัมพันธ์ระหว่าง Compute กับ Model Size ในทางปฏิบัติ**
+
+สูตร C ≈ 6ND บอกว่า ถ้า compute budget เพิ่มขึ้น 4 เท่า (4x) จะสามารถทำ 2 อย่างได้พร้อมกัน: เพิ่ม model size 2x และ training tokens 2x ซึ่งตรงกับแนวคิด compute-optimal ของ Chinchilla — ทั้งสองต้องขยายในอัตราส่วนเท่ากัน
+
+---
+
+## ลองคิดดู: ถ้าคุณมี Budget $10 ล้าน ควรจัดสรรยังไง?
+
+สมมติคุณเป็น CTO ของ startup AI และมีเงิน $10 ล้านสำหรับ train language model หนึ่งตัว คุณจะเลือกยังไง?
+
+**ตัวเลือก A: All-in บน Model Size**
+- สร้าง model ขนาด 100B parameters
+- ใช้ GPU cluster ราคาแพงสุด
+- ได้ training tokens ประมาณ 500B (น้อยกว่า optimal มาก)
+
+**ตัวเลือก B: All-in บน Data**
+- สร้าง model ขนาด 7B parameters เท่านั้น
+- ใช้เงินส่วนใหญ่ซื้อและ process ข้อมูล
+- ได้ training tokens ประมาณ 10T
+
+**ตัวเลือก C: Chinchilla-Optimal**
+- สร้าง model ขนาด 30B parameters
+- Train ด้วย 600B tokens (30B × 20 = 600B)
+- Balance ระหว่าง model size และ data
+
+Kaplan ปี 2020 จะบอกว่าเลือก A — สร้าง model ใหญ่ที่สุด Chinchilla ปี 2022 บอกว่าเลือก C — balance ดีที่สุด แต่มีคำตอบที่ 4 ที่น่าสนใจกว่า ซึ่งจะพูดถึงในหัวข้อ Inference-Optimal ด้านล่าง
+
+**ทำไมคำถามนี้สำคัญ?**
+
+เพราะในโลกจริง ไม่มี "compute budget" ที่ unlimited และการตัดสินใจที่ผิดในจุดนี้แปลว่าเงินหลายสิบล้านดอลลาร์อาจสูญเปล่า บริษัทหลายแห่งก่อน Chinchilla paper เลือก option A โดยไม่รู้ว่ากำลัง wasteful อยู่ — train model ใหญ่มากแต่ underfit เพราะ data ไม่พอ
+
+ตัวอย่าง: ถ้าสร้าง model 100B แต่ train แค่ 500B tokens (5 tokens ต่อ parameter) model นั้นจะ "ไม่อิ่ม" — ยังมีความสามารถเหลืออยู่อีกมากที่ยังไม่ได้ถูก extract ออกมา การลงทุน $10 ล้านแบบนั้นอาจให้ผลแค่ 60-70% ของที่ควรจะได้ถ้า allocate ถูกต้อง
+
+ลองคิดดูก่อนอ่านต่อ: ถ้าคุณรู้ว่า model นี้จะถูก deploy ให้ผู้ใช้ล้านคนใช้งาน ทุกครั้งที่ใช้ก็ต้องจ่ายค่า compute ใหม่ คำตอบของคุณจะเปลี่ยนไปหรือเปล่า? และถ้า model นี้จะถูกใช้แค่ internally ในทีมวิจัย 10 คน คำตอบจะต่างกันไหม?
+
+<!-- IMAGE: ภาพ decision tree หรือ flowchart แสดงการตัดสินใจ training budget allocation ระหว่าง 3 ตัวเลือก -->
+
+---
+
+## Emergent Abilities — ความสามารถที่ "โผล่" ขึ้นมาเอง
+
+หนึ่งในปรากฏการณ์ที่น่าตื่นเต้นและถกเถียงกันมากที่สุดใน Scaling Laws คือเรื่อง Emergent Abilities
+
+ปกติถ้า scaling เป็น power law ทุกอย่างควรดีขึ้นแบบ smooth — แต่นักวิจัยพบว่ามีบาง capabilities ที่ดูเหมือนไม่ดีขึ้นเลยจนถึงจุดหนึ่ง แล้วก็ "โผล่" ขึ้นมาอย่างกะทันหัน
+
+ตัวอย่างที่ชัดเจนที่สุดคือ **Chain-of-Thought Reasoning** ความสามารถในการแก้ปัญหาหลายขั้นตอนโดยคิดออกมาเป็นขั้น ๆ สิ่งนี้ดูเหมือนไม่ทำงานเลยใน model เล็ก แต่พอ model ถึง scale ระดับหนึ่ง มันก็ "เปิดสวิตช์" ขึ้นมา
+
+ตัวอย่างอื่นที่ถูกสังเกตเห็น:
+- **Few-shot learning** — เรียนรู้จาก 3-5 ตัวอย่างใน prompt โดยไม่ต้อง fine-tune
+- **Code generation** — เขียน code จาก description ภาษาธรรมชาติ
+- **Multi-step arithmetic** — คำนวณเลขหลายขั้นตอนได้ถูก
+- **Language translation** — แปลภาษาที่แทบไม่มีใน training data ได้
+
+> 💡 **Key insight:** ถ้า emergent abilities เป็นเรื่องจริง มันหมายความว่า scale ไม่ได้แค่ทำให้ model "เก่งขึ้น" แต่ยัง "unlock" ความสามารถใหม่ที่ไม่เคยมีมาก่อน นี่คือหนึ่งในเหตุผลที่นักวิจัยยังคงลงทุนกับ scaling
+
+แต่มีนักวิจัยหลายคนออกมาโต้แย้งว่า emergent abilities อาจเป็นแค่ **"metric artifact"** — ไม่ใช่ความสามารถที่โผล่ขึ้นมาจริง ๆ แต่เป็นผลของ metric ที่ใช้วัดนั้น
+
+ลองนึกภาพ: ถ้าคุณวัด performance ด้วย "ตอบถูกหรือไม่" (0 หรือ 1) แทนที่จะวัดว่า "ใกล้เคียงแค่ไหน" คุณจะเห็นความสามารถกระโดดจาก 0% เป็น 80% ในทันที ทั้งที่จริง ๆ model กำลังพัฒนาแบบ smooth มาตลอด
+
+ข้อถกเถียงนี้ยังไม่มีข้อสรุป แต่ไม่ว่าจะอ้างจากฝั่งไหน มันบอกว่าการทำความเข้าใจ what exactly is improving เมื่อ scale ยังเป็น open question ที่สำคัญมาก
+
+**ตัวอย่าง Emergent Ability ที่น่าสนใจ: BIG-Bench**
+
+BIG-Bench (Beyond the Imitation Game Benchmark) เป็น benchmark ที่รวบรวมงานที่คาดว่า model ขนาดปัจจุบันยังทำไม่ได้ เมื่อนักวิจัยทดสอบ model หลายขนาดกับ BIG-Bench พบว่า งานบางอย่างให้ผล near-zero สำหรับ model ขนาดกลาง แล้วกระโดดขึ้นอย่างรวดเร็วเมื่อถึง threshold บางอย่าง เช่น งานด้าน logical reasoning ที่ต้องการ chain of thought
+
+แต่งานอื่น ๆ เช่นการจำชื่อ หรือ pattern matching ง่าย ๆ พัฒนาแบบ smooth ตาม scale ตลอด สิ่งนี้ทำให้ยากที่จะสรุปว่า emergence เป็น "กฎ" หรือเป็นแค่ property ของงานบางประเภท
+
+**Implication สำหรับการ Predict ความสามารถ**
+
+ถ้า emergent abilities เป็นเรื่องจริง มันหมายความว่า Scaling Laws มีข้อจำกัดสำคัญ: คุณสามารถ predict loss ของ model ได้ แต่ไม่สามารถ predict capabilities ได้เสมอไป เพราะ capability บางอย่างอาจโผล่ขึ้นมาโดยไม่คาดคิด ในทางกลับกัน ถ้า emergent abilities เป็นแค่ metric artifact จริง ๆ Scaling Laws ก็ทรงพลังกว่าที่คิด เพราะ predict ทุกอย่างได้จาก loss curve เพียงอย่างเดียว
+
+<!-- IMAGE: กราฟแสดง emergent abilities — เส้น flat แล้วก็ spike ขึ้นอย่างกะทันหัน เปรียบเทียบกับ smooth power law curve พร้อมตัวอย่าง BIG-Bench tasks -->
+
+---
+
+## Compute-Optimal vs Inference-Optimal — สองคำถามที่ต่างกัน
+
+นี่คือจุดที่หลายคนสับสน เพราะ Chinchilla-optimal ตอบคำถามหนึ่ง แต่ในความเป็นจริงอาจมีคำถามที่สำคัญกว่า
+
+**Chinchilla-Optimal ตอบคำถาม:** "ถ้ามี compute budget เท่านี้ จะ train model ยังไงให้ได้ performance ดีที่สุด?"
+
+**แต่คำถามที่ business จริง ๆ มักถามคือ:** "ถ้าจะ deploy model ให้คนล้านคนใช้ทุกวัน จะเลือก model ยังไง?"
+
+สองคำถามนี้มีคำตอบที่ต่างกัน
+
+Training cost เกิดขึ้นครั้งเดียว แต่ inference cost เกิดขึ้นทุกครั้งที่มีคนใช้ model model ใหญ่ต้องการ GPU มากกว่า ใช้พลังงานมากกว่า และ latency สูงกว่า
+
+ลองนึกภาพ startup ที่ build product บน LLM: ถ้า serve 1 ล้าน requests ต่อวัน และ model ใหญ่ขึ้น 10x ทำให้ cost ต่อ request เพิ่ม 5x นั่นหมายถึง infrastructure cost เพิ่ม 5x ทุกวัน ถ้า training cost ถูก 2 เท่า แต่ inference cost สูง 5 เท่าตลอดอายุการใช้งาน — การเลือก model เล็กกว่า ที่ overtrain มาให้ดีขึ้นอาจ save เงินได้มหาศาลในระยะยาว
+
+สมมติ:
+- Model A: 100B parameters, Chinchilla-optimal performance
+- Model B: 7B parameters, train มากกว่า optimal (overtrained)
+
+Model A อาจดีกว่า Model B เล็กน้อยในเรื่อง performance แต่ถ้า Model B ถูก serve ให้ผู้ใช้ 10 ล้านคนต่อวัน ค่า inference ถูกกว่า 10-15 เท่า
+
+นี่คือที่มาของ approach แบบ **Llama** — Meta ตั้งใจสร้าง model ที่ "overtrained" เมื่อเทียบกับ Chinchilla ratio คือ train model ขนาดเล็กถึงกลางด้วยข้อมูลมากกว่า optimal เพื่อให้ได้ model ที่:
+1. เล็กพอที่จะ run บน consumer hardware ได้
+2. ดีพอที่จะแข่งกับ model ใหญ่กว่าได้
+
+Llama 3 8B train ด้วย 15T tokens — มากกว่า Chinchilla optimal สำหรับ 8B model ถึงประมาณ 10 เท่า และผลลัพธ์คือ model ขนาดเล็กที่ทำงานได้ดีกว่า Llama 2 70B ในหลาย ๆ เรื่อง
+
+> 💡 **Key insight:** การเลือก model ที่ดีที่สุดไม่ได้หมายถึง "ใหญ่ที่สุด" หรือ "Chinchilla-optimal" เสมอ ต้องถามก่อนว่า optimization target คืออะไร — training cost? inference cost? latency? performance ceiling? คำตอบที่ต่างกันนำไปสู่การออกแบบที่ต่างกัน
+
+<!-- IMAGE: ตาราง cost comparison ระหว่าง training cost one-time กับ inference cost ที่สะสมตามจำนวนผู้ใช้ แสดงให้เห็นว่า inference-optimal อาจประหยัดกว่าในระยะยาว -->
+
+---
+
+## Test-Time Compute Scaling — มิติใหม่ของ Scaling
+
+จนถึงตอนนี้ เราพูดถึง scaling ในบริบทของ training — ยิ่ง train model ใหญ่ขึ้นด้วยข้อมูลมากขึ้น ยิ่งดี แต่ปี 2024-2025 นักวิจัยเริ่มสำรวจมิติใหม่: **Test-Time Compute Scaling** หรือ "ให้ model คิดนานขึ้นตอน inference"
+
+แนวคิดพื้นฐานคือ: แทนที่จะลงทุน compute ทั้งหมดในการ train ครั้งเดียว ลองแบ่งมาให้ model ใช้ compute เพิ่มเติมเมื่อเจอคำถามที่ยาก
+
+นี่คือ architecture ที่อยู่เบื้องหลัง **o1 และ o3 ของ OpenAI** และ **Extended Thinking ของ Claude**
+
+แทนที่จะตอบทันที model เหล่านี้ผ่าน "thinking phase" — ช่วงที่ model สร้าง internal reasoning chain ยาว ๆ ก่อนที่จะให้คำตอบสุดท้าย โดยที่ thinking chain นี้ผู้ใช้บางส่วนมองเห็นได้ บางส่วนไม่เห็น
+
+ข้อมูลที่น่าสนใจคือ scaling ของ test-time compute ดูเหมือนจะให้ผลดีบนงานที่ต้องการ reasoning หลายขั้นตอน เช่น:
+- การแก้โจทย์คณิตศาสตร์ขั้นสูง
+- การเขียน code ที่ซับซ้อน
+- การตัดสินใจเชิงกลยุทธ์
+- การวิเคราะห์เอกสารยาว ๆ
+
+แต่สำหรับงานที่ไม่ต้องการ reasoning ลึก เช่น ตอบคำถามง่าย ๆ การให้ model "คิดนาน" อาจไม่คุ้มค่า
+
+ความน่าสนใจจากมุมมอง Scaling Laws คือ: test-time compute scaling มี power law ของตัวเองหรือเปล่า? และถ้ามี มันจะ complement หรือ substitute training scaling?
+
+คำตอบยังไม่ชัดเจน แต่ทิศทางที่เห็นคือ: model ที่ train มาดีมีแนวโน้มจะ "คิดได้ดีกว่า" เมื่อให้ test-time compute เพิ่ม — สองแกนนี้น่าจะทำงานร่วมกัน ไม่ใช่แข่งกัน
+
+approach ในการเพิ่ม test-time compute มีหลายแบบ — ตั้งแต่ Best-of-N sampling, Chain-of-Thought, ไปจนถึง Tree of Thoughts — กลไกของแต่ละแบบเราจะเจาะลึกในบท [Reasoning Models](/advanced/reasoning-models) ที่จะมาถึง
+
+สิ่งที่ทำให้ test-time compute น่าสนใจในบริบท Scaling Laws คือ: มันเปลี่ยน "compute is spent at training" เป็น "compute is spent at inference per query" ซึ่งหมายความว่า user ที่ต้องการคำตอบที่ดีกว่าสามารถ "จ่ายเพิ่ม" สำหรับ compute มากขึ้น ได้ในแบบ on-demand
+
+<!-- IMAGE: ไดอะแกรมแสดงการเปรียบเทียบ training-time compute scaling กับ test-time compute scaling พร้อม timeline ของ o1/o3/Claude Thinking และกลไกของแต่ละ approach -->
+
+---
+
+## ลองคิดดู: ขีดจำกัดของ Internet
+
+ลองมานั่งคิดด้วยกันว่า ถ้า Scaling Laws บอกว่า "data มากขึ้น ยิ่งดี" ข้อจำกัดที่ใหญ่ที่สุดคืออะไร?
+
+คำตอบคือ internet มีขนาดจำกัด
+
+Common Crawl ซึ่งเป็นหนึ่งในแหล่ง training data ใหญ่ที่สุด เก็บข้อมูลจากเว็บประมาณ 250 billion pages แต่เมื่อ filter เอาแค่ข้อมูลที่มีคุณภาพ (ไม่ใช่ spam ไม่ใช่ duplicate ไม่ใช่ code ที่ autogenerate) จะเหลือน้อยลงมาก
+
+Llama 3 ใช้ 15T tokens แล้ว ถ้า trend ยังคงอยู่ model รุ่นถัดไปอาจต้องการ 50T หรือ 100T tokens — แต่ internet ทั้งหมดประมาณว่ามีข้อมูลคุณภาพดีอยู่แค่ประมาณ 10-100T tokens เท่านั้น
+
+ลองคิดดู: ถ้าคุณเป็นนักวิจัย คุณจะแก้ปัญหา "data wall" นี้ยังไง?
+
+ตัวเลือกที่กำลังถูกทดลอง:
+- **Synthetic data** — ให้ model สร้าง training data ให้ตัวเอง แต่ถ้าทำไม่ดีอาจเกิด "model collapse" เมื่อ model learn จาก output ของตัวเอง
+- **Multimodal data** — ขยายไปใช้รูปภาพ วิดีโอ เสียง ซึ่งมีปริมาณมหาศาลกว่าข้อความ
+- **Better data curation** — ใช้ข้อมูลน้อยลงแต่มีคุณภาพสูงกว่า แทนที่จะกวาดทุกอย่างเข้า
+- **Domain-specific scaling** — focus ที่ specific domain แทนที่จะ scale แบบ general purpose
+
+ไม่มีคำตอบที่สมบูรณ์ แต่นี่คือหนึ่งในคำถามที่ร้อนแรงที่สุดในวงการ AI ปัจจุบัน
+
+<!-- IMAGE: infographic แสดง "data landscape" — ปริมาณ training data ที่ใช้ใน model ต่าง ๆ เปรียบเทียบกับประมาณการณ์ขนาดของ internet -->
+
+---
+
+## ข้อจำกัดของ Scaling — เมื่อ "ใหญ่กว่า" เริ่มมีราคา
+
+Scaling Laws ฟังดูดีมาก แต่มีข้อจำกัดสำคัญหลายอย่างที่ต้องพูดถึง
+
+**1. Data Wall**
+
+ดังที่กล่าวข้างต้น ปริมาณข้อมูลคุณภาพดีบน internet มีจำกัด ถ้า scaling ต้องการ data มากขึ้นเรื่อย ๆ เราจะเจอเพดานในไม่ช้า
+
+**2. Energy และ Cost**
+
+Training GPT-4 คาดว่าใช้ไฟฟ้าหลายร้อย gigawatt-hours ค่าใช้จ่ายรวมน่าจะเกิน $100 ล้าน ถ้า model รุ่นถัดไปใหญ่ขึ้น 10 เท่า ค่าใช้จ่ายจะกระโดดขึ้นในลักษณะเดียวกัน ซึ่งมีผลต่อทั้ง sustainability และ barrier to entry
+
+ปัจจุบัน data center ของบริษัท AI ขนาดใหญ่ใช้พลังงานพอ ๆ กับเมืองขนาดกลาง และถ้า scaling ยังดำเนินต่อไป ความต้องการพลังงานจะกลายเป็นข้อจำกัดที่ physical จริง ๆ
+
+**3. Diminishing Returns ที่ Scale สูงมาก**
+
+Power law บอกว่า return ลดลงเรื่อย ๆ ตาม scale แม้ว่ายังคง "ดีขึ้น" แต่การเพิ่ม 10x ของ compute อาจให้ performance เพิ่มขึ้นแค่ 1-2% ในบาง benchmark มีจุดที่ cost-benefit ไม่คุ้มอีกต่อไป
+
+**4. ข้อถกเถียงเรื่อง AGI Through Scale Alone**
+
+หนึ่งในคำถามใหญ่ที่สุดในวงการ AI คือ: ถ้า scale ต่อไปเรื่อย ๆ เราจะได้ AGI (Artificial General Intelligence) ไหม?
+
+ฝ่ายที่เชื่อว่าใช่ argument ว่า Scaling Laws ยังคงใช้งานได้และไม่มีเหตุผลจะหยุดใช้งาน ถ้า scale ถึงระดับที่ใหญ่พอ ความสามารถใหม่ ๆ จะ emerge ขึ้นเอง
+
+ฝ่ายที่เชื่อว่าไม่ใช่ argument ว่า scale เพียงอย่างเดียวไม่เพียงพอ ต้องการ breakthrough ทาง architecture หรือ algorithm ใหม่ เพราะ "คาดเดาได้ดีขึ้น" ไม่ใช่ "คิดได้จริง"
+
+ข้อถกเถียงนี้ยังไม่มีคำตอบ และน่าจะยังคงเป็น open question ไปอีกนาน
+
+**5. Quality ไม่เท่ากับ Quantity**
+
+Scaling Laws วัด loss บน benchmark แต่ไม่ได้วัดทุกอย่างที่ทำให้ model "ดี" ในความหมายที่ users สนใจ เช่น:
+- Hallucination rate (การสร้างข้อมูลเท็จ)
+- Instruction following (ทำตามคำสั่งได้จริง)
+- Safety (ไม่สร้างเนื้อหาอันตราย)
+- Reasoning quality บนปัญหาที่ไม่เคยเห็นมาก่อน
+
+สิ่งเหล่านี้ improve ตาม scale ด้วย แต่ไม่ได้ follow power law เดียวกันเสมอไป และหลาย ๆ ครั้งต้องการ RLHF, Constitutional AI หรือ technique อื่น ๆ ที่ไม่ใช่แค่ scale มากขึ้น
+
+> 💡 **Key insight:** Scaling Laws เป็นเครื่องมือทรงพลังในการ predict และ plan แต่ไม่ใช่กฎ physics ที่ไม่มีวันเปลี่ยน อาจมี architectural breakthrough ที่ทำให้สูตรเปลี่ยน หรืออาจมีข้อจำกัดที่ยังค้นไม่พบ ความสำคัญคือเข้าใจมันในฐานะ empirical pattern ไม่ใช่ absolute law
+
+<!-- IMAGE: กราฟแสดง cost vs performance ที่มี diminishing returns อย่างชัดเจน พร้อมจุดที่อาจเป็น "practical ceiling" ในแต่ละ domain -->
+
+---
+
+## Synthetic Data — ทางออกหรือทางตัน?
+
+เนื่องจาก data wall กำลังเป็นปัญหาจริง ๆ ทางออกที่ถูกพูดถึงมากที่สุดคือ synthetic data — ข้อมูล training ที่สร้างโดย model อื่น ๆ แทนที่จะมาจากมนุษย์
+
+แนวคิดฟังดูดี: ถ้า GPT-4 สร้าง training data ให้ GPT-5 แล้ว GPT-5 สร้างให้ GPT-6 เราก็จะมี data ไม่สิ้นสุด
+
+แต่ในทางปฏิบัติมีปัญหาใหญ่: **Model Collapse**
+
+ถ้า model เรียนรู้จาก output ของตัวเองหรือ model อื่นที่คล้ายกัน มันจะเริ่ม "วนซ้ำ" ในรูปแบบที่มันรู้ แทนที่จะเรียนรู้ pattern ใหม่ ๆ เหมือนกับ photocopy ของ photocopy — คุณภาพลดลงทุกรอบ
+
+อย่างไรก็ตาม synthetic data ใช้งานได้ดีในบางบริบท:
+- **Domain-specific data** — ถ้าต้องการ training data ทางการแพทย์หรือกฎหมายที่มีน้อย สามารถ generate ได้โดยให้ domain expert verify
+- **Augmentation** — ใช้ผสมกับ real data ในสัดส่วนที่เหมาะสม
+- **Adversarial examples** — สร้าง edge cases เพื่อทดสอบ robustness
+
+ยังไม่มีคำตอบที่ชัดเจนว่า synthetic data จะแก้ data wall ได้หรือไม่ แต่นี่คือพื้นที่ที่มีการวิจัยมากที่สุดในขณะนี้
+
+กรณีที่น่าสนใจคือ **phi-1 และ phi-2 ของ Microsoft** — model ขนาดเล็กมากที่ train ด้วย synthetic data ที่มีคุณภาพสูง (textbook-quality code และ explanations ที่ generate โดย GPT-4) แทนที่จะใช้ code จากอินเทอร์เน็ตทั่วไป ผลลัพธ์คือ model 2.7B ที่สามารถแข่งกับ model 10x ใหญ่กว่าบน coding benchmarks ได้
+
+นี่ชี้ให้เห็นว่า data quality อาจสำคัญกว่า data quantity ในบางบริบท และ synthetic data ที่มีคุณภาพสูงอาจเป็นคำตอบสำหรับ domain เฉพาะทาง แม้ไม่ใช่คำตอบสำหรับ general-purpose scaling
+
+---
+
+## Implications สำหรับ Practitioners — ทำไมคุณต้องรู้เรื่องนี้
+
+ถ้าคุณไม่ได้ทำงาน AI research โดยตรง ทำไมต้องเข้าใจ Scaling Laws?
+
+**1. เลือก Model Size ให้เหมาะกับงาน**
+
+เข้าใจว่า model ขนาดต่าง ๆ เหมาะกับงานต่างกัน:
+- งานทั่วไป (summarize, translate, classify): model 7-13B ก็เพียงพอ
+- งานที่ต้องการ reasoning ลึก (code, analysis, research): 70B+ มักให้ผลดีกว่า
+- งาน production ที่ต้องการ latency ต่ำ: เลือก model เล็กที่ overtrained (เช่น Llama 3 8B)
+
+**2. ประมาณ Cost ก่อน Fine-tune หรือ Train**
+
+ถ้าต้องการ fine-tune model ของตัวเอง สูตร Chinchilla ช่วย estimate ได้ว่าต้องใช้ data เท่าไหร่และ compute เท่าไหร่:
+
+```python
+# ประมาณ compute ที่ต้องใช้
+def estimate_compute(num_parameters, num_tokens):
+    """
+    สูตรประมาณ FLOPs สำหรับ training
+    ตาม Hoffmann et al. (Chinchilla paper)
+    """
+    # 6 * N * D เป็น approximation ที่ใช้กันทั่วไป
+    flops = 6 * num_parameters * num_tokens
+    return flops
+
+# ตัวอย่าง: fine-tune model 7B ด้วย 1B tokens
+model_size = 7_000_000_000  # 7B parameters
+training_tokens = 1_000_000_000  # 1B tokens
+
+total_flops = estimate_compute(model_size, training_tokens)
+print(f"ประมาณ FLOPs: {total_flops:.2e}")
+# ผลลัพธ์: ประมาณ FLOPs: 4.20e+19
+```
+
+**3. อ่าน Benchmark Trends ได้**
+
+เมื่อเห็น headline ว่า "Model X ชนะ Model Y บน MMLU" คุณจะรู้ว่าต้องถามอะไร:
+- Model size ต่างกันไหม?
+- Train ด้วย data เท่าไหร่?
+- Compare ด้วย compute เดียวกันหรือเปล่า?
+- หรือแค่ bigger model ชนะ smaller model ซึ่งไม่ได้น่าประทับใจเลย
+
+**4. ตั้ง Expectations ให้ถูกต้อง**
+
+เมื่อใช้ model ขนาดเล็กแล้วได้ผลลัพธ์ไม่ดี ก่อนจะโทษ prompt หรือ technique ให้นึกถึง Scaling Laws — บางงานต้องการ model ที่ใหญ่กว่า และไม่มี prompt engineering ไหนที่จะแก้ได้
+
+**5. ตาม Trend ของ Industry ได้**
+
+เมื่อ Anthropic, Google, Meta หรือ Microsoft ประกาศ model ใหม่ คุณจะเข้าใจว่าทำไมตัวเลข parameters หรือ training tokens ถึงสำคัญ และประมาณได้ว่า model ใหม่ควรดีขึ้นเท่าไหร่จาก scale ที่เพิ่มขึ้น
+
+**6. ใช้ Scaling Law เป็น Sanity Check**
+
+เมื่อมีคนอ้างว่า "model ใหม่ของเราขนาด 1B parameters ดีกว่า GPT-4" ควรถามทันทีว่า train ด้วย data เท่าไหร่? ใช้ compute เท่าไหร่? บน benchmark อะไร? เพราะ Scaling Laws บอกว่า ถ้า model เล็กกว่า 100x แต่ train ด้วย data น้อยกว่า performance ควรต่ำกว่ามาก ถ้าใครอ้างว่าดีกว่า มีสามความเป็นไปได้: architecture ดีขึ้นมาก, benchmark เลือกมาเฉพาะเจาะจง, หรือมีอะไรผิดปกติ
+
+```python
+# Chinchilla-optimal tokens สำหรับ model ขนาดต่าง ๆ
+def chinchilla_optimal_tokens(num_parameters):
+    """
+    ตาม Chinchilla paper: tokens_optimal ≈ 20 × parameters
+    """
+    return 20 * num_parameters
+
+model_sizes = {
+    "7B": 7_000_000_000,
+    "13B": 13_000_000_000,
+    "70B": 70_000_000_000,
+    "405B": 405_000_000_000,
+}
+
+print("Chinchilla-optimal training data:")
+print("-" * 45)
+for name, params in model_sizes.items():
+    optimal_tokens = chinchilla_optimal_tokens(params)
+    optimal_T = optimal_tokens / 1e12  # แปลงเป็น trillions
+    print(f"  Model {name}: {optimal_T:.1f}T tokens")
+
+# Output:
+# Chinchilla-optimal training data:
+# ---------------------------------------------
+#   Model 7B: 0.1T tokens  (140B tokens)
+#   Model 13B: 0.3T tokens  (260B tokens)
+#   Model 70B: 1.4T tokens
+#   Model 405B: 8.1T tokens
+```
+
+ลอง compare กับที่ Meta ทำกับ Llama 3: 8B train ด้วย 15T tokens (มากกว่า optimal 100x) — นั่นคือ inference-optimal approach โดยเจตนา
+
+<!-- IMAGE: ตาราง practical guide: งานประเภทต่าง ๆ → model size ที่แนะนำ → เหตุผลจาก Scaling Laws perspective -->
+
+---
+
+## Architecture Matters — ไม่ใช่ทุก Model ที่ Scale เท่ากัน
+
+ก่อนจะสรุป มีเรื่องสำคัญที่ต้องพูดถึง: Scaling Laws ไม่ได้ universal สำหรับทุก architecture เท่ากัน
+
+Power law coefficient α ที่พูดถึงตั้งแต่ต้นนั้น ไม่ได้เป็นค่าเดียวกันสำหรับทุก model architecture model ที่ออกแบบดีกว่าจะมี α สูงกว่า หมายความว่าได้ performance เพิ่มขึ้นมากกว่าต่อ unit ของ scale ที่เพิ่ม
+
+ตัวอย่างที่เห็นชัดคือ Mixture of Experts (MoE) architecture ซึ่งใช้เทคนิค routing เพื่อให้แต่ละ input "เปิดใช้" แค่บางส่วนของ model แทนที่จะใช้ทุก parameters เหมือน dense transformer ทั่วไป
+
+Mixture of Experts ทำให้สามารถ scale จำนวน parameters รวมได้มากโดยไม่ต้องเพิ่ม compute ต่อ inference อย่างเป็นสัดส่วน — เพราะแต่ละ token จะ activate แค่ "expert" บางกลุ่ม ไม่ใช่ทุกตัว
+
+นี่หมายความว่า innovation ด้าน architecture อาจทำให้ Scaling Laws "เขียนใหม่" ได้บางส่วน — ไม่ใช่ว่า power law หายไป แต่อัตราส่วนความคุ้มค่าเปลี่ยนได้
+
+**State Space Models — อีก Architecture ที่กำลังมา**
+
+นอกจาก MoE ยังมี State Space Models (SSM) อย่าง Mamba ที่ออกแบบมาเพื่อแก้ข้อจำกัดของ Transformer ในเรื่อง context length SSM ประมวลผล sequence ได้เร็วกว่า Transformer แบบ quadratic scaling — ทำให้ cost ของการ scale ด้าน sequence length ถูกลงมาก
+
+ถ้า SSM หรือ hybrid architecture (ผสม Transformer กับ SSM) scale ได้ดีพอ มันอาจเปลี่ยน cost curve ของ Scaling Laws ใน dimension ที่เราไม่เคยสำรวจ — context length — ซึ่งอาจสำคัญมากสำหรับ application ที่ต้องอ่านเอกสารยาว ๆ
+
+**ผลของ Quantization ต่อ Scaling**
+
+อีกมิติที่ไม่ค่อยถูกพูดถึงคือ Quantization — การลด precision ของ parameters จาก 32-bit floating point เหลือ 8-bit หรือ 4-bit ทำให้ model "เล็กลง" ในแง่ memory footprint แต่ไม่ได้ลด parameter count ของ model จริง ๆ
+
+Quantization มีผลต่อ scaling curve เล็กน้อย แต่น่าสนใจที่ model ขนาดใหญ่ทนต่อ quantization ได้ดีกว่า model ขนาดเล็ก — หมายความว่า เมื่อ quantize ทั้งสองแล้ว gap ของ performance ระหว่าง model ใหญ่กับเล็กจะกว้างขึ้น ไม่ใช่แคบลง
+
+ซึ่งเชื่อมโยงกับบทถัดไปเรื่อง Pretraining — เพราะกระบวนการที่ใช้ train model เหล่านี้นั้น ซับซ้อนและน่าสนใจกว่าที่คนส่วนใหญ่คิด
+
+<!-- IMAGE: ไดอะแกรมเปรียบเทียบ Dense Transformer กับ Mixture of Experts architecture แสดงให้เห็นว่า MoE เปิดใช้เพียงบางส่วนของ network ต่อ input -->
+
+---
+
+## สรุป — Scaling Laws และอนาคตของ AI
+
+Scaling Laws สรุปได้ในไม่กี่ประโยค: ถ้าเพิ่ม parameters, data, และ compute — performance จะดีขึ้น อย่างคาดเดาได้ ตาม power law
+
+แต่สิ่งที่บทนี้พยายามจะบอกคือ ความซับซ้อนที่อยู่ใต้ความเรียบง่ายนั้น Kaplan บอกให้ focus ที่ model size Chinchilla แก้ว่าต้อง balance กับ data ด้วย แล้วก็มี inference cost ที่ Chinchilla ไม่ได้คิดถึง และ test-time compute ที่เปิดมิติใหม่อีกหนึ่ง
+
+**สิ่งที่ Scaling Laws บอกได้:**
+- Performance บน language modeling task จะดีขึ้นเรื่อย ๆ ตาม scale ที่เพิ่ม
+- อัตราการดีขึ้นเป็นไปตาม power law และสามารถ predict ล่วงหน้าได้
+- การ allocate compute ที่ optimal ต้องสมดุลระหว่าง model size และ data size
+
+**สิ่งที่ Scaling Laws บอกไม่ได้:**
+- Capability ใหม่ ๆ จะ emerge ที่จุดไหน (ถ้า emergence เป็นจริง)
+- Model จะ "เข้าใจ" จริง ๆ หรือแค่จับ pattern ได้ดีขึ้น
+- เมื่อไหร่จะถึงจุดที่ scaling ไม่คุ้มค่าเชิงเศรษฐกิจหรือเชิงทรัพยากร
+
+คำถามที่ว่า "scaling จะมีจุดสิ้นสุดหรือไม่" — ยังไม่มีคำตอบที่แน่ชัด Data wall กำลังเป็นปัญหาจริง ๆ energy cost กำลังกลายเป็นประเด็น และ diminishing returns กำลังชัดขึ้นในบาง benchmark แต่ทุกครั้งที่คนคิดว่า scaling จะหยุด ก็มี breakthrough ใหม่เกิดขึ้น — ไม่ว่าจะเป็น test-time compute, MoE architecture, หรือวิธีการ train ที่มีประสิทธิภาพขึ้น
+
+สิ่งที่แน่ใจได้คือ: เข้าใจ Scaling Laws จะทำให้คุณอ่าน AI news ได้ฉลาดขึ้น เลือกใช้ model ได้เหมาะสมขึ้น และ estimate cost ได้แม่นยำขึ้น ในโลกที่ benchmark ใหม่ออกมาทุกสัปดาห์และ model ใหม่ประกาศทุกเดือน การมีกรอบคิดที่ถูกต้องสำคัญกว่าการรู้ตัวเลขล่าสุด
+
+แต่ Scaling Laws บอกว่าโมเดลจะเก่งขึ้นเรื่อย ๆ แต่ไม่ได้บอกว่า train มันยังไง — กระบวนการ Pretraining ที่แท้จริง ตั้งแต่การเตรียม data ไปจนถึงการ optimize gradient ข้ามหลายพันล้าน iterations นั้น ซับซ้อนและน่าสนใจมากกว่าที่เห็นจากตัวเลข parameters บทถัดไปจะพาไปดูว่า model เหล่านี้ถูกสร้างขึ้นมาได้อย่างไร ตั้งแต่เริ่มต้นจริง ๆ
+
+<!-- IMAGE: timeline ของ AI scaling milestones ตั้งแต่ GPT-2 ปี 2019 จนถึงปัจจุบัน แสดงการเติบโตของ parameters, data, และ capabilities -->
+
+---
+
+## อ่านเพิ่มเติม
+
+- Kaplan et al. (2020) — "Scaling Laws for Neural Language Models" (OpenAI)
+- Hoffmann et al. (2022) — "Training Compute-Optimal Large Language Models" (DeepMind/Chinchilla)
+- Wei et al. (2022) — "Emergent Abilities of Large Language Models" (Google)
+- Sardana & Frankle (2023) — "Beyond Chinchilla-Optimal: Accounting for Inference in Language Model Scaling Laws"
+- Wei et al. (2022) — "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models" (Google)
+- Anthropic (2022) — "Constitutional AI: Harmlessness from AI Feedback"
+- Touvron et al. (2023) — "Llama 2: Open Foundation and Fine-Tuned Chat Models" (Meta)
+
+---
+
+## คำถามที่ต้องคิดต่อ
+
+บทนี้เปิดคำถามมากกว่าปิด ลองพิจารณาสิ่งเหล่านี้ต่อ:
+
+- ถ้า test-time compute scaling ให้ผลดีพอ เราจำเป็นต้องมี model ใหญ่ขึ้นเรื่อย ๆ ไหม? หรือ model ขนาดปัจจุบันก็พอถ้า "คิดนาน" พอ?
+- Data quality กับ data quantity — อะไรสำคัญกว่าสำหรับ use case ที่คุณสนใจ?
+- ถ้า Scaling Laws มี "ceiling" จริง breakthrough อะไรที่น่าจะมาถัดไป — architecture ใหม่, data strategy ใหม่, หรือ training objective ใหม่?
+
+คำถามเหล่านี้ไม่มีคำตอบที่ถูกต้องในปัจจุบัน แต่การที่คุณรู้จักถามคำถามเหล่านี้ได้แล้ว บอกว่าคุณเข้าใจ Scaling Laws ในระดับที่ลึกพอที่จะตามทัน frontier research ในวงการนี้ได้
+
+บทถัดไปจะพาลงลึกในกระบวนการ Pretraining — เพื่อเข้าใจว่าก่อนที่จะมี model ขนาดใหญ่ที่เก่งกว่าตาม Scaling Laws นั้น มันถูก "สอน" ตั้งแต่เริ่มต้นอย่างไร
