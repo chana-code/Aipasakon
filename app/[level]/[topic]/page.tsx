@@ -15,6 +15,7 @@ import { BookmarkButton } from '@/components/learn/BookmarkButton';
 import { CompleteButton } from '@/components/learn/CompleteButton';
 import DissectionLab from '@/components/lab/DissectionLabClient';
 import Embed from '@/components/reader/Embed';
+import Lab from '@/components/lab/Lab';
 
 const ARTICLE_ID = 'chapter-article';
 
@@ -194,7 +195,7 @@ export default async function ChapterPage({
           className="prose-chapter font-['IBM_Plex_Sans_Thai_Looped',sans-serif] text-[#00143C]"
           style={{ fontSize: 16.5, lineHeight: 1.85 }}
         >
-          <MDXRemote source={chapter.body} components={{ DissectionLab, Embed }} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
+          <MDXRemote source={chapter.body} components={{ DissectionLab, Embed, Lab }} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
         </div>
 
         {/* FAQ — visible Q&A, also emitted as FAQPage structured data above */}
