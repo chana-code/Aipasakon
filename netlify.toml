@@ -1,0 +1,13 @@
+# Netlify build config for the Next.js app (AI ภาษาคน).
+# The Next.js runtime plugin handles SSR, API routes, middleware, and the
+# dynamic /og + /articles routes as serverless/edge functions.
+
+[build]
+  command = "npm run build"
+
+[build.environment]
+  # engines in package.json require >=20.11 <23
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
