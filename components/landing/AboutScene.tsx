@@ -19,8 +19,12 @@ export function AboutScene() {
   return (
     <section className="border-y border-[#E8E2D4] bg-[#F4F1E9]/50">
       <div className="mx-auto grid max-w-[1200px] items-center gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
-        {/* media */}
-        <Reveal className="relative order-2 md:order-1">
+        {/* media — DO NOT wrap in <Reveal> or any opacity/transform animation.
+            ong-couch.mp4 has an opaque white bg hidden only by mix-blend-mode:multiply;
+            an opacity fade isolates the layer, switches multiply off, and flashes the
+            white box until the fade ends ("white at first, then gone"). Plain div only.
+            (This has been reverted by auto-commits before — keep it plain.) */}
+        <div className="relative order-2 md:order-1">
           <div className="relative mx-auto w-full max-w-[440px]">
             <AvatarMedia
               video="/landing/video/ong-couch.mp4"
@@ -30,7 +34,7 @@ export function AboutScene() {
             <Doodle name="note" idle="float" size={40} className="right-6 top-2" />
             <Doodle name="squiggle" idle="bob" size={64} className="-bottom-1 left-4" />
           </div>
-        </Reveal>
+        </div>
 
         {/* bio */}
         <Reveal className="order-1 md:order-2" delay={0.1}>
