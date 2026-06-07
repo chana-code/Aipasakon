@@ -10,15 +10,15 @@ Thai working professionals (25-45) who want to understand AI but are overwhelmed
 
 ## Product Purpose
 
-A Thai-language AI textbook website that takes readers from zero knowledge to reading research papers across a 4-level curriculum. Single-author; content authored directly in `AI-Pasa-Kon/website-content/` (the single source of truth). The reading experience itself is the product: if the design doesn't feel like opening a well-edited book, it's failed. Success looks like someone finishing a chapter and thinking "I actually understood that."
+A Thai-language AI education brand fronted by a warm, personal landing experience. The brand surfaces (homepage, about, marketing pages) sell approachability and personality — the feeling that a sharp, friendly business person is going to make AI make sense for you. Learning content lives behind that front door. Success looks like a first-time visitor thinking "this feels made for me, not for engineers" and clicking in.
 
 ## Brand Personality
 
-Calm, clear, human. The voice of a trusted colleague who happens to know a lot about AI, explaining hard ideas without condescension or hype. Never performatively technical. Never dumbed down either; the mechanism is always explained, just in words anyone can follow.
+Warm, clear, human, and a little playful. The voice of a trusted colleague who happens to know a lot about AI — confident and approachable, never performatively technical, never dumbed down. The personality is allowed to show: hand-drawn doodles, a lo-fi soundtrack, a real human avatar. Friendly, not corporate.
 
 ## Anti-references
 
-- Purple/blue gradients and glowing effects (every AI site)
+- Purple/blue gradients (the "every AI site" look) — our warmth is hand-drawn, not glow-blob gradients
 - 3-column icon grids with vague benefit statements
 - Centered-everything layouts with decorative blobs
 - AI brain/neural-network illustrations
@@ -29,7 +29,7 @@ Calm, clear, human. The voice of a trusted colleague who happens to know a lot a
 
 ## Design Principles
 
-1. **The book test.** Every page should feel like opening a well-edited nonfiction book, not visiting a website. If it looks like a landing page, it's wrong.
+1. **The friendly-guide test.** Every brand surface should feel like a warm, confident personal brand — approachable, characterful, alive. If it feels like a dry textbook or a generic corporate SaaS page, it's wrong.
 2. **Warmth earns trust.** Typography, color temperature, and spacing do the emotional work. The design should lower anxiety about a topic people find intimidating.
 3. **Show the mechanism.** Don't just present information; make the structure of knowledge visible. The curriculum spine, level system, and depth toggles exist because understanding the shape of what you're learning matters.
 4. **Thai-first, not translated.** Every typographic and layout decision is made for Thai text first. Latin is the secondary language, not the other way around.

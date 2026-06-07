@@ -1,16 +1,16 @@
 # Design System — AI ภาษาคน
 
 ## Product Context
-- **What this is:** Thai-language AI textbook website -- a 4-level curriculum from zero AI knowledge to reading research papers
+- **What this is:** Thai-language AI education website -- a 4-level curriculum from zero AI knowledge to reading research papers, fronted by a warm personal-brand landing
 - **Who it's for:** Thai working professionals who want to understand AI without drowning in hype or jargon
 - **Space/industry:** AI education, single-author knowledge publishing
-- **Project type:** Editorial reading experience (textbook, not course platform)
+- **Project type:** Personal-brand landing experience for an AI education product
 - **Memorable thing:** "คนนี้อธิบาย AI แบบที่อ่านรู้เรื่อง" -- warmth and approachability. Every design decision serves this.
 
 ## Aesthetic Direction
-- **Direction:** Thai Editorial -- the look of a well-edited Thai nonfiction book, not a SaaS landing page
+- **Direction:** Warm Personal-Brand Landing — a friendly, hand-illustrated personal brand. Approachable and alive, never corporate or textbook-dry.
 - **Decoration level:** Intentional -- subtle texture through typography and spacing, not ornament
-- **Mood:** A trusted senior colleague explaining hard ideas at a desk after work. Calm authority with human warmth.
+- **Mood:** A sharp business person explaining AI like a warm, slightly playful friend at a relaxed desk. Confident, human, characterful.
 - **Anti-patterns:** No purple gradients, no 3-column icon grids, no centered-everything, no decorative blobs, no AI brain illustrations, no glassmorphism, no floating prompt boxes, no generic node diagrams
 
 ## Typography
@@ -121,3 +121,4 @@ Do NOT use mark for: buttons, nav elements, level indicators, or any interactive
 | 2026-05-22 | 52px hero heading (down from 64px) | Thai glyphs are taller than Latin. 64px caused 5-6 line wraps. 52px wraps to 2 clean lines. |
 | 2026-05-22 | Sidebar ToC for chapter pages | Inline ToC broke reading flow. Sticky sidebar follows Stripe/Tailwind docs pattern -- proven for long-form content. |
 | 2026-06-07 | Switched to Prompt as the universal typeface | Founder requested the whole site use [Prompt](https://fonts.google.com/specimen/Prompt). Replaces the Noto Serif Thai + IBM Plex + DM Sans + Source Serif 4 stack. One Thai-first geometric sans for Thai + Latin across display, body, and UI; hierarchy now carried by weight/size. JetBrains Mono retained for code only. |
+| 2026-06-07 | Pivoted brand from calm-textbook to landing-page design | Founder decision: the brand IS the landing page. "Book test" retired in favor of the "friendly-guide test". Brand codified from the actual landing components. Color/type/spacing/motion tokens unchanged — they already matched. |
