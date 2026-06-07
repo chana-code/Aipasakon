@@ -1,4 +1,28 @@
-<style>.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}</style>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.34.0/dist/tabler-icons.min.css">
+<style>
+  /* Self-contained palette so the lab renders correctly inside an iframe
+     (the site's design-system variables do not cascade into an iframe). */
+  :root{
+    --color-text-primary:#00143C;
+    --color-text-secondary:#5b5750;
+    --color-text-tertiary:#9a9183;
+    --color-background-secondary:#f4f1e9;
+    --color-border-secondary:#e7e1d6;
+    --color-border-tertiary:#efeae0;
+    --color-background-info:#e6f6f4;  --color-text-info:#0f8a82;  --color-border-info:#bfe5e0;
+    --color-background-success:#e6efe9; --color-text-success:#3f6f5b; --color-border-success:#cfe2d6;
+    --color-background-warning:#f6ead0; --color-text-warning:#7d5414; --color-border-warning:#ead6ad;
+    --border-radius-lg:12px;
+  }
+  html,body{margin:0}
+  body{font-family:'Noto Sans Thai',sans-serif;color:var(--color-text-primary);background:#FBF9F4;padding:16px}
+  button{font-family:inherit;cursor:pointer;border:1px solid var(--color-border-secondary);background:#fff;color:var(--color-text-primary);border-radius:8px;padding:6px 18px;font-size:14px;transition:background .15s}
+  button:hover{background:var(--color-background-secondary)}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
 <h2 class="sr-only">ขั้นตอนที่เกิดขึ้นหลังกดส่งข้อความถึง AI อธิบายแบบเข้าใจง่ายด้วยภาพคนเก่งในห้องกับผู้ช่วยหน้าประตู</h2>
 <div style="padding:0.5rem 0;">
   <div id="dots" style="display:flex;gap:6px;justify-content:center;margin-bottom:1.25rem;"></div>

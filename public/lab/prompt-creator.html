@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Prompt Creator — เครื่องมือสร้าง Prompt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a0f;--card:#14141f;--card-hover:#1e1e2e;
+--accent:#7c3aed;--accent2:#06b6d4;--green:#10b981;
+--text:#e2e8f0;--text2:#94a3b8;--border:#1e293b;
+--radius:10px;
+}
+html{font-size:15px;scroll-behavior:smooth}
+body{font-family:'Noto Sans Thai','Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:200px}
+a{color:var(--accent2)}
+
+.container{max-width:900px;margin:0 auto;padding:16px}
+
+/* Header */
+.header{text-align:center;padding:32px 0 24px}
+.header h1{font-size:1.8rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header p{color:var(--text2);margin-top:6px;font-size:.95rem}
+
+/* Quick mode */
+.quick-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+.quick-btn{background:var(--card);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:20px;cursor:pointer;font-size:.85rem;transition:.2s}
+.quick-btn:hover{border-color:var(--accent);color:var(--text)}
+.quick-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Accordion */
+.accordion{margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:var(--card)}
+.accordion-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;transition:.15s}
+.accordion-head:hover{background:var(--card-hover)}
+.accordion-head .left{display:flex;align-items:center;gap:10px}
+.accordion-head .group-letter{font-family:'Inter',sans-serif;font-weight:700;font-size:.8rem;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--accent);color:#fff;flex-shrink:0}
+.accordion-head .group-title{font-weight:600;font-size:1rem}
+.accordion-head .right{display:flex;align-items:center;gap:10px}
+.badge{background:var(--accent2);color:#000;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px;min-width:20px;text-align:center;display:none}
+.badge.show{display:inline-block}
+.arrow{transition:.3s;font-size:.8rem;color:var(--text2)}
+.accordion.open .arrow{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.accordion.open .accordion-body{max-height:3000px}
+.accordion-inner{padding:6px 18px 18px}
+
+/* Channels */
+.channel{margin-top:14px}
+.channel-label{display:flex;align-items:center;gap:6px;font-size:.88rem;font-weight:500;color:var(--text2);margin-bottom:6px}
+.channel-label .dot{width:6px;height:6px;border-radius:50%;background:var(--accent2);opacity:0;transition:.2s;flex-shrink:0}
+.channel-label .dot.active{opacity:1}
+.channel-label .ch-num{font-family:'Inter';font-size:.75rem;color:var(--text2);opacity:.5}
+
+select,input[type=text],input[type=number],textarea{
+width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+padding:10px 12px;border-radius:8px;font-size:.9rem;font-family:inherit;outline:none;transition:.2s}
+select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+textarea{resize:vertical;min-height:60px}
+
+.custom-input{margin-top:6px;display:none}
+.custom-input.show{display:block}
+
+/* Checkboxes */
+.check-group{display:flex;flex-wrap:wrap;gap:8px}
+.check-item{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.85rem;transition:.2s;user-select:none}
+.check-item:hover{border-color:var(--accent)}
+.check-item.checked{border-color:var(--accent2);background:rgba(6,182,212,.08)}
+.check-item input{display:none}
+
+/* Range */
+.range-wrap{display:flex;align-items:center;gap:12px}
+.range-wrap input[type=range]{flex:1;accent-color:var(--accent);height:6px;-webkit-appearance:none;background:var(--border);border-radius:3px;border:none}
+.range-wrap input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--accent);cursor:pointer}
+.range-val{font-family:'Inter';font-size:.85rem;color:var(--accent2);min-width:24px;text-align:center}
+
+/* Video toggle */
+.video-toggle{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--bg);border-radius:8px}
+.video-toggle label{font-size:.9rem;cursor:pointer}
+.toggle-switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle-switch input{display:none}
+.toggle-track{position:absolute;inset:0;background:var(--border);border-radius:12px;transition:.2s;cursor:pointer}
+.toggle-track::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--text2);transition:.2s}
+.toggle-switch input:checked+.toggle-track{background:var(--accent2)}
+.toggle-switch input:checked+.toggle-track::after{transform:translateX(20px);background:#fff}
+.accordion.disabled{opacity:.4;pointer-events:none}
+
+/* Seed checkbox */
+.seed-row{display:flex;align-items:center;gap:10px}
+.seed-row input[type=number]{width:160px}
+
+/* Bottom bar */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);z-index:100;backdrop-filter:blur(12px)}
+.bottom-inner{max-width:900px;margin:0 auto;padding:12px 16px}
+.prompt-preview{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.85rem;font-family:'Inter','Noto Sans Thai',monospace;color:var(--accent2);max-height:80px;overflow-y:auto;line-height:1.5;white-space:pre-wrap;word-break:break-word;min-height:36px}
+.prompt-preview.empty{color:var(--text2);font-style:italic}
+.neg-preview{margin-top:6px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.8rem;font-family:'Inter',monospace;color:#f87171;max-height:40px;overflow-y:auto;display:none}
+.neg-preview.show{display:block}
+.bar-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.bar-btn{padding:8px 18px;border-radius:8px;border:none;font-size:.85rem;font-family:inherit;cursor:pointer;font-weight:600;transition:.15s}
+.btn-copy{background:var(--accent);color:#fff}
+.btn-copy:hover{filter:brightness(1.15)}
+.btn-copy-neg{background:transparent;border:1px solid #f87171;color:#f87171}
+.btn-copy-neg:hover{background:rgba(248,113,113,.1)}
+.btn-clear{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-clear:hover{border-color:var(--text);color:var(--text)}
+.btn-copied{background:var(--green)!important;border-color:var(--green)!important;color:#fff!important}
+
+/* Responsive */
+@media(max-width:600px){
+.container{padding:10px}
+.header h1{font-size:1.4rem}
+.accordion-inner{padding:6px 12px 14px}
+.check-group{gap:6px}
+.check-item{font-size:.8rem;padding:5px 10px}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>AI Prompt Creator</h1>
+    <p>เครื่องมือสร้าง Prompt สำหรับภาพ AI — เลือกเป็นไทย สร้างเป็นอังกฤษ</p>
+  </div>
+
+  <div class="quick-bar">
+    <button class="quick-btn" onclick="applyPreset('photo')">📸 ถ่ายภาพเร็ว</button>
+    <button class="quick-btn" onclick="applyPreset('product')">🛍️ สินค้า</button>
+    <button class="quick-btn" onclick="applyPreset('portrait')">🧑 พอร์ตเทรต</button>
+    <button class="quick-btn" onclick="applyPreset('cinematic')">🎬 ซีนีมาติก</button>
+    <button class="quick-btn" onclick="applyPreset('clear')">✕ ล้าง</button>
+  </div>
+
+  <!-- A. CONTENT -->
+  <div class="accordion open" data-group="A">
+    <div class="accordion-head" onclick="toggleAccordion(this)">
+      <div class="left"><span class="group-letter">A</span><span class="group-title">เนื้อหา (Content)</span></div>
+      <div class="right"><span class="badge" id="badge-A">0</span><span class="arrow">▼</span></div>
+    </div>
+    <div class="accordion-body"><div class="accordion-inner">
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-subject"></span><span class="ch-num">1</span> ตัวแบบหลัก (Subject)</div>
+        <textarea id="ch-subject" oninput="generate()" placeholder="อธิบายตัวแบบหลัก เช่น ผู้หญิงวัย 30 ยิ้มมั่นใจ ใส่เสื้อสูทกรมท่า"></textarea>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-action"></span><span class="ch-num">2</span> ท่าทาง / การกระทำ (Action)</div>
+        <select id="ch-action" onchange="handleCustom(this,'custom-action');generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="standing">ยืน</option>
+          <option value="sitting">นั่ง</option>
+          <option value="leaning against a wall">พิงพัก</option>
+          <option value="walking toward camera">เดิน</option>
+          <option value="running">วิ่ง</option>
+          <option value="jumping">กระโดด</option>
+          <option value="dancing">เต้น</option>
+          <option value="holding an object">ถือของ</option>
+          <option value="arms crossed">กอดอก</option>
+          <option value="hands in pockets">มือในกระเป๋า</option>
+          <option value="looking over shoulder">มองข้ามไหล่</option>
+          <option value="mid-laugh">กำลังหัวเราะ</option>
+          <option value="__custom__">อื่นๆ (พิมพ์เอง)</option>
+        </select>
+        <input type="text" class="custom-input" id="custom-action" oninput="generate()" placeholder="พิมพ์ท่าทางเป็นอังกฤษ">
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-env"></span><span class="ch-num">3</span> สถานที่ (Environment)</div>
+        <select id="ch-env" onchange="handleCustom(this,'custom-env');generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="minimalist studio">สตูดิโอมินิมอล</option>
+          <option value="modern office">ออฟฟิศสมัยใหม่</option>
+          <option value="sunlit café">คาเฟ่แดดส่อง</option>
+          <option value="rain-soaked street">ถนนเปียกฝน</option>
+          <option value="beach">ชายหาด</option>
+          <option value="forest">ป่า</option>
+          <option value="desert">ทะเลทราย</option>
+          <option value="mountain landscape">ภูเขา</option>
+          <option value="city at night with neon lights">เมืองยามค่ำ</option>
+          <option value="rooftop">ดาดฟ้า</option>
+          <option value="kitchen">ห้องครัว</option>
+          <option value="library">ห้องสมุด</option>
+          <option value="solid color backdrop">พื้นหลังสีเดียว</option>
+          <option value="__custom__">อื่นๆ (พิมพ์เอง)</option>
+        </select>
+        <input type="text" class="custom-input" id="custom-env" oninput="generate()" placeholder="พิมพ์สถานที่เป็นอังกฤษ">
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-props"></span><span class="ch-num">4</span> องค์ประกอบเสริม (Props)</div>
+        <input type="text" id="ch-props" oninput="generate()" placeholder="เช่น laptop, coffee cup with steam, plants">
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-text"></span><span class="ch-num">4b</span> ข้อความในภาพ (In-image Text)</div>
+        <input type="text" id="ch-text" oninput="generate()" placeholder='เช่น the sign reads "GRAND OPENING"'>
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- B. FRAMING -->
+  <div class="accordion" data-group="B">
+    <div class="accordion-head" onclick="toggleAccordion(this)">
+      <div class="left"><span class="group-letter">B</span><span class="group-title">การจัดเฟรม (Framing)</span></div>
+      <div class="right"><span class="badge" id="badge-B">0</span><span class="arrow">▼</span></div>
+    </div>
+    <div class="accordion-body"><div class="accordion-inner">
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-shot"></span><span class="ch-num">5</span> ขนาดช็อต (Shot Size)</div>
+        <select id="ch-shot" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="extreme close-up">ใกล้สุด (ECU)</option>
+          <option value="close-up">ใกล้ (CU)</option>
+          <option value="medium shot">ครึ่งตัว (MS)</option>
+          <option value="full body shot">เต็มตัว</option>
+          <option value="wide establishing shot">กว้าง</option>
+          <option value="extreme wide shot">กว้างสุด</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-angle"></span><span class="ch-num">6</span> มุมกล้อง (Camera Angle)</div>
+        <select id="ch-angle" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="eye-level angle">ระดับสายตา</option>
+          <option value="low angle, looking up">มุมต่ำ (ดูทรงพลัง)</option>
+          <option value="high angle, looking down">มุมสูง (ดูเล็ก)</option>
+          <option value="overhead top-down view">มองจากบน</option>
+          <option value="dutch tilt angle">เอียง (Dutch tilt)</option>
+          <option value="POV first-person perspective">มุมมองบุคคลที่หนึ่ง</option>
+          <option value="three-quarter view">สามส่วนสี่</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-comp"></span><span class="ch-num">7</span> การจัดองค์ประกอบ (Composition)</div>
+        <select id="ch-comp" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="rule of thirds composition">กฎสามส่วน</option>
+          <option value="centered symmetrical composition">จัดกลางสมมาตร</option>
+          <option value="negative space for text overlay">เว้นที่ว่าง (ใส่ข้อความ)</option>
+          <option value="leading lines composition">เส้นนำสายตา</option>
+          <option value="frame within a frame">กรอบซ้อนกรอบ</option>
+          <option value="foreground-background depth layering">เลเยอร์หน้า-หลัง</option>
+          <option value="filling the frame">เติมเต็มเฟรม</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-lens"></span><span class="ch-num">8</span> เลนส์ (Lens)</div>
+        <select id="ch-lens" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="shot with 24mm wide angle lens">24mm มุมกว้าง</option>
+          <option value="shot with 35mm lens">35mm สตรีท</option>
+          <option value="shot with 50mm lens">50mm ธรรมชาติ</option>
+          <option value="shot with 85mm portrait lens">85mm พอร์ตเทรต</option>
+          <option value="shot with 135mm telephoto lens">135mm บีบอัด</option>
+          <option value="macro lens extreme close-up">มาโคร</option>
+          <option value="fisheye lens">ฟิชอาย</option>
+          <option value="tilt-shift lens">ทิลท์ชิฟท์</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-dof"></span><span class="ch-num">9</span> ความชัดลึก (Depth of Field)</div>
+        <select id="ch-dof" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="shallow depth of field, creamy bokeh">ตื้น (โบเก้สวย)</option>
+          <option value="medium depth of field">ปานกลาง</option>
+          <option value="deep focus, everything sharp">ชัดทั้งภาพ</option>
+          <option value="selective focus on subject">โฟกัสเฉพาะจุด</option>
+        </select>
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- C. LIGHT & COLOR -->
+  <div class="accordion" data-group="C">
+    <div class="accordion-head" onclick="toggleAccordion(this)">
+      <div class="left"><span class="group-letter">C</span><span class="group-title">แสงและสี (Light & Color)</span></div>
+      <div class="right"><span class="badge" id="badge-C">0</span><span class="arrow">▼</span></div>
+    </div>
+    <div class="accordion-body"><div class="accordion-inner">
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-lightdir"></span><span class="ch-num">10</span> ทิศทางแสง (Light Direction)</div>
+        <select id="ch-lightdir" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="front flat lighting">แสงหน้า (แบน)</option>
+          <option value="side lighting, dramatic">แสงข้าง</option>
+          <option value="backlight, rim glow">แสงหลัง (ซิลูเอตต์)</option>
+          <option value="rim light separating subject from background">แสงขอบ</option>
+          <option value="Rembrandt lighting">เร็มบรันต์</option>
+          <option value="butterfly lighting">บัตเตอร์ฟลาย</option>
+          <option value="soft window light">แสงหน้าต่าง</option>
+          <option value="underlight, lit from below">แสงจากข้างล่าง</option>
+          <option value="studio three-point lighting">สตูดิโอ 3 จุด</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-lightq"></span><span class="ch-num">11</span> คุณภาพแสง (Light Quality)</div>
+        <select id="ch-lightq" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="hard harsh light, sharp shadows">แข็ง/คม</option>
+          <option value="soft diffused light">นุ่ม/กระจาย</option>
+          <option value="dappled light through leaves">แสงลอดใบไม้</option>
+          <option value="volumetric god rays">แสงวอลุ่เมตริก</option>
+          <option value="bounce light, indirect fill">แสงสะท้อน</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-tod"></span><span class="ch-num">12</span> ช่วงเวลา (Time of Day)</div>
+        <select id="ch-tod" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="golden hour warm light">โกลเด้นอาวร์</option>
+          <option value="blue hour twilight">บลูอาวร์</option>
+          <option value="midday sun, high contrast">กลางวัน</option>
+          <option value="overcast soft even light">ครึ้มฟ้า</option>
+          <option value="sunset dramatic warm light">พระอาทิตย์ตก</option>
+          <option value="night, selective artificial lighting">กลางคืน</option>
+          <option value="warm candlelight, 3000K">แสงเทียน (อบอุ่น)</option>
+          <option value="cool light, 7000K, clinical">แสงเย็น (คลินิก)</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-color"></span><span class="ch-num">13</span> จานสี (Color Palette)</div>
+        <div class="check-group" id="ch-color">
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="monochrome black and white">ขาวดำ</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="warm earth tones">โทนดินอบอุ่น</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="teal and orange color grade">ทีลกับส้ม</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="pastel colors">พาสเทล</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="high contrast">คอนทราสต์สูง</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="muted desaturated">ซีดจาง</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="vibrant saturated colors">สดใส</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="sepia tones">ซีเปีย</label>
+        </div>
+        <input type="text" id="custom-color" oninput="generate()" placeholder="สีเฉพาะ เช่น dominant #2563EB with #F59E0B accents" style="margin-top:8px">
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- D. STYLE & REALISM -->
+  <div class="accordion" data-group="D">
+    <div class="accordion-head" onclick="toggleAccordion(this)">
+      <div class="left"><span class="group-letter">D</span><span class="group-title">สไตล์และความสมจริง (Style)</span></div>
+      <div class="right"><span class="badge" id="badge-D">0</span><span class="arrow">▼</span></div>
+    </div>
+    <div class="accordion-body"><div class="accordion-inner">
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-medium"></span><span class="ch-num">14</span> สื่อ (Medium)</div>
+        <select id="ch-medium" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="photograph">ภาพถ่าย</option>
+          <option value="3D render">3D เรนเดอร์</option>
+          <option value="flat vector illustration">เวกเตอร์แบน</option>
+          <option value="watercolor painting">สีน้ำ</option>
+          <option value="oil painting">สีน้ำมัน</option>
+          <option value="digital painting">ดิจิทัลเพ้นท์</option>
+          <option value="pencil sketch">ดินสอสเก็ตช์</option>
+          <option value="ink illustration">หมึก</option>
+          <option value="pixel art">พิกเซลอาร์ต</option>
+          <option value="mixed media collage">คอลลาจ</option>
+          <option value="editorial advertisement">โฆษณา</option>
+          <option value="isometric illustration">ไอโซเมตริก</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-style"></span><span class="ch-num">15</span> สไตล์ (Aesthetic)</div>
+        <select id="ch-style" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="cinematic">ซีนีมาติก</option>
+          <option value="minimalist">มินิมอล</option>
+          <option value="editorial, magazine-quality">เอ็ดดิทอเรียล</option>
+          <option value="documentary, raw, candid">สารคดี</option>
+          <option value="premium luxury">พรีเมียม/หรูหรา</option>
+          <option value="retro vintage">เรโทร/วินเทจ</option>
+          <option value="futuristic sci-fi">ฟิวเจอริสติก</option>
+          <option value="whimsical fantasy, dreamlike">แฟนตาซี</option>
+          <option value="street urban, gritty">สตรีท/เมือง</option>
+          <option value="corporate professional">คอร์ปอเรท</option>
+          <option value="vaporwave synthwave, neon">เวเปอร์เวฟ</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-era"></span><span class="ch-num">16</span> อ้างอิงยุค (Era Reference)</div>
+        <select id="ch-era" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="shot on 35mm film">ฟิล์ม 35mm</option>
+          <option value="Kodak Portra 400 film">Kodak Portra 400</option>
+          <option value="Fuji Velvia saturated film">Fuji Velvia</option>
+          <option value="Polaroid">โพลารอยด์</option>
+          <option value="1970s aesthetic, warm grainy">ยุค 70s</option>
+          <option value="1980s aesthetic, neon bold">ยุค 80s</option>
+          <option value="1990s aesthetic, grunge">ยุค 90s</option>
+          <option value="Y2K 2000s, glossy metallic">Y2K</option>
+          <option value="Art Deco, geometric gold">อาร์ตเดโค</option>
+          <option value="mid-century modern">มิดเซนจูรี่</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-detail"></span><span class="ch-num">17</span> รายละเอียดสมจริง (Detail Cues)</div>
+        <div class="check-group" id="ch-detail">
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="dust particles visible in the light">ฝุ่นในแสง</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="condensation on glass">หยดน้ำ/ควบแน่น</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="lens flare">เลนส์แฟลร์</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="film grain">เกรนฟิล์ม</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="slight motion blur">เบลอเคลื่อนไหว</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="visible skin texture and pores">เนื้อผิว</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="reflections in surfaces">สะท้อน</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="subtle vignette">วิกเน็ตต์</label>
+        </div>
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- E. TECHNICAL -->
+  <div class="accordion" data-group="E">
+    <div class="accordion-head" onclick="toggleAccordion(this)">
+      <div class="left"><span class="group-letter">E</span><span class="group-title">ค่าเทคนิค (Technical)</span></div>
+      <div class="right"><span class="badge" id="badge-E">0</span><span class="arrow">▼</span></div>
+    </div>
+    <div class="accordion-body"><div class="accordion-inner">
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-ratio"></span><span class="ch-num">18</span> อัตราส่วน (Aspect Ratio)</div>
+        <select id="ch-ratio" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="9:16 vertical">9:16 สตอรี่/รีลส์</option>
+          <option value="4:5 portrait">4:5 ฟีด IG</option>
+          <option value="1:1 square">1:1 สแควร์</option>
+          <option value="16:9 widescreen">16:9 แลนด์สเคป</option>
+          <option value="2.35:1 ultrawide cinematic">2.35:1 ซีนีมาติก</option>
+          <option value="3:2 classic photo">3:2 ภาพถ่าย</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-quality"></span><span class="ch-num">19</span> คุณภาพ (Quality)</div>
+        <div class="check-group" id="ch-quality">
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="4K resolution">4K</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="high detail">รายละเอียดสูง</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="ultra sharp">คมชัดสูงสุด</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="photorealistic">โฟโตรีอัลลิสติก</label>
+        </div>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-neg"></span><span class="ch-num">20</span> Negative Prompt (สิ่งที่ไม่ต้องการ)</div>
+        <div class="check-group" id="ch-neg">
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="blurry">เบลอ</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="bad anatomy, extra fingers, deformed hands">กายวิภาคผิด</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="distorted text, misspelled">ข้อความผิด</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="watermark, logo">ลายน้ำ</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="oversaturated, overexposed">สีเกิน</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="cluttered background">พื้นหลังรก</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="cropped, cut off">ถูกตัด</label>
+          <label class="check-item" onclick="toggleCheck(this)"><input type="checkbox" value="low quality, jpeg artifacts">คุณภาพต่ำ</label>
+        </div>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-seed"></span><span class="ch-num">21</span> Seed</div>
+        <div class="seed-row">
+          <label class="check-item" onclick="toggleCheck(this);document.getElementById('seed-input').style.display=this.querySelector('input').checked?'block':'none';generate()">
+            <input type="checkbox" id="seed-toggle"> ใช้ Seed
+          </label>
+          <input type="number" id="seed-input" oninput="generate()" placeholder="เลข Seed เช่น 42" style="display:none">
+        </div>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-cfg"></span><span class="ch-num">22</span> CFG / Guidance</div>
+        <div class="range-wrap">
+          <span style="font-size:.8rem;color:var(--text2)">อิสระ</span>
+          <input type="range" id="ch-cfg" min="1" max="20" value="7" oninput="document.getElementById('cfg-val').textContent=this.value;generate()">
+          <span style="font-size:.8rem;color:var(--text2)">เชื่อฟัง</span>
+          <span class="range-val" id="cfg-val">7</span>
+        </div>
+      </div>
+
+    </div></div>
+  </div>
+
+  <!-- F. VIDEO -->
+  <div class="accordion disabled" data-group="F" id="video-section">
+    <div class="accordion-head" onclick="if(!document.getElementById('video-section').classList.contains('disabled'))toggleAccordion(this)">
+      <div class="left"><span class="group-letter" style="background:#475569">F</span><span class="group-title">มิติเวลา — วิดีโอ (Time)</span></div>
+      <div class="right"><span class="badge" id="badge-F">0</span><span class="arrow">▼</span></div>
+    </div>
+    <div class="accordion-body"><div class="accordion-inner">
+
+      <div class="video-toggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="video-mode" onchange="toggleVideoMode(this.checked)">
+          <span class="toggle-track"></span>
+        </label>
+        <label for="video-mode">เปิดโหมดวิดีโอ</label>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-cam"></span><span class="ch-num">24</span> การเคลื่อนกล้อง (Camera Movement)</div>
+        <select id="ch-cam" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="static locked tripod">ตั้งขาตั้ง</option>
+          <option value="slow pan left">แพนซ้าย</option>
+          <option value="slow pan right">แพนขวา</option>
+          <option value="dolly push-in toward subject">ดอลลี่เข้า</option>
+          <option value="dolly pull-back">ดอลลี่ออก</option>
+          <option value="orbit arc around subject">ออร์บิท/วนรอบ</option>
+          <option value="crane rising up">เครนขึ้น</option>
+          <option value="tracking follow shot">ติดตาม</option>
+          <option value="handheld shaky cam">มือถือ</option>
+          <option value="whip pan">วิปแพน</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-speed"></span><span class="ch-num">25</span> ความเร็ว (Speed)</div>
+        <select id="ch-speed" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="very slow, meditative">ช้ามาก</option>
+          <option value="slow, cinematic">ช้า</option>
+          <option value="medium pace">ปานกลาง</option>
+          <option value="fast, energetic">เร็ว</option>
+          <option value="ease in, starts slow accelerates">เร่งเข้า</option>
+          <option value="ease out, decelerates to stop">ชะลอออก</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-submotion"></span><span class="ch-num">26</span> การเคลื่อนไหวตัวแบบ (Subject Motion)</div>
+        <select id="ch-submotion" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="subtle micro-motion, hair blowing, breathing">ละเอียดอ่อน (ผมปลิว)</option>
+          <option value="simple action, head turn, picking up object">ท่าทางง่าย (หันหัว)</option>
+          <option value="walking toward camera">เดิน</option>
+          <option value="complex motion, dancing">ซับซ้อน (เต้น)</option>
+          <option value="object motion, smoke rising, liquid pouring">วัตถุเคลื่อน</option>
+          <option value="no subject motion, static scene">ไม่เคลื่อน</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-timefx"></span><span class="ch-num">27</span> เอฟเฟกต์เวลา (Time Effects)</div>
+        <select id="ch-timefx" onchange="generate()">
+          <option value="">— ไม่ระบุ —</option>
+          <option value="real-time">เรียลไทม์</option>
+          <option value="slow motion">สโลว์โมชัน</option>
+          <option value="time-lapse">ไทม์แลปส์</option>
+          <option value="speed ramp, fast to slow">สปีดแรมป์</option>
+          <option value="reverse playback">ย้อนกลับ</option>
+        </select>
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-seq"></span><span class="ch-num">28</span> ลำดับช็อต (Sequencing)</div>
+        <input type="text" id="ch-seq" oninput="generate()" placeholder="เช่น 0-2s wide, 2-5s dolly in, 5-7s close-up">
+      </div>
+
+      <div class="channel">
+        <div class="channel-label"><span class="dot" id="dot-audio"></span><span class="ch-num">29</span> เสียง (Audio)</div>
+        <input type="text" id="ch-audio" oninput="generate()" placeholder="เช่น warm female voice, lo-fi beat 80 BPM, city ambience">
+      </div>
+
+    </div></div>
+  </div>
+
+</div>
+
+<!-- Bottom bar -->
+<div class="bottom-bar">
+  <div class="bottom-inner">
+    <div class="prompt-preview empty" id="prompt-out">เลือกตัวเลือกด้านบนเพื่อสร้าง Prompt...</div>
+    <div class="neg-preview" id="neg-out"></div>
+    <div class="bar-actions">
+      <button class="bar-btn btn-copy" id="btn-copy" onclick="copyPrompt()">คัดลอก Prompt</button>
+      <button class="bar-btn btn-copy-neg" id="btn-copy-neg" onclick="copyNeg()" style="display:none">คัดลอก Negative</button>
+      <button class="bar-btn btn-clear" onclick="clearAll()">ล้างทั้งหมด</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleAccordion(head) {
+  const acc = head.parentElement;
+  acc.classList.toggle('open');
+}
+
+function toggleCheck(label) {
+  requestAnimationFrame(() => {
+    label.classList.toggle('checked', label.querySelector('input').checked);
+    generate();
+  });
+}
+
+function handleCustom(sel, customId) {
+  const ci = document.getElementById(customId);
+  ci.classList.toggle('show', sel.value === '__custom__');
+  if (sel.value !== '__custom__') ci.value = '';
+}
+
+function getVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return '';
+  if (el.value === '__custom__') {
+    const ci = document.getElementById('custom-' + id.replace('ch-',''));
+    return ci ? ci.value.trim() : '';
+  }
+  return el.value;
+}
+
+function getChecked(groupId) {
+  const items = document.querySelectorAll('#' + groupId + ' input[type=checkbox]:checked');
+  return Array.from(items).map(i => i.value);
+}
+
+function setDot(dotId, active) {
+  const d = document.getElementById(dotId);
+  if (d) d.classList.toggle('active', active);
+}
+
+function updateBadges() {
+  const groups = {
+    A: ['subject','action','env','props','text'],
+    B: ['shot','angle','comp','lens','dof'],
+    C: ['lightdir','lightq','tod','color'],
+    D: ['medium','style','era','detail'],
+    E: ['ratio','quality','neg','seed','cfg'],
+    F: ['cam','speed','submotion','timefx','seq','audio']
+  };
+  for (const [g, dots] of Object.entries(groups)) {
+    let count = 0;
+    for (const d of dots) {
+      const dot = document.getElementById('dot-' + d);
+      if (dot && dot.classList.contains('active')) count++;
+    }
+    const badge = document.getElementById('badge-' + g);
+    if (badge) {
+      badge.textContent = count;
+      badge.classList.toggle('show', count > 0);
+    }
+  }
+}
+
+function generate() {
+  const parts = [];
+  const medium = getVal('ch-medium');
+  const style = getVal('ch-style');
+  const subject = document.getElementById('ch-subject').value.trim();
+  const action = getVal('ch-action');
+  const env = getVal('ch-env');
+  const props = document.getElementById('ch-props').value.trim();
+  const imgText = document.getElementById('ch-text').value.trim();
+  const shot = getVal('ch-shot');
+  const angle = getVal('ch-angle');
+  const comp = getVal('ch-comp');
+  const lens = getVal('ch-lens');
+  const dof = getVal('ch-dof');
+  const lightdir = getVal('ch-lightdir');
+  const lightq = getVal('ch-lightq');
+  const tod = getVal('ch-tod');
+  const colors = getChecked('ch-color');
+  const customColor = document.getElementById('custom-color').value.trim();
+  const era = getVal('ch-era');
+  const details = getChecked('ch-detail');
+  const ratio = getVal('ch-ratio');
+  const quality = getChecked('ch-quality');
+  const cfg = parseInt(document.getElementById('ch-cfg').value);
+  const seedOn = document.getElementById('seed-toggle').checked;
+  const seedVal = document.getElementById('seed-input').value.trim();
+
+  if (medium) parts.push(medium);
+  if (style) parts.push(style);
+  if (subject) parts.push(subject);
+  if (action) parts.push(action);
+  if (env) parts.push('in ' + env);
+  if (props) parts.push('with ' + props);
+  if (imgText) parts.push(imgText);
+  if (shot) parts.push(shot);
+  if (angle) parts.push(angle);
+  if (comp) parts.push(comp);
+  if (lens) parts.push(lens);
+  if (dof) parts.push(dof);
+  if (lightdir) parts.push(lightdir);
+  if (lightq) parts.push(lightq);
+  if (tod) parts.push(tod);
+  if (colors.length) parts.push(colors.join(', '));
+  if (customColor) parts.push(customColor);
+  if (era) parts.push(era);
+  if (details.length) parts.push(details.join(', '));
+  if (ratio) parts.push(ratio);
+  if (quality.length) parts.push(quality.join(', '));
+
+  const videoOn = document.getElementById('video-mode').checked;
+  if (videoOn) {
+    const cam = getVal('ch-cam');
+    const speed = getVal('ch-speed');
+    const submotion = getVal('ch-submotion');
+    const timefx = getVal('ch-timefx');
+    const seq = document.getElementById('ch-seq').value.trim();
+    const audio = document.getElementById('ch-audio').value.trim();
+    if (cam) parts.push(cam);
+    if (speed) parts.push(speed);
+    if (submotion) parts.push(submotion);
+    if (timefx) parts.push(timefx);
+    if (seq) parts.push(seq);
+    if (audio) parts.push('audio: ' + audio);
+    setDot('dot-cam', !!cam);
+    setDot('dot-speed', !!speed);
+    setDot('dot-submotion', !!submotion);
+    setDot('dot-timefx', !!timefx);
+    setDot('dot-seq', !!seq);
+    setDot('dot-audio', !!audio);
+  }
+
+  if (cfg !== 7) parts.push('CFG scale ' + cfg);
+  if (seedOn && seedVal) parts.push('seed ' + seedVal);
+
+  setDot('dot-subject', !!subject);
+  setDot('dot-action', !!action);
+  setDot('dot-env', !!env);
+  setDot('dot-props', !!props);
+  setDot('dot-text', !!imgText);
+  setDot('dot-shot', !!shot);
+  setDot('dot-angle', !!angle);
+  setDot('dot-comp', !!comp);
+  setDot('dot-lens', !!lens);
+  setDot('dot-dof', !!dof);
+  setDot('dot-lightdir', !!lightdir);
+  setDot('dot-lightq', !!lightq);
+  setDot('dot-tod', !!tod);
+  setDot('dot-color', colors.length > 0 || !!customColor);
+  setDot('dot-medium', !!medium);
+  setDot('dot-style', !!style);
+  setDot('dot-era', !!era);
+  setDot('dot-detail', details.length > 0);
+  setDot('dot-ratio', !!ratio);
+  setDot('dot-quality', quality.length > 0);
+  setDot('dot-neg', getChecked('ch-neg').length > 0);
+  setDot('dot-seed', seedOn && !!seedVal);
+  setDot('dot-cfg', cfg !== 7);
+
+  updateBadges();
+
+  const out = document.getElementById('prompt-out');
+  if (parts.length === 0) {
+    out.textContent = 'เลือกตัวเลือกด้านบนเพื่อสร้าง Prompt...';
+    out.classList.add('empty');
+  } else {
+    out.textContent = parts.join(', ');
+    out.classList.remove('empty');
+  }
+
+  const negs = getChecked('ch-neg');
+  const negOut = document.getElementById('neg-out');
+  const negBtn = document.getElementById('btn-copy-neg');
+  if (negs.length > 0) {
+    negOut.textContent = 'Negative prompt: ' + negs.join(', ');
+    negOut.classList.add('show');
+    negBtn.style.display = 'inline-block';
+  } else {
+    negOut.classList.remove('show');
+    negBtn.style.display = 'none';
+  }
+}
+
+function copyPrompt() {
+  const text = document.getElementById('prompt-out').textContent;
+  if (!text || text.includes('เลือกตัวเลือก')) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('btn-copy');
+  btn.textContent = 'คัดลอกแล้ว!';
+  btn.classList.add('btn-copied');
+  setTimeout(() => { btn.textContent = 'คัดลอก Prompt'; btn.classList.remove('btn-copied'); }, 1500);
+}
+
+function copyNeg() {
+  const text = document.getElementById('neg-out').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('btn-copy-neg');
+  btn.textContent = 'คัดลอกแล้ว!';
+  btn.classList.add('btn-copied');
+  setTimeout(() => { btn.textContent = 'คัดลอก Negative'; btn.classList.remove('btn-copied'); }, 1500);
+}
+
+function clearAll() {
+  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  document.querySelectorAll('input[type=text],input[type=number],textarea').forEach(i => i.value = '');
+  document.querySelectorAll('.check-item').forEach(l => { l.classList.remove('checked'); l.querySelector('input').checked = false; });
+  document.querySelectorAll('.custom-input').forEach(c => c.classList.remove('show'));
+  document.getElementById('ch-cfg').value = 7;
+  document.getElementById('cfg-val').textContent = '7';
+  document.getElementById('seed-input').style.display = 'none';
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  generate();
+}
+
+function toggleVideoMode(on) {
+  const sec = document.getElementById('video-section');
+  sec.classList.toggle('disabled', !on);
+  if (on) {
+    sec.classList.add('open');
+    sec.querySelector('.group-letter').style.background = 'var(--accent)';
+  } else {
+    sec.classList.remove('open');
+    sec.querySelector('.group-letter').style.background = '#475569';
+  }
+  generate();
+}
+
+function applyPreset(name) {
+  clearAll();
+  document.querySelectorAll('.quick-btn').forEach(b => b.classList.remove('active'));
+  if (name === 'clear') return;
+  event.target.classList.add('active');
+
+  if (name === 'photo') {
+    document.getElementById('ch-medium').value = 'photograph';
+    document.getElementById('ch-lens').value = 'shot with 85mm portrait lens';
+    document.getElementById('ch-dof').value = 'shallow depth of field, creamy bokeh';
+    document.getElementById('ch-tod').value = 'golden hour warm light';
+    document.getElementById('ch-comp').value = 'rule of thirds composition';
+  } else if (name === 'product') {
+    document.getElementById('ch-medium').value = 'photograph';
+    document.getElementById('ch-lightdir').value = 'studio three-point lighting';
+    document.getElementById('ch-lightq').value = 'soft diffused light';
+    document.getElementById('ch-dof').value = 'shallow depth of field, creamy bokeh';
+    document.getElementById('ch-style').value = 'minimalist';
+  } else if (name === 'portrait') {
+    document.getElementById('ch-medium').value = 'photograph';
+    document.getElementById('ch-shot').value = 'close-up';
+    document.getElementById('ch-lens').value = 'shot with 85mm portrait lens';
+    document.getElementById('ch-dof').value = 'shallow depth of field, creamy bokeh';
+    document.getElementById('ch-lightdir').value = 'Rembrandt lighting';
+    document.getElementById('ch-lightq').value = 'soft diffused light';
+  } else if (name === 'cinematic') {
+    document.getElementById('ch-medium').value = 'photograph';
+    document.getElementById('ch-style').value = 'cinematic';
+    document.getElementById('ch-ratio').value = '2.35:1 ultrawide cinematic';
+    document.getElementById('ch-lens').value = 'shot with 35mm lens';
+    document.getElementById('ch-lightdir').value = 'side lighting, dramatic';
+    document.getElementById('ch-era').value = 'shot on 35mm film';
+  }
+  generate();
+}
+
+generate();
+</script>
+
+</body>
+</html>
