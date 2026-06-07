@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { existsSync } from 'node:fs';
 import { readdirSync } from 'node:fs';
 import path from 'node:path';
-import { LABS, Labs, getLab, labsBySection, labsForChapter, REACT_LAB_IDS } from '@/lib/lab/registry';
+import { LABS, Labs, getLab, labsBySection, labsForChapter, REACT_LAB_IDS, LAB_SECTIONS } from '@/lib/lab/registry';
 
-const CORE_SECTIONS = ['what-is-ai', 'products', 'pro-usage', 'in-practice'];
+const CORE_SECTIONS = LAB_SECTIONS;
 
 // Real chapter slugs on disk under content/chapters/<core section>/*.mdx
 function chapterSlugs(): Set<string> {
@@ -68,5 +68,8 @@ describe('lib/lab/registry', () => {
   it('labsBySection returns ordered non-empty groups', () => {
     const groups = labsBySection();
     expect(groups.every(g => g.labs.length > 0)).toBe(true);
+    const keys = groups.map(g => g.key);
+    const expectedOrder = LAB_SECTIONS.filter(s => keys.includes(s));
+    expect(keys).toEqual(expectedOrder);
   });
 });

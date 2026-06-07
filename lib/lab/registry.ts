@@ -5,11 +5,11 @@ export const LAB_SECTIONS = ['what-is-ai', 'products', 'pro-usage', 'in-practice
 export type LabSection = (typeof LAB_SECTIONS)[number];
 
 /** Thai labels for each section, in display order (matches LEVEL_META.label_th). */
-export const LAB_SECTION_META: Record<LabSection, { label_th: string; order: number }> = {
-  'what-is-ai':  { label_th: 'AI คืออะไร',     order: 1 },
-  products:      { label_th: 'รู้จัก Product', order: 2 },
-  'pro-usage':   { label_th: 'ใช้ขั้นโปร',     order: 3 },
-  'in-practice': { label_th: 'ลงมือใช้จริง',   order: 4 },
+export const LAB_SECTION_META: Record<LabSection, { label_th: string }> = {
+  'what-is-ai':  { label_th: 'AI คืออะไร'    },
+  products:      { label_th: 'รู้จัก Product' },
+  'pro-usage':   { label_th: 'ใช้ขั้นโปร'    },
+  'in-practice': { label_th: 'ลงมือใช้จริง'  },
 };
 
 export const Lab = z.object({
@@ -86,8 +86,7 @@ export function labsForChapter(slug: string): Lab[] {
 
 /** Group labs by section in display order, dropping empty sections. */
 export function labsBySection(): Array<{ key: LabSection; label_th: string; labs: Lab[] }> {
-  return [...LAB_SECTIONS]
-    .sort((a, b) => LAB_SECTION_META[a].order - LAB_SECTION_META[b].order)
+  return LAB_SECTIONS
     .map(key => ({ key, label_th: LAB_SECTION_META[key].label_th, labs: LABS.filter(l => l.section === key) }))
     .filter(g => g.labs.length > 0);
 }
