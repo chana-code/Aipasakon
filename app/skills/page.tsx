@@ -1,38 +1,11 @@
-import type { Metadata } from 'next';
-import { loadSkills } from '@/lib/content/skills';
-import { ogImageUrl } from '@/lib/seo/site';
+import Link from 'next/link';
+import { loadSkills, groupByCategory } from '@/lib/content/skills';
 
-const SKILLS_DESC =
-  'GitHub repo ของ skill และเครื่องมือ AI ที่คัดมาแล้ว พร้อมคำอธิบายว่าแต่ละตัวคืออะไรและใช้ยังไง';
-
-export const metadata: Metadata = {
-  title: 'รวม Skill ที่น่าสนใจ',
-  description: SKILLS_DESC,
-  alternates: { canonical: '/skills' },
-  openGraph: {
-    type: 'website',
-    url: '/skills',
-    title: 'รวม Skill ที่น่าสนใจ',
-    description: SKILLS_DESC,
-    images: [
-      {
-        url: ogImageUrl({ title: 'รวม Skill ที่น่าสนใจ', tag: 'Skills' }),
-        width: 1200,
-        height: 630,
-        alt: 'รวม Skill ที่น่าสนใจ',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'รวม Skill ที่น่าสนใจ',
-    description: SKILLS_DESC,
-    images: [ogImageUrl({ title: 'รวม Skill ที่น่าสนใจ', tag: 'Skills' })],
-  },
-};
+export const metadata = { title: 'รวม Skill ที่น่าสนใจ — AI ภาษาคน' };
 
 export default async function SkillsPage() {
   const skills = await loadSkills();
+  const groups = groupByCategory(skills);
 
   return (
     <div className="bg-[#fbf9f4] min-h-screen">
@@ -42,52 +15,67 @@ export default async function SkillsPage() {
             รวม Skill ที่น่าสนใจ
           </h1>
           <p className="text-[18px] leading-[1.8] text-[#00143C]/70 max-w-[640px]">
-            GitHub repo ของ skill และเครื่องมือ AI ที่คัดมาแล้ว พร้อมคำอธิบายว่าแต่ละตัวคืออะไรและใช้ยังไง
+            เครื่องมือ AI ที่คัดมาแล้ว เลือกตามงานที่คุณอยากทำ แต่ละตัวลากไปวางใน
+            Claude Code, Cowork หรือ Codex แล้วสั่งงานได้เลย กดเข้าไปอ่านวิธีใช้แบบละเอียดได้
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-5">
-          {skills.map(s => (
-            <div
-              key={s.repo}
-              className="flex flex-col bg-white rounded-lg border border-[#E8E2D4] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <h3 className="text-[20px] leading-[1.3] font-semibold text-[#00143C] mb-3">
-                {s.name}
-              </h3>
-              <p className="text-[15px] leading-[1.7] text-[#00143C] mb-4">
-                <span className="font-semibold">คืออะไร:</span> {s.what}
-              </p>
-              <p className="text-[15px] leading-[1.7] text-[#00143C]/80 mb-4">
-                <span className="font-semibold">ใช้ยังไง:</span> {s.how}
-              </p>
+        {groups.map(group => (
+          <section key={group.key} className="mb-14">
+            <h2 className="text-[24px] leading-[1.3] font-bold text-[#00143C] mb-1">
+              {group.label}
+            </h2>
+            <p className="text-[15px] leading-[1.7] text-[#00143C]/60 mb-6">{group.blurb}</p>
 
-              {s.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-5">
-                  {s.tags.map(t => (
-                    <span key={t} className="text-[13px] px-3 py-0.5 rounded-full bg-[#14B5AB1a] text-[#0f8a82]">
-                      #{t}
-                    </span>
-                  ))}
+            <div className="grid md:grid-cols-2 gap-5">
+              {group.skills.map(s => (
+                <div
+                  key={s.slug}
+                  className="flex flex-col bg-white rounded-lg border border-[#E8E2D4] p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <h3 className="text-[20px] leading-[1.3] font-semibold text-[#00143C] mb-2">
+                    {s.name}
+                  </h3>
+                  <p className="text-[15px] leading-[1.7] text-[#00143C]/80 mb-4">{s.tagline}</p>
+
+                  {s.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-5">
+                      {s.tags.map(t => (
+                        <span
+                          key={t}
+                          className="text-[13px] px-3 py-0.5 rounded-full bg-[#14B5AB1a] text-[#0f8a82]"
+                        >
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-auto flex items-center gap-4">
+                    <Link
+                      href={`/skills/${s.slug}`}
+                      className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#14B5AB] hover:text-[#006B7A] no-underline transition-colors"
+                    >
+                      อ่านวิธีใช้
+                      <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </Link>
+                    <a
+                      href={s.repo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-[13px] text-[#00143C]/50 hover:text-[#00143C] no-underline transition-colors"
+                    >
+                      GitHub
+                      <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                    </a>
+                  </div>
                 </div>
-              )}
-
-              <a
-                href={s.repo}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-auto inline-flex items-center gap-2 self-start text-[14px] font-medium text-[#14B5AB] hover:text-[#006B7A] no-underline transition-colors"
-              >
-                <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                ดูบน GitHub
-              </a>
+              ))}
             </div>
-          ))}
+          </section>
+        ))}
 
-          {skills.length === 0 && (
-            <p className="text-[#6c7a78] italic">ยังไม่มี skill</p>
-          )}
-        </div>
+        {skills.length === 0 && <p className="text-[#6c7a78] italic">ยังไม่มี skill</p>}
       </div>
     </div>
   );
