@@ -61,36 +61,6 @@ export default async function CurriculumPage() {
           </p>
         </header>
 
-        {/* Method Intro: See → Say → Steer */}
-        <section className="mb-16 p-8 rounded-xl border border-[#E8E2D4] bg-[#f5f3ee] relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <span className="material-symbols-outlined text-[120px]">psychology</span>
-          </div>
-          <h2 className="text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-6">
-            ปรัชญาการเรียนรู้: See → Say → Steer
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <div className="text-[#14B5AB] font-bold text-xl">See</div>
-              <p className="text-sm font-medium text-[#6c7a78]">
-                มองออกว่าอะไรคือ AI ที่ดี และเข้าใจโครงสร้างความรู้
-              </p>
-            </div>
-            <div className="space-y-2">
-              <div className="text-[#14B5AB] font-bold text-xl">Say</div>
-              <p className="text-sm font-medium text-[#6c7a78]">
-                สั่งงาน AI ให้ตรงใจ สื่อสารด้วยภาษาที่ถูกต้องและทรงพลัง
-              </p>
-            </div>
-            <div className="space-y-2">
-              <div className="text-[#14B5AB] font-bold text-xl">Steer</div>
-              <p className="text-sm font-medium text-[#6c7a78]">
-                แก้ผลลัพธ์ให้ดีขึ้น ต่อยอดและควบคุม AI ให้ทำงานระดับมืออาชีพ
-              </p>
-            </div>
-          </div>
-        </section>
-
         {/* Level Sections */}
         {CORE_LEVELS.map((lvl) => {
           const meta = LEVEL_META[lvl];
