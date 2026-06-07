@@ -40,6 +40,11 @@ export function isLevel(value: string): value is Level {
   return (LEVELS as readonly string[]).includes(value);
 }
 
+/** True only for live (core) levels. Archived levels exist on disk but are never served. */
+export function isCoreLevel(value: string): value is Level {
+  return isLevel(value) && LEVEL_META[value].group === 'core';
+}
+
 /** The ordered list of sibling levels in the same group as `level` (for prev/next + spine). */
 export function levelsInGroup(level: Level): Level[] {
   const group = LEVEL_META[level].group;

@@ -12,6 +12,7 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
       const s = q.toLowerCase();
       return (
         e.term_en.toLowerCase().includes(s) ||
+        (e.term_th ?? '').toLowerCase().includes(s) ||
         e.definition_th.toLowerCase().includes(s)
       );
     });
@@ -93,9 +94,9 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
                   {/* Definition */}
                   <div className="text-[15px] leading-[1.75] text-[#00143C]">
                     {e.definition_th}
-                    {e.see_also.length > 0 && (
+                    {e.full_chapter && (
                       <Link
-                        href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}
+                        href={e.full_chapter}
                         className="inline md:hidden ml-2 text-[13px] text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
                       >
                         บทเต็ม →
@@ -105,9 +106,9 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
 
                   {/* บทเต็ม link (desktop) */}
                   <div className="hidden md:flex items-center">
-                    {e.see_also.length > 0 && (
+                    {e.full_chapter && (
                       <Link
-                        href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}
+                        href={e.full_chapter}
                         className="text-[13px] font-medium text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
                       >
                         บทเต็ม →

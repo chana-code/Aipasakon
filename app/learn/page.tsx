@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { loadAllChapters } from '@/lib/content/chapters';
-import { LEVELS, LEVEL_META } from '@/lib/content/levels';
+import { CORE_LEVELS, LEVEL_META } from '@/lib/content/levels';
 
 // Per-level hex literals (from PORT-CONVENTIONS.md)
 const LEVEL_HEX: Record<string, string> = {
@@ -37,7 +37,7 @@ export default async function LearnPage() {
   const progressPct = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
 
   // Per-level chapter counts
-  const levelStats = LEVELS.map(level => {
+  const levelStats = CORE_LEVELS.map(level => {
     const lvlChapters = chapters.filter(c => c.level === level);
     const lvlDone = lvlChapters.filter(c => completedSlugs.has(c.slug)).length;
     return { level, total: lvlChapters.length, done: lvlDone };

@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { ChapterFrontmatter } from './schemas';
-import { LEVELS, LEVEL_META, type Level } from './levels';
+import { CORE_LEVELS, LEVEL_META, type Level } from './levels';
 
 const CONTENT_ROOT = path.resolve(process.cwd(), 'content/chapters');
 
@@ -28,7 +28,9 @@ async function readChapterFile(level: Level, file: string): Promise<Chapter> {
 
 export async function loadAllChapters(): Promise<Chapter[]> {
   const all: Chapter[] = [];
-  for (const level of LEVELS) {
+  // Only live (core) levels are served. Archived legacy levels remain on disk
+  // as source but are never read into any page, route, or search index.
+  for (const level of CORE_LEVELS) {
     const dir = path.join(CONTENT_ROOT, level);
     let files: string[] = [];
     try { files = await readdir(dir); } catch { continue; }

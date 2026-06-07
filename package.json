@@ -15,7 +15,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "search:build": "pagefind --site .next/server/app --output-path public/pagefind",
-    "convert:chapters": "tsx scripts/convert-chapter.ts"
+    "convert:chapters": "tsx scripts/convert-chapter.ts",
+    "build:glossary": "tsx scripts/build-glossary.ts",
+    "build:skills": "tsx scripts/build-skills.ts"
   },
   "overrides": {
     "isomorphic-dompurify": {
