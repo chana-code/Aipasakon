@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'แดชบอร์ด — AI ภาษาคน',
   description: 'ติดตามความก้าวหน้าการเรียนรู้ AI ของคุณ',
+  // Auth-gated dashboard — must not be indexed.
+  robots: { index: false },
 };
 
 export default function LearnLayout({ children }: { children: React.ReactNode }) {

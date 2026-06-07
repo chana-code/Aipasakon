@@ -1,9 +1,13 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 import { loadAllChapters, loadChapter } from '@/lib/content/chapters';
-import { isLevel, LEVEL_META } from '@/lib/content/levels';
+import { isCoreLevel, LEVEL_META } from '@/lib/content/levels';
+import { SITE, metaDescription, ogImageUrl } from '@/lib/seo/site';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { chapterLd, breadcrumbLd, faqLd } from '@/lib/seo/jsonld';
 import { CurriculumSpine } from '@/components/reader/CurriculumSpine';
 import { MobileCurriculumDrawer } from '@/components/reader/MobileCurriculumDrawer';
 import { TableOfContents } from '@/components/reader/TableOfContents';
@@ -14,9 +18,43 @@ import Embed from '@/components/reader/Embed';
 
 const ARTICLE_ID = 'chapter-article';
 
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const all = await loadAllChapters();
   return all.map(c => ({ level: c.level, topic: c.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ level: string; topic: string }>;
+}): Promise<Metadata> {
+  const { level, topic } = await params;
+  if (!isCoreLevel(level)) return {};
+  let chapter;
+  try { chapter = await loadChapter(level, topic); } catch { return {}; }
+
+  const m = LEVEL_META[chapter.level];
+  const description = metaDescription(chapter.description ?? chapter.tldr);
+  const path = `/${chapter.level}/${chapter.slug}`;
+  const image = ogImageUrl({ title: chapter.title, tag: m.label_th, kicker: SITE.name });
+
+  return {
+    title: chapter.title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: 'article',
+      url: path,
+      title: chapter.title,
+      description,
+      section: m.label_th,
+      ...(chapter.last_reviewed ? { modifiedTime: chapter.last_reviewed } : {}),
+      images: [{ url: image, width: 1200, height: 630, alt: chapter.title }],
+    },
+    twitter: { card: 'summary_large_image', title: chapter.title, description, images: [image] },
+  };
 }
 
 export default async function ChapterPage({
@@ -25,7 +63,7 @@ export default async function ChapterPage({
   params: Promise<{ level: string; topic: string }>;
 }) {
   const { level, topic } = await params;
-  if (!isLevel(level)) notFound();
+  if (!isCoreLevel(level)) notFound();
 
   let chapter;
   try { chapter = await loadChapter(level, topic); } catch { notFound(); }
@@ -48,8 +86,33 @@ export default async function ChapterPage({
     .filter(Boolean)
     .map(c => ({ slug: c!.slug, title: c!.title, level: c!.level }));
 
+  const path = `/${chapter.level}/${chapter.slug}`;
+  const description = metaDescription(chapter.description ?? chapter.tldr);
+
   return (
     <div className="max-w-[1440px] mx-auto flex gap-8 px-6 pt-8">
+      <JsonLd
+        data={[
+          chapterLd({
+            title: chapter.title,
+            description,
+            path,
+            datePublished: chapter.published ?? chapter.last_reviewed,
+            dateModified: chapter.last_reviewed ?? chapter.published,
+            section: m.label_th,
+            image: ogImageUrl({ title: chapter.title, tag: m.label_th, kicker: SITE.name }),
+            readMinutes: readMin,
+          }),
+          breadcrumbLd([
+            { name: 'หลักสูตร', path: '/curriculum' },
+            { name: m.label_th, path: `/${chapter.level}` },
+            { name: chapter.title, path },
+          ]),
+          ...(chapter.faq?.length
+            ? [faqLd(chapter.faq.map(f => ({ question: f.q, answer: f.a })))]
+            : []),
+        ]}
+      />
       {/* LEFT: Curriculum spine (desktop only) */}
       <div className="hidden lg:block shrink-0">
         <CurriculumSpine chapters={all} currentSlug={chapter.slug} />
@@ -133,6 +196,34 @@ export default async function ChapterPage({
         >
           <MDXRemote source={chapter.body} components={{ DissectionLab, Embed }} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
         </div>
+
+        {/* FAQ — visible Q&A, also emitted as FAQPage structured data above */}
+        {chapter.faq && chapter.faq.length > 0 && (
+          <section className="mt-16 pt-10 border-t border-[#E8E2D4]">
+            <h2 className="text-2xl font-bold text-[#00143C] mb-6">คำถามที่พบบ่อย</h2>
+            <div className="flex flex-col gap-3">
+              {chapter.faq.map((f, i) => (
+                <details
+                  key={i}
+                  className="group bg-white border border-[#E8E2D4] rounded-lg px-5 py-4 [&_summary]:cursor-pointer"
+                >
+                  <summary className="flex items-center justify-between gap-4 font-semibold text-[#00143C] list-none">
+                    <span>{f.q}</span>
+                    <span className="material-symbols-outlined text-[#14B5AB] transition-transform group-open:rotate-180 shrink-0">
+                      expand_more
+                    </span>
+                  </summary>
+                  <p
+                    className="mt-3 text-[#00143C]/80 font-['IBM_Plex_Sans_Thai_Looped',sans-serif]"
+                    style={{ fontSize: 16, lineHeight: 1.8 }}
+                  >
+                    {f.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Related links (from prerequisites) */}
         {prereqItems.length > 0 && (

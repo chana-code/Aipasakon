@@ -1,12 +1,52 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { loadAllChapters } from '@/lib/content/chapters';
 import { CORE_LEVELS, LEVEL_META } from '@/lib/content/levels';
+import { ogImageUrl } from '@/lib/seo/site';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { courseLd } from '@/lib/seo/jsonld';
+
+const CURRICULUM_DESC =
+  'เส้นทางเรียน AI เป็นภาษาคน ตั้งแต่ยังไม่รู้อะไรเลย จนใช้งานได้จริงในงานและธุรกิจ ออกแบบมาให้เข้าใจง่ายแต่ลึกซึ้ง พร้อมการประยุกต์ใช้ทันที';
+
+export const metadata: Metadata = {
+  title: 'หลักสูตร',
+  description: CURRICULUM_DESC,
+  alternates: { canonical: '/curriculum' },
+  openGraph: {
+    type: 'website',
+    url: '/curriculum',
+    title: 'หลักสูตร',
+    description: CURRICULUM_DESC,
+    images: [
+      {
+        url: ogImageUrl({ title: 'หลักสูตร', tag: 'หลักสูตร' }),
+        width: 1200,
+        height: 630,
+        alt: 'หลักสูตร',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'หลักสูตร',
+    description: CURRICULUM_DESC,
+    images: [ogImageUrl({ title: 'หลักสูตร', tag: 'หลักสูตร' })],
+  },
+};
 
 export default async function CurriculumPage() {
   const chapters = await loadAllChapters();
 
   return (
     <div className="max-w-[1200px] mx-auto px-6 py-12 flex flex-col md:flex-row gap-12 relative">
+      <JsonLd
+        data={courseLd({
+          name: 'หลักสูตร AI ภาษาคน',
+          description: CURRICULUM_DESC,
+          path: '/curriculum',
+        })}
+      />
       {/* Left Column: Sticky Curriculum Spine */}
       <aside className="hidden md:block w-64 shrink-0">
         <div className="sticky top-28 space-y-4">
@@ -145,16 +185,6 @@ export default async function CurriculumPage() {
             </section>
           );
         })}
-
-        {/* Archive pointer */}
-        <div className="mt-8 pt-8 border-t border-[#E8E2D4]">
-          <p className="text-sm text-[#6c7a78]">
-            กำลังมองหาเนื้อหาชุดเดิม (54 บท)?{' '}
-            <Link href="/archive" className="text-[#14B5AB] hover:underline underline-offset-4">
-              ดูคลังเนื้อหาฉบับก่อนหน้า
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );

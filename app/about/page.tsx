@@ -1,6 +1,36 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AvatarMedia } from '@/components/landing/AvatarMedia';
+import { ogImageUrl } from '@/lib/seo/site';
 
+const ABOUT_DESC =
+  'AI กำลังมาและไม่มีใครหยุดมันได้ — เป้าหมายของ AI ภาษาคน คือช่วยให้คนไทยปรับตัวทัน ด้วยภาษาที่คนเข้าใจจริง ๆ ไม่ใช่ศัพท์เทคนิคที่ยากเกินเข้าถึง';
+
+export const metadata: Metadata = {
+  title: 'เกี่ยวกับเรา',
+  description: ABOUT_DESC,
+  alternates: { canonical: '/about' },
+  openGraph: {
+    type: 'website',
+    url: '/about',
+    title: 'เกี่ยวกับเรา',
+    description: ABOUT_DESC,
+    images: [
+      {
+        url: ogImageUrl({ title: 'เกี่ยวกับ AI ภาษาคน', tag: 'เกี่ยวกับเรา' }),
+        width: 1200,
+        height: 630,
+        alt: 'เกี่ยวกับ AI ภาษาคน',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'เกี่ยวกับเรา',
+    description: ABOUT_DESC,
+    images: [ogImageUrl({ title: 'เกี่ยวกับ AI ภาษาคน', tag: 'เกี่ยวกับเรา' })],
+  },
+};
 
 export default function AboutPage() {
   return (

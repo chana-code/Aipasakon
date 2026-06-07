@@ -1,7 +1,18 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { loadAllChapters } from '@/lib/content/chapters';
 import { CORE_LEVELS, LEVEL_META, type Level } from '@/lib/content/levels';
+
+export const metadata: Metadata = {
+  title: 'มุมมองคลาสสิก',
+  description:
+    'เวอร์ชันหน้าแรกแบบคลาสสิกของ AI ภาษาคน — เรียน AI เป็นภาษาคน ตั้งแต่พื้นฐานจนใช้งานได้จริง',
+  alternates: { canonical: '/classic' },
+  // Alternate rendering of the home/landing content — keep out of the index
+  // to avoid duplicate-content with the primary homepage.
+  robots: { index: false },
+};
 
 
 const hexOf = (lvl: Level) => LEVEL_META[lvl].color;

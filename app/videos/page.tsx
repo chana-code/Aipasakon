@@ -1,14 +1,44 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { loadAllVideos } from '@/lib/content/videos';
-import { LEVELS, LEVEL_META } from '@/lib/content/levels';
+import { CORE_LEVELS, LEVEL_META } from '@/lib/content/levels';
+import { ogImageUrl } from '@/lib/seo/site';
+
+const VIDEOS_DESC = 'เนื้อหาเสริมแบบวิดีโอ จัดเรียงตามระดับของหลักสูตร AI ภาษาคน';
+
+export const metadata: Metadata = {
+  title: 'วีดีโอการสอน',
+  description: VIDEOS_DESC,
+  alternates: { canonical: '/videos' },
+  openGraph: {
+    type: 'website',
+    url: '/videos',
+    title: 'วีดีโอการสอน',
+    description: VIDEOS_DESC,
+    images: [
+      {
+        url: ogImageUrl({ title: 'วีดีโอการสอน', tag: 'วิดีโอ' }),
+        width: 1200,
+        height: 630,
+        alt: 'วีดีโอการสอน',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'วีดีโอการสอน',
+    description: VIDEOS_DESC,
+    images: [ogImageUrl({ title: 'วีดีโอการสอน', tag: 'วิดีโอ' })],
+  },
+};
 
 
 // Fixed hex values per PORT-CONVENTIONS.md per-level colors
 const LEVEL_HEX: Record<string, string> = {
-  foundations:        '#14B5AB',
-  'using-ai':         '#2D7CD6',
-  'building-with-ai': '#B45A1A',
-  advanced:           '#7A3FA0',
+  'what-is-ai':  '#14B5AB',
+  'products':    '#2D7CD6',
+  'pro-usage':   '#B45A1A',
+  'in-practice': '#7A3FA0',
 };
 
 export default async function VideosIndex() {
@@ -21,7 +51,7 @@ export default async function VideosIndex() {
         {/* Page header */}
         <div className="mb-12">
           <h1 className={`text-[40px] leading-[1.2] font-bold text-[#00143C] mb-3`}>
-            วิดีโอ
+            วีดีโอการสอน
           </h1>
           <p className="text-[18px] leading-[1.8] text-[#00143C]/70">
             เนื้อหาเสริมแบบวิดีโอ จัดเรียงตามระดับของหลักสูตร
@@ -29,7 +59,7 @@ export default async function VideosIndex() {
         </div>
 
         {/* Level sections */}
-        {LEVELS.map(level => {
+        {CORE_LEVELS.map(level => {
           const items = videos.filter(v => v.level === level);
           if (items.length === 0) return null;
           const hex = LEVEL_HEX[level] ?? '#14B5AB';

@@ -1,7 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AuthForm } from '@/components/auth/AuthForm';
 
-export const metadata = { title: 'สมัครสมาชิก — AI ภาษาคน' };
+export const metadata: Metadata = {
+  title: 'สมัครสมาชิก',
+  description: 'สมัครสมาชิก AI ภาษาคน ฟรี — เก็บที่คั่น ติดตามความคืบหน้า และอ่านต่อได้ทุกอุปกรณ์',
+  robots: { index: false, follow: true },
+};
 
 export default async function SignupPage({
   searchParams,

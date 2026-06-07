@@ -1,18 +1,51 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { loadAllChapters } from '@/lib/content/chapters';
-import { isLevel, LEVEL_META, LEVELS, levelsInGroup } from '@/lib/content/levels';
+import { isCoreLevel, LEVEL_META, CORE_LEVELS, levelsInGroup } from '@/lib/content/levels';
 import { listGatedArticles } from '@/lib/content/gated-articles';
 import { GatedArticleCard } from '@/components/articles/GatedArticleCard';
+import { SITE, ogImageUrl } from '@/lib/seo/site';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { courseLd, breadcrumbLd } from '@/lib/seo/jsonld';
+
+export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return LEVELS.map(level => ({ level }));
+  return CORE_LEVELS.map(level => ({ level }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ level: string }>;
+}): Promise<Metadata> {
+  const { level } = await params;
+  if (!isCoreLevel(level)) return {};
+  const meta = LEVEL_META[level];
+  const title = `${meta.label_th} — บทเรียน AI`;
+  const description = meta.tagline_th;
+  const image = ogImageUrl({ title: meta.label_th, tag: `Level ${meta.order}`, kicker: SITE.name });
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/${level}` },
+    openGraph: {
+      type: 'website',
+      url: `/${level}`,
+      title,
+      description,
+      images: [{ url: image, width: 1200, height: 630, alt: meta.label_th }],
+    },
+    twitter: { card: 'summary_large_image', title, description, images: [image] },
+  };
 }
 
 
 export default async function LevelIndex({ params }: { params: Promise<{ level: string }> }) {
   const { level } = await params;
-  if (!isLevel(level)) notFound();
+  if (!isCoreLevel(level)) notFound();
 
   const meta    = LEVEL_META[level];
   const hex     = meta.color;
@@ -29,6 +62,20 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
 
   return (
     <div className="max-w-[720px] mx-auto px-6 py-12 min-h-screen">
+      <JsonLd
+        data={[
+          courseLd({
+            name: `${meta.label_th} — ${SITE.name}`,
+            description: meta.tagline_th,
+            path: `/${level}`,
+            numberOfLessons: chapters.length,
+          }),
+          breadcrumbLd([
+            { name: 'หลักสูตร', path: '/curriculum' },
+            { name: meta.label_th, path: `/${level}` },
+          ]),
+        ]}
+      />
 
       {/* 1. Breadcrumb */}
       <nav className="mb-8">

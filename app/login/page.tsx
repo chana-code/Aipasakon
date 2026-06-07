@@ -1,7 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AuthForm } from '@/components/auth/AuthForm';
 
-export const metadata = { title: 'เข้าสู่ระบบ — AI ภาษาคน' };
+export const metadata: Metadata = {
+  title: 'เข้าสู่ระบบ',
+  description: 'เข้าสู่ระบบ AI ภาษาคน เพื่ออ่านต่อจากที่ค้างไว้',
+  robots: { index: false, follow: true },
+};
 
 export default async function LoginPage({
   searchParams,

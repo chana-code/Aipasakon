@@ -1,13 +1,45 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { loadAllVideos, loadVideo } from '@/lib/content/videos';
 import { loadAllChapters } from '@/lib/content/chapters';
 import { YouTubeEmbed } from '@/components/video/YouTubeEmbed';
 import { LevelChip } from '@/components/chrome/LevelChip';
+import { metaDescription } from '@/lib/seo/site';
+import { JsonLd } from '@/components/seo/JsonLd';
+import { videoLd, breadcrumbLd } from '@/lib/seo/jsonld';
 
 export async function generateStaticParams() {
   const videos = await loadAllVideos();
   return videos.map(v => ({ slug: v.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  let video;
+  try { video = await loadVideo(slug); } catch { return {}; }
+
+  const description = metaDescription(video.description || video.title);
+  const path = `/videos/${video.slug}`;
+  const image = `https://i.ytimg.com/vi/${video.youtube_id}/hqdefault.jpg`;
+
+  return {
+    title: video.title,
+    description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: 'video.other',
+      url: path,
+      title: video.title,
+      description,
+      images: [{ url: image, alt: video.title }],
+    },
+    twitter: { card: 'summary_large_image', title: video.title, description, images: [image] },
+  };
 }
 
 export default async function VideoPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -22,6 +54,20 @@ export default async function VideoPage({ params }: { params: Promise<{ slug: st
 
   return (
     <div className="mx-auto max-w-prose px-6 py-12">
+      <JsonLd
+        data={[
+          videoLd({
+            title: video.title,
+            description: video.description,
+            path: `/videos/${video.slug}`,
+            youtubeId: video.youtube_id,
+          }),
+          breadcrumbLd([
+            { name: 'วีดีโอการสอน', path: '/videos' },
+            { name: video.title, path: `/videos/${video.slug}` },
+          ]),
+        ]}
+      />
       <div className="mb-4"><LevelChip level={video.level} /></div>
       <h1 className="font-thai text-3xl font-semibold mb-6">{video.title}</h1>
       <YouTubeEmbed id={video.youtube_id} title={video.title} />
