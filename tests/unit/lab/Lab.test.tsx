@@ -19,4 +19,9 @@ describe('<Lab>', () => {
     render(<Lab id="does-not-exist" />);
     expect(screen.getByText(/ไม่พบแล็บ/)).toBeInTheDocument();
   });
+
+  it('renders the react lab component for a react lab', async () => {
+    render(<Lab id="dissection-lab" />);
+    expect(await screen.findByTestId('dissection-lab')).toBeInTheDocument();
+  });
 });
