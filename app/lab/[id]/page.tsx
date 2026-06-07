@@ -40,7 +40,7 @@ export default async function LabDetailPage({
   return (
     <div className="bg-[#fbf9f4] min-h-screen">
       <div className="mx-auto max-w-[920px] px-4 md:px-8 py-10 md:py-14">
-        <nav className="flex flex-wrap gap-2 text-sm text-[#00143C]/60 mb-6">
+        <nav aria-label="breadcrumb" className="flex flex-wrap gap-2 text-sm text-[#00143C]/60 mb-6">
           <Link href="/lab" className="hover:text-[#14B5AB] transition-colors">AI Lab</Link>
           <span>/</span>
           <span className="text-[#00143C]">{lab.title_th}</span>
