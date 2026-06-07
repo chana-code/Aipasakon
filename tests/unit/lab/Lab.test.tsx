@@ -1,11 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import Lab from '@/components/lab/Lab';
-
-// next/dynamic resolves async in jsdom; stub the heavy DissectionLab import.
-vi.mock('@/components/lab/DissectionLabClient', () => ({
-  default: () => <div data-testid="dissection-lab" />,
-}));
 
 describe('<Lab>', () => {
   it('renders an iframe for an html lab', () => {
@@ -20,8 +15,10 @@ describe('<Lab>', () => {
     expect(screen.getByText(/ไม่พบแล็บ/)).toBeInTheDocument();
   });
 
-  it('renders the react lab component for a react lab', async () => {
+  it('renders the dissection lab as a self-contained html iframe', () => {
     render(<Lab id="dissection-lab" />);
-    expect(await screen.findByTestId('dissection-lab')).toBeInTheDocument();
+    const frame = screen.getByTitle('ผ่าตัดดูข้างใน LLM');
+    expect(frame.tagName).toBe('IFRAME');
+    expect(frame).toHaveAttribute('src', '/lab/dissection-lab.html');
   });
 });

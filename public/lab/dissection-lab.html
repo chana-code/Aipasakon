@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LLM Dissection Lab — เปิดดูข้างในโมเดล AI จริง</title>
+<style>
+  :root {
+    --bg:#faf7f2; --card:#fffdf9; --ink:#2c2722; --muted:#7a6f63;
+    --line:#e7ddcf; --accent:#0f766e; --accent2:#b45309; --hot:#dc2626; --cold:#2563eb;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,"Segoe UI","Sarabun",system-ui,sans-serif; line-height:1.6; }
+  .wrap { max-width:920px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:30px; margin:0 0 6px; letter-spacing:-.01em; }
+  h2 { font-size:20px; margin:34px 0 4px; }
+  .sub { color:var(--muted); margin:0 0 24px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; margin:16px 0; }
+  .step-no { display:inline-flex; align-items:center; justify-content:center; width:26px; height:26px;
+    border-radius:50%; background:var(--accent); color:#fff; font-size:14px; font-weight:600; margin-right:8px; }
+  .muted { color:var(--muted); font-size:14px; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:10px; padding:9px 15px;
+    font-size:15px; font-weight:600; cursor:pointer; }
+  button.ghost { background:#fff; color:var(--accent); border:1px solid var(--accent); }
+  .chip { display:inline-flex; flex-direction:column; align-items:center; padding:5px 9px; margin:3px;
+    border:1px solid var(--line); border-radius:9px; background:#fff; cursor:pointer; transition:.12s; }
+  .chip:hover { border-color:var(--accent); } .chip.sel { border-color:var(--accent); background:#ecfdf5; }
+  .chip b { font-size:15px; } .chip span { font-size:11px; color:var(--muted); }
+  .heat { display:flex; flex-wrap:wrap; gap:3px; margin-top:6px; }
+  .cell { width:20px; height:20px; border-radius:3px; border:1px solid #0001; }
+  .bar { display:flex; align-items:center; gap:8px; margin:5px 0; }
+  .bar .tok { width:120px; text-align:right; font-weight:600; white-space:pre; overflow:hidden; text-overflow:ellipsis; }
+  .bar .track { flex:1; background:#f1ece3; border-radius:6px; height:18px; overflow:hidden; }
+  .bar .fill { height:18px; background:var(--accent); border-radius:6px; }
+  .bar .pct { width:54px; font-size:13px; color:var(--muted); }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th,td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:600; }
+  .scale td.big { font-variant-numeric:tabular-nums; font-weight:700; }
+  code { background:#f3eee5; padding:1px 5px; border-radius:5px; font-size:13px; }
+  pre { background:#2c2722; color:#f0e9dd; padding:14px; border-radius:10px; overflow:auto; font-size:12.5px; line-height:1.55; max-height:340px; }
+  pre .k { color:#7dd3c0; } pre .n { color:#f0b366; } pre .s { color:#c7e89a; }
+  .gen { font-size:17px; line-height:1.85; }
+  .gen .new { background:#fef3c7; border-radius:4px; padding:0 2px; }
+  .pill { font-size:12px; background:#f3eee5; color:var(--muted); padding:2px 8px; border-radius:999px; }
+  .preset { background:#fff; color:var(--accent); border:1px solid var(--line); border-radius:999px;
+    padding:6px 12px; font-size:13px; font-weight:500; cursor:pointer; }
+  .preset:hover { border-color:var(--accent); background:#ecfdf5; }
+  .preset.sel { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .explain { background:#f6f3ec; border:1px solid var(--line); border-radius:10px; padding:12px 14px;
+    margin:10px 0 4px; font-size:14.5px; line-height:1.7; }
+  .explain ul { list-style:none; padding-left:0; margin:6px 0 0; }
+  .explain li { margin:6px 0; padding-left:18px; position:relative; }
+  .explain li::before { content:"•"; position:absolute; left:4px; color:var(--accent); }
+  select { padding:4px 8px; border:1px solid var(--line); border-radius:7px; background:#fff; font-size:14px; }
+  table.attn { border-collapse:collapse; width:auto; }
+  table.attn td, table.attn th { padding:0; border:none; }
+  table.attn th.col { font-size:11px; color:var(--muted); height:62px; vertical-align:bottom; text-align:center; }
+  table.attn th.col span { display:inline-block; writing-mode:vertical-rl; transform:rotate(180deg); padding-bottom:4px; }
+  table.attn th.rowlab { font-size:12px; text-align:right; padding-right:8px; white-space:nowrap; }
+  table.attn td.acell { width:30px; height:30px; border:1px solid #fff; }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .filetab { font-size:13px; }
+  @media (max-width:560px){ .bar .tok{ width:84px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔬 LLM Dissection Lab</h1>
+  <p class="sub">เปิดดูข้างในโมเดล AI จริง ๆ — ในไฟล์เก็บอะไรไว้ แล้วมันทำงานยังไง<br>
+    <span class="muted">ทุกตัวเลขในหน้านี้คำนวณจากโมเดลโอเพนซอร์สจริง Qwen2.5-0.5B (~494 ล้านตัวเลข)</span></p>
+
+  <!-- ============ PART 1 ============ -->
+  <h2>ส่วนที่ 1 — ในไฟล์โมเดลมีอะไร?</h2>
+  <p class="muted">"โมเดล" คือโฟลเดอร์ที่มีไฟล์ไม่กี่ไฟล์ หัวใจคือไฟล์ตัวเลขมหาศาล (weights)</p>
+
+  <div class="card">
+    <strong>โครงสร้างไฟล์จริง</strong> (จากโมเดล Qwen2.5-0.5B)
+    <table style="margin-top:8px">
+      <tr><th>ไฟล์</th><th>คืออะไร</th></tr>
+      <tr><td><code>config.json</code></td><td>พิมพ์เขียว — บอกว่าโมเดลมีกี่ชั้น กว้างเท่าไหร่</td></tr>
+      <tr><td><code>model.safetensors</code></td><td><b>สมอง</b> — ตัวเลขทศนิยมหลายร้อยล้านตัว</td></tr>
+      <tr><td><code>tokenizer.json</code></td><td>พจนานุกรม แปลง ข้อความ ↔ เลข</td></tr>
+    </table>
+    <p class="muted" style="margin:12px 0 6px"><strong>อยากเห็นข้างในไฟล์จริง ๆ?</strong> กดดูได้เลย 👇</p>
+    <div class="tabs">
+      <button class="preset filetab sel" data-f="config">config.json</button>
+      <button class="preset filetab" data-f="safetensors">model.safetensors</button>
+      <button class="preset filetab" data-f="tokenizer">tokenizer.json</button>
+    </div>
+    <div id="fileView"></div>
+  </div>
+
+  <div class="card scale">
+    <strong>โมเดลเล็กในแล็บนี้ เทียบกับ DeepSeek (ตัวจริงระดับโลก)</strong>
+    <p class="muted" style="margin:4px 0 10px">ชิ้นส่วนเหมือนกันเป๊ะ ต่างกันแค่ "จำนวน" ประมาณ 1,000 เท่า</p>
+    <table>
+      <tr><th></th><th>Qwen2.5-0.5B (แล็บนี้)</th><th>DeepSeek-V3</th></tr>
+      <tr><td>จำนวนตัวเลข (parameters)</td><td class="big">0.5 พันล้าน</td><td class="big">671 พันล้าน</td></tr>
+      <tr><td>จำนวนชั้น (layers)</td><td class="big">24</td><td class="big">61</td></tr>
+      <tr><td>ความกว้าง (hidden size)</td><td class="big">896</td><td class="big">7,168</td></tr>
+      <tr><td>คลังคำ (vocab)</td><td class="big">151,936</td><td class="big">129,280</td></tr>
+      <tr><td>ขนาดไฟล์จริง</td><td class="big">~0.5 GB</td><td class="big">689 GB</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ PART 2 ============ -->
+  <h2>ส่วนที่ 2 — ดูมันทำงาน</h2>
+  <p class="muted">เลือกประโยคตัวอย่าง แล้วดูว่ามันไหลผ่าน 5 ขั้นยังไง (ทุกตัวเลขเป็นของจริงจากโมเดล)</p>
+  <div class="card">
+    <div class="muted" style="margin-bottom:8px">เลือกประโยค:</div>
+    <div id="examplePicker" class="row"></div>
+  </div>
+
+  <div class="card" id="s1">
+    <div><span class="step-no">1</span><strong>หั่นเป็น Tokens</strong>
+      <span class="muted">— ข้อความแตกเป็นชิ้น ๆ แต่ละชิ้นมีเลขประจำตัว (คลิกเพื่อดูตัวเลขข้างใน)</span></div>
+    <div id="tokens" class="heat" style="margin-top:10px"></div>
+    <p class="muted" id="tokNote" style="margin-top:8px"></p>
+  </div>
+
+  <div class="card" id="s2">
+    <div><span class="step-no">2</span><strong>กลายเป็นตัวเลข (Embedding)</strong></div>
+    <div class="explain">
+      คอมพิวเตอร์อ่านตัวอักษรไม่ออก รู้จักแต่ "ตัวเลข" จึงทำ 2 ขั้น:
+      <ul>
+        <li><b>ขั้น 1:</b> เปิดพจนานุกรม เอาคำไปแลกเป็น "เลขประจำตัว" (id) — <b>เลขตัวเดียว เป็นแค่ "ที่อยู่/เลขแถว" ไม่ใช่ความหมาย</b> (เหมือนเลขล็อกเกอร์)</li>
+        <li><b>ขั้น 2:</b> เอา id ไปเปิดตารางยักษ์ ได้ <b>ลิสต์ตัวเลข 896 ตัว</b> ออกมา — ลิสต์นี้มีชื่อจริงว่า <b>embedding (เวกเตอร์)</b></li>
+      </ul>
+      <div style="margin-top:8px"><b>embedding คืออะไรกันแน่?</b> = <b>"พิกัด" ของคำในปริภูมิความหมาย</b> — เหมือน GPS แต่แทนที่จะใช้ 2 เลข (ละติจูด/ลองจิจูด) บอกตำแหน่งบนแผนที่ มันใช้ <b>896 เลข</b> บอกตำแหน่งของคำใน "แผนที่ความหมาย"</div>
+      <ul>
+        <li>1 ช่องสี = <b>1 พิกัด</b> (ตำแหน่งตามแกนหนึ่ง) · 🔴 บวก 🔵 ลบ เข้ม = ค่ามาก</li>
+        <li>ต้องมีหลายช่อง เพราะแผนที่ความหมายมีหลายแกน (โมเดลนี้ 896 แกน คิดขึ้นเอง)</li>
+        <li><b>ตำแหน่ง = ความหมาย:</b> คำที่ความหมายใกล้กัน จะอยู่ใกล้กันในแผนที่นี้ (ลองเทียบดูข้างล่าง)</li>
+      </ul>
+    </div>
+    <p class="muted" id="embWho" style="margin:10px 0 0"></p>
+    <div id="embHeat" class="heat"></div>
+    <p class="muted" id="embNote"></p>
+    <div style="border-top:1px solid var(--line); margin-top:14px; padding-top:12px">
+      <strong>ทำไมต้องมีหลายช่อง? เพราะมันทำให้ "คำที่ความหมายใกล้กัน → ตัวเลขคล้ายกัน"</strong>
+      <p class="muted" style="margin:4px 0 8px">กดเทียบสองคำ: ดูว่าลายเส้นสีคล้ายกันแค่ไหน + คะแนนความใกล้เคียง</p>
+      <div id="cmpPresets" class="row"></div>
+      <div id="cmpOut" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <div class="card" id="s3">
+    <div><span class="step-no">3</span><strong>ทำนายคำต่อไป</strong>
+      <span class="muted">— โมเดลจัดอันดับว่าคำถัดไปน่าจะเป็นอะไร นี่คือสิ่งที่มันทำจริง ๆ</span></div>
+    <div id="preds" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card" id="s4">
+    <div><span class="step-no">4</span><strong>เขียนต่อ (Generate) — ทีละคำ</strong>
+      <span class="muted">— กดทีละครั้ง: แต่ละคำคือ "คำที่ทำนายว่ามาต่อ" (ข้อ 3) เติมเข้าไป แล้ววนกลับไปทำใหม่</span></div>
+    <p class="gen" id="genOut" style="margin:10px 0"></p>
+    <div class="row">
+      <button id="stepGen">＋ ทำนายคำต่อไป</button>
+      <button id="resetGen" class="ghost">เริ่มใหม่</button>
+      <span class="muted" id="genCount"></span>
+    </div>
+  </div>
+
+  <div class="card" id="s5">
+    <div><span class="step-no">5</span><strong>Attention — เติม "บริบท" ให้แต่ละคำ</strong></div>
+    <div class="explain">
+      จำข้อ 2 ได้ไหม: แต่ละคำกลายเป็นตัวเลข แต่เป็นความหมาย <b>"ลอย ๆ" ที่ยังไม่รู้บริบท</b>
+      เช่น คำว่า "bank" ตอนนี้ยังไม่รู้ว่าหมายถึง "ริมฝั่งแม่น้ำ" หรือ "ธนาคาร"
+      <div style="margin:8px 0"><b>Attention</b> คือขั้นตอนทางคณิตศาสตร์ (ชื่อเทคนิค: <i>self-attention</i>)
+      ที่ให้แต่ละคำ <b>"ดึงข้อมูล" จากคำอื่นที่เกี่ยวข้องในประโยค</b> มาปรับความหมายตัวเองให้เข้ากับบริบท</div>
+      <ul>
+        <li><b>ไม่ต้องรู้คณิตศาสตร์ข้างใน</b> — รู้แค่ว่ามันทำให้คำ "เข้าใจบริบท": "bank" ที่อยู่ใกล้ "river" กับใกล้ "money" จะได้ความหมายต่างกัน ทั้งที่เริ่มจากตัวเลขชุดเดียวกัน</li>
+        <li>แต่ละคำ <b>ดึงจากหลายคำพร้อมกัน</b> (มากบ้างน้อยบ้าง) ไม่ใช่จับคู่กับคำเดียว</li>
+        <li>กฎเดียวที่ต้องจำ: คำ <b>ดึงได้แค่จากคำ "ก่อนหน้า"</b> (ตอนกำลังเขียน ยังไม่เห็นคำข้างหน้า)</li>
+      </ul>
+      <div style="margin-top:8px; font-size:13.5px"><b>ที่นั่งในไปป์ไลน์:</b>
+        ข้อ 2 <span class="muted">(คำ → ตัวเลขลอย ๆ)</span> →
+        <b style="color:var(--accent)">ข้อ 5 Attention (เติมบริบท)</b> →
+        ข้อ 3 <span class="muted">(ทายคำต่อไป)</span></div>
+    </div>
+    <p class="muted" style="margin-top:8px">👆 คลิกคำในประโยค เพื่อดู "ส่วนผสม" ว่ามันดึงข้อมูลจากคำไหนบ้าง (ยิ่งเขียวเข้ม = ดึงมาก):</p>
+    <div id="attWords" class="row" style="gap:5px"></div>
+    <p id="attSays" style="margin:12px 0; font-size:15px"></p>
+    <p class="muted" id="attLegend"></p>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+const sp = (s) => s.replace(/ /g, "␣");
+let data = null, cur = null, genTimer = null;
+
+function stripHTML(vals, n = 48) {
+  const show = vals.slice(0, n);
+  let m = 1e-6; for (const x of show) m = Math.max(m, Math.abs(x));
+  return show.map((x) => {
+    const c = x / m;
+    const col = c >= 0 ? `rgba(220,38,38,${Math.abs(c).toFixed(3)})` : `rgba(37,99,235,${Math.abs(c).toFixed(3)})`;
+    return `<span class="cell" title="${x.toFixed(4)}" style="background:${col}"></span>`;
+  }).join("");
+}
+
+// ---------- file viewer ----------
+function syntaxJSON(obj) {
+  const j = JSON.stringify(obj, null, 2);
+  return esc(j)
+    .replace(/&quot;(\w[\w-]*)&quot;:/g, '<span class="k">"$1"</span>:')
+    .replace(/: (\d[\d.e-]*)/g, ': <span class="n">$1</span>')
+    .replace(/: (&quot;.*?&quot;)/g, ': <span class="s">$1</span>');
+}
+function showFile(which) {
+  document.querySelectorAll(".filetab").forEach((b) => b.classList.toggle("sel", b.dataset.f === which));
+  const f = data.files;
+  if (which === "config") {
+    $("fileView").innerHTML =
+      `<p class="muted">ไฟล์ข้อความเล็ก ๆ ที่ "นิยาม" ว่าโมเดลหน้าตายังไง — นี่คือของจริงทั้งไฟล์:</p>
+       <pre>${syntaxJSON(f.config)}</pre>`;
+  } else if (which === "safetensors") {
+    const st = f.safetensors;
+    const rows = st.sampleTensors.map((t) => `<tr><td><code>${esc(t.name)}</code></td><td>${t.dtype}</td><td>[${t.shape.join(" × ")}]</td></tr>`).join("");
+    $("fileView").innerHTML =
+      `<p class="muted">เปิดทั้งไฟล์ไม่ได้ (มี <b>${st.totalParams.toLocaleString()}</b> ตัวเลข ใน <b>${st.totalTensors}</b> ก้อน) — แต่นี่คือ "สารบัญ" จริงในไฟล์:</p>
+       <table style="margin:6px 0 12px"><tr><th>ชื่อก้อนตัวเลข (tensor)</th><th>ชนิด</th><th>ขนาด</th></tr>${rows}
+       <tr><td class="muted" colspan="3">…และอีก ${st.totalTensors - st.sampleTensors.length} ก้อน</td></tr></table>
+       <p class="muted">แล้วข้างใน "ก้อนตัวเลข" หน้าตาแบบนี้ — 12 ตัวเลขแรกของแถวคำว่า <code>${esc(sp(st.sampleRow.tokenText))}</code>:</p>
+       <pre>${st.sampleRow.values.map((v) => (v >= 0 ? " " : "") + v.toFixed(4)).join("   ")}</pre>
+       <p class="muted">นี่แหละ "สมอง" ของ AI — แค่ตัวเลขทศนิยม ${st.totalParams.toLocaleString()} ตัวแบบนี้</p>`;
+  } else {
+    const t = f.tokenizer;
+    const rows = t.sample.map((e) => `<tr><td><code>${esc(sp(e.text))}</code></td><td>${e.id}</td></tr>`).join("");
+    $("fileView").innerHTML =
+      `<p class="muted">พจนานุกรมแปลงข้อความเป็นเลข มี <b>${t.vocabSize.toLocaleString()}</b> รายการ — ตัวอย่างจริง:</p>
+       <table><tr><th>ชิ้นข้อความ</th><th>เลขประจำตัว (id)</th></tr>${rows}</table>`;
+  }
+}
+
+// ---------- example stages ----------
+function buildExamplePicker() {
+  const box = $("examplePicker"); box.innerHTML = "";
+  data.examples.forEach((ex, i) => {
+    const b = document.createElement("button");
+    b.className = "preset"; b.textContent = ex.text; b.dataset.i = i;
+    b.onclick = () => selectExample(i);
+    box.appendChild(b);
+  });
+}
+let step = 0;
+const S = () => cur.steps[step];          // current step (grows as you generate)
+const AT = () => S().tokens;              // attention now follows the current (growing) sentence
+function selectExample(i) {
+  cur = data.examples[i]; step = 0;
+  document.querySelectorAll("#examplePicker .preset").forEach((b) => b.classList.toggle("sel", +b.dataset.i === i));
+  renderStep();
+}
+function renderStep() {                    // re-renders ALL stages 1-5 for the current step
+  renderTokens(); selectToken(S().tokens.length - 1); renderPreds(); renderGen(); refreshAtt();
+}
+function renderTokens() {
+  const box = $("tokens"); box.innerHTML = "";
+  S().tokens.forEach((t) => {
+    const c = document.createElement("div");
+    c.className = "chip"; c.dataset.idx = t.index;
+    c.innerHTML = `<b>${esc(sp(t.text)) || "·"}</b><span>${t.id}</span>`;
+    c.onclick = () => selectToken(t.index);
+    box.appendChild(c);
+  });
+  const thai = S().tokens.filter((t) => /[฀-๿]/.test(t.text)).length;
+  $("tokNote").innerHTML = `${S().tokens.length} tokens — สังเกต: ภาษาไทยมักถูกหั่นเป็นชิ้นเล็กกว่า` +
+    (thai ? ` (${thai} ชิ้นเป็นไทย)` : "") + ` ขณะที่คำอังกฤษมักอยู่เป็นคำเต็ม · ␣ = ช่องว่าง`;
+}
+function selectToken(idx) {
+  document.querySelectorAll(".chip").forEach((c) => c.classList.toggle("sel", +c.dataset.idx === idx));
+  const t = S().tokens[idx];
+  const vals = cur.embeds[t.id];
+  $("embWho").innerHTML = `คำว่า <code>${esc(sp(t.text)) || "·"}</code> → id ${t.id} <span class="muted">(ที่อยู่/เลขแถว)</span> → embedding (พิกัด 896 ตัว):`;
+  $("embHeat").innerHTML = stripHTML(vals);
+  $("embNote").innerHTML = `แต่ละช่อง = 1 พิกัด · แสดง 48 จาก 896 (เอาเมาส์ชี้ดูค่าจริง)`;
+}
+function renderPreds() {
+  const box = $("preds"); box.innerHTML = "";
+  S().predictions.forEach((p, i) => {
+    const pct = Math.round(p.prob * 100);
+    const el = document.createElement("div"); el.className = "bar";
+    const star = i === 0 ? ' <span class="muted">← จะถูกเลือกไปต่อ</span>' : "";
+    el.innerHTML = `<div class="tok">${esc(sp(p.token))}</div><div class="track"><div class="fill" style="width:${pct}%"></div></div><div class="pct">${(p.prob*100).toFixed(1)}%${star}</div>`;
+    box.appendChild(el);
+  });
+}
+function renderGen() {
+  const base = cur.steps[0].text, txt = S().text;
+  const grown = txt.slice(base.length);
+  const last = step >= cur.steps.length - 1;
+  $("genOut").innerHTML = esc(base) +
+    (grown ? `<span class="new">${esc(sp(grown))}</span>` : "") +
+    (last ? "" : '<span style="color:var(--accent);font-weight:700">▌</span>');
+  $("stepGen").disabled = last;
+  $("genCount").textContent = step === 0 ? "👆 กดแล้วดูข้อ 1, 2, 3 อัปเดตตามไปด้วย"
+    : last ? `(จบ — ทำนายครบ ${step} คำ)` : `ทำนายไปแล้ว ${step} คำ`;
+}
+let attWord = 0;
+function aggMatrix() {                      // overall attention = average across ALL rounds (hide the machinery)
+  const A = S().attn, nL = A.length, n = A[0].length;
+  const out = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let l = 0; l < nL; l++) for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) out[i][j] += A[l][i][j] / nL;
+  return out;
+}
+function refreshAtt() {
+  if (!S().attn) { $("s5").style.display = "none"; return; }
+  $("s5").style.display = "";
+  attWord = AT().length - 1;
+  renderAttWords();
+  renderAtt();
+}
+function renderAttWords() {
+  const box = $("attWords"); box.innerHTML = "";
+  AT().forEach((t) => {
+    const b = document.createElement("button");
+    b.className = "preset"; b.dataset.w = t.index; b.textContent = sp(t.text) || "·";
+    b.onclick = () => { attWord = t.index; renderAtt(); };
+    box.appendChild(b);
+  });
+}
+function renderAtt() {
+  const M = aggMatrix();
+  const row = M[attWord], n = AT().length;
+  // color chips by the REAL attention weight (self is shown outlined, not colored)
+  let cmax = 1e-6; for (let j = 0; j < n; j++) if (j !== attWord) cmax = Math.max(cmax, row[j]);
+  document.querySelectorAll("#attWords .preset").forEach((b) => {
+    const j = +b.dataset.w, w = (j === attWord ? 0 : row[j]) / cmax;
+    b.style.background = j === attWord ? "#fff" : `rgba(15,118,110,${Math.min(1, w * 0.9).toFixed(3)})`;
+    b.style.color = (j !== attWord && w > 0.55) ? "#fff" : "";
+    b.style.borderColor = j === attWord ? "var(--accent)" : "var(--line)";
+    b.style.borderWidth = j === attWord ? "2px" : "1px";
+  });
+  const w0 = AT()[attWord].text;
+  if (attWord === 0) {
+    $("attSays").innerHTML = `คำว่า <b>${esc(sp(w0))}</b> เป็นคำแรก — ยังไม่มีคำก่อนหน้าให้ดึง`;
+    $("attLegend").innerHTML = "";
+    return;
+  }
+  // show the BLEND: top earlier words with their real % (not a single "relationship")
+  const others = [];
+  for (let j = 0; j < n; j++) if (j !== attWord) others.push([j, row[j]]);
+  others.sort((a, b) => b[1] - a[1]);
+  const top = others.slice(0, 3).filter(([, w]) => w > 0.01);
+  const topMax = top.length ? top[0][1] : 1;
+  let html = `<div style="margin-bottom:6px">คำว่า <b>${esc(sp(w0))}</b> ไม่ได้ดึงจากคำเดียว — แต่ "ผสม" หลายคำ มากบ้างน้อยบ้าง:</div>`;
+  top.forEach(([j, w]) => {
+    const pct = Math.round(w * 100);
+    const rel = Math.max(6, Math.round(w / topMax * 100));
+    const tag = j === 0 ? ' <span class="muted" style="font-size:11px">จุดพัก</span>' : "";
+    html += `<div class="bar"><div class="tok" style="width:150px;text-align:left">${esc(sp(AT()[j].text))}${tag}</div><div class="track"><div class="fill" style="width:${rel}%"></div></div><div class="pct">${pct}%</div></div>`;
+  });
+  $("attSays").innerHTML = html;
+  $("attLegend").innerHTML = `คำที่ดึงมากสุด <b>บางที</b>เกี่ยวกับความหมายจริง (เช่น water↔poured) <b>บางที</b>ก็แค่คำที่อยู่ใกล้ ๆ หรือ "คำแรก/จุดพัก" — attention ไม่ได้สะอาดเสมอไป`;
+}
+
+// ---------- compare ----------
+function buildCmp() {
+  const box = $("cmpPresets"); box.innerHTML = "";
+  data.compare.forEach((c, i) => {
+    const b = document.createElement("button");
+    b.className = "preset"; b.textContent = `${c.a} ↔ ${c.b}`;
+    b.onclick = () => showCmp(i);
+    box.appendChild(b);
+  });
+  showCmp(0);
+}
+function showCmp(i) {
+  const c = data.compare[i];
+  document.querySelectorAll("#cmpPresets .preset").forEach((b, j) => b.classList.toggle("sel", j === i));
+  const verdict = c.simPct >= 30 ? "✅ ความหมายใกล้กัน" : c.simPct >= 15 ? "≈ พอเกี่ยวกันบ้าง" : "❌ ความหมายต่างกัน";
+  $("cmpOut").innerHTML =
+    `<div class="muted" style="font-size:12px;margin-bottom:2px">${esc(c.a)}</div><div class="heat">${stripHTML(c.aStrip)}</div>` +
+    `<div class="muted" style="font-size:12px;margin:8px 0 2px">${esc(c.b)}</div><div class="heat">${stripHTML(c.bStrip)}</div>` +
+    `<div class="bar" style="margin-top:10px"><div class="tok" style="width:110px">ความใกล้เคียง</div>` +
+    `<div class="track"><div class="fill" style="width:${c.simPct}%"></div></div><div class="pct">${c.simPct}%</div></div>` +
+    `<p class="muted">${verdict} — ยิ่งลายเส้นสี (ด้านบน) คล้ายกัน ความหมายยิ่งใกล้กัน</p>`;
+}
+
+// ---------- boot ----------
+$("stepGen").onclick = () => { if (step < cur.steps.length - 1) { step++; renderStep(); } };
+$("resetGen").onclick = () => { step = 0; renderStep(); };
+document.querySelectorAll(".filetab").forEach((b) => (b.onclick = () => showFile(b.dataset.f)));
+
+fetch("labData.json").then((r) => r.json()).then((d) => {
+  data = d;
+  showFile("config");
+  buildExamplePicker();
+  buildCmp();
+  selectExample(0);
+}).catch((e) => { $("examplePicker").innerHTML = `<span class="muted">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</span>`; });
+
+window.__lab = { selectExample, showFile, showCmp, data: () => data };
+
+// auto-resize: tell the parent page how tall we are, so the embed iframe fits (no inner scroll)
+function notifyHeight() {
+  try { parent.postMessage({ type: "lab-height", height: document.documentElement.scrollHeight }, "*"); } catch (e) {}
+}
+window.addEventListener("load", notifyHeight);
+window.addEventListener("resize", notifyHeight);
+try { new ResizeObserver(notifyHeight).observe(document.body); } catch (e) {}
+</script>
+</body>
+</html>

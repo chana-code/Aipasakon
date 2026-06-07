@@ -28,7 +28,7 @@ export const Labs = z.array(Lab);
 export type Lab = z.infer<typeof Lab>;
 
 /** React-backed lab ids. MUST stay in sync with componentMap in components/lab/Lab.tsx. */
-export const REACT_LAB_IDS = ['dissection-lab'] as const;
+export const REACT_LAB_IDS = [] as const;
 
 export const LABS: Lab[] = [
   {
@@ -37,9 +37,10 @@ export const LABS: Lab[] = [
     blurb: 'เปิดดูข้างในโมเดล AI จริง แล้วดูมันคิดทีละขั้น ตั้งแต่ตัดคำ จนทำนายคำถัดไป',
     section: 'what-is-ai',
     chapters: ['llm-mechanics'],
-    kind: 'react',
-    source: 'dissection-lab',
+    kind: 'html',
+    source: '/lab/dissection-lab.html',
     status: 'live',
+    height: 1000,
   },
   {
     id: 'after-send-walkthrough',

@@ -1,18 +1,12 @@
 'use client';
 
-import dynamic from 'next/dynamic';
 import type { ComponentType } from 'react';
 import Embed from '@/components/reader/Embed';
 import { getLab } from '@/lib/lab/registry';
 
 // React-backed labs. Keys MUST match REACT_LAB_IDS in lib/lab/registry.ts.
-// Loaded via next/dynamic (ssr:false) because labs touch transformers.js / browser APIs.
-const componentMap: Record<string, ComponentType<object>> = {
-  'dissection-lab': dynamic(() => import('@/components/lab/DissectionLabClient'), {
-    ssr: false,
-    loading: () => <p className="text-[#7a6f63] p-4">กำลังโหลดแล็บ…</p>,
-  }),
-};
+// (dissection-lab is now a self-contained html lab served via <Embed>; no react labs currently.)
+const componentMap: Record<string, ComponentType<object>> = {};
 
 export default function Lab({ id }: { id: string }) {
   const lab = getLab(id);
