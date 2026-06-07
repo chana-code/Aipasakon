@@ -1,54 +1,68 @@
-# Homepage Critique Fixes Implementation Plan
+# Homepage Critique Fixes + Brand Pivot Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Resolve the actionable findings from the homepage `impeccable critique` — site-wide typography drift, hero visual self-inconsistency, an un-pausable rotating headline, the unresolved "book vs landing" strategy, and the missing anti-pattern detector.
+**Goal:** (1) Make every element render in **Prompt** (kill the off-system font drift), (2) **pivot the brand** from "calm textbook" to a **landing-page design** — codified *from the actual landing page*, with the "book test" retired, (3) make the rotating headline pausable (WCAG), and (4) give the project a regression lint.
 
-**Architecture:** The site loads exactly one type system in `app/globals.css` → `styles/colors_and_type.css`: **Prompt** (everything) + **JetBrains Mono** (code only). Many components instead hardcode Tailwind arbitrary classes `font-['Noto_Serif_Thai',serif]` and `font-['DM_Sans',sans-serif]`. Because Tailwind v4 puts utilities in a cascade *layer* and `colors_and_type.css` is imported *after* it (unlayered), the unlayered `h1,h2,h3 { font-family: var(--font-display) }` rules win on headings — but there is **no** unlayered `font-family` on `p`, so the drift classes win on body text, spans, links, and buttons, rendering fonts that are not bundled (they only resolve on machines that happen to have them installed). The fix removes the drift classes so those elements inherit Prompt from `<body>`, guarded by a Playwright test that fails on any off-system font. The remaining tasks tone down the hero, make the rotating band pausable, add an honest "cover → book" bridge, and give the project its own anti-pattern lint.
+**Direction decision (founder, 2026-06-07):** The brand IS the landing page. Do **not** invent a new mood and do **not** redesign the landing's visuals — *observe what's already there* (warm, playful, hand-illustrated personal brand) and write the brand docs to match it. The "book / textbook" framing is dropped. Brand docs come **first**, before any other change.
+
+**Architecture:** The site loads exactly one type system in `app/globals.css` → `styles/colors_and_type.css`: **Prompt** (everything) + **JetBrains Mono** (code only). Components hardcoded Tailwind arbitrary classes `font-['Noto_Serif_Thai',serif]` and `font-['DM_Sans',sans-serif]`. Because Tailwind v4 puts utilities in a cascade *layer* and `colors_and_type.css` is imported *after* it (unlayered), the unlayered `h1,h2,h3 { font-family: var(--font-display) }` rules win on headings — but there is **no** unlayered `font-family` on `p`, so the drift classes win on body text, spans, links, and buttons, rendering fonts that are not bundled (they only resolve on machines that happen to have them installed). The fix removes the drift classes so those elements inherit Prompt, guarded by a Playwright test that fails on any off-system font.
 
 **Tech Stack:** Next.js (App Router, RSC) · Tailwind CSS v4 · framer-motion · Playwright (e2e) · Vitest (unit) · Node ESM scripts.
+
+---
+
+## Current status (already applied to the working tree)
+
+- ✅ **Font codemod already run.** `scripts/fix-font-drift.mjs` exists and has been executed: 125 drift-class instances removed across 23 files; grep is clean; `tsc` has no new errors; live computed fonts are Prompt on `/` and `/about`. **Not committed.**
+- ⛔ **Not yet done:** the Playwright font guard test (Task 1), the brand-doc pivot (Task 3), the rotating-headline pause (Task 4), the anti-pattern lint (Task 5).
+
+> Because the codemod already ran, Task 1's guard test will pass immediately rather than starting red. That is fine — the test's job is permanent regression protection. If you want to *see* it go red first, `git stash` the `app/`+`components/` changes, run the test, then `git stash pop`.
+
+---
+
+## Scope changes from the original critique plan
+
+- ❌ **REMOVED — "Calm the hero / remove glow blobs / reduce gradient."** Superseded by the brand pivot: the founder wants the landing kept as-is. Do not change the hero's visuals.
+- ❌ **REMOVED — "Cover → book ChapterPeek bridge."** It was premised on a textbook interior the brand no longer claims. No `ChapterPeek` component.
+- 🔄 **CHANGED — the strategy task is now "codify the landing-page brand"** (rewrite `PRODUCT.md` + `DESIGN.md` from the actual landing), not "document a cover-vs-book decision."
 
 ---
 
 ## File Structure
 
 **Created:**
+- `scripts/fix-font-drift.mjs` — ✅ already created/run. Idempotent codemod removing drift font classes.
 - `tests/e2e/typography.spec.ts` — Playwright guard: no element on key pages may compute an off-system font.
-- `tests/e2e/hero.spec.ts` — Playwright assertions for the toned-down hero + pausable band + bridge.
-- `scripts/fix-font-drift.mjs` — one-shot deterministic codemod that strips the drift font classes.
+- `tests/e2e/specialty-band.spec.ts` — Playwright assertions for the pausable rotating band.
 - `scripts/check-antipatterns.mjs` — project-owned anti-pattern linter (exports `scanAntipatterns`, plus a CLI).
 - `tests/unit/design/antipatterns.test.ts` — unit test that the codebase is anti-pattern clean.
-- `components/landing/ChapterPeek.tsx` — interior-styled "this is what reading here feels like" bridge.
 
 **Modified:**
-- 23 `.tsx` files under `app/` and `components/` — drift font classes removed (by the codemod, not by hand).
-- `components/landing/Hero.tsx` — remove glow blobs, calm the gradient.
-- `components/landing/SpecialtyBand.tsx` — add pause-on-hover/focus + a testable `data-paused` attribute.
-- `app/page.tsx` — insert `<ChapterPeek />` between `<VisualRow />` and `<AboutScene />`.
-- `PRODUCT.md` — record the "homepage is the cover" decision so it stops reading as a violation.
+- 23 `.tsx` files under `app/` and `components/` — ✅ drift font classes already removed by the codemod.
+- `PRODUCT.md` — rewrite to a landing-page brand register; retire the "book test".
+- `DESIGN.md` — rewrite Aesthetic Direction + Mood + Product Context to match the landing; keep all color/type/spacing/motion tokens (they already match); add a Decisions Log entry.
+- `components/landing/SpecialtyBand.tsx` — add pause-on-hover/focus + a testable `data-paused` attribute (non-visual).
 - `package.json` — add `lint:design` script.
 
-**Responsibility boundaries:** the codemod owns the mechanical site-wide edit (one place, re-runnable); each visual change lives in its own component; the linter is the durable regression guard so this drift can't silently return.
+**Responsibility boundaries:** brand docs are the source of truth and change first; the codemod owns the mechanical site-wide font edit; the rotating-band change is a self-contained accessibility addition; the linter is the durable regression guard.
 
 ---
 
 ## Pre-flight (read once, do not skip)
 
-- [ ] **Confirm the dev server contract.** `playwright.config.ts` already sets `baseURL: http://localhost:3000`, `webServer: npm run dev`, `reuseExistingServer: true`, project `chromium`. No config change needed; Playwright will boot the server itself.
-- [ ] **Known-stale test, do not "fix" here.** `tests/e2e/smoke.spec.ts` line 3-7 expects an *old* homepage (`/AI ไม่ยาก/`, `เริ่มจากตรงนี้`) from `components/home/`, but `app/page.tsx` renders `components/landing/`. That test may already be red and is **out of scope** — do not edit it. If it fails, leave it; note it in the final report.
-- [ ] **Run the existing suite once to capture the baseline:**
-
-Run: `npm run test` then `npm run test:e2e`
-Expected: record which tests currently pass/fail so you can tell new breakage from pre-existing.
+- [ ] **Confirm the dev server contract.** `playwright.config.ts` sets `baseURL: http://localhost:3000`, `webServer: npm run dev`, `reuseExistingServer: true`, project `chromium`. No config change needed.
+- [ ] **Known-stale test, do not "fix" here.** `tests/e2e/smoke.spec.ts` (lines 3-7) expects an *old* homepage (`/AI ไม่ยาก/`, `เริ่มจากตรงนี้`) from `components/home/`, but `app/page.tsx` renders `components/landing/`. It may already be red and is **out of scope** — leave it, note it in the final report.
+- [ ] **Baseline the suite:** Run `npm run test` then `npm run test:e2e`; record current pass/fail so new breakage is distinguishable.
 
 ---
 
-## Task 1: Typography guard test (red first)
+## Task 1: Typography guard test (permanent regression guard)
 
 **Files:**
 - Test: `tests/e2e/typography.spec.ts` (create)
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the test**
 
 Create `tests/e2e/typography.spec.ts`:
 
@@ -56,9 +70,9 @@ Create `tests/e2e/typography.spec.ts`:
 import { test, expect } from '@playwright/test';
 
 /**
- * The design system bundles ONLY Prompt + JetBrains Mono (see styles/colors_and_type.css).
- * No rendered text element may resolve to any other family. This catches the
- * font-['Noto_Serif_Thai',serif] / font-['DM_Sans',sans-serif] drift and any future regression.
+ * The design system bundles ONLY Prompt + JetBrains Mono (styles/colors_and_type.css).
+ * No rendered text element may resolve to any other family. Guards against the
+ * font-['Noto_Serif_Thai',serif] / font-['DM_Sans',sans-serif] drift ever returning.
  */
 const PAGES = ['/', '/curriculum', '/about', '/foundations/what-is-ai'];
 const FORBIDDEN = /Noto Serif|DM Sans/i;
@@ -75,11 +89,8 @@ for (const path of PAGES) {
         const text = (el.textContent || '').trim();
         if (!text) return;
         const fam = getComputedStyle(el).fontFamily || '';
-        if (forbidden.test(fam)) {
-          bad.push({ tag: el.tagName, text: text.slice(0, 30), font: fam });
-        }
+        if (forbidden.test(fam)) bad.push({ tag: el.tagName, text: text.slice(0, 30), font: fam });
       });
-      // de-dupe identical (tag, font) rows to keep the failure message readable
       const seen = new Set<string>();
       return bad.filter((b) => {
         const k = b.tag + '|' + b.font;
@@ -94,206 +105,128 @@ for (const path of PAGES) {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it FAILS**
+- [ ] **Step 2: Run it (expected PASS — codemod already applied)**
 
 Run: `npm run test:e2e -- typography.spec.ts`
-Expected: FAIL — at least `/` and `/about` report offenders such as `{ tag: "P", font: "\"Noto Serif Thai\", serif" }` and `{ tag: "SPAN", font: "\"DM Sans\", sans-serif" }`. (Headings will NOT appear — they already inherit Prompt via the unlayered cascade. Body/spans/links/buttons will.)
+Expected: PASS on all four pages. (To watch it fail first, see the note in "Current status".)
 
-- [ ] **Step 3: Commit the red test**
+- [ ] **Step 3: Commit**
+
+(The font codemod + 23-file edit are already committed in `a3cabdf`. Only the new test file is uncommitted.)
 
 ```bash
 git add tests/e2e/typography.spec.ts
-git commit -m "test: add typography guard for off-system fonts (currently red)"
+git commit -m "test: add font-drift guard (no off-system fonts on key pages)"
 ```
 
 ---
 
-## Task 2: Strip the drift font classes site-wide (make Task 1 green)
+## Task 2: Codify the landing-page brand (docs first — DO THIS BEFORE visual/UX work)
+
+Rewrite the brand docs to describe the brand that *already exists on the landing page*. No visual changes in this task — read the components, then write what you see.
 
 **Files:**
-- Create: `scripts/fix-font-drift.mjs`
-- Modify (by running the script): all `.tsx` under `app/` and `components/` containing the drift classes (23 files).
+- Read first: `components/landing/Hero.tsx`, `SpecialtyBand.tsx`, `ContentCards.tsx`, `VisualRow.tsx`, `AboutScene.tsx`, `Doodle.tsx`, `NowPlaying.tsx`
+- Modify: `PRODUCT.md`, `DESIGN.md`
 
-- [ ] **Step 1: Write the codemod**
+- [ ] **Step 1: Observe the landing and list the actual identity**
 
-Create `scripts/fix-font-drift.mjs`:
+Read the files above and **describe what is actually there now** (the landing is under active edit — e.g. the sticky note was recently removed and the lo-fi player pinned to the viewport corner, so verify, don't assume). Expected identity: warm off-white paper background, teal accent + navy ink + teacher's-yellow, a hand-drawn **line-art avatar of อ๋อง (Ong)**, floating hand-drawn **doodles** (star, flower, rainbow, paper plane, squiggle), a **lo-fi "now playing"** mini-player, gentle framer-motion fade-up / float / bob motion, Prompt type throughout. Mood: a friendly, characterful personal brand — *"a sharp business person explaining AI like a warm, slightly playful friend."* Not a textbook, not corporate SaaS. List only the elements you actually see in the current code.
 
-```js
-#!/usr/bin/env node
-// One-shot codemod: remove the two off-system Tailwind font classes so elements
-// inherit Prompt from <body>. Safe + idempotent. Re-running is a no-op.
-import fs from 'node:fs';
-import path from 'node:path';
+- [ ] **Step 2: Rewrite `PRODUCT.md` — retire the book test**
 
-const ROOTS = ['app', 'components'];
-const FORBIDDEN_CLASSES = [
-  "font-['Noto_Serif_Thai',serif]",
-  "font-['DM_Sans',sans-serif]",
-];
+In `PRODUCT.md` make exactly these replacements:
 
-function walk(dir, acc = []) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(full, acc);
-    else if (entry.name.endsWith('.tsx')) acc.push(full);
-  }
-  return acc;
-}
+**(a) Replace the entire `## Product Purpose` section body with:**
 
-let filesChanged = 0;
-let totalRemoved = 0;
-
-for (const root of ROOTS) {
-  if (!fs.existsSync(root)) continue;
-  for (const file of walk(root)) {
-    let src = fs.readFileSync(file, 'utf8');
-    const before = src;
-    let removedHere = 0;
-
-    for (const cls of FORBIDDEN_CLASSES) {
-      // Count occurrences, then remove every literal instance.
-      const parts = src.split(cls);
-      removedHere += parts.length - 1;
-      src = parts.join('');
-    }
-
-    if (src !== before) {
-      // Tidy: collapse the double spaces our removals can leave inside class strings.
-      src = src.replace(/className=("|`)([^"`]*?)\1/g, (m, q, body) =>
-        `className=${q}${body.replace(/ {2,}/g, ' ').replace(/(^ | $)/g, '')}${q}`
-      );
-      // A const that held ONLY a drift class is now an empty string literal — leave it.
-      // (`const SERIF = "";` is harmless; `${SERIF}` still interpolates to "".)
-      fs.writeFileSync(file, src, 'utf8');
-      filesChanged++;
-      totalRemoved += removedHere;
-      console.log(`  ${file}: removed ${removedHere}`);
-    }
-  }
-}
-
-console.log(`\nfix-font-drift: ${totalRemoved} class instances removed across ${filesChanged} files`);
+```markdown
+A Thai-language AI education brand fronted by a warm, personal landing experience. The brand surfaces (homepage, about, marketing pages) sell approachability and personality — the feeling that a sharp, friendly business person is going to make AI make sense for you. Learning content lives behind that front door. Success looks like a first-time visitor thinking "this feels made for me, not for engineers" and clicking in.
 ```
 
-- [ ] **Step 2: Run the codemod**
+**(b) Replace `## Brand Personality` body with:**
 
-Run: `node scripts/fix-font-drift.mjs`
-Expected: prints per-file removals and a summary line, e.g. `~126 class instances removed across 23 files`. (Counts may differ slightly; the summary just must be non-zero.)
+```markdown
+Warm, clear, human, and a little playful. The voice of a trusted colleague who happens to know a lot about AI — confident and approachable, never performatively technical, never dumbed down. The personality is allowed to show: hand-drawn doodles, a lo-fi soundtrack, a real human avatar. Friendly, not corporate.
+```
 
-- [ ] **Step 3: Verify NO drift classes remain anywhere**
+**(c) In `## Design Principles`, DELETE principle 1 ("The book test…") entirely and replace it with:**
 
-Run: `grep -rEc "Noto_Serif_Thai|DM_Sans" app components || echo "CLEAN"`
-Expected: `CLEAN` (grep finds nothing and exits non-zero, so the `|| echo` fires).
+```markdown
+1. **The friendly-guide test.** Every brand surface should feel like a warm, confident personal brand — approachable, characterful, alive. If it feels like a dry textbook or a generic corporate SaaS page, it's wrong.
+```
 
-- [ ] **Step 4: Type-check + build still pass (the empty consts must not break compilation)**
+Keep principles 2-5 but **delete principle 1's old "If it looks like a landing page, it's wrong"** wording wherever it appears, and in principle 4 keep "Thai-first."
 
-Run: `npx tsc --noEmit`
-Expected: PASS, no errors. (`const SERIF = "";` with `${SERIF}` usage is valid TypeScript.)
+**(d) In `## Anti-references`, DELETE these two lines** (they contradict the intentional hand-drawn warmth + soft accents the landing actually uses):
 
-- [ ] **Step 5: Run the guard test to verify it now PASSES**
+```
+- Purple/blue gradients and glowing effects (every AI site)
+- Glassmorphism, floating prompt boxes, generic node diagrams
+```
 
-Run: `npm run test:e2e -- typography.spec.ts`
-Expected: PASS on all four pages — no off-system fonts render.
+**and replace them with:**
 
-- [ ] **Step 6: Sanity-check the hero in the browser (no visual regression)**
+```markdown
+- Purple/blue gradients (the "every AI site" look) — our warmth is hand-drawn, not glow-blob gradients
+- Glassmorphism, floating prompt boxes, generic node diagrams
+```
 
-Run: `npm run dev` (if not already running), open `http://localhost:3000`
-Expected: hero headline, greeting, and body all render in Prompt; nothing fell back to a system serif. Confirm Thai text still looks correct.
+Leave the remaining anti-references (icon grids, AI brain illustrations, SaaS landing templates, Udemy/Coursera gamification chrome, dark-mode tech-bro) as-is — they still hold.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 3: Rewrite `DESIGN.md` — Aesthetic Direction + Mood + Product Context**
+
+In `DESIGN.md`:
+
+**(a)** In `## Product Context`, replace the `Project type` line:
+
+```markdown
+- **Project type:** Personal-brand landing experience for an AI education product
+```
+
+**(b)** Replace the `## Aesthetic Direction` `Direction` and `Mood` lines with:
+
+```markdown
+- **Direction:** Warm Personal-Brand Landing — a friendly, hand-illustrated personal brand. Approachable and alive, never corporate or textbook-dry.
+- **Mood:** A sharp business person explaining AI like a warm, slightly playful friend at a relaxed desk. Confident, human, characterful.
+```
+
+**(c)** Append a row to the `## Decisions Log` table:
+
+```markdown
+| 2026-06-07 | Pivoted brand from calm-textbook to landing-page design | Founder decision: the brand IS the landing page. "Book test" retired in favor of the "friendly-guide test". Brand codified from the actual landing components (avatar, doodles, lo-fi widget, warm pastel). Color/type/spacing/motion tokens unchanged — they already matched. |
+```
+
+**Do NOT change** the Typography, Color, Spacing, Layout, or Motion token sections — they already describe the landing correctly (Prompt, paper/teal/navy/yellow, framer-motion fade-up). This task is positioning text only.
+
+- [ ] **Step 4: Sanity check**
+
+Run: `grep -niE "book test|textbook, not" PRODUCT.md DESIGN.md`
+Expected: no remaining "book test" references (the `tframework`/content notes elsewhere in the repo are out of scope).
+
+- [ ] **Step 5: Commit**
 
 ```bash
-git add scripts/fix-font-drift.mjs app components
-git commit -m "fix: strip off-system font classes site-wide so text inherits Prompt"
+git add PRODUCT.md DESIGN.md
+git commit -m "docs: pivot brand to landing-page design, retire the book test"
 ```
 
 ---
 
-## Task 3: Calm the hero — remove glow blobs, reduce the gradient
+## Task 3: Make the rotating headline pausable (WCAG 2.2.2 — non-visual)
+
+This adds a pause control only; it does not change how the band looks. Safe under the "don't redesign the landing" constraint.
 
 **Files:**
-- Modify: `components/landing/Hero.tsx` (the `<section>` background + the two glow `<div>`s)
-- Test: `tests/e2e/hero.spec.ts` (create)
+- Modify: `components/landing/SpecialtyBand.tsx`
+- Test: `tests/e2e/specialty-band.spec.ts` (create)
 
 - [ ] **Step 1: Write the failing test**
 
-Create `tests/e2e/hero.spec.ts`:
+Create `tests/e2e/specialty-band.spec.ts`:
 
 ```ts
 import { test, expect } from '@playwright/test';
 
-test('hero has no decorative glow blobs', async ({ page }) => {
-  await page.goto('/');
-  // The banned pattern was <div class="... blur-3xl rounded-full ...">.
-  await expect(page.locator('section .blur-3xl')).toHaveCount(0);
-});
-```
-
-- [ ] **Step 2: Run it to verify it FAILS**
-
-Run: `npm run test:e2e -- hero.spec.ts -g "glow blobs"`
-Expected: FAIL — count is 2 (the two existing blur blobs).
-
-- [ ] **Step 3: Edit `components/landing/Hero.tsx`**
-
-Replace the section opening + the two glow blobs. Find this block (currently lines ~41-50):
-
-```tsx
-    <section
-      className="relative overflow-hidden"
-      style={{
-        background:
-          'linear-gradient(135deg, #FBF9F4 0%, #EAF8F6 48%, #FDF6E0 100%)',
-      }}
-    >
-      {/* soft glow accents */}
-      <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#14B5AB]/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/4 h-72 w-72 rounded-full bg-[#E8C547]/10 blur-3xl" />
-
-```
-
-Replace with (calm 2-stop paper wash, blobs deleted):
-
-```tsx
-    <section
-      className="relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(170deg, #FBF9F4 0%, #F4F1E9 100%)',
-      }}
-    >
-
-```
-
-- [ ] **Step 4: Run the test to verify it PASSES**
-
-Run: `npm run test:e2e -- hero.spec.ts -g "glow blobs"`
-Expected: PASS — `.blur-3xl` count is 0.
-
-- [ ] **Step 5: Visual confirm**
-
-Open `http://localhost:3000`.
-Expected: hero background is a quiet warm wash; the doodles + avatar now carry all the visual energy. No glowing color halos.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add components/landing/Hero.tsx tests/e2e/hero.spec.ts
-git commit -m "fix: calm hero background, remove decorative glow blobs (anti-reference)"
-```
-
----
-
-## Task 4: Make the rotating headline pausable
-
-**Files:**
-- Modify: `components/landing/SpecialtyBand.tsx`
-- Test: `tests/e2e/hero.spec.ts` (append)
-
-- [ ] **Step 1: Append the failing test**
-
-Add to `tests/e2e/hero.spec.ts`:
-
-```ts
 test('rotating band exposes a pause state and pauses on hover', async ({ page }) => {
   await page.goto('/');
   const band = page.locator('[data-rotating-band]');
@@ -307,17 +240,19 @@ test('rotating band is static under reduced motion', async ({ page }) => {
   await page.goto('/');
   const phrase = page.locator('[data-rotating-band] [data-phrase]');
   const first = await phrase.textContent();
-  await page.waitForTimeout(3200); // longer than one 2.6s rotation
+  await page.waitForTimeout(3200); // > one 2.6s rotation
   expect(await phrase.textContent()).toBe(first);
 });
 ```
 
 - [ ] **Step 2: Run to verify FAIL**
 
-Run: `npm run test:e2e -- hero.spec.ts -g "rotating band"`
+Run: `npm run test:e2e -- specialty-band.spec.ts`
 Expected: FAIL — `[data-rotating-band]` does not exist yet.
 
 - [ ] **Step 3: Replace `components/landing/SpecialtyBand.tsx` entirely**
+
+(Note: the `SERIF` const is already gone — removed by the font codemod. Styling/layout is unchanged; only pause logic + test hooks are added.)
 
 ```tsx
 'use client';
@@ -390,182 +325,28 @@ export function SpecialtyBand() {
 }
 ```
 
-Note: the old `SERIF` const was removed (its only use is gone). The phrase styling is unchanged except the dead `${SERIF}` interpolation is dropped — Prompt is inherited.
-
 - [ ] **Step 4: Run to verify PASS**
 
-Run: `npm run test:e2e -- hero.spec.ts -g "rotating band"`
-Expected: PASS — `data-paused` flips to `true` on hover; reduced-motion keeps a single static phrase.
+Run: `npm run test:e2e -- specialty-band.spec.ts`
+Expected: PASS — `data-paused` flips to `true` on hover; reduced-motion stays on one static phrase.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add components/landing/SpecialtyBand.tsx tests/e2e/hero.spec.ts
+git add components/landing/SpecialtyBand.tsx tests/e2e/specialty-band.spec.ts
 git commit -m "fix: pause rotating headline on hover/focus (WCAG 2.2.2)"
 ```
 
 ---
 
-## Task 5: Resolve "book vs landing" — document the decision + add the bridge
+## Task 4: Project-owned anti-pattern lint (regression guard)
 
-The critique recommendation: keep the playful landing as the **cover**, make the handoff to the calm reading surface **honest** by previewing it, and **record the decision** so it stops reading as a rule violation.
-
-**Files:**
-- Modify: `PRODUCT.md` (add a decision note under Design Principles)
-- Create: `components/landing/ChapterPeek.tsx`
-- Modify: `app/page.tsx` (insert `<ChapterPeek />`)
-- Test: `tests/e2e/hero.spec.ts` (append)
-
-- [ ] **Step 1: Record the decision in `PRODUCT.md`**
-
-In `PRODUCT.md`, immediately after Design Principle 1 ("The book test."), insert this paragraph (keep existing numbering intact):
-
-```markdown
-> **Cover vs. body (decided 2026-06-07).** The homepage is the *cover and author introduction*: warm, personal, lightly animated. The "book test" applies in full force to the interior reading surfaces (`/[level]/[topic]`), which must stay calm and editorial. These two registers are intentionally different — a book has a cover that looks nothing like its body pages. The homepage must include at least one honest preview of the reading surface (see `ChapterPeek`) so the transition from cover to body is a promise kept, not a surprise.
-```
-
-- [ ] **Step 2: Write the failing test**
-
-Append to `tests/e2e/hero.spec.ts`:
-
-```ts
-test('homepage previews the real reading surface (cover→book bridge)', async ({ page }) => {
-  await page.goto('/');
-  const peek = page.locator('[data-chapter-peek]');
-  await expect(peek).toBeVisible();
-  // It must link into an actual chapter, not just decorate.
-  await expect(peek.locator('a[href^="/foundations/"]')).toBeVisible();
-});
-```
-
-- [ ] **Step 3: Run to verify FAIL**
-
-Run: `npm run test:e2e -- hero.spec.ts -g "reading surface"`
-Expected: FAIL — `[data-chapter-peek]` does not exist.
-
-- [ ] **Step 4: Create `components/landing/ChapterPeek.tsx`**
-
-A faithful, static preview of the interior reading surface, built from DESIGN.md tokens (card `#FFFFFF`, navy ink `#00143C`, teal link `#00958F`, yellow TL;DR mark `#FDF6E0`/`#E8C547`, Prompt body 17px/1.75). It deliberately looks like a chapter, not a landing card.
-
-```tsx
-import Link from 'next/link';
-
-/** Cover→book bridge: shows visitors what the calm reading surface actually feels like. */
-export function ChapterPeek() {
-  return (
-    <section className="bg-[#F4F1E9]/50 border-y border-[#E8E2D4]">
-      <div className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
-        <div className="mb-8 text-center">
-          <h2 className="mb-3 text-[28px] font-bold text-[#00143C] md:text-[34px]">
-            อ่านแล้วเป็นยังไง
-          </h2>
-          <p className="text-[16px] text-[#00143C]/60">
-            ข้างในไม่ใช่หน้าโฆษณา แต่เป็นหนังสือที่อ่านสบายตา นี่คือตัวอย่างจริง
-          </p>
-        </div>
-
-        {/* The preview is styled exactly like an interior chapter, not a landing card. */}
-        <div
-          data-chapter-peek
-          className="mx-auto max-w-[680px] rounded-[10px] border border-[#E8E2D4] bg-white p-8 md:p-12"
-        >
-          <span
-            className="inline-block rounded px-3 py-1 text-xs font-bold"
-            style={{ background: 'rgba(20,181,171,0.10)', color: '#00958F' }}
-          >
-            Level 1 · พื้นฐาน
-          </span>
-          <h3 className="mt-4 mb-5 text-[28px] font-bold leading-[1.3] text-[#00143C]">
-            AI คืออะไร
-          </h3>
-
-          {/* TL;DR — the teacher's-mark system from DESIGN.md */}
-          <div
-            className="mb-6 rounded-r-md border-l-[3px] px-5 py-4"
-            style={{ borderColor: '#E8C547', background: '#FDF6E0' }}
-          >
-            <p className="text-[15px] leading-[1.7] text-[#00143C]">
-              <strong className="font-semibold">สรุปสั้น ๆ:</strong>{' '}
-              AI คือโปรแกรมที่เรียนรู้รูปแบบจากตัวอย่างจำนวนมาก แล้วเอารูปแบบนั้นมาทายสิ่งที่ยังไม่เคยเห็น ไม่ใช่สมองกล ไม่ใช่เวทมนตร์
-            </p>
-          </div>
-
-          <p className="mb-4 text-[17px] leading-[1.75] text-[#00143C]/85">
-            ลองนึกถึงตอนที่คุณดูรูปแมวมาเป็นพันรูป พอเจอแมวตัวใหม่ที่ไม่เคยเห็น คุณก็ยังรู้ว่ามันคือแมว AI ทำงานคล้าย ๆ กัน มันไม่ได้ "เข้าใจ" แมวแบบที่เราเข้าใจ แต่มันจับรูปแบบได้เก่งมาก
-          </p>
-          <p className="text-[17px] leading-[1.75] text-[#00143C]/85">
-            ตลอดเล่มนี้ เราจะค่อย ๆ เปิดดูว่ารูปแบบพวกนั้นถูกเก็บไว้ที่ไหน และเครื่องเอามันมาใช้ตอบคำถามเราได้ยังไง ทีละขั้น เป็นภาษาคน
-          </p>
-
-          <Link
-            href="/foundations/what-is-ai"
-            className="mt-8 inline-flex items-center gap-1 text-[15px] font-medium text-[#00958F] no-underline transition-all hover:gap-2"
-          >
-            อ่านบทเต็ม
-            <span className="material-symbols-outlined text-base">arrow_forward</span>
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-```
-
-Note: the `border-l-[3px]` here is the **TL;DR teacher's-mark**, which DESIGN.md explicitly sanctions ("TL;DR boxes: yellow left border 3px"). This is the one legitimate left-border in the system; the anti-pattern linter in Task 6 must not flag the mark color. (It only flags side-stripes used as card/list accents — see the linter's allowlist.)
-
-- [ ] **Step 5: Insert into `app/page.tsx`**
-
-Replace the file contents with:
-
-```tsx
-import { Hero } from '@/components/landing/Hero';
-import { SpecialtyBand } from '@/components/landing/SpecialtyBand';
-import { ContentCards } from '@/components/landing/ContentCards';
-import { VisualRow } from '@/components/landing/VisualRow';
-import { ChapterPeek } from '@/components/landing/ChapterPeek';
-import { AboutScene } from '@/components/landing/AboutScene';
-
-export default function HomePage() {
-  return (
-    <>
-      <Hero />
-      <SpecialtyBand />
-      <ContentCards />
-      <VisualRow />
-      <ChapterPeek />
-      <AboutScene />
-    </>
-  );
-}
-```
-
-- [ ] **Step 6: Run to verify PASS**
-
-Run: `npm run test:e2e -- hero.spec.ts -g "reading surface"`
-Expected: PASS — the peek is visible and links to `/foundations/what-is-ai`.
-
-- [ ] **Step 7: Re-run the typography guard (the new component must be Prompt too)**
-
-Run: `npm run test:e2e -- typography.spec.ts`
-Expected: PASS — `ChapterPeek` uses no font classes, so it inherits Prompt.
-
-- [ ] **Step 8: Commit**
-
-```bash
-git add PRODUCT.md components/landing/ChapterPeek.tsx app/page.tsx tests/e2e/hero.spec.ts
-git commit -m "feat: add cover→book ChapterPeek bridge; document homepage register decision"
-```
-
----
-
-## Task 6: Project-owned anti-pattern lint (replace the missing detector)
-
-The impeccable skill's own `detect.mjs` is broken in this install (`bundled detector not found` — its `detector/detect-antipatterns.mjs` is not shipped). That is a skill-packaging issue outside this repo. Rather than depend on it, give the project a small, owned linter that guards the specific bans relevant here so the drift cannot silently return.
+The impeccable skill's own `detect.mjs` is broken in this install (`bundled detector not found` — a skill-packaging issue outside this repo). Give the project a small owned linter so the font drift cannot silently return. Keep its rules aligned with the **rewritten** `DESIGN.md` (Task 2) — i.e., the font guard is the firm rule; do not add visual bans the new brand allows.
 
 **Files:**
 - Create: `scripts/check-antipatterns.mjs`
 - Create: `tests/unit/design/antipatterns.test.ts`
-- Modify: `package.json` (add `lint:design`)
+- Modify: `package.json`
 
 - [ ] **Step 1: Write the failing unit test**
 
@@ -583,7 +364,7 @@ describe('design anti-pattern lint', () => {
 });
 ```
 
-- [ ] **Step 2: Run to verify it FAILS (module missing)**
+- [ ] **Step 2: Run to verify FAIL (module missing)**
 
 Run: `npm run test -- antipatterns`
 Expected: FAIL — cannot resolve `scripts/check-antipatterns.mjs`.
@@ -592,30 +373,26 @@ Expected: FAIL — cannot resolve `scripts/check-antipatterns.mjs`.
 
 ```js
 #!/usr/bin/env node
-// Lightweight, project-owned anti-pattern lint. Guards the bans that matter for AI ภาษาคน.
+// Project-owned anti-pattern lint. Firm rule: no off-system fonts (must stay Prompt).
+// Plus two cross-brand bans that still hold per DESIGN.md anti-references.
 import fs from 'node:fs';
 import path from 'node:path';
 
 const RULES = [
   {
     id: 'off-system-font',
-    // The Noto Serif Thai / DM Sans drift this plan removed. Must never come back.
     re: /font-\['Noto_Serif_Thai'|font-\['DM_Sans'/,
     msg: "off-system font class — use Prompt (inherited); see DESIGN.md",
   },
   {
     id: 'gradient-text',
     re: /bg-clip-text|background-clip:\s*text/,
-    msg: 'gradient text is banned — use a solid color, emphasize with weight/size',
+    msg: 'gradient text is banned — solid color, emphasize with weight/size',
   },
   {
-    id: 'side-stripe-border',
-    // Colored side-stripe accent thicker than 1px on cards/lists. The TL;DR mark
-    // (border-l-[3px] with the yellow mark color) is the ONE allowed use, so we
-    // exempt lines that also carry the mark color #E8C547.
-    re: /border-[lr]-\[(?:[2-9]|\d{2,})px\]/,
-    allowIf: /E8C547|--mark/,
-    msg: 'side-stripe border accent is banned (TL;DR mark excepted)',
+    id: 'ai-brain-illustration',
+    re: /brain|neural-net(work)?\.(svg|png|jpg)/i,
+    msg: 'AI brain / neural-net illustration is an anti-reference (DESIGN.md)',
   },
 ];
 
@@ -633,10 +410,9 @@ export function scanAntipatterns(roots) {
   const findings = [];
   for (const root of roots) {
     for (const file of walk(root)) {
-      const lines = fs.readFileSync(file, 'utf8').split('\n');
-      lines.forEach((line, idx) => {
+      fs.readFileSync(file, 'utf8').split('\n').forEach((line, idx) => {
         for (const rule of RULES) {
-          if (rule.re.test(line) && !(rule.allowIf && rule.allowIf.test(line))) {
+          if (rule.re.test(line)) {
             findings.push({ rule: rule.id, file: `${file}:${idx + 1}`, msg: rule.msg });
           }
         }
@@ -646,7 +422,6 @@ export function scanAntipatterns(roots) {
   return findings;
 }
 
-// CLI entry
 if (import.meta.url === `file://${process.argv[1]}`) {
   const findings = scanAntipatterns(['app', 'components', 'styles']);
   if (findings.length) {
@@ -658,19 +433,19 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 ```
 
-- [ ] **Step 4: Run the unit test to verify it PASSES**
+- [ ] **Step 4: Run the unit test to verify PASS**
 
 Run: `npm run test -- antipatterns`
-Expected: PASS — Task 2 already removed all font drift; no gradient text or banned side-stripes exist (the ChapterPeek TL;DR mark is exempted via `allowIf`).
+Expected: PASS — the font codemod already cleared the drift; no gradient-text or brain illustrations exist.
 
-- [ ] **Step 5: Verify the CLI works standalone**
+- [ ] **Step 5: Verify the CLI**
 
 Run: `node scripts/check-antipatterns.mjs && echo "CLI OK"`
-Expected: prints `✓ no anti-patterns found` then `CLI OK`.
+Expected: `✓ no anti-patterns found` then `CLI OK`.
 
 - [ ] **Step 6: Add the npm script**
 
-In `package.json`, add to `"scripts"` (after `"lint"`):
+In `package.json` `"scripts"`, after `"lint"`, add:
 
 ```json
     "lint:design": "node scripts/check-antipatterns.mjs",
@@ -680,50 +455,34 @@ In `package.json`, add to `"scripts"` (after `"lint"`):
 
 ```bash
 git add scripts/check-antipatterns.mjs tests/unit/design/antipatterns.test.ts package.json
-git commit -m "feat: add project anti-pattern lint (lint:design) guarding font + visual bans"
+git commit -m "feat: add project anti-pattern lint (lint:design) guarding the Prompt-only rule"
 ```
 
 ---
 
 ## Final verification
 
-- [ ] **Step 1: Full unit suite**
-
-Run: `npm run test`
-Expected: all unit tests pass, including `antipatterns`.
-
-- [ ] **Step 2: Full e2e suite**
-
-Run: `npm run test:e2e`
-Expected: `typography.spec.ts` and `hero.spec.ts` all green. Pre-existing `smoke.spec.ts` "home renders hero and three doors" may still be red (stale, out of scope — see Pre-flight). No *new* failures.
-
-- [ ] **Step 3: Production build**
-
-Run: `npm run build`
-Expected: build succeeds.
-
-- [ ] **Step 4: Design lint**
-
-Run: `npm run lint:design`
-Expected: `✓ no anti-patterns found`.
-
-- [ ] **Step 5: Report**
-
-Summarize what changed, which tests prove it, and explicitly call out the pre-existing stale `smoke.spec.ts` home test if it is still red.
+- [ ] **Unit suite:** `npm run test` → all pass incl. `antipatterns` (pre-existing `convert.test.ts` cast error is out of scope).
+- [ ] **E2E suite:** `npm run test:e2e` → `typography.spec.ts` + `specialty-band.spec.ts` green; pre-existing `smoke.spec.ts` home test may still be red (stale, out of scope).
+- [ ] **Build:** `npm run build` succeeds.
+- [ ] **Design lint:** `npm run lint:design` → `✓ no anti-patterns found`.
+- [ ] **Report:** summarize changes; explicitly note the stale `smoke.spec.ts` home test if still red.
 
 ---
 
 ## Self-Review (completed by plan author)
 
-**Spec coverage** — every actionable critique finding maps to a task:
-- P1 typography drift (site-wide) → Tasks 1–2 (guard test + codemod).
-- P2 hero glow blobs + gradient → Task 3.
-- P2 book-vs-landing strategy → Task 5 (PRODUCT.md decision + ChapterPeek bridge).
-- P3 rotating-headline pause → Task 4.
-- Minor: broken detector → Task 6 (project-owned replacement; skill-packaging gap noted as external).
-- Minor: stale `smoke.spec.ts` home test → flagged in Pre-flight + Final verification, intentionally not changed.
-- Minor: dev "unrecoverable error → full reload" → NOT included; it was a dev-only symptom with no page console errors. Out of scope by design; investigate separately if it persists.
+**Direction coverage:**
+- "All fonts → Prompt" → Tasks 1 + the already-run codemod.
+- "Brand = landing page, observe it, drop the book" → Task 2 (rewrites PRODUCT.md + DESIGN.md from the actual components; retires the book test; keeps existing tokens).
+- "Brand docs first" → Task 2 precedes the only behavioral change (Task 3) and the lint (Task 4).
+- WCAG rotating-pause → Task 3 (explicitly non-visual, so it respects "don't redesign the landing").
+- Broken detector → Task 4 (project-owned replacement; skill-packaging gap noted as external).
 
-**Placeholder scan** — no TBD/TODO/"handle edge cases"; every code step has complete code; every run step has an expected result.
+**Removed vs. original plan:** the "calm hero / remove glow blobs" task and the "ChapterPeek cover→book bridge" are deleted, with a Scope-changes section explaining why (both contradicted the founder's pivot).
 
-**Type/identifier consistency** — `scanAntipatterns(roots)` is defined in Task 6 Step 3 and called with the same signature in Step 1 and Step 5. `data-rotating-band`, `data-paused`, `data-phrase` (Task 4) and `data-chapter-peek` (Task 5) match between component and test. `fix-font-drift.mjs` `FORBIDDEN_CLASSES` strings match the grep in Task 2 Step 3 and the linter rule in Task 6.
+**Placeholder scan:** every code/doc step shows the actual content; every run step states the expected result.
+
+**Type/identifier consistency:** `scanAntipatterns(roots)` signature matches across Task 4 steps. `data-rotating-band`, `data-paused`, `data-phrase` match between `SpecialtyBand.tsx` and `specialty-band.spec.ts`. The font-class literals match across `fix-font-drift.mjs`, the Playwright guard, and the linter rule.
+
+**Open flag for the founder:** `/about` still contains book-era copy ("ทำไมต้องเป็นตำรา ไม่ใช่คอนเทนต์"). That's content, not covered here — worth a separate copy pass once the brand docs land.
