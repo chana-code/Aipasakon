@@ -45,10 +45,12 @@ for (const m of MAP) {
 }
 
 // Obsidian embed basename -> source absolute path + sanitized public filename.
-const ASSETS: Record<string, { src: string; out: string; kind: 'img' | 'iframe' }> = {
+const ASSETS: Record<string, { src: string; out: string; kind: 'img' | 'iframe' | 'lab'; labId?: string }> = {
   'ai_system_layers_onion.svg':        { src: path.join(PROJECT_ROOT, 'ai_system_layers_onion.svg'),        out: 'ai_system_layers_onion.svg',        kind: 'img' },
   'weights_as_connection_strength.svg':{ src: path.join(PROJECT_ROOT, 'weights_as_connection_strength.svg'),out: 'weights_as_connection_strength.svg',kind: 'img' },
-  'what_happens_after_send_thai_steps.html': { src: path.join(PROJECT_ROOT, 'what_happens_after_send_thai_steps.html'), out: 'what_happens_after_send_thai_steps.html', kind: 'iframe' },
+  // This file now lives in public/lab/ and is served via <Lab id="after-send-walkthrough"/>.
+  // Do NOT copy it (it's version-controlled in place) and emit the <Lab> tag instead.
+  'what_happens_after_send_thai_steps.html': { src: '', out: '', kind: 'lab', labId: 'after-send-walkthrough' },
   'ChatGPT Image Jun 7, 2026, 01_48_48 AM.png': { src: path.join(PROJECT_ROOT, 'ChatGPT Image Jun 7, 2026, 01_48_48 AM.png'), out: 'chatgpt-20260607-014848.png', kind: 'img' },
   'ChatGPT Image Jun 7, 2026, 01_52_56 AM.png': { src: path.join(PROJECT_ROOT, 'ChatGPT Image Jun 7, 2026, 01_52_56 AM.png'), out: 'chatgpt-20260607-015256.png', kind: 'img' },
 };
@@ -73,6 +75,10 @@ function transformBody(raw: string): string {
     const key = name.trim();
     const a = ASSETS[key];
     if (!a) { console.warn('  ! unknown embed:', key); return ''; }
+    if (a.kind === 'lab') {
+      // File lives in public/lab/ and is rendered by <Lab>; no copy needed.
+      return `\n\n<Lab id="${a.labId}" />\n\n`;
+    }
     copyAsset(a.src, a.out);
     const url = `/content/${a.out}`;
     if (a.kind === 'iframe') {

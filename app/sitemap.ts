@@ -4,6 +4,7 @@ import { loadAllChapters } from '@/lib/content/chapters';
 import { loadAllPosts } from '@/lib/content/blog';
 import { loadAllVideos } from '@/lib/content/videos';
 import { CORE_LEVELS } from '@/lib/content/levels';
+import { LABS } from '@/lib/lab/registry';
 
 export const dynamic = 'force-static';
 
@@ -16,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/glossary', priority: 0.7, changeFrequency: 'monthly' },
     { path: '/skills', priority: 0.7, changeFrequency: 'weekly' },
     { path: '/blog', priority: 0.7, changeFrequency: 'weekly' },
+    { path: '/lab', priority: 0.7, changeFrequency: 'weekly' },
     { path: '/videos', priority: 0.6, changeFrequency: 'monthly' },
     { path: '/about', priority: 0.5, changeFrequency: 'monthly' },
   ];
@@ -75,6 +77,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       });
     }
   } catch { /* no videos */ }
+
+  // Lab detail pages
+  for (const lab of LABS.filter(l => l.status === 'live' || l.status === 'beta')) {
+    entries.push({
+      url: absoluteUrl(`/lab/${lab.id}`),
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+    });
+  }
 
   return entries;
 }

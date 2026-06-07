@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 import { loadAllChapters, loadChapter } from '@/lib/content/chapters';
 import { isCoreLevel, LEVEL_META } from '@/lib/content/levels';
+import { labsForChapter } from '@/lib/lab/registry';
 import { SITE, metaDescription, ogImageUrl } from '@/lib/seo/site';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { chapterLd, breadcrumbLd, faqLd } from '@/lib/seo/jsonld';
@@ -80,6 +81,9 @@ export default async function ChapterPage({
   const idx = sameLevel.findIndex(c => c.slug === chapter.slug);
   const prev = idx > 0 ? sameLevel[idx - 1] : undefined;
   const next = idx >= 0 && idx < sameLevel.length - 1 ? sameLevel[idx + 1] : undefined;
+
+  /* Labs related to this chapter */
+  const relatedLabs = labsForChapter(chapter.slug);
 
   /* Resolve prerequisite titles (shown as related links) */
   const prereqItems = chapter.prerequisites
@@ -197,6 +201,28 @@ export default async function ChapterPage({
         >
           <MDXRemote source={chapter.body} components={{ DissectionLab, Embed, Lab }} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
         </div>
+
+        {/* AI Lab cross-link — shown only for chapters that have a related lab */}
+        {relatedLabs.length > 0 && (
+          <section className="mt-12 p-6 rounded-r-lg" style={{ background: 'rgba(20,181,171,0.06)', borderLeft: '3px solid #14B5AB' }}>
+            <div className="flex items-center gap-2 mb-3 font-bold text-sm uppercase tracking-wider" style={{ color: '#0f8a82' }}>
+              <span className="material-symbols-outlined">science</span>
+              <span>ลองเล่นใน AI Lab</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {relatedLabs.map(lab => (
+                <Link
+                  key={lab.id}
+                  href={`/lab/${lab.id}`}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-[#E8E2D4] rounded-full text-sm font-semibold text-[#14B5AB] hover:bg-[#14B5AB] hover:text-white transition-all no-underline"
+                >
+                  {lab.title_th}
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* FAQ — visible Q&A, also emitted as FAQPage structured data above */}
         {chapter.faq && chapter.faq.length > 0 && (

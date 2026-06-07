@@ -36,7 +36,7 @@ describe('lib/lab/registry', () => {
 
   it('every react lab has a component-map entry', () => {
     for (const l of LABS.filter(l => l.kind === 'react')) {
-      expect(REACT_LAB_IDS).toContain(l.id);
+      expect(REACT_LAB_IDS).toContain(l.source);
     }
   });
 
