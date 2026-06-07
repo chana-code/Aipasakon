@@ -1,19 +1,13 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { loadAllChapters } from '@/lib/content/chapters';
-import { isLevel, LEVEL_META, LEVELS } from '@/lib/content/levels';
+import { isLevel, LEVEL_META, LEVELS, levelsInGroup } from '@/lib/content/levels';
+import { listGatedArticles } from '@/lib/content/gated-articles';
+import { GatedArticleCard } from '@/components/articles/GatedArticleCard';
 
 export function generateStaticParams() {
   return LEVELS.map(level => ({ level }));
 }
-
-// Per-level hex map (PORT-CONVENTIONS)
-const LEVEL_HEX: Record<string, string> = {
-  foundations:        '#14B5AB',
-  'using-ai':         '#2D7CD6',
-  'building-with-ai': '#B45A1A',
-  advanced:           '#7A3FA0',
-};
 
 const SERIF = "font-['Noto_Serif_Thai',serif]";
 const SANS  = "font-['DM_Sans',sans-serif]";
@@ -23,12 +17,15 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
   if (!isLevel(level)) notFound();
 
   const meta    = LEVEL_META[level];
-  const hex     = LEVEL_HEX[level];
+  const hex     = meta.color;
   const chapters = (await loadAllChapters()).filter(c => c.level === level);
+  const gated = listGatedArticles(level);
 
-  const idx  = LEVELS.indexOf(level);
-  const prev = idx > 0 ? LEVELS[idx - 1] : null;
-  const next = idx < LEVELS.length - 1 ? LEVELS[idx + 1] : null;
+  // Prev/next stay within the same group (core sections, or archive levels).
+  const siblings = levelsInGroup(level);
+  const idx  = siblings.indexOf(level);
+  const prev = idx > 0 ? siblings[idx - 1] : null;
+  const next = idx < siblings.length - 1 ? siblings[idx + 1] : null;
 
   const isReady = (status: string) => status === 'reviewed' || status === 'stable';
 
@@ -116,8 +113,8 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
             <Link
               key={c.slug}
               href={`/${c.level}/${c.slug}`}
-              className={`chapter-row group bg-white border border-[#E8E2D4] border-l-[3px] p-6 flex justify-between items-center transition-all hover:shadow-[0_4px_20px_rgba(0,20,60,0.03)] block`}
-              style={{ borderLeftColor: hex }}
+              className={`chapter-row group no-underline bg-white border border-[#E8E2D4] border-l-[3px] p-6 flex justify-between items-center transition-all hover:shadow-[0_4px_20px_rgba(0,20,60,0.03)] block`}
+              style={{ borderLeftColor: hex, textDecoration: 'none' }}
             >
               <div className="flex items-center gap-6">
                 <div
@@ -133,14 +130,6 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
                   >
                     <span className="group-hover:opacity-80 transition-opacity">{c.title}</span>
                   </h3>
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className={`text-xs ${SANS} font-bold flex items-center gap-1`} style={{ color: '#14B5AB' }}>
-                      <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        check_circle
-                      </span>
-                      พร้อมอ่าน
-                    </span>
-                  </div>
                 </div>
               </div>
               <span className="material-symbols-outlined text-[#6c7a78] group-hover:translate-x-1 transition-transform flex-shrink-0">
@@ -174,6 +163,14 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
           );
         })}
       </div>
+
+      {gated.length > 0 && (
+        <div className="mt-8 space-y-3">
+          {gated.map(a => (
+            <GatedArticleCard key={a.slug} article={a} />
+          ))}
+        </div>
+      )}
 
       {/* 5. Prev / next level navigation */}
       <div

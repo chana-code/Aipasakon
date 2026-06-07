@@ -1,14 +1,16 @@
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 import { loadAllChapters, loadChapter } from '@/lib/content/chapters';
 import { isLevel, LEVEL_META } from '@/lib/content/levels';
 import { CurriculumSpine } from '@/components/reader/CurriculumSpine';
 import { MobileCurriculumDrawer } from '@/components/reader/MobileCurriculumDrawer';
-import { DepthToggle } from '@/components/reader/DepthToggle';
 import { TableOfContents } from '@/components/reader/TableOfContents';
 import { BookmarkButton } from '@/components/learn/BookmarkButton';
 import { CompleteButton } from '@/components/learn/CompleteButton';
+import DissectionLab from '@/components/lab/DissectionLabClient';
+import Embed from '@/components/reader/Embed';
 
 const SERIF = "font-['Noto_Serif_Thai',serif]";
 const ARTICLE_ID = 'chapter-article';
@@ -51,11 +53,11 @@ export default async function ChapterPage({
     <div className="max-w-[1440px] mx-auto flex gap-8 px-6 pt-8">
       {/* LEFT: Curriculum spine (desktop only) */}
       <div className="hidden lg:block shrink-0">
-        <CurriculumSpine currentSlug={chapter.slug} />
+        <CurriculumSpine chapters={all} currentSlug={chapter.slug} />
       </div>
 
       {/* CENTER: Article column (max 720px) */}
-      <article id={ARTICLE_ID} data-depth="surface" className="flex-1 max-w-[720px] mx-auto min-w-0 pb-24">
+      <article id={ARTICLE_ID} className="flex-1 max-w-[720px] mx-auto min-w-0 pb-24">
         {/* Breadcrumb */}
         <nav className="flex flex-wrap gap-2 text-sm text-[#00143C]/60 mb-8 font-['DM_Sans',sans-serif]">
           <Link href="/curriculum" className="hover:text-[#14B5AB] transition-colors">หลักสูตร</Link>
@@ -67,7 +69,7 @@ export default async function ChapterPage({
 
         {/* Mobile curriculum drawer */}
         <MobileCurriculumDrawer>
-          <CurriculumSpine currentSlug={chapter.slug} variant="mobile" />
+          <CurriculumSpine chapters={all} currentSlug={chapter.slug} variant="mobile" />
         </MobileCurriculumDrawer>
 
         {/* Header */}
@@ -120,22 +122,17 @@ export default async function ChapterPage({
               className="font-['IBM_Plex_Sans_Thai_Looped',sans-serif] text-[#00143C]"
               style={{ fontSize: 16.5, lineHeight: 1.8 }}
             >
-              <MDXRemote source={chapter.tldr} />
+              <MDXRemote source={chapter.tldr} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
             </div>
           </section>
         )}
-
-        {/* Depth toggle */}
-        <section id="depth" className="mb-12">
-          <DepthToggle targetId={ARTICLE_ID} />
-        </section>
 
         {/* Article body (MDX) */}
         <div
           className="prose-chapter font-['IBM_Plex_Sans_Thai_Looped',sans-serif] text-[#00143C]"
           style={{ fontSize: 16.5, lineHeight: 1.85 }}
         >
-          <MDXRemote source={chapter.body} />
+          <MDXRemote source={chapter.body} components={{ DissectionLab, Embed }} options={{ mdxOptions: { remarkPlugins: [remarkGfm] } }} />
         </div>
 
         {/* Related links (from prerequisites) */}

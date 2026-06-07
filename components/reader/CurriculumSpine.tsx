@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { loadAllChapters } from '@/lib/content/chapters';
-import { LEVELS, LEVEL_META } from '@/lib/content/levels';
+import type { Chapter } from '@/lib/content/chapters';
+import { LEVELS, LEVEL_META, levelsInGroup } from '@/lib/content/levels';
 
 const STATUS_COLOR: Record<string, string> = {
   stub:     '#94896E',
@@ -9,14 +9,18 @@ const STATUS_COLOR: Record<string, string> = {
   stable:   '#2A7A3F',
 };
 
-export async function CurriculumSpine({
+export function CurriculumSpine({
+  chapters,
   currentSlug,
   variant = 'sidebar',
 }: {
+  chapters: Chapter[];
   currentSlug?: string;
   variant?: 'sidebar' | 'mobile';
 }) {
-  const chapters = await loadAllChapters();
+  // Show only the levels in the same group as the current chapter (core sections by default).
+  const current = chapters.find(c => c.slug === currentSlug);
+  const visibleLevels = current ? levelsInGroup(current.level) : LEVELS.filter(l => LEVEL_META[l].group === 'core');
 
   const isMobile = variant === 'mobile';
 
@@ -52,7 +56,7 @@ export async function CurriculumSpine({
           }}>AI ภาษาคน</p>
         </div>
       )}
-      {LEVELS.map(level => {
+      {visibleLevels.map(level => {
         const m = LEVEL_META[level];
         const items = chapters.filter(c => c.level === level);
         return (

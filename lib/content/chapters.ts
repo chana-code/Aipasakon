@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { ChapterFrontmatter } from './schemas';
-import { LEVELS, type Level } from './levels';
+import { LEVELS, LEVEL_META, type Level } from './levels';
 
 const CONTENT_ROOT = path.resolve(process.cwd(), 'content/chapters');
 
@@ -37,6 +37,12 @@ export async function loadAllChapters(): Promise<Chapter[]> {
       all.push(await readChapterFile(level, file));
     }
   }
+  // Reading order = level order, then the chapter's `order` field (NOT filesystem/alphabetical).
+  all.sort((a, b) =>
+    (LEVEL_META[a.level].order - LEVEL_META[b.level].order) ||
+    (a.order - b.order) ||
+    a.slug.localeCompare(b.slug)
+  );
   return all;
 }
 

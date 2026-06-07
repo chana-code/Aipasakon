@@ -194,7 +194,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Link
-              href="/foundations"
+              href="/what-is-ai"
               className="bg-[#14B5AB] text-white px-8 py-3 rounded-xl font-['DM_Sans',sans-serif] text-[14px] font-medium hover:opacity-90 transition-all flex items-center justify-center gap-2"
             >
               เริ่มที่พื้นฐาน{' '}

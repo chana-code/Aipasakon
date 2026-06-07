@@ -4,11 +4,11 @@
    ────────────────────────────────────────────────────────────── */
 
 /* ── FONTS ─────────────────────────────────────────────────────
-   Noto Serif Thai         — Thai display/hero headings (serif)
-   IBM Plex Sans Thai Looped — Thai body (looped variant, warmer)
-   DM Sans                 — Latin body, UI labels
-   Source Serif 4           — Latin display, pairs with Noto Serif Thai
-   JetBrains Mono          — code blocks, inline code, file paths
+   Prompt           — universal typeface (Thai + Latin), all text:
+                      display/hero headings, body, UI labels, data.
+                      Geometric Thai-first sans by Cadson Demak.
+   JetBrains Mono   — code blocks, inline code, file paths (monospace
+                      kept for code alignment).
    All loaded from Google Fonts CDN. If offline copies are needed,
    drop .woff2 files into fonts/ and override @font-face.
    ────────────────────────────────────────────────────────────── */
@@ -95,15 +95,15 @@
   --accent-ink:var(--teal-700);
 
   /* ── TYPOGRAPHY · FAMILIES ──────────────────────────────────
-     Thai stack first so Thai glyphs render in Plex Sans Thai
-     Looped even when mixed with Latin. DM Sans handles English.
-     Display uses serif for a "book, not blog" feel.
+     Prompt is a single Thai-first geometric sans covering both
+     Thai and Latin, so every alias points to it. Weight (not a
+     separate serif) carries the display/heading hierarchy.
      ────────────────────────────────────────────────────────── */
-  --font-thai:    "IBM Plex Sans Thai Looped", "DM Sans", system-ui, sans-serif;
-  --font-latin:   "DM Sans", "IBM Plex Sans Thai Looped", system-ui, sans-serif;
-  --font-display: "Noto Serif Thai", "Source Serif 4", Georgia, serif;
+  --font-thai:    "Prompt", system-ui, sans-serif;
+  --font-latin:   "Prompt", system-ui, sans-serif;
+  --font-display: "Prompt", system-ui, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, Menlo, monospace;
-  --font-latin-display: "Source Serif 4", "Noto Serif Thai", Georgia, serif;
+  --font-latin-display: "Prompt", system-ui, sans-serif;
 
   /* ── TYPOGRAPHY · SCALE ─────────────────────────────────────
      Conservative scale. Body is 17px (Thai needs a touch more
@@ -256,17 +256,24 @@ p {
   color: var(--fg-3);
   font-weight: 500;
 }
-a {
-  color: var(--fg-link);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-  text-decoration-color: color-mix(in srgb, var(--fg-link) 40%, transparent);
-  transition: color var(--dur-fast) var(--ease), text-decoration-color var(--dur-fast) var(--ease);
-}
-a:hover {
-  color: var(--fg-link-hover);
-  text-decoration-color: currentColor;
+/* Anchor defaults live in the `base` layer so Tailwind utilities
+   (no-underline, hover:underline, text-*) override them. Without the
+   layer, this unlayered rule beat every `no-underline` class and
+   forced underlines onto nav links, buttons, and cards. In-article
+   links (no utility) still get the underline below. */
+@layer base {
+  a {
+    color: var(--fg-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, var(--fg-link) 40%, transparent);
+    transition: color var(--dur-fast) var(--ease), text-decoration-color var(--dur-fast) var(--ease);
+  }
+  a:hover {
+    color: var(--fg-link-hover);
+    text-decoration-color: currentColor;
+  }
 }
 code, kbd, samp, .mono {
   font-family: var(--font-mono);

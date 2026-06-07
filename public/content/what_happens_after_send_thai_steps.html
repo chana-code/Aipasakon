@@ -1,0 +1,32 @@
+<style>.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}</style>
+<h2 class="sr-only">ขั้นตอนที่เกิดขึ้นหลังกดส่งข้อความถึง AI อธิบายแบบเข้าใจง่ายด้วยภาพคนเก่งในห้องกับผู้ช่วยหน้าประตู</h2>
+<div style="padding:0.5rem 0;">
+  <div id="dots" style="display:flex;gap:6px;justify-content:center;margin-bottom:1.25rem;"></div>
+  <div id="scene" style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px;min-height:118px;"></div>
+  <div style="text-align:center;margin-top:1.25rem;">
+    <div id="headline" style="font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px;"></div>
+    <div id="body" style="font-size:14px;color:var(--color-text-secondary);line-height:1.7;max-width:520px;margin:0 auto;"></div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:1.5rem;">
+    <button id="prev" onclick="go(-1)">ย้อน</button>
+    <span id="counter" style="font-size:13px;color:var(--color-text-secondary);min-width:64px;text-align:center;"></span>
+    <button id="next" onclick="go(1)">ถัดไป</button>
+  </div>
+</div>
+<script>
+const c=(ic,l,v)=>{const m={active:['var(--color-background-info)','var(--color-text-info)','var(--color-border-info)'],idle:['var(--color-background-secondary)','var(--color-text-secondary)','var(--color-border-tertiary)'],success:['var(--color-background-success)','var(--color-text-success)','var(--color-border-success)'],warn:['var(--color-background-warning)','var(--color-text-warning)','var(--color-border-warning)']};const x=m[v];return '<div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 14px;border-radius:var(--border-radius-lg);border:0.5px solid '+x[2]+';background:'+x[0]+';min-width:90px;"><i class="ti '+ic+'" style="font-size:26px;color:'+x[1]+'" aria-hidden="true"></i><span style="font-size:13px;color:'+x[1]+';text-align:center;">'+l+'</span></div>';};
+const a=()=>'<i class="ti ti-arrow-right" style="font-size:20px;color:var(--color-text-tertiary);" aria-hidden="true"></i>';
+const orr=()=>'<span style="font-size:13px;color:var(--color-text-tertiary);padding:0 4px;">หรือ</span>';
+const S=[
+ {h:'1. คุณกดส่ง',b:'ข้อความของคุณยังไม่ได้วิ่งไปหา AI ตรง ๆ มันไปถึง “ผู้ช่วย” ก่อน',scene:c('ti-device-mobile','คุณ','active')+a()+c('ti-user','ผู้ช่วย','idle')},
+ {h:'2. ผู้ช่วยรวบทุกอย่างใส่ซอง',b:'ผู้ช่วยเอาคำถามใหม่ + ทุกอย่างที่เคยคุยกันมา + คู่มือกฎ มัดรวมเป็นซองเดียว',scene:c('ti-files','คำถาม + แชตเก่า + กฎ','idle')+a()+c('ti-mail','ซองเดียว','active')},
+ {h:'3. สอดซองให้คนเก่งในห้อง',b:'ในห้องมี “คนเก่ง” (ตัว AI) ฉลาดมาก แต่ออกจากห้องไม่ได้ ค้นเน็ตเองไม่ได้ และจำอะไรก่อนหน้าไม่ได้เลย ได้แค่อ่านซองที่สอดเข้าไป',scene:c('ti-mail','ซอง','idle')+a()+c('ti-door','ประตู','idle')+a()+c('ti-bulb','คนเก่ง (AI)','active')},
+ {h:'4. คนเก่งอ่านจบ เขียนตอบ',b:'อ่านทั้งซองแล้วเขียนคำตอบสอดกลับออกมา ซึ่งจะเป็นได้ 2 แบบ',scene:c('ti-bulb','คนเก่ง','active')+a()+c('ti-file-text','เขียนคำตอบ','idle')},
+ {h:'5. คำตอบมี 2 แบบ',b:'แบบซ้าย = ตอบเสร็จเลย ผู้ช่วยเอาขึ้นจอให้คุณ จบ • แบบขวา = คนเก่งขอให้ไปค้นเว็บเพิ่มก่อน',scene:c('ti-check','ตอบเสร็จเลย','success')+orr()+c('ti-world','ขอค้นเว็บก่อน','warn')},
+ {h:'6. ถ้าขอเพิ่ม ก็วนใหม่จนเสร็จ',b:'ผู้ช่วยไปค้นเว็บจริง (คนเก่งทำเองไม่ได้) ได้ผลมาแปะใส่ซอง แล้ววนกลับไปข้อ 2 ใหม่ — วนแบบนี้จนคนเก่งบอกว่า “เสร็จแล้ว” คุณถึงเห็นคำตอบบนจอ',scene:c('ti-refresh','วนกลับข้อ 2','warn')+a()+c('ti-check','เสร็จ','success')+a()+c('ti-device-mobile','ขึ้นจอคุณ','active')}
+];
+let i=0;
+function render(){const s=S[i];document.getElementById('scene').innerHTML=s.scene;document.getElementById('headline').textContent=s.h;document.getElementById('body').textContent=s.b;document.getElementById('counter').textContent='ข้อ '+(i+1)+' / '+S.length;document.getElementById('prev').style.opacity=i===0?'0.4':'1';document.getElementById('next').style.opacity=i===S.length-1?'0.4':'1';document.getElementById('dots').innerHTML=S.map(function(_,k){return '<span style="width:8px;height:8px;border-radius:50%;background:'+(k===i?'var(--color-text-info)':'var(--color-border-secondary)')+';"></span>';}).join('');}
+function go(d){i=Math.max(0,Math.min(S.length-1,i+d));render();}
+render();
+</script>

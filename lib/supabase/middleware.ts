@@ -34,6 +34,12 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Hard-block raw gated files for logged-out users (the article page renders the
+  // in-page wall; the raw HTML endpoint must never return bytes without a session).
+  if (pathname.startsWith('/api/gated') && !user) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
   // Protect /learn/* routes — redirect to login if not authenticated
   if (pathname.startsWith('/learn') && !user) {
     const url = request.nextUrl.clone();

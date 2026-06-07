@@ -16,26 +16,37 @@
     "search:build": "pagefind --site .next/server/app --output-path public/pagefind",
     "convert:chapters": "tsx scripts/convert-chapter.ts"
   },
+  "overrides": {
+    "isomorphic-dompurify": {
+      "jsdom": "26.1.0"
+    }
+  },
   "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.106.1",
+    "framer-motion": "^12.40.0",
     "gray-matter": "^4.0.3",
+    "isomorphic-dompurify": "^2.36.0",
     "lucide-react": "^1.16.0",
     "next": "15.5.18",
     "next-mdx-remote": "^5.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "remark-gfm": "^4.0.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^20.19.41",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.2",
     "@vitest/ui": "^2.1.9",
     "eslint": "^9",
     "eslint-config-next": "15.5.18",

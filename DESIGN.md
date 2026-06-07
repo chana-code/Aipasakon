@@ -14,16 +14,15 @@
 - **Anti-patterns:** No purple gradients, no 3-column icon grids, no centered-everything, no decorative blobs, no AI brain illustrations, no glassmorphism, no floating prompt boxes, no generic node diagrams
 
 ## Typography
-- **Display/Hero (Thai):** Noto Serif Thai (weight 600-700) -- serif Thai at display size signals "book, not blog." Key visual differentiator from every other Thai AI content site.
-- **Display/Hero (Latin):** Source Serif 4 (weight 600) -- pairs with Noto Serif Thai for mixed-language headlines
-- **Body (Thai):** IBM Plex Sans Thai Looped (weight 400) -- the "looped" variant reads more naturally for long-form Thai prose than the unlooped version. Warmer and more human.
-- **Body (Latin):** DM Sans (weight 400) -- cleaner than Inter at small sizes, pairs well with Plex
-- **UI/Labels:** Same as body
-- **Data/Tables:** DM Sans with tabular-nums feature
-- **Code:** JetBrains Mono (weight 400-500) -- more personality than IBM Plex Mono, better ligatures
+- **Universal typeface:** Prompt -- a single Thai-first geometric sans (by Cadson Demak) covering both Thai and Latin. Used for everything: display/hero, headings, body, UI labels, data. Hierarchy is carried by **weight and size**, not by a separate serif.
+- **Display/Hero:** Prompt (weight 600-700)
+- **Body:** Prompt (weight 400) -- clean, even color for long-form Thai and Latin prose
+- **UI/Labels:** Prompt (weight 500)
+- **Data/Tables:** Prompt with tabular-nums feature
+- **Code:** JetBrains Mono (weight 400-500) -- monospace kept for code/inline-code/file-path alignment (the one exception to the all-Prompt rule)
 - **Loading:** Google Fonts CDN
   ```html
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   ```
 - **Scale:**
   - Display: 52px / line-height 1.15 / letter-spacing -0.01em
@@ -37,10 +36,10 @@
   - Mono: 14.5px / line-height 1.7
 - **Font stacks (CSS):**
   ```css
-  --font-display: "Noto Serif Thai", "Source Serif 4", Georgia, serif;
-  --font-body: "IBM Plex Sans Thai Looped", "DM Sans", system-ui, sans-serif;
-  --font-latin-display: "Source Serif 4", "Noto Serif Thai", Georgia, serif;
-  --font-latin-body: "DM Sans", "IBM Plex Sans Thai Looped", system-ui, sans-serif;
+  --font-display: "Prompt", system-ui, sans-serif;
+  --font-body: "Prompt", system-ui, sans-serif;
+  --font-latin-display: "Prompt", system-ui, sans-serif;
+  --font-latin-body: "Prompt", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   ```
 
@@ -121,3 +120,4 @@ Do NOT use mark for: buttons, nav elements, level indicators, or any interactive
 | 2026-05-22 | Yellow mark system over teal-everything | Teal was overused and lost meaning. Yellow mark creates a distinct "teacher's annotation" visual layer. |
 | 2026-05-22 | 52px hero heading (down from 64px) | Thai glyphs are taller than Latin. 64px caused 5-6 line wraps. 52px wraps to 2 clean lines. |
 | 2026-05-22 | Sidebar ToC for chapter pages | Inline ToC broke reading flow. Sticky sidebar follows Stripe/Tailwind docs pattern -- proven for long-form content. |
+| 2026-06-07 | Switched to Prompt as the universal typeface | Founder requested the whole site use [Prompt](https://fonts.google.com/specimen/Prompt). Replaces the Noto Serif Thai + IBM Plex + DM Sans + Source Serif 4 stack. One Thai-first geometric sans for Thai + Latin across display, body, and UI; hierarchy now carried by weight/size. JetBrains Mono retained for code only. |

@@ -82,16 +82,7 @@ export function AuthButton() {
   return (
     <Link
       href="/login"
-      style={{
-        padding: '6px 14px',
-        border: '1px solid var(--line)',
-        borderRadius: 6,
-        textDecoration: 'none',
-        fontFamily: 'var(--font-thai)',
-        fontSize: 13.5,
-        color: 'var(--fg-2)',
-        fontWeight: 500,
-      }}
+      className="px-5 py-2 bg-[#14B5AB] text-white rounded-lg font-['Noto_Serif_Thai',serif] font-semibold hover:bg-[#12a39a] transition-all no-underline active:scale-95"
     >
       เข้าสู่ระบบ
     </Link>

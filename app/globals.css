@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=JetBrains+Mono:wght@400;500&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap');
 @import "tailwindcss";
 @import "../styles/colors_and_type.css";
@@ -59,10 +59,10 @@
   --color-mark-bg: #FDF6E0;
 
   /* Fonts — utility names font-thai, font-sans, font-mono, font-display */
-  --font-thai: "IBM Plex Sans Thai Looped", "DM Sans", system-ui, sans-serif;
-  --font-sans: "DM Sans", "IBM Plex Sans Thai Looped", system-ui, sans-serif;
+  --font-thai: "Prompt", system-ui, sans-serif;
+  --font-sans: "Prompt", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  --font-display: "Noto Serif Thai", "Source Serif 4", Georgia, serif;
+  --font-display: "Prompt", system-ui, sans-serif;
 
   /* Border radius */
   --radius-sm: 4px;
@@ -82,6 +82,11 @@
   ::selection { background: var(--teal-50); color: var(--navy-900); }
 }
 
-article[data-depth="surface"] section[data-depth]:not([data-depth="surface"]) { display: none; }
-article[data-depth="deeper"]  section[data-depth="formal"] { display: none; }
-/* "formal" shows all */
+/* Chapter media — first real images land with V.3; keep them inside the prose column. */
+.prose-chapter img,
+.prose-chapter iframe { max-width: 100%; height: auto; }
+.prose-chapter img { display: block; margin: 24px auto; border-radius: 8px; }
+.prose-chapter table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 15px; }
+.prose-chapter th,
+.prose-chapter td { border: 1px solid var(--line, #E8E2D4); padding: 8px 12px; text-align: left; vertical-align: top; }
+.prose-chapter th { background: var(--paper-2, #F4F1E9); font-weight: 600; }

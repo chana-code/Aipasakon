@@ -63,7 +63,7 @@ export default function NotFound() {
         <div className="grid grid-cols-1 gap-4">
           {/* Level 1 */}
           <Link
-            href="/foundations/what-is-an-llm"
+            href="/what-is-ai/history"
             className="group flex items-center justify-between p-5 bg-white rounded-xl border border-[#6c7a78]/20 hover:border-[#14B5AB] transition-all hover:translate-x-1"
           >
             <div className="flex items-center gap-4">
@@ -71,7 +71,7 @@ export default function NotFound() {
                 Level 1
               </span>
               <span className={`${SERIF} text-[20px] text-[#00143C] group-hover:text-[#14B5AB] transition-colors`}>
-                LLM คืออะไร
+                ประวัติของ AI
               </span>
             </div>
             <span className="material-symbols-outlined text-[#6c7a78] group-hover:text-[#14B5AB]">
@@ -81,7 +81,7 @@ export default function NotFound() {
 
           {/* Level 2 */}
           <Link
-            href="/using-ai/prompt-engineering-basics"
+            href="/products/the-model"
             className="group flex items-center justify-between p-5 bg-white rounded-xl border border-[#6c7a78]/20 hover:border-[#2D7CD6] transition-all hover:translate-x-1"
           >
             <div className="flex items-center gap-4">
@@ -89,7 +89,7 @@ export default function NotFound() {
                 Level 2
               </span>
               <span className={`${SERIF} text-[20px] text-[#00143C] group-hover:text-[#2D7CD6] transition-colors`}>
-                การใช้งาน Prompt
+                ตัว model เอง คืออะไร
               </span>
             </div>
             <span className="material-symbols-outlined text-[#6c7a78] group-hover:text-[#2D7CD6]">
@@ -99,15 +99,15 @@ export default function NotFound() {
 
           {/* Level 3 */}
           <Link
-            href="/building-with-ai/llm-apis"
-            className="group flex items-center justify-between p-5 bg-white rounded-xl border border-[#6c7a78]/20 hover:border-[#B45A1A] transition-all hover:translate-x-1"
+            href="/products/press-enter"
+            className="group flex items-center justify-between p-5 bg-white rounded-xl border border-[#B45A1A]/20 hover:border-[#B45A1A] transition-all hover:translate-x-1"
           >
             <div className="flex items-center gap-4">
               <span className="bg-[#fff3e0] text-[#ef6c00] text-[12px] font-bold px-3 py-1 rounded-full">
-                Level 3
+                Level 2
               </span>
               <span className={`${SERIF} text-[20px] text-[#00143C] group-hover:text-[#B45A1A] transition-colors`}>
-                API เบื้องต้น
+                เกิดอะไรขึ้นตอนกด Enter
               </span>
             </div>
             <span className="material-symbols-outlined text-[#6c7a78] group-hover:text-[#B45A1A]">

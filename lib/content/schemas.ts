@@ -7,6 +7,8 @@ export const LevelEnum = z.enum(LEVELS);
 export const ChapterFrontmatter = z.object({
   slug: z.string().min(1),
   level: LevelEnum,
+  order: z.coerce.number().default(999),
+  act: z.coerce.number().optional(),
   title: z.string().min(1),
   status: StatusEnum,
   prerequisites: z.array(z.string()).default([]),

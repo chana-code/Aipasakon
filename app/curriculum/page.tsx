@@ -1,14 +1,6 @@
 import Link from 'next/link';
 import { loadAllChapters } from '@/lib/content/chapters';
-import { LEVELS, LEVEL_META } from '@/lib/content/levels';
-
-// Per PORT-CONVENTIONS.md: fixed hex values per level
-const LEVEL_HEX: Record<string, string> = {
-  foundations:        '#14B5AB',
-  'using-ai':         '#2D7CD6',
-  'building-with-ai': '#B45A1A',
-  advanced:           '#7A3FA0',
-};
+import { CORE_LEVELS, LEVEL_META } from '@/lib/content/levels';
 
 export default async function CurriculumPage() {
   const chapters = await loadAllChapters();
@@ -22,9 +14,9 @@ export default async function CurriculumPage() {
             Course Path
           </h3>
           <nav className="flex flex-col gap-3">
-            {LEVELS.map((lvl) => {
+            {CORE_LEVELS.map((lvl) => {
               const meta = LEVEL_META[lvl];
-              const hex = LEVEL_HEX[lvl];
+              const hex = LEVEL_META[lvl].color;
               const hasChapters = chapters.some(c => c.level === lvl);
               return (
                 <a
@@ -100,9 +92,9 @@ export default async function CurriculumPage() {
         </section>
 
         {/* Level Sections */}
-        {LEVELS.map((lvl, levelIdx) => {
+        {CORE_LEVELS.map((lvl) => {
           const meta = LEVEL_META[lvl];
-          const hex = LEVEL_HEX[lvl];
+          const hex = LEVEL_META[lvl].color;
           const items = chapters.filter(c => c.level === lvl);
           const isEmpty = items.length === 0;
 
@@ -183,6 +175,16 @@ export default async function CurriculumPage() {
             </section>
           );
         })}
+
+        {/* Archive pointer */}
+        <div className="mt-8 pt-8 border-t border-[#E8E2D4]">
+          <p className="text-sm text-[#6c7a78] font-['DM_Sans',sans-serif]">
+            กำลังมองหาเนื้อหาชุดเดิม (54 บท)?{' '}
+            <Link href="/archive" className="text-[#14B5AB] hover:underline underline-offset-4">
+              ดูคลังเนื้อหาฉบับก่อนหน้า
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
