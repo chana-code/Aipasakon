@@ -285,6 +285,9 @@ code:not(pre code) {
   padding: 0.05em 0.4em;
   border-radius: var(--r-1);
   color: var(--fg-1);
+  /* Long inline code (incl. spaceless Thai runs) must wrap, not push the page wide */
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 pre {
   font-family: var(--font-mono);
@@ -306,6 +309,15 @@ hr {
    Spacing for MDX-rendered content. Generous vertical rhythm
    is essential for Thai long-form readability.
    ────────────────────────────────────────────────────────── */
+.prose-chapter {
+  /* Never let an unbreakable string (long URL, spaceless run) widen the page */
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.prose-chapter a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 .prose-chapter p {
   margin: 0 0 1.15em;
 }
