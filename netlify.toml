@@ -8,6 +8,11 @@
 [build.environment]
   # engines in package.json require >=20.11 <23
   NODE_VERSION = "20"
+  # These two are PUBLIC by design (NEXT_PUBLIC_ prefix -> shipped to the
+  # browser; the Supabase anon key is protected by Row-Level Security).
+  # Exempt them from secret scanning; all real secrets (service-role key,
+  # OAuth secret, access token) remain scanned.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
