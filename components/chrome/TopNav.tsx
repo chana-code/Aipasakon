@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/videos', label: 'วีดีโอการสอน', match: ['/videos'] },
   { href: '/glossary', label: 'สารานุกรม', match: ['/glossary'] },
   { href: '/skills', label: 'รวม Skill ที่น่าสนใจ', match: ['/skills'] },
+  { href: '/lab', label: 'AI Lab', match: ['/lab'] },
   { href: '/blog', label: 'บทความ', match: ['/blog'] },
   { href: '/about', label: 'เกี่ยวกับเรา', match: ['/about'] },
 ];

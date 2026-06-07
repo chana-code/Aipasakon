@@ -9,6 +9,7 @@ export function Footer() {
         <Link href="/videos" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">วีดีโอการสอน</Link>
         <Link href="/glossary" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">สารานุกรม</Link>
         <Link href="/skills" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">รวม Skill</Link>
+        <Link href="/lab" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">AI Lab</Link>
         <Link href="/blog" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">บทความ</Link>
         <Link href="/about" className="text-xs uppercase tracking-wider text-[#6B6660] hover:text-[#1C1A17] transition-all no-underline">เกี่ยวกับเรา</Link>
       </div>

@@ -19,6 +19,7 @@ const CARDS: Card[] = [
   { img: 'products', title: 'เครื่องมือ AI', desc: 'แยกให้ออกว่า ChatGPT, Claude และ product อื่น ๆ ต่างกันยังไง เลือกใช้ตัวไหน', href: '/products', tint: '#2D7CD6' },
   { img: 'pro-usage', title: 'ใช้แบบมือโปร', desc: 'Context, token, skills และการสั่งงาน AI อย่างมืออาชีพ', href: '/pro-usage', soon: true, tint: '#B45A1A' },
   { img: 'in-practice', title: 'ลงมือทำจริง', desc: 'ติดตั้ง เริ่มใช้ อ่าน docs และให้ AI ลงมือทำงานแทนคุณ', href: '/in-practice', soon: true, tint: '#7A3FA0' },
+  { img: 'products', title: 'AI Lab', desc: 'เครื่องมือทดลองแบบโต้ตอบ เล่นกับแนวคิด AI ได้จริง จับคู่กับบทเรียน', href: '/lab', tint: '#0F8A82' },
 ];
 
 export function ContentCards() {

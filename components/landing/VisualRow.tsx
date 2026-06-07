@@ -19,7 +19,7 @@ const FEATURES: Feature[] = [
     icon: 'biotech',
     title: 'ผ่าโมเดล AI ดูข้างใน',
     desc: 'เปิดไฟล์โมเดลจริง แล้วดูว่ามันคิดยังไงทีละขั้น แบบกดเล่นได้เอง ไม่ต้องเขียนโค้ด',
-    href: '/lab-demo',
+    href: '/lab/dissection-lab',
     cta: 'ลองเล่น Lab',
     tint: '#14B5AB',
   },
