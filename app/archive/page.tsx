@@ -2,8 +2,6 @@ import Link from 'next/link';
 import { loadAllChapters } from '@/lib/content/chapters';
 import { ARCHIVE_LEVELS, LEVEL_META } from '@/lib/content/levels';
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
-const SANS = "font-['DM_Sans',sans-serif]";
 
 export const metadata = {
   title: 'คลังเนื้อหาฉบับก่อนหน้า — AI ภาษาคน',
@@ -20,13 +18,13 @@ export default async function ArchivePage() {
   return (
     <div className="max-w-[720px] mx-auto px-6 py-12 min-h-screen">
       <header className="mb-12">
-        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${SANS} mb-6 bg-[#eae8e3] text-[#6c7a78]`}>
+        <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold mb-6 bg-[#eae8e3] text-[#6c7a78]`}>
           คลังเนื้อหา (Archive)
         </div>
-        <h1 className={`${SERIF} text-[40px] leading-[1.2] font-bold text-[#00143C] mb-4`}>
+        <h1 className={`text-[40px] leading-[1.2] font-bold text-[#00143C] mb-4`}>
           เนื้อหาหลักสูตรฉบับก่อนหน้า
         </h1>
-        <p className={`${SANS} text-[17px] leading-[1.8] text-[#6c7a78]`}>
+        <p className={`text-[17px] leading-[1.8] text-[#6c7a78]`}>
           นี่คือหลักสูตรชุดเดิม 54 บท ที่เก็บไว้เป็นคลังอ้างอิง เนื้อหาหลักของเว็บได้ย้ายไปที่{' '}
           <Link href="/curriculum" className="text-[#14B5AB] hover:underline underline-offset-4">
             หลักสูตรฉบับใหม่
@@ -46,10 +44,10 @@ export default async function ArchivePage() {
               style={{ borderLeftColor: m.color }}
             >
               <div>
-                <h3 className={`${SERIF} font-semibold text-lg text-[#00143C]`}>{m.label_th}</h3>
-                <p className={`text-sm ${SANS} text-[#6c7a78] mt-1`}>{m.tagline_th}</p>
+                <h3 className={`font-semibold text-lg text-[#00143C]`}>{m.label_th}</h3>
+                <p className={`text-sm text-[#6c7a78] mt-1`}>{m.tagline_th}</p>
               </div>
-              <span className={`text-xs ${SANS} text-[#6c7a78] whitespace-nowrap ml-4`}>
+              <span className={`text-xs text-[#6c7a78] whitespace-nowrap ml-4`}>
                 {count(lvl)} บท
               </span>
             </Link>

@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { loadAllVideos } from '@/lib/content/videos';
 import { LEVELS, LEVEL_META } from '@/lib/content/levels';
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
 
 // Fixed hex values per PORT-CONVENTIONS.md per-level colors
 const LEVEL_HEX: Record<string, string> = {
@@ -21,10 +20,10 @@ export default async function VideosIndex() {
 
         {/* Page header */}
         <div className="mb-12">
-          <h1 className={`${SERIF} text-[40px] leading-[1.2] font-bold text-[#00143C] mb-3`}>
+          <h1 className={`text-[40px] leading-[1.2] font-bold text-[#00143C] mb-3`}>
             วิดีโอ
           </h1>
-          <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C]/70">
+          <p className="text-[18px] leading-[1.8] text-[#00143C]/70">
             เนื้อหาเสริมแบบวิดีโอ จัดเรียงตามระดับของหลักสูตร
           </p>
         </div>
@@ -38,7 +37,7 @@ export default async function VideosIndex() {
 
           return (
             <section key={level} className="mb-14">
-              <h2 className={`${SERIF} text-[28px] leading-[1.3] font-semibold mb-6`} style={{ color: hex }}>
+              <h2 className={`text-[28px] leading-[1.3] font-semibold mb-6`} style={{ color: hex }}>
                 {meta.label_th}
               </h2>
 
@@ -78,18 +77,18 @@ export default async function VideosIndex() {
                       <div className="p-5">
                         {/* Level chip */}
                         <span
-                          className="inline-block font-['DM_Sans',sans-serif] text-[14px] font-medium px-3 py-0.5 rounded-full mb-3"
+                          className="inline-block text-[14px] font-medium px-3 py-0.5 rounded-full mb-3"
                           style={{ background: `${cardHex}1a`, color: cardHex }}
                         >
                           {meta.label_th}
                         </span>
 
-                        <h3 className={`${SERIF} text-[18px] leading-[1.4] font-semibold text-[#00143C] mb-2`}>
+                        <h3 className={`text-[18px] leading-[1.4] font-semibold text-[#00143C] mb-2`}>
                           {v.title}
                         </h3>
 
                         {v.description && (
-                          <p className="font-['DM_Sans',sans-serif] text-[14px] leading-[1.6] text-[#00143C]/70">
+                          <p className="text-[14px] leading-[1.6] text-[#00143C]/70">
                             {v.description}
                           </p>
                         )}
@@ -103,7 +102,7 @@ export default async function VideosIndex() {
         })}
 
         {videos.length === 0 && (
-          <p className="font-['DM_Sans',sans-serif] text-[#6c7a78] italic">ยังไม่มีวิดีโอ</p>
+          <p className="text-[#6c7a78] italic">ยังไม่มีวิดีโอ</p>
         )}
       </div>
     </div>

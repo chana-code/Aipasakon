@@ -72,7 +72,7 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
         type="button"
         onClick={handleGoogle}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-[#E8E2D4] rounded-lg font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#00143C] bg-white hover:bg-[#f5f3ee] transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+        className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-[#E8E2D4] rounded-lg text-[14px] font-medium text-[#00143C] bg-white hover:bg-[#f5f3ee] transition-colors duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908C16.658 14.268 17.64 11.94 17.64 9.2z" fill="#4285F4"/>
@@ -86,7 +86,7 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
       {/* Divider */}
       <div className="flex items-center my-8">
         <div className="flex-grow border-t border-[#E8E2D4]"></div>
-        <span className="px-4 font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78] italic">หรือ</span>
+        <span className="px-4 text-[14px] font-medium text-[#6c7a78] italic">หรือ</span>
         <div className="flex-grow border-t border-[#E8E2D4]"></div>
       </div>
 
@@ -96,7 +96,7 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
         <div>
           <label
             htmlFor="auth-email"
-            className="block font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78] mb-1.5"
+            className="block text-[14px] font-medium text-[#6c7a78] mb-1.5"
           >
             อีเมล
           </label>
@@ -108,7 +108,7 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
             required
             autoComplete="email"
             placeholder="example@email.com"
-            className="w-full px-4 py-2.5 bg-white border border-[#E8E2D4] rounded-lg font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C] focus:border-[#14B5AB] focus:ring-1 focus:ring-[#14B5AB] outline-none transition-all duration-200"
+            className="w-full px-4 py-2.5 bg-white border border-[#E8E2D4] rounded-lg text-[18px] leading-[1.8] text-[#00143C] focus:border-[#14B5AB] focus:ring-1 focus:ring-[#14B5AB] outline-none transition-all duration-200"
           />
         </div>
 
@@ -118,13 +118,13 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
             <div className="flex justify-between items-center mb-1.5">
               <label
                 htmlFor="auth-password"
-                className="block font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]"
+                className="block text-[14px] font-medium text-[#6c7a78]"
               >
                 รหัสผ่าน
               </label>
               <Link
                 href="/auth/reset"
-                className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#14B5AB] hover:underline transition-all"
+                className="text-[14px] font-medium text-[#14B5AB] hover:underline transition-all"
               >
                 ลืมรหัสผ่าน?
               </Link>
@@ -132,7 +132,7 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
           ) : (
             <label
               htmlFor="auth-password"
-              className="block font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78] mb-1.5"
+              className="block text-[14px] font-medium text-[#6c7a78] mb-1.5"
             >
               รหัสผ่าน
             </label>
@@ -146,7 +146,7 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             placeholder={mode === 'signup' ? 'อย่างน้อย 8 ตัวอักษร' : '••••••••'}
             minLength={6}
-            className="w-full px-4 py-2.5 bg-white border border-[#E8E2D4] rounded-lg font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C] focus:border-[#14B5AB] focus:ring-1 focus:ring-[#14B5AB] outline-none transition-all duration-200"
+            className="w-full px-4 py-2.5 bg-white border border-[#E8E2D4] rounded-lg text-[18px] leading-[1.8] text-[#00143C] focus:border-[#14B5AB] focus:ring-1 focus:ring-[#14B5AB] outline-none transition-all duration-200"
           />
           {mode === 'signup' && (
             <p className="text-[11px] text-[#6c7a78] mt-1 ml-1 leading-normal">
@@ -174,12 +174,12 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
 
         {/* Error / Success messages */}
         {error && (
-          <div className="px-4 py-2.5 bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg font-['DM_Sans',sans-serif] text-[13.5px] text-[#DC2626]">
+          <div className="px-4 py-2.5 bg-[#FEF2F2] border border-[#FCA5A5] rounded-lg text-[13.5px] text-[#DC2626]">
             {error}
           </div>
         )}
         {success && (
-          <div className="px-4 py-2.5 bg-[#F0FDF4] border border-[#86EFAC] rounded-lg font-['DM_Sans',sans-serif] text-[13.5px] text-[#16A34A]">
+          <div className="px-4 py-2.5 bg-[#F0FDF4] border border-[#86EFAC] rounded-lg text-[13.5px] text-[#16A34A]">
             {success}
           </div>
         )}
@@ -188,7 +188,7 @@ export function AuthForm({ mode, redirectTo = '/learn' }: AuthFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3.5 px-4 bg-[#14B5AB] text-white font-['DM_Sans',sans-serif] text-[14px] font-bold rounded-lg hover:opacity-90 active:scale-[0.98] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(20,181,171,0.2)] disabled:opacity-70 disabled:cursor-not-allowed tracking-wide"
+          className="w-full py-3.5 px-4 bg-[#14B5AB] text-white text-[14px] font-bold rounded-lg hover:opacity-90 active:scale-[0.98] transition-all duration-200 mt-2 shadow-[0_4px_12px_rgba(20,181,171,0.2)] disabled:opacity-70 disabled:cursor-not-allowed tracking-wide"
         >
           {loading
             ? 'กำลังโหลด…'

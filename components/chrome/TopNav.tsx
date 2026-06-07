@@ -29,8 +29,8 @@ export function TopNav() {
                 href={l.href}
                 className={
                   active
-                    ? "font-['Noto_Serif_Thai',serif] text-lg font-semibold text-[#B85C38] border-b-2 border-[#B85C38] pb-1 no-underline transition-all"
-                    : "font-['Noto_Serif_Thai',serif] text-lg font-semibold text-[#6B6660] hover:text-[#1C1A17] pb-1 no-underline transition-all"
+                    ? "text-lg font-semibold text-[#B85C38] border-b-2 border-[#B85C38] pb-1 no-underline transition-all"
+                    : "text-lg font-semibold text-[#6B6660] hover:text-[#1C1A17] pb-1 no-underline transition-all"
                 }
               >
                 {l.label}

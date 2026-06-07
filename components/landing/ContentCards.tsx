@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { RevealGroup, revealItem } from './Reveal';
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
 
 type Card = {
   img: string;
@@ -26,10 +25,10 @@ export function ContentCards() {
   return (
     <section className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
       <div className="mb-12 text-center">
-        <h2 className={`${SERIF} mb-3 text-[28px] font-bold text-[#00143C] md:text-[34px]`}>
+        <h2 className={`mb-3 text-[28px] font-bold text-[#00143C] md:text-[34px]`}>
           เรียนอะไรบ้าง
         </h2>
-        <p className="font-['DM_Sans',sans-serif] text-[16px] text-[#00143C]/60">
+        <p className="text-[16px] text-[#00143C]/60">
           สี่ช่วง จากไม่รู้อะไรเลย จนใช้ AI ทำงานแทนได้
         </p>
       </div>
@@ -62,18 +61,18 @@ function CardItem({ card }: { card: Card }) {
         </motion.div>
 
         <div className="flex items-center gap-2">
-          <h3 className={`${SERIF} text-[21px] font-bold text-[#00143C]`}>{card.title}</h3>
+          <h3 className={`text-[21px] font-bold text-[#00143C]`}>{card.title}</h3>
           {card.soon && (
-            <span className="rounded-full bg-[#F4F1E9] px-2 py-0.5 font-['DM_Sans',sans-serif] text-[10px] font-semibold uppercase tracking-wider text-[#00143C]/45">
+            <span className="rounded-full bg-[#F4F1E9] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[#00143C]/45">
               เร็ว ๆ นี้
             </span>
           )}
         </div>
-        <p className="mt-2 font-['DM_Sans',sans-serif] text-[14px] leading-[1.7] text-[#00143C]/65">
+        <p className="mt-2 text-[14px] leading-[1.7] text-[#00143C]/65">
           {card.desc}
         </p>
         <span
-          className="mt-4 inline-flex items-center gap-1 font-['DM_Sans',sans-serif] text-[14px] font-medium transition-all group-hover:gap-2"
+          className="mt-4 inline-flex items-center gap-1 text-[14px] font-medium transition-all group-hover:gap-2"
           style={{ color: card.tint }}
         >
           {card.soon ? 'ดูตัวอย่าง' : 'เริ่มอ่าน'}

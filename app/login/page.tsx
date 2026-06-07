@@ -18,10 +18,10 @@ export default async function LoginPage({
         <div className="bg-white border border-[#E8E2D4] rounded-lg p-8 md:p-10 shadow-[0_4px_20px_rgba(0,20,60,0.03)]">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-2">
+            <h1 className="text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-2">
               เข้าสู่ระบบ
             </h1>
-            <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]">
+            <p className="text-[14px] font-medium text-[#6c7a78]">
               ยินดีต้อนรับกลับมา อ่านต่อจากที่ค้างไว้ได้เลย
             </p>
           </div>
@@ -31,7 +31,7 @@ export default async function LoginPage({
 
           {/* Footer link */}
           <div className="mt-8 text-center">
-            <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]">
+            <p className="text-[14px] font-medium text-[#6c7a78]">
               ยังไม่มีบัญชี?{' '}
               <Link
                 href="/signup"

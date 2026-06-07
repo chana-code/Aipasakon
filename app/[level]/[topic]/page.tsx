@@ -12,7 +12,6 @@ import { CompleteButton } from '@/components/learn/CompleteButton';
 import DissectionLab from '@/components/lab/DissectionLabClient';
 import Embed from '@/components/reader/Embed';
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
 const ARTICLE_ID = 'chapter-article';
 
 export async function generateStaticParams() {
@@ -59,7 +58,7 @@ export default async function ChapterPage({
       {/* CENTER: Article column (max 720px) */}
       <article id={ARTICLE_ID} className="flex-1 max-w-[720px] mx-auto min-w-0 pb-24">
         {/* Breadcrumb */}
-        <nav className="flex flex-wrap gap-2 text-sm text-[#00143C]/60 mb-8 font-['DM_Sans',sans-serif]">
+        <nav className="flex flex-wrap gap-2 text-sm text-[#00143C]/60 mb-8">
           <Link href="/curriculum" className="hover:text-[#14B5AB] transition-colors">หลักสูตร</Link>
           <span>/</span>
           <Link href={`/${chapter.level}`} className="hover:text-[#14B5AB] transition-colors">{m.label_th}</Link>
@@ -96,7 +95,7 @@ export default async function ChapterPage({
               <CompleteButton chapterSlug={chapter.slug} />
             </span>
           </div>
-          <h1 className={`${SERIF} text-[32px] md:text-[40px] leading-[1.2] font-bold mb-3 text-[#00143C]`}>
+          <h1 className={`text-[32px] md:text-[40px] leading-[1.2] font-bold mb-3 text-[#00143C]`}>
             {chapter.title}
           </h1>
         </div>
@@ -138,7 +137,7 @@ export default async function ChapterPage({
         {/* Related links (from prerequisites) */}
         {prereqItems.length > 0 && (
           <section className="mt-12">
-            <h4 className="font-bold text-sm text-[#00143C]/60 uppercase mb-4 tracking-widest font-['DM_Sans',sans-serif]">
+            <h4 className="font-bold text-sm text-[#00143C]/60 uppercase mb-4 tracking-widest">
               ลิงก์ที่เกี่ยวข้อง
             </h4>
             <div className="flex flex-wrap gap-2">
@@ -165,7 +164,7 @@ export default async function ChapterPage({
               >
                 <span className="material-symbols-outlined group-hover:-translate-x-1 transition-transform shrink-0">arrow_back</span>
                 <span className="min-w-0">
-                  <span className="block text-xs uppercase opacity-60 font-['DM_Sans',sans-serif]">ก่อนหน้า</span>
+                  <span className="block text-xs uppercase opacity-60">ก่อนหน้า</span>
                   <span className="block font-bold truncate">{prev.title}</span>
                 </span>
               </Link>
@@ -176,7 +175,7 @@ export default async function ChapterPage({
                 className="flex items-center gap-2 text-right text-[#00143C]/70 hover:text-[#14B5AB] transition-colors group min-w-0"
               >
                 <span className="min-w-0">
-                  <span className="block text-xs uppercase opacity-60 font-['DM_Sans',sans-serif]">ถัดไป</span>
+                  <span className="block text-xs uppercase opacity-60">ถัดไป</span>
                   <span className="block font-bold truncate">{next.title}</span>
                 </span>
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform shrink-0">arrow_forward</span>
@@ -188,7 +187,7 @@ export default async function ChapterPage({
 
       {/* RIGHT: Table of contents (xl only) */}
       <aside className="sticky top-[5rem] w-[220px] h-fit hidden xl:block shrink-0">
-        <h4 className="font-bold text-xs text-[#00143C]/60 uppercase mb-4 tracking-widest border-b border-[#E8E2D4] pb-2 font-['DM_Sans',sans-serif]">
+        <h4 className="font-bold text-xs text-[#00143C]/60 uppercase mb-4 tracking-widest border-b border-[#E8E2D4] pb-2">
           สารบัญ
         </h4>
         <TableOfContents articleId={ARTICLE_ID} />

@@ -5,7 +5,6 @@ import { AvatarMedia } from './AvatarMedia';
 import { Doodle } from './Doodle';
 import { Reveal } from './Reveal';
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
 
 /* ---- Editable copy ---- */
 const COPY = {
@@ -35,18 +34,18 @@ export function AboutScene() {
 
         {/* bio */}
         <Reveal className="order-1 md:order-2" delay={0.1}>
-          <span className="font-['DM_Sans',sans-serif] text-[14px] font-semibold uppercase tracking-[0.2em] text-[#14B5AB]">
+          <span className="text-[14px] font-semibold uppercase tracking-[0.2em] text-[#14B5AB]">
             {COPY.kicker}
           </span>
-          <h2 className={`${SERIF} mb-5 mt-3 text-[30px] font-bold leading-[1.25] text-[#00143C] md:text-[40px]`}>
+          <h2 className={`mb-5 mt-3 text-[30px] font-bold leading-[1.25] text-[#00143C] md:text-[40px]`}>
             {COPY.heading}
           </h2>
-          <p className="mb-8 max-w-[480px] font-['DM_Sans',sans-serif] text-[17px] leading-[1.85] text-[#00143C]/75">
+          <p className="mb-8 max-w-[480px] text-[17px] leading-[1.85] text-[#00143C]/75">
             {COPY.body}
           </p>
           <Link
             href={COPY.ctaPrimaryHref}
-            className="group inline-flex items-center gap-2 rounded-full bg-[#00143C] px-7 py-3.5 font-['DM_Sans',sans-serif] text-[15px] font-medium text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#14B5AB] hover:shadow-lg"
+            className="group inline-flex items-center gap-2 rounded-full bg-[#00143C] px-7 py-3.5 text-[15px] font-medium text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#14B5AB] hover:shadow-lg"
           >
             {COPY.ctaPrimary}
             <span className="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">

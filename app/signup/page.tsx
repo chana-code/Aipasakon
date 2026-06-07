@@ -18,10 +18,10 @@ export default async function SignupPage({
         <div className="bg-white border border-[#E8E2D4] rounded-lg p-8 md:p-10 shadow-[0_4px_20px_rgba(0,20,60,0.05)]">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-3">
+            <h1 className="text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-3">
               สมัครสมาชิก
             </h1>
-            <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#00143C]/70 leading-relaxed px-4">
+            <p className="text-[14px] font-medium text-[#00143C]/70 leading-relaxed px-4">
               ฟรี — เก็บที่คั่น ติดตามความคืบหน้า และอ่านต่อได้ทุกอุปกรณ์
             </p>
           </div>
@@ -31,7 +31,7 @@ export default async function SignupPage({
 
           {/* Footer link */}
           <div className="mt-8 text-center">
-            <p className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78]">
+            <p className="text-[14px] font-medium text-[#6c7a78]">
               มีบัญชีอยู่แล้ว?{' '}
               <Link
                 href="/login"

@@ -22,7 +22,6 @@ const COPY = {
 };
 /* ------------------------------------------------------------------------- */
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
 
 const container: Variants = {
   hidden: {},
@@ -54,21 +53,21 @@ export function Hero() {
         <motion.div variants={container} initial={initial} animate="show">
           <motion.p
             variants={item}
-            className={`${SERIF} mb-3 text-[20px] font-medium text-[#14B5AB] md:text-[22px]`}
+            className={`mb-3 text-[20px] font-medium text-[#14B5AB] md:text-[22px]`}
           >
             {COPY.greeting}
           </motion.p>
 
           <motion.h1
             variants={item}
-            className={`${SERIF} mb-6 text-[40px] font-bold leading-[1.18] text-[#00143C] md:text-[54px]`}
+            className={`mb-6 text-[40px] font-bold leading-[1.18] text-[#00143C] md:text-[54px]`}
           >
             {COPY.headline}
           </motion.h1>
 
           <motion.p
             variants={item}
-            className="mb-9 max-w-[480px] font-['DM_Sans',sans-serif] text-[17px] leading-[1.85] text-[#00143C]/75"
+            className="mb-9 max-w-[480px] text-[17px] leading-[1.85] text-[#00143C]/75"
           >
             {COPY.sub}
           </motion.p>
@@ -76,7 +75,7 @@ export function Hero() {
           <motion.div variants={item} className="flex flex-wrap items-center gap-4">
             <Link
               href={COPY.ctaPrimaryHref}
-              className="group flex items-center gap-2 rounded-full bg-[#00143C] px-7 py-3.5 font-['DM_Sans',sans-serif] text-[15px] font-medium text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#14B5AB] hover:shadow-lg"
+              className="group flex items-center gap-2 rounded-full bg-[#00143C] px-7 py-3.5 text-[15px] font-medium text-white no-underline transition-all hover:-translate-y-0.5 hover:bg-[#14B5AB] hover:shadow-lg"
             >
               {COPY.ctaPrimary}
               <span className="material-symbols-outlined text-base transition-transform group-hover:translate-x-1">
@@ -85,7 +84,7 @@ export function Hero() {
             </Link>
             <Link
               href={COPY.ctaSecondaryHref}
-              className="rounded-full border border-[#00143C]/20 px-7 py-3.5 font-['DM_Sans',sans-serif] text-[15px] font-medium text-[#00143C] no-underline transition-all hover:border-[#00143C]/40 hover:bg-white/50"
+              className="rounded-full border border-[#00143C]/20 px-7 py-3.5 text-[15px] font-medium text-[#00143C] no-underline transition-all hover:border-[#00143C]/40 hover:bg-white/50"
             >
               {COPY.ctaSecondary}
             </Link>
@@ -127,10 +126,10 @@ export function Hero() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/landing/widgets/sticky.png" alt="" className="h-auto w-full" />
             <div className="absolute inset-x-0 top-[45%] px-5 text-center">
-              <p className="font-['DM_Sans',sans-serif] text-[8.5px] font-semibold uppercase tracking-wide text-[#00143C]/50">
+              <p className="text-[8.5px] font-semibold uppercase tracking-wide text-[#00143C]/50">
                 {COPY.stickyLabel}
               </p>
-              <p className="font-['DM_Sans',sans-serif] text-[12px] font-semibold leading-snug text-[#00143C]">
+              <p className="text-[12px] font-semibold leading-snug text-[#00143C]">
                 {COPY.stickyValue}
               </p>
             </div>

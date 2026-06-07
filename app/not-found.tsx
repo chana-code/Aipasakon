@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
 
 export default function NotFound() {
   return (
@@ -10,16 +9,16 @@ export default function NotFound() {
       {/* Hero 404 Section */}
       <section className="mb-12">
         <h1
-          className={`${SERIF} text-[120px] text-[#00143C] leading-none mb-4 opacity-10`}
+          className={`text-[120px] text-[#00143C] leading-none mb-4 opacity-10`}
         >
           404
         </h1>
         <h2
-          className={`${SERIF} text-[40px] leading-[1.2] font-bold text-[#00143C] mb-6`}
+          className={`text-[40px] leading-[1.2] font-bold text-[#00143C] mb-6`}
         >
           ไม่เจอหน้านี้ ขอโทษด้วยนะ
         </h2>
-        <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#3c4948] max-w-[500px] mx-auto leading-relaxed">
+        <p className="text-[18px] leading-[1.8] text-[#3c4948] max-w-[500px] mx-auto leading-relaxed">
           หน้านี้อาจถูกย้ายหรือยังไม่ได้เขียน — ลองกลับไปเริ่มที่พื้นฐาน หรือลองค้นหาสิ่งที่ต้องการด้านล่างนี้
         </p>
       </section>
@@ -30,7 +29,7 @@ export default function NotFound() {
           href="/search"
           className="relative w-full max-w-md mx-auto flex items-center bg-white border border-[#6c7a78]/20 rounded-xl shadow-[0_4px_20px_rgba(0,20,60,0.05)] hover:border-[#14B5AB] transition-all"
         >
-          <span className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#6c7a78] px-6 py-4 flex-1 text-left">
+          <span className="text-[18px] leading-[1.8] text-[#6c7a78] px-6 py-4 flex-1 text-left">
             ค้นหา...
           </span>
           <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#14B5AB] text-white p-2 rounded-lg">
@@ -41,13 +40,13 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Link
             href="/"
-            className="font-['DM_Sans',sans-serif] text-[14px] font-medium bg-[#14B5AB] text-white px-8 py-3 rounded-full hover:brightness-105 transition-all w-full sm:w-auto shadow-sm"
+            className="text-[14px] font-medium bg-[#14B5AB] text-white px-8 py-3 rounded-full hover:brightness-105 transition-all w-full sm:w-auto shadow-sm"
           >
             กลับหน้าแรก
           </Link>
           <Link
             href="/curriculum"
-            className="font-['DM_Sans',sans-serif] text-[14px] font-medium border border-[#00143C] text-[#00143C] px-8 py-3 rounded-full hover:bg-[#00143C] hover:text-white transition-all w-full sm:w-auto"
+            className="text-[14px] font-medium border border-[#00143C] text-[#00143C] px-8 py-3 rounded-full hover:bg-[#00143C] hover:text-white transition-all w-full sm:w-auto"
           >
             ไปที่หลักสูตร
           </Link>
@@ -57,7 +56,7 @@ export default function NotFound() {
 
       {/* Suggested Reading */}
       <section className="w-full border-t border-[#EBE6DD] pt-12">
-        <h3 className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78] uppercase tracking-widest mb-8">
+        <h3 className="text-[14px] font-medium text-[#6c7a78] uppercase tracking-widest mb-8">
           บทความที่น่าสนใจ
         </h3>
         <div className="grid grid-cols-1 gap-4">
@@ -70,7 +69,7 @@ export default function NotFound() {
               <span className="bg-[#e0f2f1] text-[#00695c] text-[12px] font-bold px-3 py-1 rounded-full">
                 Level 1
               </span>
-              <span className={`${SERIF} text-[20px] text-[#00143C] group-hover:text-[#14B5AB] transition-colors`}>
+              <span className={`text-[20px] text-[#00143C] group-hover:text-[#14B5AB] transition-colors`}>
                 ประวัติของ AI
               </span>
             </div>
@@ -88,7 +87,7 @@ export default function NotFound() {
               <span className="bg-[#e3f2fd] text-[#1565c0] text-[12px] font-bold px-3 py-1 rounded-full">
                 Level 2
               </span>
-              <span className={`${SERIF} text-[20px] text-[#00143C] group-hover:text-[#2D7CD6] transition-colors`}>
+              <span className={`text-[20px] text-[#00143C] group-hover:text-[#2D7CD6] transition-colors`}>
                 ตัว model เอง คืออะไร
               </span>
             </div>
@@ -106,7 +105,7 @@ export default function NotFound() {
               <span className="bg-[#fff3e0] text-[#ef6c00] text-[12px] font-bold px-3 py-1 rounded-full">
                 Level 2
               </span>
-              <span className={`${SERIF} text-[20px] text-[#00143C] group-hover:text-[#B45A1A] transition-colors`}>
+              <span className={`text-[20px] text-[#00143C] group-hover:text-[#B45A1A] transition-colors`}>
                 เกิดอะไรขึ้นตอนกด Enter
               </span>
             </div>

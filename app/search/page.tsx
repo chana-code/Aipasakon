@@ -36,11 +36,11 @@ export default function SearchPage() {
       <div className="bg-[#fbf9f4] min-h-[60vh]">
         <div className="mx-auto max-w-2xl px-4 md:px-6 py-12 md:py-16">
           <h1
-            className="font-['Noto_Serif_Thai',serif] text-[40px] leading-[1.2] font-bold text-[#00143C] mb-3"
+            className="text-[40px] leading-[1.2] font-bold text-[#00143C] mb-3"
           >
             ค้นหา
           </h1>
-          <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#00143C]/70 mb-8">
+          <p className="text-[18px] leading-[1.8] text-[#00143C]/70 mb-8">
             ค้นหาบทเรียน คำศัพท์ และเนื้อหาทั้งหมดในคลังความรู้
           </p>
           <div id="search" />

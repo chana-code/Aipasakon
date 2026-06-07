@@ -9,8 +9,6 @@ export function generateStaticParams() {
   return LEVELS.map(level => ({ level }));
 }
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
-const SANS  = "font-['DM_Sans',sans-serif]";
 
 export default async function LevelIndex({ params }: { params: Promise<{ level: string }> }) {
   const { level } = await params;
@@ -34,7 +32,7 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
 
       {/* 1. Breadcrumb */}
       <nav className="mb-8">
-        <ol className={`flex items-center gap-2 text-xs ${SANS} text-[#6c7a78] uppercase tracking-widest`}>
+        <ol className={`flex items-center gap-2 text-xs text-[#6c7a78] uppercase tracking-widest`}>
           <li>
             <Link href="/curriculum" className="hover:text-[#14B5AB] transition-colors">
               หลักสูตร
@@ -51,21 +49,21 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
       <section className="mb-12">
         {/* Tinted chip */}
         <div
-          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${SANS} mb-6`}
+          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold mb-6`}
           style={{ background: `${hex}1a`, color: hex }}
         >
           Level {meta.order} · {meta.label_th}
         </div>
 
-        <h1 className={`text-5xl ${SERIF} font-bold mb-4 text-[#00143C] leading-tight`}>
+        <h1 className={`text-5xl font-bold mb-4 text-[#00143C] leading-tight`}>
           {meta.label_th}
         </h1>
 
-        <p className={`text-lg ${SANS} text-[#00143C]/80 leading-relaxed mb-6`}>
+        <p className={`text-lg text-[#00143C]/80 leading-relaxed mb-6`}>
           {meta.tagline_th}
         </p>
 
-        <div className={`flex items-center gap-4 text-sm ${SANS} text-[#6c7a78] mb-8`}>
+        <div className={`flex items-center gap-4 text-sm text-[#6c7a78] mb-8`}>
           <span className="flex items-center gap-1.5">
             <span className="material-symbols-outlined text-sm" style={{ color: hex }}>menu_book</span>
             {chapters.length} บทเรียน
@@ -85,9 +83,9 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
           info
         </span>
         <div>
-          <h4 className={`${SANS} font-bold text-sm text-[#00143C] mb-1`}>ก่อนเริ่มระดับนี้ ควรรู้</h4>
+          <h4 className={`font-bold text-sm text-[#00143C] mb-1`}>ก่อนเริ่มระดับนี้ ควรรู้</h4>
           {prev ? (
-            <p className={`text-sm ${SANS} text-[#6c7a78]`}>
+            <p className={`text-sm text-[#6c7a78]`}>
               เนื้อหาในส่วนนี้ต่อเนื่องจากระดับก่อนหน้า แนะนำให้ผ่านเนื้อหา{' '}
               <Link href={`/${prev}`} className="text-[#14B5AB] hover:underline underline-offset-4">
                 {LEVEL_META[prev].label_th}
@@ -95,7 +93,7 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
               มาก่อน
             </p>
           ) : (
-            <p className={`text-sm ${SANS} text-[#6c7a78]`}>
+            <p className={`text-sm text-[#6c7a78]`}>
               ไม่ต้องมีพื้นฐานมาก่อน — ระดับนี้คือจุดเริ่มต้นสำหรับทุกคนที่สนใจ
             </p>
           )}
@@ -105,7 +103,7 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
       {/* 4. Chapter list */}
       <div className="space-y-4 mb-20">
         {chapters.length === 0 && (
-          <p className={`${SANS} text-sm text-[#6c7a78] italic py-4`}>เร็วๆ นี้</p>
+          <p className={`text-sm text-[#6c7a78] italic py-4`}>เร็วๆ นี้</p>
         )}
         {chapters.map((c, i) => {
           const ready = isReady(c.status);
@@ -118,14 +116,14 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
             >
               <div className="flex items-center gap-6">
                 <div
-                  className={`chapter-number w-10 h-10 rounded-full flex items-center justify-center font-bold ${SANS} text-lg transition-transform duration-300 text-white flex-shrink-0`}
+                  className={`chapter-number w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg transition-transform duration-300 text-white flex-shrink-0`}
                   style={{ background: hex }}
                 >
                   {i + 1}
                 </div>
                 <div>
                   <h3
-                    className={`${SERIF} font-semibold text-lg text-[#00143C] transition-colors`}
+                    className={`font-semibold text-lg text-[#00143C] transition-colors`}
                     style={{ ['--hover-color' as string]: hex }}
                   >
                     <span className="group-hover:opacity-80 transition-opacity">{c.title}</span>
@@ -144,15 +142,15 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
             >
               <div className="flex items-center gap-6">
                 <div
-                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold ${SANS} text-lg flex-shrink-0`}
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center font-bold text-lg flex-shrink-0`}
                   style={{ borderColor: hex, color: hex }}
                 >
                   {i + 1}
                 </div>
                 <div>
-                  <h3 className={`${SERIF} font-semibold text-lg text-[#00143C]`}>{c.title}</h3>
+                  <h3 className={`font-semibold text-lg text-[#00143C]`}>{c.title}</h3>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className={`text-xs ${SANS} text-[#6c7a78] italic flex items-center gap-1`}>
+                    <span className={`text-xs text-[#6c7a78] italic flex items-center gap-1`}>
                       <span className="material-symbols-outlined text-[14px]">lock</span>
                       เร็วๆ นี้
                     </span>
@@ -182,18 +180,18 @@ export default async function LevelIndex({ params }: { params: Promise<{ level: 
               arrow_back
             </span>
             <div>
-              <span className={`block text-[10px] uppercase tracking-widest font-bold ${SANS} text-[#6c7a78]`}>
+              <span className={`block text-[10px] uppercase tracking-widest font-bold text-[#6c7a78]`}>
                 ระดับก่อนหน้า
               </span>
-              <span className={`${SERIF} font-semibold text-lg`}>{LEVEL_META[prev].label_th}</span>
+              <span className={`font-semibold text-lg`}>{LEVEL_META[prev].label_th}</span>
             </div>
           </Link>
         )}
         {next && (
           <Link href={`/${next}`} className={`group flex items-center gap-3 text-white px-8 py-4 rounded-lg shadow-sm transition-all hover:-translate-y-0.5`} style={{ background: hex }}>
             <div className="text-right">
-              <p className={`text-[12px] opacity-80 uppercase tracking-widest font-bold ${SANS}`}>ระดับถัดไป</p>
-              <h4 className={`${SERIF} text-[20px]`}>Level {LEVEL_META[next].order} · {LEVEL_META[next].label_th}</h4>
+              <p className={`text-[12px] opacity-80 uppercase tracking-widest font-bold`}>ระดับถัดไป</p>
+              <h4 className={`text-[20px]`}>Level {LEVEL_META[next].order} · {LEVEL_META[next].label_th}</h4>
             </div>
             <span className="material-symbols-outlined text-[32px] group-hover:translate-x-1 transition-transform">
               arrow_forward

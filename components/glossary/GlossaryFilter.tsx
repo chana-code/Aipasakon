@@ -48,9 +48,9 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="กรองคำศัพท์ · transformer, RAG, embedding…"
-            className="flex-1 bg-transparent border-0 outline-none font-['DM_Sans',sans-serif] text-[15px] text-[#00143C] placeholder:text-[#6c7a78]"
+            className="flex-1 bg-transparent border-0 outline-none text-[15px] text-[#00143C] placeholder:text-[#6c7a78]"
           />
-          <span className="font-['DM_Sans',sans-serif] text-[13px] text-[#6c7a78] tabular-nums whitespace-nowrap">
+          <span className="text-[13px] text-[#6c7a78] tabular-nums whitespace-nowrap">
             {total} entries
           </span>
         </div>
@@ -63,10 +63,10 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
 
             {/* Letter heading */}
             <div className="flex items-center gap-3 mb-4 pb-3 border-b border-[#E8E2D4]">
-              <span className="w-8 h-8 flex items-center justify-center rounded-md bg-[#f5f3ee] border border-[#E8E2D4] font-['DM_Sans',sans-serif] text-[14px] font-semibold text-[#00143C]">
+              <span className="w-8 h-8 flex items-center justify-center rounded-md bg-[#f5f3ee] border border-[#E8E2D4] text-[14px] font-semibold text-[#00143C]">
                 {letter}
               </span>
-              <span className="font-['DM_Sans',sans-serif] text-[13px] text-[#6c7a78]">
+              <span className="text-[13px] text-[#6c7a78]">
                 {items.length} {items.length === 1 ? 'term' : 'terms'}
               </span>
             </div>
@@ -80,23 +80,23 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
                 >
                   {/* Term name */}
                   <div>
-                    <div className="font-['DM_Sans',sans-serif] text-[15px] font-semibold text-[#00143C] leading-snug">
+                    <div className="text-[15px] font-semibold text-[#00143C] leading-snug">
                       {e.term_en}
                     </div>
                     {e.term_th && (
-                      <div className="font-['DM_Sans',sans-serif] text-[13px] text-[#6c7a78] mt-0.5">
+                      <div className="text-[13px] text-[#6c7a78] mt-0.5">
                         {e.term_th}
                       </div>
                     )}
                   </div>
 
                   {/* Definition */}
-                  <div className="font-['DM_Sans',sans-serif] text-[15px] leading-[1.75] text-[#00143C]">
+                  <div className="text-[15px] leading-[1.75] text-[#00143C]">
                     {e.definition_th}
                     {e.see_also.length > 0 && (
                       <Link
                         href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="inline md:hidden ml-2 font-['DM_Sans',sans-serif] text-[13px] text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
+                        className="inline md:hidden ml-2 text-[13px] text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
                       >
                         บทเต็ม →
                       </Link>
@@ -108,7 +108,7 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
                     {e.see_also.length > 0 && (
                       <Link
                         href={`/glossary#${e.term_en.toLowerCase().replace(/\s+/g, '-')}`}
-                        className="font-['DM_Sans',sans-serif] text-[13px] font-medium text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
+                        className="text-[13px] font-medium text-[#14B5AB] hover:text-[#006B7A] transition-colors whitespace-nowrap no-underline"
                       >
                         บทเต็ม →
                       </Link>
@@ -122,7 +122,7 @@ export function GlossaryFilter({ entries }: { entries: GlossaryEntry[] }) {
         ))}
 
         {grouped.length === 0 && (
-          <div className="text-center py-16 font-['DM_Sans',sans-serif] text-[15px] text-[#6c7a78]">
+          <div className="text-center py-16 text-[15px] text-[#6c7a78]">
             ไม่พบคำที่ค้นหา
           </div>
         )}

@@ -19,10 +19,14 @@ export function AvatarMedia({
   video,
   poster,
   className = '',
+  cover = false,
 }: {
   video?: string;
   poster?: string;
   className?: string;
+  /** Fill the box (object-cover) instead of fitting inside it — e.g. a cropped
+   *  face inside a circular avatar. Parent must clip (overflow-hidden + rounded). */
+  cover?: boolean;
 }) {
   const reduce = useReducedMotion();
   const [posterFailed, setPosterFailed] = useState(false);
@@ -33,7 +37,7 @@ export function AvatarMedia({
   const showPlaceholder = !showVideo && !showPoster;
 
   const blend = { mixBlendMode: 'multiply' as const };
-  const fit = 'absolute inset-0 h-full w-full object-contain';
+  const fit = `absolute inset-0 h-full w-full ${cover ? 'object-cover' : 'object-contain'}`;
 
   return (
     <div className={`relative aspect-square ${className}`}>

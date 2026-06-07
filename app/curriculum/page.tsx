@@ -10,7 +10,7 @@ export default async function CurriculumPage() {
       {/* Left Column: Sticky Curriculum Spine */}
       <aside className="hidden md:block w-64 shrink-0">
         <div className="sticky top-28 space-y-4">
-          <h3 className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#6c7a78] uppercase tracking-widest mb-6">
+          <h3 className="text-[14px] font-medium text-[#6c7a78] uppercase tracking-widest mb-6">
             Course Path
           </h3>
           <nav className="flex flex-col gap-3">
@@ -37,7 +37,7 @@ export default async function CurriculumPage() {
                     {meta.order}
                   </span>
                   <span
-                    className="font-['DM_Sans',sans-serif] text-[14px] font-medium text-[#00143C] transition-colors"
+                    className="text-[14px] font-medium text-[#00143C] transition-colors"
                   >
                     {meta.label_th}
                   </span>
@@ -52,10 +52,10 @@ export default async function CurriculumPage() {
       <div className="w-full max-w-[720px] mx-auto md:mx-0">
         {/* Page Header */}
         <header className="mb-12">
-          <h1 className="font-['Noto_Serif_Thai',serif] text-[40px] leading-[1.2] font-bold text-[#00143C] mb-4">
+          <h1 className="text-[40px] leading-[1.2] font-bold text-[#00143C] mb-4">
             หลักสูตร
           </h1>
-          <p className="font-['DM_Sans',sans-serif] text-[18px] leading-[1.8] text-[#6c7a78]">
+          <p className="text-[18px] leading-[1.8] text-[#6c7a78]">
             เส้นทางเรียน AI เป็นภาษาคน ตั้งแต่ยังไม่รู้อะไรเลย จนใช้งานได้จริงในงานและธุรกิจ
             ออกแบบมาให้เข้าใจง่ายแต่ลึกซึ้ง พร้อมการประยุกต์ใช้ทันที
           </p>
@@ -66,25 +66,25 @@ export default async function CurriculumPage() {
           <div className="absolute top-0 right-0 p-4 opacity-10">
             <span className="material-symbols-outlined text-[120px]">psychology</span>
           </div>
-          <h2 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-6">
+          <h2 className="text-[28px] leading-[1.3] font-semibold text-[#00143C] mb-6">
             ปรัชญาการเรียนรู้: See → Say → Steer
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <div className="text-[#14B5AB] font-bold text-xl">See</div>
-              <p className="text-sm font-['DM_Sans',sans-serif] font-medium text-[#6c7a78]">
+              <p className="text-sm font-medium text-[#6c7a78]">
                 มองออกว่าอะไรคือ AI ที่ดี และเข้าใจโครงสร้างความรู้
               </p>
             </div>
             <div className="space-y-2">
               <div className="text-[#14B5AB] font-bold text-xl">Say</div>
-              <p className="text-sm font-['DM_Sans',sans-serif] font-medium text-[#6c7a78]">
+              <p className="text-sm font-medium text-[#6c7a78]">
                 สั่งงาน AI ให้ตรงใจ สื่อสารด้วยภาษาที่ถูกต้องและทรงพลัง
               </p>
             </div>
             <div className="space-y-2">
               <div className="text-[#14B5AB] font-bold text-xl">Steer</div>
-              <p className="text-sm font-['DM_Sans',sans-serif] font-medium text-[#6c7a78]">
+              <p className="text-sm font-medium text-[#6c7a78]">
                 แก้ผลลัพธ์ให้ดีขึ้น ต่อยอดและควบคุม AI ให้ทำงานระดับมืออาชีพ
               </p>
             </div>
@@ -111,12 +111,12 @@ export default async function CurriculumPage() {
                 >
                   Level {meta.order}
                 </span>
-                <h2 className="font-['Noto_Serif_Thai',serif] text-[28px] leading-[1.3] font-semibold text-[#00143C]">
+                <h2 className="text-[28px] leading-[1.3] font-semibold text-[#00143C]">
                   {meta.label_th} ({meta.label})
                 </h2>
                 {isEmpty && (
                   <span
-                    className="text-sm font-['DM_Sans',sans-serif] font-medium font-bold"
+                    className="text-sm font-medium font-bold"
                     style={{ color: hex }}
                   >
                     เร็วๆ นี้
@@ -160,7 +160,7 @@ export default async function CurriculumPage() {
                           {String(idx + 1).padStart(2, '0')}
                         </span>
                         <div>
-                          <h4 className="font-['Noto_Serif_Thai',serif] text-lg text-[#00143C]">
+                          <h4 className="text-lg text-[#00143C]">
                             {c.title}
                           </h4>
                           {c.tldr && (
@@ -178,7 +178,7 @@ export default async function CurriculumPage() {
 
         {/* Archive pointer */}
         <div className="mt-8 pt-8 border-t border-[#E8E2D4]">
-          <p className="text-sm text-[#6c7a78] font-['DM_Sans',sans-serif]">
+          <p className="text-sm text-[#6c7a78]">
             กำลังมองหาเนื้อหาชุดเดิม (54 บท)?{' '}
             <Link href="/archive" className="text-[#14B5AB] hover:underline underline-offset-4">
               ดูคลังเนื้อหาฉบับก่อนหน้า

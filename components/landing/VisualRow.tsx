@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { motion, useReducedMotion } from 'framer-motion';
 import { RevealGroup, revealItem } from './Reveal';
 
-const SERIF = "font-['Noto_Serif_Thai',serif]";
 
 type Feature = {
   icon: string;
@@ -38,10 +37,10 @@ export function VisualRow() {
   return (
     <section className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
       <div className="mb-12 text-center">
-        <h2 className={`${SERIF} mb-3 text-[28px] font-bold text-[#00143C] md:text-[34px]`}>
+        <h2 className={`mb-3 text-[28px] font-bold text-[#00143C] md:text-[34px]`}>
           ดูแบบเห็นภาพ
         </h2>
-        <p className="font-['DM_Sans',sans-serif] text-[16px] text-[#00143C]/60">
+        <p className="text-[16px] text-[#00143C]/60">
           บางเรื่องอ่านแล้วงง แต่พอได้เห็น ได้ลองเล่น ก็เข้าใจเลย
         </p>
       </div>
@@ -72,12 +71,12 @@ function FeatureItem({ f }: { f: Feature }) {
           <span className="material-symbols-outlined text-[28px]">{f.icon}</span>
         </motion.span>
         <div>
-          <h3 className={`${SERIF} text-[22px] font-bold text-[#00143C]`}>{f.title}</h3>
-          <p className="mt-2 font-['DM_Sans',sans-serif] text-[15px] leading-[1.7] text-[#00143C]/65">
+          <h3 className={`text-[22px] font-bold text-[#00143C]`}>{f.title}</h3>
+          <p className="mt-2 text-[15px] leading-[1.7] text-[#00143C]/65">
             {f.desc}
           </p>
           <span
-            className="mt-4 inline-flex items-center gap-1 font-['DM_Sans',sans-serif] text-[14px] font-medium transition-all group-hover:gap-2"
+            className="mt-4 inline-flex items-center gap-1 text-[14px] font-medium transition-all group-hover:gap-2"
             style={{ color: f.tint }}
           >
             {f.cta}
