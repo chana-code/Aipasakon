@@ -16,8 +16,6 @@ const COPY = {
   ctaPrimaryHref: '/what-is-ai',
   ctaSecondary: 'ดูหลักสูตรทั้งหมด',
   ctaSecondaryHref: '/curriculum',
-  stickyLabel: 'กำลังเขียนบท',
-  stickyValue: 'Pro Usage',
   nowPlaying: 'Lo-Fi เพื่อสมาธิ',
 };
 /* ------------------------------------------------------------------------- */
@@ -116,36 +114,12 @@ export function Hero() {
           {/* paper plane orbits the avatar */}
           <PlaneFlyby />
 
-          {/* CURRENTLY sticky note */}
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 10, rotate: 6 }}
-            animate={{ opacity: 1, y: 0, rotate: 3 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="absolute right-0 -top-6 z-20 w-[140px] md:-right-10 md:-top-10 md:w-[150px]"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/landing/widgets/sticky.png" alt="" className="h-auto w-full" />
-            <div className="absolute inset-x-0 top-[45%] px-5 text-center">
-              <p className="text-[8.5px] font-semibold uppercase tracking-wide text-[#00143C]/50">
-                {COPY.stickyLabel}
-              </p>
-              <p className="text-[12px] font-semibold leading-snug text-[#00143C]">
-                {COPY.stickyValue}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* now playing widget — click-to-play lo-fi mini player */}
-          <motion.div
-            initial={reduce ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.65 }}
-            className="absolute -bottom-2 -right-3 z-20 w-[140px]"
-          >
-            <NowPlaying />
-          </motion.div>
         </div>
       </div>
+
+      {/* now playing widget — lo-fi mini player, pinned to the viewport corner (self-positions
+          fixed; kept OUTSIDE any framer-motion transform so `position: fixed` tracks the window) */}
+      <NowPlaying />
     </section>
   );
 }
