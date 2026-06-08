@@ -16,9 +16,11 @@ export function parseSkillFile(slug: string, raw: string): SkillType {
     name: data.name,
     slug,
     repo: data.repo,
-    category: data.category,
+    type: data.type,
     tagline: data.tagline,
     tags: Array.isArray(data.tags) ? data.tags : [],
+    commands: Array.isArray(data.commands) ? data.commands : [],
+    category: data.category, // legacy, optional
     body,
   });
 }

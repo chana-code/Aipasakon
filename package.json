@@ -17,7 +17,8 @@
     "search:build": "pagefind --site .next/server/app --output-path public/pagefind",
     "convert:chapters": "tsx scripts/convert-chapter.ts",
     "build:glossary": "tsx scripts/build-glossary.ts",
-    "build:skills": "tsx scripts/build-skills.ts"
+    "build:skills": "tsx scripts/build-skills.ts",
+    "snapshot:stars": "tsx scripts/snapshot-stars.ts"
   },
   "overrides": {
     "isomorphic-dompurify": {

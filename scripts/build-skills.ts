@@ -15,7 +15,10 @@ if (!existsSync(SOURCE_DIR)) {
   throw new Error(`Skills source dir not found: ${SOURCE_DIR}`);
 }
 
-const files = readdirSync(SOURCE_DIR).filter(f => f.endsWith('.md')).sort();
+// Ignore underscore-prefixed files (e.g. _authoring-brief.md) — docs, not skills.
+const files = readdirSync(SOURCE_DIR)
+  .filter(f => f.endsWith('.md') && !f.startsWith('_'))
+  .sort();
 const skills = files.map(f => {
   const slug = f.replace(/\.md$/, '');
   return parseSkillFile(slug, readFileSync(path.join(SOURCE_DIR, f), 'utf-8'));
