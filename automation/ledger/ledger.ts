@@ -4,7 +4,7 @@ import type { Track, Ledger, LedgerEntry } from '../types';
 export const ROTATION: Track[] = ['tools', 'news', 'knowledge'];
 
 export function nextTrack(ledger: Ledger): Track {
-  return ROTATION[ledger.rotationIndex % ROTATION.length];
+  return ROTATION[ledger.rotationIndex % ROTATION.length]!;
 }
 
 /** Returns a new ledger with the entry appended and rotation advanced. Pure. */
