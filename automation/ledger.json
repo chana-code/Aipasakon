@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 2,
+  "rotationIndex": 4,
   "runs": [
     {
       "date": "2026-06-10",
@@ -26,6 +26,26 @@
       "sourceUrl": "https://blog.google/innovation-and-ai/sundar-pichai-io-2026/",
       "blogUrl": "https://aipasakon.com/blog/gemini-3-5-flash",
       "card": "automation/runs/2026-06-10-news/card.png"
+    },
+    {
+      "date": "2026-06-09",
+      "track": "news",
+      "subject": "Gemini 3.5 Flash",
+      "status": "draft",
+      "sourceUrl": "https://blog.google/innovation-and-ai/sundar-pichai-io-2026/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-3-5-flash",
+      "card": "automation/runs/2026-06-10-news/card.png"
+    },
+    {
+      "date": "2026-06-09",
+      "track": "tools",
+      "subject": "repomix",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-10T11:00:00Z",
+      "sourceUrl": "https://github.com/yamadashy/repomix",
+      "postId": "122114828835259159",
+      "card": "automation/runs/2026-06-10-tools-repomix/card.png",
+      "angle": "feed a whole project to AI: npx repomix, --remote, --compress (~70%), --copy"
     }
   ]
 }
