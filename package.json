@@ -18,7 +18,9 @@
     "convert:chapters": "tsx scripts/convert-chapter.ts",
     "build:glossary": "tsx scripts/build-glossary.ts",
     "build:skills": "tsx scripts/build-skills.ts",
-    "snapshot:stars": "tsx scripts/snapshot-stars.ts"
+    "snapshot:stars": "tsx scripts/snapshot-stars.ts",
+    "card:render": "tsx automation/cards/cli.ts",
+    "publish:post": "tsx automation/publish/cli.ts"
   },
   "overrides": {
     "isomorphic-dompurify": {
