@@ -40,7 +40,7 @@ html,body{font-family:"Prompt",system-ui,sans-serif}
 .hook .nb{white-space:nowrap}
 .hook .mark{font-weight:700;color:#00143C;background:#FDF6E0;box-shadow:inset 0 -8px 0 #E8C547;padding:2px 10px;border-radius:5px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
 .footer{display:flex;align-items:center;gap:30px;margin-top:56px;padding-top:46px;border-top:2px solid ${t.rule}}
-.footer img{width:150px;height:150px;display:block;object-fit:contain}
+.footer img{width:150px;height:150px;display:block;object-fit:contain;background:${t.logoBg};padding:${t.logoPad};border-radius:24px;box-sizing:content-box}
 .footer .meta{display:flex;flex-direction:column;gap:6px}
 .footer .site{font-weight:600;font-size:36px;color:${t.site}}
 .footer .tag{font-weight:400;font-size:27px;color:${t.tag}}
