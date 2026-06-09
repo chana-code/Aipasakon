@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- macOS launchd job: runs the content pipeline at 08:00 and 18:00 local time.
+     SAFE DEFAULT: runs in dry-run (no --live). To enable, see SCHEDULING.md.
+     Install:  cp this file to ~/Library/LaunchAgents/ then
+               launchctl load ~/Library/LaunchAgents/com.aipasakon.content.plist
+     To publish for real, change the ProgramArguments to pass "live" (after soft-launch). -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.aipasakon.content</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>/Users/admin/AI Page/website/automation/scheduler/run.sh</string>
+    <!-- add a second arg <string>live</string> here only after the soft-launch is approved -->
+  </array>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+    <dict><key>Hour</key><integer>18</integer><key>Minute</key><integer>0</integer></dict>
+  </array>
+  <key>StandardOutPath</key>
+  <string>/Users/admin/AI Page/website/automation/scheduler/run.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/admin/AI Page/website/automation/scheduler/run.log</string>
+</dict>
+</plist>
