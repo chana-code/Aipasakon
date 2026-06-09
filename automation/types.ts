@@ -32,3 +32,7 @@ export interface Ledger {
   rotationIndex: number;        // advances each run; track = ROTATION[idx % 3]
   runs: LedgerEntry[];
 }
+
+export interface NewsCandidate { title: string; url: string; date: string; source: string; }
+export interface KnowledgePage { slug: string; level: string; title: string; url: string; }
+export interface ToolCandidate { slug: string; name: string; type: string; tagline: string; repo: string; commands: { cmd: string; desc: string }[]; }
