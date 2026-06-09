@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 4,
+  "rotationIndex": 5,
   "runs": [
     {
       "date": "2026-06-10",
@@ -46,6 +46,16 @@
       "postId": "122114828835259159",
       "card": "automation/runs/2026-06-10-tools-repomix/card.png",
       "angle": "feed a whole project to AI: npx repomix, --remote, --compress (~70%), --copy"
+    },
+    {
+      "date": "2026-06-09",
+      "track": "knowledge",
+      "subject": "hard-limits",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-11T01:00:00Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/hard-limits",
+      "postId": "122114828877259159",
+      "card": "automation/runs/2026-06-11-knowledge-hardlimits/card.png"
     }
   ]
 }
