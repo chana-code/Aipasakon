@@ -13,7 +13,7 @@ Working dir: the `website/` repo. All commands run from there.
 2. If `automation/PAUSED` exists → log "paused" and STOP.
 3. Read `automation/ledger.json`. The next track = `nextTrack(ledger)` from `automation/ledger/ledger.ts`
    (rotation is tools → news → knowledge; this keeps even thirds).
-4. Read the voice guide: `../AI-Pasa-Kon/website-content/_style/voice-guide.md`. Write in that voice.
+4. Read the voice guide: `automation/voice-guide.md`. Write in that voice.
 
 ## 1. Source the content (by track)
 

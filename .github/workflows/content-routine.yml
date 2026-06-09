@@ -1,0 +1,86 @@
+name: AI ภาษาคน content routine
+
+# Posts one organic post per run, twice a day, by having Claude follow
+# automation/playbook.md inside the GitHub-hosted runner.
+# NOTE: scheduled workflows only run from the repository's DEFAULT branch (main),
+# so this file must be merged to main to start firing on schedule.
+
+on:
+  schedule:
+    # GitHub cron is UTC. 01:00 & 11:00 UTC = 08:00 & 18:00 Asia/Bangkok (UTC+7).
+    - cron: '0 1,11 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'dry (draft only) or live (publish)'
+        type: choice
+        default: dry
+        options: [dry, live]
+
+permissions:
+  contents: write   # commit the ledger + any new blog back to the repo
+
+concurrency:
+  group: content-routine
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install headless Chromium (for card rendering)
+        run: npx playwright install --with-deps chromium
+
+      - name: Resolve run mode
+        id: m
+        # Manual dispatch input wins; else the repo variable CONTENT_MODE; else dry.
+        run: echo "mode=${{ github.event.inputs.mode || vars.CONTENT_MODE || 'dry' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git identity
+        run: |
+          git config user.name "aipasakon-bot"
+          git config user.email "bot@aipasakon.com"
+
+      - name: Run the content routine (Claude follows the playbook)
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_PAGE_ID: '992580240609596'
+          RUN_MODE: ${{ steps.m.outputs.mode }}
+        run: |
+          npm i -g @anthropic-ai/claude-code
+          PROMPT="$(cat automation/playbook.md)
+
+NOW: complete exactly ONE content run following the playbook above. Working directory is the repo root.
+1) Determine the next track from automation/ledger.json (nextTrack in automation/ledger/ledger.ts).
+2) Source + write the post for that track: grounded in REAL sources (fetch articles/READMEs; use automation/scout/* and content/skills.json), Thai, in the AI ภาษาคน voice (read automation/voice-guide.md), NO emoji, declarative hook. Enforce the Quality Gate — if nothing passes, SKIP and print the reason; do not post weak content.
+3) Build automation/runs/<YYYY-MM-DD>-<track>/ with card.json (CardConfig), caption.txt, and meta.json ({track, subject, sourceUrl?, angle?, blog? for news/new-tools}).
+4) If RUN_MODE=live, run:  npx tsx automation/pipeline/finalize.ts <run-dir> --live
+   else run:               npx tsx automation/pipeline/finalize.ts <run-dir>
+5) Print a one-line summary (track, subject, posted/dry/skipped). Never print the Meta token."
+          claude -p "$PROMPT" --dangerously-skip-permissions
+
+      - name: Push ledger + new blog (live runs)
+        if: steps.m.outputs.mode == 'live'
+        run: |
+          git add automation/ledger.json content/blog 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "content: automated post $(date -u +%F)"
+          git push
+
+      - name: Upload draft cards for review (dry runs)
+        if: steps.m.outputs.mode != 'live'
+        uses: actions/upload-artifact@v4
+        with:
+          name: draft-cards
+          path: automation/runs/**/card.png
+          if-no-files-found: ignore
