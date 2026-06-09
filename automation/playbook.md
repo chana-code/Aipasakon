@@ -75,18 +75,24 @@ Working dir: the `website/` repo. All commands run from there.
 - Natural Thai; no emoji; declarative hook that the caption pays off.
 - If it can't pass after one rewrite → write a `meta.json` with `status` note and SKIP (don't post).
 
-## 5. Finalize
-- Create a run dir, e.g. `automation/runs/<date>-<track>/` with:
-  - `card.json` (the CardConfig)
-  - `caption.txt` (the caption)
-  - `meta.json`: `{ track, subject, sourceUrl?, angle?, blog?: BlogInput }`
-- **Soft launch (first ~5 runs):** run `tsx automation/pipeline/finalize.ts <run-dir>`
-  (dry-run) and send the rendered `card.png` + caption to the founder. Do NOT go live yet.
-- **Live (after soft launch is approved):** run
-  `tsx automation/pipeline/finalize.ts <run-dir> --live`.
-  This renders the card, writes the blog (if any), posts to the page, appends the ledger,
-  and commits. Then `git push` so the blog deploys.
-- Report a one-line run summary: track, subject, permalink (or skip reason).
+## 5. Finalize — SCHEDULE AHEAD (so timing is exact, machine-independent)
+We do NOT post at run time. Each run **keeps Facebook's scheduled queue filled** a couple
+days ahead; Facebook publishes each post at its exact slot even if this machine is off.
+
+1. Compute the upcoming slots: `nextSlots(nowIso, 4)` in `automation/pipeline/slots.ts`
+   (08:00 & 18:00 Asia/Bangkok). Maintain a buffer of the next **4 slots (≈2 days)**.
+2. See what's already queued on Facebook:
+   `GET /{pageId}/scheduled_posts?fields=id,scheduled_publish_time` (use the derived page token).
+3. For each of those 4 slots NOT already covered (no scheduled post within ~30 min of it):
+   - Pick the next track (rotation), source + write the post per §1–§4 (skip if it can't pass the gate).
+   - Build the run dir, then schedule it for that slot:
+     `tsx automation/pipeline/finalize.ts <run-dir> --live --at=<slot ISO>`
+     (creates the card, writes any blog, hands the post to Facebook for that time, records the
+     ledger as `scheduled`, commits). For News, also `git push` so the blog deploys before the slot.
+4. Report: which slots are now filled (track + subject + scheduled time), and any skips.
+
+**Soft launch:** for the first batch, run finalize WITHOUT `--live` (dry-run) and send the
+rendered `card.png` + caption to the founder for review before scheduling for real.
 
 ## Kill switch
 `touch automation/PAUSED` halts all runs. Delete it to resume.

@@ -1,37 +1,39 @@
-# How the routine runs
+# How posting works (prepare + schedule)
 
-This is automated by a **scheduled routine** (the same app feature as the `lg-clickbait`
-routines): a task named **`aipasakon-content-routine`** that fires **08:00 and 18:00 daily**,
-follows `automation/playbook.md`, posts one post, and pushes the result to GitHub.
+Posts are **not** created at the moment they go live. Instead, a routine prepares posts in
+advance and hands them to **Facebook's own scheduler** with exact publish times. Facebook
+publishes each one on time **on its servers** — so the post appears at 08:00 / 18:00 even if
+your laptop is off, asleep, or the app is closed. Timing is always accurate.
 
-It runs hands-off using the Meta token in the workspace `.env` — no branch merge, no cloud
-secrets. Manage it from the **Scheduled** section in the Claude sidebar.
+## The routine
+A scheduled task **`aipasakon-content-routine`** runs once a day (whenever your Mac is on).
+Each run it keeps **Facebook's scheduled queue filled ~2 days ahead** (the next four 08:00 /
+18:00 Asia/Bangkok slots): for any upcoming slot not already queued, it writes a fresh post
+and schedules it with Facebook for that slot.
+
+Because Facebook holds the queue, your laptop only needs to be on **occasionally** (every day
+or two) to top it up — the actual posts still fire exactly on time. If you're away longer than
+the buffer, it simply refills and resumes when you're back.
 
 ## First-time: pre-approve the tools
-Open **Scheduled → aipasakon-content-routine → Run now** once. That posts the first one and
-saves the tool approvals so the 08:00/18:00 runs never pause waiting for permission.
+Open **Scheduled → aipasakon-content-routine → Run now** once. It fills the next couple of
+days of slots and saves the tool approvals so future runs never pause for permission.
 
-## Each run does
-Pick next track (rotation tools → news → knowledge from `automation/ledger.json`) → source +
-write (grounded, Thai, on-voice, no emoji) → Quality Gate (skip beats slop) → render branded
-card → write companion blog for News/new-Tools → publish to the page → record in `ledger.json`
-→ commit + push.
+## See / change what's scheduled
+- Scheduled posts live in your Facebook Page → Planner/Scheduled posts — you can edit or delete
+  any of them there before they publish.
+- The routine records each scheduled post in `automation/ledger.json` (status `scheduled`).
 
 ## Pause / resume
-- Pause: create the file `automation/PAUSED` (the routine checks it first and stops).
-- Or disable/delete the task in the Scheduled sidebar.
-- Resume: delete `automation/PAUSED`.
+- Pause: create the file `automation/PAUSED` (the routine checks it first). Already-scheduled
+  posts will still publish — delete them in Facebook's Planner if you want to stop those too.
+- Or disable the task in the Scheduled sidebar.
 
-## Change the times or wording
-Edit the task in the Scheduled sidebar, or ask Claude to update it (it lives at
-`~/.claude/scheduled-tasks/aipasakon-content-routine/SKILL.md`). The behaviour rules live in
-`automation/playbook.md`; edit that to tune voice, sources, or the quality bar.
+## Tune behaviour
+Edit `automation/playbook.md` (voice, sources, quality bar, slot buffer). The slot times are in
+`automation/pipeline/slots.ts` (08:00 & 18:00 Bangkok).
 
 ## Note on News links
-A News post links to its companion blog at `aipasakon.com/blog/<slug>`. The blog is committed
-on publish but only goes live after the site deploys — make sure the deploy branch is updated
-so the link isn't a 404.
-
-## Local fallback (optional, not needed)
-`automation/scheduler/` has a macOS `launchd` job that runs the same pipeline locally if you
-ever want it off the app scheduler.
+A News post links to its blog at `aipasakon.com/blog/<slug>`. The routine pushes the blog when
+it schedules the post; make sure the deploy branch updates so the blog is live before the slot
+fires (otherwise the link 404s briefly).
