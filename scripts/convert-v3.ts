@@ -32,6 +32,26 @@ const MAP: { file: string; level: string; slug: string; order: number }[] = [
   { file: 'section-2-products/2.1.4-surfaces.md',            level: 'products', slug: 'surfaces',            order: 4 },
   { file: 'section-2-products/2.1.5-product-comparison.md',  level: 'products', slug: 'product-comparison',  order: 5 },
   { file: 'section-2-products/2.1.6-api-vs-app.md',          level: 'products', slug: 'api-vs-app',          order: 6 },
+  // Section 5 — Vibe Coding (Part A foundations 5.1–5.8, Part B sustainability 5.9–5.19)
+  { file: 'section-5-vibe-coding/5.1-build-loop.md',                 level: 'vibe-coding', slug: 'build-loop',                 order: 1 },
+  { file: 'section-5-vibe-coding/5.2-anatomy.md',                    level: 'vibe-coding', slug: 'anatomy',                    order: 2 },
+  { file: 'section-5-vibe-coding/5.3-project-files-repo.md',         level: 'vibe-coding', slug: 'project-files-repo',         order: 3 },
+  { file: 'section-5-vibe-coding/5.4-git.md',                        level: 'vibe-coding', slug: 'git',                        order: 4 },
+  { file: 'section-5-vibe-coding/5.5-terminal.md',                   level: 'vibe-coding', slug: 'terminal',                   order: 5 },
+  { file: 'section-5-vibe-coding/5.6-localhost.md',                  level: 'vibe-coding', slug: 'localhost',                  order: 6 },
+  { file: 'section-5-vibe-coding/5.7-deploy.md',                     level: 'vibe-coding', slug: 'deploy',                     order: 7 },
+  { file: 'section-5-vibe-coding/5.8-capstone.md',                   level: 'vibe-coding', slug: 'capstone',                   order: 8 },
+  { file: 'section-5-vibe-coding/5.9-the-reframe.md',                level: 'vibe-coding', slug: 'the-reframe',                order: 9 },
+  { file: 'section-5-vibe-coding/5.10-reversibility.md',             level: 'vibe-coding', slug: 'reversibility',             order: 10 },
+  { file: 'section-5-vibe-coding/5.11-the-small-change.md',          level: 'vibe-coding', slug: 'the-small-change',          order: 11 },
+  { file: 'section-5-vibe-coding/5.12-preview-before-production.md', level: 'vibe-coding', slug: 'preview-before-production', order: 12 },
+  { file: 'section-5-vibe-coding/5.13-external-memory.md',           level: 'vibe-coding', slug: 'external-memory',           order: 13 },
+  { file: 'section-5-vibe-coding/5.14-pointing-precisely.md',        level: 'vibe-coding', slug: 'pointing-precisely',        order: 14 },
+  { file: 'section-5-vibe-coding/5.15-reading-your-data.md',         level: 'vibe-coding', slug: 'reading-your-data',         order: 15 },
+  { file: 'section-5-vibe-coding/5.16-verification.md',              level: 'vibe-coding', slug: 'verification',              order: 16 },
+  { file: 'section-5-vibe-coding/5.17-the-danger-map.md',            level: 'vibe-coding', slug: 'the-danger-map',            order: 17 },
+  { file: 'section-5-vibe-coding/5.18-when-it-breaks.md',            level: 'vibe-coding', slug: 'when-it-breaks',            order: 18 },
+  { file: 'section-5-vibe-coding/5.19-know-your-ceiling.md',         level: 'vibe-coding', slug: 'know-your-ceiling',         order: 19 },
 ];
 
 // Map any cross-link target basename (with or without leading agenda digits) -> site route.

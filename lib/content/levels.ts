@@ -4,6 +4,7 @@ export const LEVELS = [
   'products',
   'pro-usage',
   'in-practice',
+  'vibe-coding',
   // Archived legacy curriculum — still routable, hidden from primary nav (see /archive)
   'foundations',
   'using-ai',
@@ -24,6 +25,7 @@ export const LEVEL_META: Record<
   'products':    { label: 'Products',    label_th: 'รู้จัก Product', tagline_th: 'Model, harness และผลิตภัณฑ์ AI ต่าง ๆ ทำงานและต่างกันยังไง',          color: '#2D7CD6', order: 2, group: 'core' },
   'pro-usage':   { label: 'Pro Usage',   label_th: 'ใช้ขั้นโปร',     tagline_th: 'Context, token, skills, connectors และการสั่งงาน AI อย่างมือโปร',       color: '#B45A1A', order: 3, group: 'core' },
   'in-practice': { label: 'In Practice', label_th: 'ลงมือใช้จริง',   tagline_th: 'ติดตั้ง เริ่มใช้ อ่าน docs และสร้างให้ AI ทำงานแทนคุณ',                 color: '#7A3FA0', order: 4, group: 'core' },
+  'vibe-coding': { label: 'Vibe Coding', label_th: 'Vibe Coding',    tagline_th: 'สร้างแอปของคุณเองด้วยการสั่ง AI ตั้งแต่เข้าใจเครื่องไปจนถึงดูแลให้รันได้จริงบน production', color: '#2F9E44', order: 5, group: 'core' },
 
   // ---- Archived legacy curriculum ----
   foundations:        { label: 'Foundations',      label_th: 'พื้นฐาน',      tagline_th: 'AI/ML/LLM คืออะไร ทำงานยังไง',                  color: '#14B5AB', order: 1, group: 'archive' },
