@@ -16,7 +16,7 @@ export function listToolCandidates(skillsJsonPath: string): ToolCandidate[] {
 /** Pick the tool with the fewest prior angles so coverage rotates and recurring tools get fresh angles. */
 export function pickTool(candidates: ToolCandidate[], ledger: Ledger): { tool: ToolCandidate; usedAngles: string[] } | null {
   if (!candidates.length) return null;
-  let best = candidates[0]; let bestN = Infinity;
+  let best: ToolCandidate = candidates[0]!; let bestN = Infinity;
   for (const c of candidates) {
     const n = anglesForSubject(ledger, c.slug).length;
     if (n < bestN) { bestN = n; best = c; }

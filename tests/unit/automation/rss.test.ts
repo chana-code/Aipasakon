@@ -13,7 +13,7 @@ describe('parseFeed', () => {
     const items = parseFeed(RSS, 'SourceA');
     expect(items).toHaveLength(2);
     expect(items[0]).toMatchObject({ title: 'RSS Title A', url: 'https://a.com/1', source: 'SourceA' });
-    expect(items[1].title).toBe('Title B & more'); // CDATA + entity decode
+    expect(items[1]!.title).toBe('Title B & more'); // CDATA + entity decode
   });
   it('parses Atom entries (link is an href attribute)', () => {
     const items = parseFeed(ATOM, 'SourceB');

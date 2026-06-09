@@ -7,9 +7,9 @@ function decode(s: string): string {
 function pick(block: string, tag: string): string {
   const m = block.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
   if (!m) return '';
-  let v = m[1].trim();
+  let v = (m[1] ?? '').trim();
   const cd = v.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
-  if (cd) v = cd[1].trim();
+  if (cd) v = (cd[1] ?? '').trim();
   return decode(v);
 }
 function normDate(d: string): string {
