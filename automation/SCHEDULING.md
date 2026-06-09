@@ -1,42 +1,37 @@
-# Turning on the routine (GitHub Actions)
+# How the routine runs
 
-The routine lives in the repo at `.github/workflows/content-routine.yml` and runs on
-GitHub's cloud cron — **08:00 and 18:00 Asia/Bangkok, every day** — with no dependency
-on any local machine. Each run, Claude follows `automation/playbook.md`, builds the post,
-and (when live) publishes + commits the ledger/blog back.
+This is automated by a **scheduled routine** (the same app feature as the `lg-clickbait`
+routines): a task named **`aipasakon-content-routine`** that fires **08:00 and 18:00 daily**,
+follows `automation/playbook.md`, posts one post, and pushes the result to GitHub.
 
-## Activation (one-time)
+It runs hands-off using the Meta token in the workspace `.env` — no branch merge, no cloud
+secrets. Manage it from the **Scheduled** section in the Claude sidebar.
 
-1. **Get the code onto `main`.** Scheduled workflows only fire from the default branch,
-   and the site deploys from `main` (so News blogs go live there too).
-   → push this branch and merge it to `main`.
+## First-time: pre-approve the tools
+Open **Scheduled → aipasakon-content-routine → Run now** once. That posts the first one and
+saves the tool approvals so the 08:00/18:00 runs never pause waiting for permission.
 
-2. **Add two repository secrets** (GitHub → repo → Settings → Secrets and variables → Actions → New secret):
-   - `META_SYSTEM_USER_TOKEN` — the value from the workspace `.env` (the non-expiring page system-user token).
-   - `CLAUDE_CODE_OAUTH_TOKEN` — generate locally with `claude setup-token`, paste the result.
-     (This lets the runner write content with your Claude plan — no separate API bill.)
+## Each run does
+Pick next track (rotation tools → news → knowledge from `automation/ledger.json`) → source +
+write (grounded, Thai, on-voice, no emoji) → Quality Gate (skip beats slop) → render branded
+card → write companion blog for News/new-Tools → publish to the page → record in `ledger.json`
+→ commit + push.
 
-3. **Start in soft-launch (dry-run).** Leave it in dry mode at first:
-   - It already defaults to `dry`. Optionally add a repo **variable** `CONTENT_MODE = dry`.
-   - Trigger a few manual runs: Actions tab → "AI ภาษาคน content routine" → Run workflow → `dry`.
-   - Review each: the caption prints in the run log; the card is uploaded as the
-     **`draft-cards`** artifact. Nothing is published.
+## Pause / resume
+- Pause: create the file `automation/PAUSED` (the routine checks it first and stops).
+- Or disable/delete the task in the Scheduled sidebar.
+- Resume: delete `automation/PAUSED`.
 
-4. **Go live** once the drafts look right:
-   - Set the repo variable `CONTENT_MODE = live` (or run-workflow with mode `live`).
-   - From then on the 2×/day cron publishes automatically and commits the ledger + any blog.
+## Change the times or wording
+Edit the task in the Scheduled sidebar, or ask Claude to update it (it lives at
+`~/.claude/scheduled-tasks/aipasakon-content-routine/SKILL.md`). The behaviour rules live in
+`automation/playbook.md`; edit that to tune voice, sources, or the quality bar.
 
-## Kill switch
-- Commit an empty file `automation/PAUSED` → the routine checks it first and stops.
-- Or just disable the workflow in the Actions tab.
+## Note on News links
+A News post links to its companion blog at `aipasakon.com/blog/<slug>`. The blog is committed
+on publish but only goes live after the site deploys — make sure the deploy branch is updated
+so the link isn't a 404.
 
-## What each run does
-Follows `automation/playbook.md`: pick next track (rotation tools → news → knowledge) →
-source + write (grounded, Thai, on-voice, no emoji) → Quality Gate (skip beats slop) →
-render branded card → write companion blog for News/new-Tools → publish → record in
-`ledger.json` → commit/push.
-
-## Local fallback (only if you ever want it off GitHub)
-`automation/scheduler/` also contains a macOS `launchd` job + `run.sh` that runs the same
-pipeline locally (token never leaves the Mac, but the Mac must be awake). Not needed if the
-GitHub routine is on.
+## Local fallback (optional, not needed)
+`automation/scheduler/` has a macOS `launchd` job that runs the same pipeline locally if you
+ever want it off the app scheduler.
