@@ -1,6 +1,14 @@
 import type { CardConfig, HookSpan } from '../types';
 import { THEMES } from './themes';
 
+function esc(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function spanHtml(s: HookSpan): string {
   const classes: string[] = [];
   if (s.style === 'lead') classes.push('lead');
@@ -8,7 +16,7 @@ function spanHtml(s: HookSpan): string {
   if (s.style === 'mark') classes.push('mark');
   if (s.nowrap) classes.push('nb');
   const cls = classes.length ? ` class="${classes.join(' ')}"` : '';
-  return `<span${cls}>${s.text}</span>`;
+  return `<span${cls}>${esc(s.text)}</span>`;
 }
 
 export function buildCardHtml(config: CardConfig, logoDataUri: string): string {
@@ -38,8 +46,8 @@ html,body{font-family:"Prompt",system-ui,sans-serif}
 .footer .tag{font-weight:400;font-size:27px;color:${t.tag}}
 </style></head><body>
 <div class="card">
-  <div class="kicker"><span class="dot"></span><span class="label">${config.kicker}</span></div>
+  <div class="kicker"><span class="dot"></span><span class="label">${esc(config.kicker)}</span></div>
   <div class="body"><div class="hook">${hook}</div></div>
-  <div class="footer"><img src="${logoDataUri}" alt="AI ภาษาคน"><div class="meta"><span class="site">aipasakon.com</span><span class="tag">AI ไม่ยาก ถ้าพูดภาษาคน</span></div></div>
+  <div class="footer"><img src="${esc(logoDataUri)}" alt="AI ภาษาคน"><div class="meta"><span class="site">aipasakon.com</span><span class="tag">AI ไม่ยาก ถ้าพูดภาษาคน</span></div></div>
 </div></body></html>`;
 }

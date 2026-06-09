@@ -19,7 +19,7 @@ describe('buildCardHtml', () => {
   it('includes every hook segment text', () => {
     for (const s of config.hook) expect(html).toContain(s.text);
   });
-  it('applies the track background color', () => expect(html).toContain('#00143C'));
+  it('applies the track background color', () => expect(html).toContain('background:#00143C'));
   it('renders the highlight (mark) class for the mark span', () => {
     expect(html).toMatch(/class="mark"[^>]*>ทำงานบนเว็บไซต์แทนเรา/);
   });
@@ -28,4 +28,30 @@ describe('buildCardHtml', () => {
   });
   it('embeds the logo data URI', () => expect(html).toContain('data:image/png;base64,AAAA'));
   it('loads the Prompt font', () => expect(html).toContain('family=Prompt'));
+});
+
+describe('buildCardHtml escaping', () => {
+  it('escapes HTML-special chars in hook text', () => {
+    const h = buildCardHtml(
+      { track: 'news', kicker: 'ข่าว AI', hook: [{ text: 'A < B & C > D', style: 'lead' }] },
+      'data:image/png;base64,AAAA'
+    );
+    expect(h).toContain('A &lt; B &amp; C &gt; D');
+    expect(h).not.toContain('A < B & C > D');
+  });
+  it('escapes HTML-special chars in the kicker', () => {
+    const h = buildCardHtml(
+      { track: 'news', kicker: 'A & B', hook: [{ text: 'x', style: 'lead' }] },
+      'data:image/png;base64,AAAA'
+    );
+    expect(h).toContain('A &amp; B');
+  });
+  it('escapes a double-quote in the logo data URI so it cannot break the src attribute', () => {
+    const h = buildCardHtml(
+      { track: 'news', kicker: 'k', hook: [{ text: 'x', style: 'lead' }] },
+      'data:image/png;base64,AA" onerror="x'
+    );
+    expect(h).not.toContain('" onerror="');
+    expect(h).toContain('&quot;');
+  });
 });
