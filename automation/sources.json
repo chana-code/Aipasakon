@@ -1,0 +1,17 @@
+{
+  "_comment": "Curated RSS sources for the News track. The scout tolerates dead/empty feeds and skips them; the routine may also web-search as a backup. Edit freely.",
+  "rss": [
+    { "url": "https://techcrunch.com/category/artificial-intelligence/feed/", "source": "TechCrunch" },
+    { "url": "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", "source": "The Verge" },
+    { "url": "https://blog.google/technology/ai/rss/", "source": "Google AI" },
+    { "url": "https://openai.com/news/rss.xml", "source": "OpenAI" },
+    { "url": "https://www.anthropic.com/rss.xml", "source": "Anthropic" },
+    { "url": "https://venturebeat.com/category/ai/feed/", "source": "VentureBeat" },
+    { "url": "https://arstechnica.com/ai/feed/", "source": "Ars Technica" },
+    { "url": "https://huggingface.co/blog/feed.xml", "source": "Hugging Face" }
+  ],
+  "trendingSeeds": [
+    "https://github.com/trending?since=daily",
+    "https://github.com/trending/python?since=weekly"
+  ]
+}

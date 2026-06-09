@@ -1,0 +1,22 @@
+{
+  "rotationIndex": 1,
+  "runs": [
+    {
+      "date": "2026-06-10",
+      "track": "knowledge",
+      "subject": "what-it-really-is",
+      "status": "posted",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/what-it-really-is",
+      "postId": "992580240609596_122114823705259159"
+    },
+    {
+      "date": "2026-06-10",
+      "track": "tools",
+      "subject": "browser-use",
+      "status": "posted",
+      "angle": "goal-level web automation vs Playwright/extensions",
+      "sourceUrl": "https://aipasakon.com/skills/browser-use",
+      "postId": "992580240609596_122114824515259159"
+    }
+  ]
+}
