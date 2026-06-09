@@ -59,16 +59,7 @@ jobs:
           RUN_MODE: ${{ steps.m.outputs.mode }}
         run: |
           npm i -g @anthropic-ai/claude-code
-          PROMPT="$(cat automation/playbook.md)
-
-NOW: complete exactly ONE content run following the playbook above. Working directory is the repo root.
-1) Determine the next track from automation/ledger.json (nextTrack in automation/ledger/ledger.ts).
-2) Source + write the post for that track: grounded in REAL sources (fetch articles/READMEs; use automation/scout/* and content/skills.json), Thai, in the AI ภาษาคน voice (read automation/voice-guide.md), NO emoji, declarative hook. Enforce the Quality Gate — if nothing passes, SKIP and print the reason; do not post weak content.
-3) Build automation/runs/<YYYY-MM-DD>-<track>/ with card.json (CardConfig), caption.txt, and meta.json ({track, subject, sourceUrl?, angle?, blog? for news/new-tools}).
-4) If RUN_MODE=live, run:  npx tsx automation/pipeline/finalize.ts <run-dir> --live
-   else run:               npx tsx automation/pipeline/finalize.ts <run-dir>
-5) Print a one-line summary (track, subject, posted/dry/skipped). Never print the Meta token."
-          claude -p "$PROMPT" --dangerously-skip-permissions
+          claude -p "$(cat automation/playbook.md automation/run-instruction.md)" --dangerously-skip-permissions
 
       - name: Push ledger + new blog (live runs)
         if: steps.m.outputs.mode == 'live'
