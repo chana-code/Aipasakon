@@ -1,0 +1,9 @@
+{
+  "track": "news",
+  "kicker": "ข่าว AI",
+  "hook": [
+    { "text": "อัพเดทโมเดลใหม่ของ Google", "style": "lead" },
+    { "text": "Gemini 3.5 Flash", "style": "accent", "nowrap": true },
+    { "text": "เก่งขึ้นมาก", "style": "mark" }
+  ]
+}

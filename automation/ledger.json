@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 1,
+  "rotationIndex": 2,
   "runs": [
     {
       "date": "2026-06-10",
@@ -17,6 +17,15 @@
       "angle": "goal-level web automation vs Playwright/extensions",
       "sourceUrl": "https://aipasakon.com/skills/browser-use",
       "postId": "992580240609596_122114824515259159"
+    },
+    {
+      "date": "2026-06-09",
+      "track": "news",
+      "subject": "Gemini 3.5 Flash",
+      "status": "draft",
+      "sourceUrl": "https://blog.google/innovation-and-ai/sundar-pichai-io-2026/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-3-5-flash",
+      "card": "automation/runs/2026-06-10-news/card.png"
     }
   ]
 }
