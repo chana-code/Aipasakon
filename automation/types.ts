@@ -19,7 +19,8 @@ export interface LedgerEntry {
   date: string;                 // ISO date, supplied by caller (no Date.now in pure code)
   track: Track;
   subject: string;              // repo name / headline / page slug
-  status: 'posted' | 'skipped' | 'draft';
+  status: 'posted' | 'scheduled' | 'skipped' | 'draft';
+  scheduledFor?: string;        // ISO time Facebook will publish it (when status=scheduled)
   sourceUrl?: string;
   blogUrl?: string;
   postId?: string;

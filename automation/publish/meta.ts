@@ -17,6 +17,10 @@ export interface PublishInput {
   imagePath: string;
   caption: string;
   dryRun?: boolean;
+  /** Unix time (seconds) for Facebook to publish the post itself. Must be 10 min–6 months out.
+   *  When set, the post is created unpublished and Facebook publishes it at that time —
+   *  so it goes live on schedule regardless of whether this machine is on. */
+  scheduledPublishTime?: number;
 }
 
 export interface PublishResult {
@@ -24,16 +28,23 @@ export interface PublishResult {
   endpoint: string;
   fields: { message: string };
   postId?: string;
+  scheduledPublishTime?: number;
 }
 
 export async function publishCardPost(input: PublishInput): Promise<PublishResult> {
   const { endpoint, fields } = buildPhotoPost({ pageId: input.pageId, caption: input.caption });
+  const scheduledPublishTime = input.scheduledPublishTime;
   if (input.dryRun) {
-    return { dryRun: true, endpoint, fields }; // token deliberately excluded
+    return { dryRun: true, endpoint, fields, scheduledPublishTime }; // token deliberately excluded
   }
   const form = new FormData();
   form.set('message', fields.message);
   form.set('access_token', input.token);
+  if (scheduledPublishTime) {
+    // Hand timing to Facebook: create unpublished + let FB publish at the scheduled time.
+    form.set('published', 'false');
+    form.set('scheduled_publish_time', String(scheduledPublishTime));
+  }
   const bytes = readFileSync(input.imagePath);
   form.set('source', new Blob([bytes], { type: 'image/png' }), basename(input.imagePath));
 
@@ -42,5 +53,5 @@ export async function publishCardPost(input: PublishInput): Promise<PublishResul
   if (!resp.ok || json.error) {
     throw new Error(`Meta publish failed: ${json.error?.message ?? resp.status}`);
   }
-  return { dryRun: false, endpoint, fields, postId: json.post_id ?? json.id };
+  return { dryRun: false, endpoint, fields, postId: json.post_id ?? json.id, scheduledPublishTime };
 }

@@ -35,9 +35,16 @@ interface RunMeta {
 async function main() {
   const args = process.argv.slice(2);
   const live = args.includes('--live');
+  const atArg = args.find(a => a.startsWith('--at='));
+  const at = atArg ? atArg.slice('--at='.length) : undefined;       // ISO time, e.g. 2026-06-11T08:00:00+07:00
+  const scheduledPublishTime = at ? Math.floor(Date.parse(at) / 1000) : undefined;
   const runDir = args.find(a => !a.startsWith('--'));
   if (!runDir) {
-    console.error('usage: tsx automation/pipeline/finalize.ts <run-dir> [--live]');
+    console.error('usage: tsx automation/pipeline/finalize.ts <run-dir> [--live] [--at=<ISO time>]');
+    process.exit(1);
+  }
+  if (at && Number.isNaN(scheduledPublishTime)) {
+    console.error('--at must be an ISO timestamp, e.g. --at=2026-06-11T08:00:00+07:00');
     process.exit(1);
   }
 
@@ -67,11 +74,12 @@ async function main() {
   }
   const pageToken = live ? await derivePageToken(systemUserToken, pageId) : '';
 
-  // 4. Publish (dry-run unless --live).
-  const res = await publishCardPost({ pageId, token: pageToken, imagePath: cardPng, caption, dryRun: !live });
+  // 4. Publish now, or schedule for Facebook to publish at `at` (dry-run unless --live).
+  const res = await publishCardPost({ pageId, token: pageToken, imagePath: cardPng, caption, dryRun: !live, scheduledPublishTime });
+  const scheduled = !!scheduledPublishTime && !res.dryRun;
 
   let permalink: string | undefined;
-  if (!res.dryRun && res.postId) {
+  if (!res.dryRun && !scheduled && res.postId) {
     try {
       const r = await fetch(`https://graph.facebook.com/v21.0/${res.postId}?fields=permalink_url&access_token=${pageToken}`);
       permalink = ((await r.json()) as { permalink_url?: string }).permalink_url;
@@ -83,7 +91,8 @@ async function main() {
     date: new Date().toISOString().slice(0, 10),
     track: meta.track,
     subject: meta.subject,
-    status: res.dryRun ? 'draft' : 'posted',
+    status: res.dryRun ? 'draft' : (scheduled ? 'scheduled' : 'posted'),
+    scheduledFor: scheduled ? at : undefined,
     sourceUrl: meta.sourceUrl,
     blogUrl,
     postId: res.postId,
@@ -105,9 +114,11 @@ async function main() {
   }
 
   if (res.dryRun) {
-    console.log('\nDRY RUN — would post to', res.endpoint);
+    console.log('\nDRY RUN — would', scheduledPublishTime ? `schedule for ${at}` : 'post now', 'at', res.endpoint);
     if (blogUrl) console.log('blog link:', blogUrl);
     console.log('caption:\n' + caption);
+  } else if (scheduled) {
+    console.log('\nSCHEDULED for', at, '— Facebook will publish it then (machine can be off). id:', res.postId);
   } else {
     console.log('\nPOSTED. post id:', res.postId);
     if (permalink) console.log('permalink:', permalink);
