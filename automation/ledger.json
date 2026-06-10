@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 5,
+  "rotationIndex": 6,
   "runs": [
     {
       "date": "2026-06-10",
@@ -56,6 +56,16 @@
       "sourceUrl": "https://aipasakon.com/what-is-ai/hard-limits",
       "postId": "122114828877259159",
       "card": "automation/runs/2026-06-11-knowledge-hardlimits/card.png"
+    },
+    {
+      "date": "2026-06-10",
+      "track": "knowledge",
+      "subject": "history",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-11T11:00:00Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/history",
+      "postId": "122114888229259159",
+      "card": "automation/runs/2026-06-11-knowledge-1800/card.png"
     }
   ]
 }
