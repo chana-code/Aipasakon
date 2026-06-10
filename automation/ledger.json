@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 6,
+  "rotationIndex": 7,
   "runs": [
     {
       "date": "2026-06-10",
@@ -66,6 +66,17 @@
       "sourceUrl": "https://aipasakon.com/what-is-ai/history",
       "postId": "122114888229259159",
       "card": "automation/runs/2026-06-11-knowledge-1800/card.png"
+    },
+    {
+      "date": "2026-06-10",
+      "track": "tools",
+      "subject": "anthropic-skills",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-12T01:00:00Z",
+      "sourceUrl": "https://aipasakon.com/skills/anthropic-skills",
+      "postId": "122114888283259159",
+      "card": "automation/runs/2026-06-12-tools-0800/card.png",
+      "angle": "official doc skills: produce real Word/PDF/PPT/Excel files; runs in an agent (Claude Code/Cowork/Codex), not plain chat"
     }
   ]
 }
