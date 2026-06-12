@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 9,
+  "rotationIndex": 10,
   "runs": [
     {
       "date": "2026-06-10",
@@ -99,6 +99,17 @@
       "postId": "122115097461259159",
       "card": "automation/runs/2026-06-13-knowledge-0800/card.png",
       "angle": "why AI knows English deeper than Thai: training-data proportion (~50% English vs 0.5-1% Thai); practical workaround"
+    },
+    {
+      "date": "2026-06-12",
+      "track": "tools",
+      "subject": "awesome-claude-code",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-13T11:00:00Z",
+      "sourceUrl": "https://aipasakon.com/skills/awesome-claude-code",
+      "postId": "122115097539259159",
+      "card": "automation/runs/2026-06-13-tools-1800/card.png",
+      "angle": "curated directory (~200 items) you browse or have an AI browse and recommend; not an installable tool; vet before installing"
     }
   ]
 }
