@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 7,
+  "rotationIndex": 8,
   "runs": [
     {
       "date": "2026-06-10",
@@ -77,6 +77,17 @@
       "postId": "122114888283259159",
       "card": "automation/runs/2026-06-12-tools-0800/card.png",
       "angle": "official doc skills: produce real Word/PDF/PPT/Excel files; runs in an agent (Claude Code/Cowork/Codex), not plain chat"
+    },
+    {
+      "date": "2026-06-12",
+      "track": "news",
+      "subject": "DiffusionGemma",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-12T11:00:00Z",
+      "sourceUrl": "https://blog.google/innovation-and-ai/technology/developers-tools/diffusion-gemma-faster-text-generation/",
+      "blogUrl": "https://aipasakon.com/blog/diffusion-gemma",
+      "postId": "122115097389259159",
+      "card": "automation/runs/2026-06-12-news-1800/card.png"
     }
   ]
 }
