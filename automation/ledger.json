@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 8,
+  "rotationIndex": 9,
   "runs": [
     {
       "date": "2026-06-10",
@@ -88,6 +88,17 @@
       "blogUrl": "https://aipasakon.com/blog/diffusion-gemma",
       "postId": "122115097389259159",
       "card": "automation/runs/2026-06-12-news-1800/card.png"
+    },
+    {
+      "date": "2026-06-12",
+      "track": "knowledge",
+      "subject": "how-it-trains",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-13T01:00:00Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/how-it-trains",
+      "postId": "122115097461259159",
+      "card": "automation/runs/2026-06-13-knowledge-0800/card.png",
+      "angle": "why AI knows English deeper than Thai: training-data proportion (~50% English vs 0.5-1% Thai); practical workaround"
     }
   ]
 }
