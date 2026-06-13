@@ -6,6 +6,7 @@ import { Doodle } from './Doodle';
 import { AvatarMedia } from './AvatarMedia';
 import { PlaneFlyby } from './PlaneFlyby';
 import { NowPlaying } from './NowPlaying';
+import { ToolStrip } from './ToolStrip';
 
 /* ---- Editable copy (Ong: tweak freely) ---------------------------------- */
 const COPY = {
@@ -113,6 +114,9 @@ export function Hero() {
 
           {/* paper plane orbits the avatar */}
           <PlaneFlyby />
+
+          {/* tools-I-use strip, tucked under the avatar */}
+          <ToolStrip />
 
         </div>
       </div>
