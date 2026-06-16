@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 11,
+  "rotationIndex": 12,
   "runs": [
     {
       "date": "2026-06-10",
@@ -121,6 +121,16 @@
       "blogUrl": "https://aipasakon.com/blog/ai-spending-2026",
       "postId": "122115098529259159",
       "card": "automation/runs/2026-06-14-news-0800/card.png"
+    },
+    {
+      "date": "2026-06-16",
+      "track": "knowledge",
+      "subject": "llm-mechanics",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-16T11:00:00Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/llm-mechanics",
+      "postId": "122115474939259159",
+      "card": "automation/runs/2026-06-16-knowledge-1800/card.png"
     }
   ]
 }
