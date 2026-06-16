@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 12,
+  "rotationIndex": 13,
   "runs": [
     {
       "date": "2026-06-10",
@@ -131,6 +131,17 @@
       "sourceUrl": "https://aipasakon.com/what-is-ai/llm-mechanics",
       "postId": "122115474939259159",
       "card": "automation/runs/2026-06-16-knowledge-1800/card.png"
+    },
+    {
+      "date": "2026-06-16",
+      "track": "tools",
+      "subject": "markitdown",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-17T01:00:00Z",
+      "sourceUrl": "https://aipasakon.com/skills/markitdown",
+      "postId": "122115474987259159",
+      "card": "automation/runs/2026-06-17-tools-0800/card.png",
+      "angle": "convert any office file (PDF/Word/Excel/PPT/image) to clean Markdown so AI reads it right: markitdown file.pdf -o out.md; dev tool, run via an agent not plain chat"
     }
   ]
 }
