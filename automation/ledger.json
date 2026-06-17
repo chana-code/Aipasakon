@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 15,
+  "rotationIndex": 16,
   "runs": [
     {
       "date": "2026-06-10",
@@ -160,6 +160,17 @@
       "sourceUrl": "https://aipasakon.com/what-is-ai/the-zoo",
       "postId": "122115475137259159",
       "card": "automation/runs/2026-06-18-knowledge-0800/card.png"
+    },
+    {
+      "date": "2026-06-17",
+      "track": "tools",
+      "subject": "crawl4ai",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-17T11:00:00Z",
+      "sourceUrl": "https://aipasakon.com/skills/crawl4ai",
+      "postId": "122115587883259159",
+      "card": "automation/runs/2026-06-17-tools-1800-crawl4ai/card.png",
+      "angle": "turn any webpage into clean Markdown for AI, or extract specific data in plain language: crwl <url> -o markdown; crwl <url> -q \"Extract all product prices\"; --deep-crawl bfs --max-pages; open-source/free, dev CLI run via an agent not plain chat"
     }
   ]
 }
