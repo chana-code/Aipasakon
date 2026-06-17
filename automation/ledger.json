@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 17,
+  "rotationIndex": 18,
   "runs": [
     {
       "date": "2026-06-10",
@@ -179,6 +179,16 @@
       "status": "skipped",
       "scheduledFor": "2026-06-18T11:00:00Z",
       "skipReason": "No fresh (<48h, Jun 15-17) item from a reputable primary source fitting the reader. Only in-window item (Anthropic leaders meeting White House officials, Jun 15) was aggregator-only and political/off-brand; GPT-5.5, Gemini 3.x, Opus 4.8 (May 27), MiniMax M3 all >48h or undated. Skip beats slop."
+    },
+    {
+      "date": "2026-06-17",
+      "track": "knowledge",
+      "subject": "the-model",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-19T01:00:00Z",
+      "sourceUrl": "https://aipasakon.com/products/the-model",
+      "postId": "122115588147259159",
+      "card": "automation/runs/2026-06-19-knowledge-0800-the-model/card.png"
     }
   ]
 }
