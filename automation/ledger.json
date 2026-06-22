@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 21,
+  "rotationIndex": 22,
   "runs": [
     {
       "date": "2026-06-10",
@@ -218,6 +218,17 @@
       "sourceUrl": "https://aipasakon.com/products/the-harness",
       "postId": "122116062261259159",
       "card": "automation/runs/2026-06-23-knowledge-1800-the-harness/card.png"
+    },
+    {
+      "date": "2026-06-22",
+      "track": "tools",
+      "subject": "context7",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-24T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/context7",
+      "postId": "122116062315259159",
+      "card": "automation/runs/2026-06-24-tools-0800-context7/card.png",
+      "angle": "stops AI writing code with outdated/hallucinated library commands by injecting latest official docs; usage: append 'use context7' to the prompt; can pin a version; community-sourced docs not guaranteed 100%; MCP that plugs into a coding agent"
     }
   ]
 }
