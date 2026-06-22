@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 19,
+  "rotationIndex": 21,
   "runs": [
     {
       "date": "2026-06-10",
@@ -200,6 +200,24 @@
       "postId": "122116062123259159",
       "card": "automation/runs/2026-06-22-tools-1800-fabric/card.png",
       "angle": "ready-made AI prompt recipes (Patterns): summarize / extract_wisdom / create_quiz; feed text/file/web URL/YouTube; fabric --pattern NAME, fabric --listpatterns; dev CLI run via an agent, needs a model + API key"
+    },
+    {
+      "date": "2026-06-22",
+      "track": "news",
+      "subject": "news-slot-2026-06-23-0800",
+      "status": "skipped",
+      "scheduledFor": "2026-06-23T01:00:00.000Z",
+      "skipReason": "No fresh (<48h, Jun 20-22) item from a reputable primary source fitting the reader. Sweep: Anthropic newsroom newest = Seoul office Jun 17 (>48h); llm-stats shows a release gap Jun 17-22 (newest GLM-5.2 Jun 16); the only in-window candidate, OpenAI Record & Replay for Codex, has a conflicting date (releasebot Jun 18 = >48h vs search Jun 20), is unverifiable against the OpenAI primary source (403), and is heavily gated (Codex macOS app only, requires Computer Use, unavailable EU/UK/CH) = niche for a Thai SME reader. Skip beats slop."
+    },
+    {
+      "date": "2026-06-22",
+      "track": "knowledge",
+      "subject": "the-harness",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-23T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/products/the-harness",
+      "postId": "122116062261259159",
+      "card": "automation/runs/2026-06-23-knowledge-1800-the-harness/card.png"
     }
   ]
 }
