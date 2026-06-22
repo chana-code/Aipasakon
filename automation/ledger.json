@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 18,
+  "rotationIndex": 19,
   "runs": [
     {
       "date": "2026-06-10",
@@ -189,6 +189,17 @@
       "sourceUrl": "https://aipasakon.com/products/the-model",
       "postId": "122115588147259159",
       "card": "automation/runs/2026-06-19-knowledge-0800-the-model/card.png"
+    },
+    {
+      "date": "2026-06-22",
+      "track": "tools",
+      "subject": "fabric",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-22T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/fabric",
+      "postId": "122116062123259159",
+      "card": "automation/runs/2026-06-22-tools-1800-fabric/card.png",
+      "angle": "ready-made AI prompt recipes (Patterns): summarize / extract_wisdom / create_quiz; feed text/file/web URL/YouTube; fabric --pattern NAME, fabric --listpatterns; dev CLI run via an agent, needs a model + API key"
     }
   ]
 }
