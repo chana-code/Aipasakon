@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 22,
+  "rotationIndex": 23,
   "runs": [
     {
       "date": "2026-06-10",
@@ -229,6 +229,17 @@
       "postId": "122116062315259159",
       "card": "automation/runs/2026-06-24-tools-0800-context7/card.png",
       "angle": "stops AI writing code with outdated/hallucinated library commands by injecting latest official docs; usage: append 'use context7' to the prompt; can pin a version; community-sourced docs not guaranteed 100%; MCP that plugs into a coding agent"
+    },
+    {
+      "date": "2026-06-23",
+      "track": "news",
+      "subject": "Samsung deploys ChatGPT Enterprise + Codex to employees",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-24T11:00:00.000Z",
+      "sourceUrl": "https://openai.com/index/samsung-electronics-chatgpt-codex-deployment/",
+      "blogUrl": "https://aipasakon.com/blog/samsung-codex-2026",
+      "postId": "122116126185259159",
+      "card": "automation/runs/2026-06-24-news-1800-samsung-codex/card.png"
     }
   ]
 }
