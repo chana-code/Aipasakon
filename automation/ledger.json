@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 23,
+  "rotationIndex": 24,
   "runs": [
     {
       "date": "2026-06-10",
@@ -240,6 +240,16 @@
       "blogUrl": "https://aipasakon.com/blog/samsung-codex-2026",
       "postId": "122116126185259159",
       "card": "automation/runs/2026-06-24-news-1800-samsung-codex/card.png"
+    },
+    {
+      "date": "2026-06-23",
+      "track": "knowledge",
+      "subject": "press-enter",
+      "status": "scheduled",
+      "scheduledFor": "2026-06-25T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/products/press-enter",
+      "postId": "122116126557259159",
+      "card": "automation/runs/2026-06-25-knowledge-0800-press-enter/card.png"
     }
   ]
 }
