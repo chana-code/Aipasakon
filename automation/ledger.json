@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 28,
+  "rotationIndex": 27,
   "runs": [
     {
       "date": "2026-06-10",
@@ -255,38 +255,30 @@
       "date": "2026-06-30",
       "track": "tools",
       "subject": "prompts-chat",
-      "status": "draft",
-      "sourceUrl": "https://aipasakon.com/skills/prompts-chat",
-      "card": "automation/runs/2026-06-30-tools-1800-prompts-chat/card.png",
-      "angle": "world's-largest open prompt library (143k+ GitHub stars); each prompt sets the AI into an expert role; copy-paste straight into ChatGPT/Claude/Gemini, no install/coding; community-sourced so treat as a starting template; browse at prompts.chat"
-    },
-    {
-      "date": "2026-06-30",
-      "track": "knowledge",
-      "subject": "external-memory",
-      "status": "draft",
-      "sourceUrl": "https://aipasakon.com/vibe-coding/external-memory",
-      "card": "automation/runs/2026-07-01-knowledge-1800-external-memory/card.png"
-    },
-    {
-      "date": "2026-06-30",
-      "track": "tools",
-      "subject": "llm-cli",
-      "status": "draft",
-      "sourceUrl": "https://aipasakon.com/skills/llm-cli",
-      "card": "automation/runs/2026-07-02-tools-0800-llm-cli/card.png",
-      "angle": "one CLI for every model (OpenAI/Claude/Gemini/local via plugins), switch with -m; pipe files in with -s; every prompt+answer auto-logged to SQLite, searchable via llm logs; dev CLI run in terminal or via an agent (Claude Code/Cowork/Codex), needs provider API key; install pip/brew"
-    },
-    {
-      "date": "2026-06-30",
-      "track": "tools",
-      "subject": "prompts-chat",
       "status": "scheduled",
       "scheduledFor": "2026-06-30T11:00:00Z",
       "sourceUrl": "https://aipasakon.com/skills/prompts-chat",
       "postId": "122116687461259159",
       "card": "automation/runs/2026-06-30-tools-1800-prompts-chat/card.png",
       "angle": "world's-largest open prompt library (143k+ GitHub stars); each prompt sets the AI into an expert role; copy-paste straight into ChatGPT/Claude/Gemini, no install/coding; community-sourced so treat as a starting template; browse at prompts.chat"
+    },
+    {
+      "date": "2026-06-30",
+      "track": "news",
+      "subject": "news-slot-2026-07-01-0800",
+      "status": "skipped",
+      "scheduledFor": "2026-07-01T01:00:00Z",
+      "skipReason": "No fresh (<48h, Jun 28-30) item from a reputable primary source fitting the reader. Sweep: Anthropic newsroom newest = Claude Tag Jun 23 (>48h); llm-stats/release trackers newest dated = ByteDance Seed 2.1 Jun 24; Gemini 3.5 Pro slipped to July GA. The only in-window candidates (GPT-5.6 limited preview, various) were aggregator-only/unverifiable and OpenAI primary source 403s; freshest verifiable items (CNBC tokenmaxxing->efficiency, TechCrunch, Bloomberg) all dated Jun 24-26 = >48h. Skip beats slop."
+    },
+    {
+      "date": "2026-06-30",
+      "track": "knowledge",
+      "subject": "external-memory",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-01T11:00:00Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/external-memory",
+      "postId": "122116687689259159",
+      "card": "automation/runs/2026-07-01-knowledge-1800-external-memory/card.png"
     }
   ]
 }
