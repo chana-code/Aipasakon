@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 27,
+  "rotationIndex": 28,
   "runs": [
     {
       "date": "2026-06-10",
@@ -279,6 +279,17 @@
       "sourceUrl": "https://aipasakon.com/vibe-coding/external-memory",
       "postId": "122116687689259159",
       "card": "automation/runs/2026-07-01-knowledge-1800-external-memory/card.png"
+    },
+    {
+      "date": "2026-06-30",
+      "track": "tools",
+      "subject": "llm-cli",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-02T01:00:00Z",
+      "sourceUrl": "https://aipasakon.com/skills/llm-cli",
+      "postId": "122116687749259159",
+      "card": "automation/runs/2026-07-02-tools-0800-llm-cli/card.png",
+      "angle": "one CLI for every model (OpenAI/Claude/Gemini/local via plugins), switch with -m; pipe files in with -s; every prompt+answer auto-logged to SQLite, searchable via llm logs; dev CLI run in terminal or via an agent (Claude Code/Cowork/Codex), needs provider API key; install pip/brew"
     }
   ]
 }
