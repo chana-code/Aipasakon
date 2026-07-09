@@ -1,15 +1,22 @@
 import type { GlossaryEntry } from '@/lib/content/schemas';
 
 // Only these levels have deployed chapters; links elsewhere are dropped to avoid 404s.
-const DEPLOYED_LEVELS = new Set(['what-is-ai', 'products']);
+const DEPLOYED_LEVELS = new Set(['what-is-ai', 'products', 'pro-usage', 'in-practice', 'vibe-coding']);
+
+// Filenames whose site slug differs from the filename-derived one (see convert-v3.ts MAP).
+const SLUG_EXCEPTIONS: Record<string, string> = {
+  'skills': 'skills-commands-hooks', // 3.3-skills.md
+};
 
 /** "../section-2-products/2.1.1-the-model.md" -> "/products/the-model" (or undefined). */
 function linkToRoute(linkPath: string): string | undefined {
+  if (/appendix\/B-troubleshooting\.md$/.test(linkPath)) return '/in-practice/troubleshooting';
   const m = linkPath.match(/section-\d+-([a-z-]+)\/([^/]+)\.md$/);
   if (!m || !m[1] || !m[2]) return undefined;
   const level = m[1];
   if (!DEPLOYED_LEVELS.has(level)) return undefined;
-  const slug = m[2].replace(/^[\d.]+-/, ''); // "2.1.1-the-model" -> "the-model"
+  const derived = m[2].replace(/^[\d.]+-/, ''); // "2.1.1-the-model" -> "the-model"
+  const slug = SLUG_EXCEPTIONS[derived] ?? derived;
   return `/${level}/${slug}`;
 }
 

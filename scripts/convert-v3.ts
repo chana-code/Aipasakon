@@ -18,8 +18,8 @@ const SITE = process.cwd();                                        // website/
 const PUBLIC_CONTENT = path.join(SITE, 'public/content');
 const CHAPTERS = path.join(SITE, 'content/chapters');
 
-// file (relative to V3) -> { level, slug, order }
-const MAP: { file: string; level: string; slug: string; order: number }[] = [
+// file (relative to V3) -> { level, slug, order, reviewed? (last_reviewed date, defaults to 2026-06-07) }
+const MAP: { file: string; level: string; slug: string; order: number; reviewed?: string }[] = [
   { file: 'section-1-what-is-ai/1.1-history.md',          level: 'what-is-ai', slug: 'history',           order: 1 },
   { file: 'section-1-what-is-ai/1.2-how-it-trains.md',    level: 'what-is-ai', slug: 'how-it-trains',     order: 2 },
   { file: 'section-1-what-is-ai/1.3-what-it-really-is.md',level: 'what-is-ai', slug: 'what-it-really-is', order: 3 },
@@ -32,6 +32,19 @@ const MAP: { file: string; level: string; slug: string; order: number }[] = [
   { file: 'section-2-products/2.1.4-surfaces.md',            level: 'products', slug: 'surfaces',            order: 4 },
   { file: 'section-2-products/2.1.5-product-comparison.md',  level: 'products', slug: 'product-comparison',  order: 5 },
   { file: 'section-2-products/2.1.6-api-vs-app.md',          level: 'products', slug: 'api-vs-app',          order: 6 },
+  // Section 3 — Pro usage (3.1–3.7) — reviewed + published 2026-07-09
+  { file: 'section-3-pro-usage/3.1-memory-context.md',    level: 'pro-usage', slug: 'memory-context',        order: 1, reviewed: '2026-07-09' },
+  { file: 'section-3-pro-usage/3.2-token-optimization.md',level: 'pro-usage', slug: 'token-optimization',    order: 2, reviewed: '2026-07-09' },
+  { file: 'section-3-pro-usage/3.3-skills.md',            level: 'pro-usage', slug: 'skills-commands-hooks', order: 3, reviewed: '2026-07-09' },
+  { file: 'section-3-pro-usage/3.4-connectors.md',        level: 'pro-usage', slug: 'connectors',            order: 4, reviewed: '2026-07-09' },
+  { file: 'section-3-pro-usage/3.5-builder-track.md',     level: 'pro-usage', slug: 'builder-track',         order: 5, reviewed: '2026-07-09' },
+  { file: 'section-3-pro-usage/3.6-talking-to-ai.md',     level: 'pro-usage', slug: 'talking-to-ai',         order: 6, reviewed: '2026-07-09' },
+  { file: 'section-3-pro-usage/3.7-judgment-safety.md',   level: 'pro-usage', slug: 'judgment-safety',       order: 7, reviewed: '2026-07-09' },
+  // Section 4 — In practice (4.1–4.3) + Appendix B as the closing "เมื่อมันพัง" chapter
+  { file: 'section-4-in-practice/4.1-onramp.md',          level: 'in-practice', slug: 'onramp',          order: 1, reviewed: '2026-07-09' },
+  { file: 'section-4-in-practice/4.2-reading-docs.md',    level: 'in-practice', slug: 'reading-docs',    order: 2, reviewed: '2026-07-09' },
+  { file: 'section-4-in-practice/4.3-build-once.md',      level: 'in-practice', slug: 'build-once',      order: 3, reviewed: '2026-07-09' },
+  { file: 'appendix/B-troubleshooting.md',                level: 'in-practice', slug: 'troubleshooting', order: 4, reviewed: '2026-07-09' },
   // Section 5 — Vibe Coding (Part A foundations 5.1–5.8, Part B sustainability 5.9–5.19)
   { file: 'section-5-vibe-coding/5.1-build-loop.md',                 level: 'vibe-coding', slug: 'build-loop',                 order: 1 },
   { file: 'section-5-vibe-coding/5.2-anatomy.md',                    level: 'vibe-coding', slug: 'anatomy',                    order: 2 },
@@ -55,9 +68,12 @@ const MAP: { file: string; level: string; slug: string; order: number }[] = [
 ];
 
 // Map any cross-link target basename (with or without leading agenda digits) -> site route.
-// Only deployed chapters (sections 1–2) get a route; everything else (3.x/4.x/appendix)
-// is dropped to plain text so we never emit a 404 link.
-const ROUTE: Record<string, string> = {};
+// Only chapters in MAP get a route; anything undeployed is dropped to plain text so we
+// never emit a 404 link. Appendix A is served by the standalone /glossary page.
+const ROUTE: Record<string, string> = {
+  'A-glossary': '/glossary',
+  'glossary': '/glossary',
+};
 for (const m of MAP) {
   const base = path.basename(m.file).replace(/\.md$/, '').replace(/ \(revised\)$/, '');
   ROUTE[base] = `/${m.level}/${m.slug}`;          // e.g. "1.1-history" / "2.1.1-the-model"
@@ -147,7 +163,7 @@ function run() {
       title: String(data.title ?? '').trim(),
       status: 'reviewed' as const,
       prerequisites: [] as string[],
-      last_reviewed: '2026-06-07',
+      last_reviewed: m.reviewed ?? '2026-06-07',
       tldr: String(data.description ?? '').trim() || undefined,
     };
 

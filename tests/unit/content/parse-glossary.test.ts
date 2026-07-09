@@ -18,14 +18,17 @@ intro prose that must be ignored
 ## กลุ่มที่ 2 หน่วย
 
 **context window (หน้าต่างบริบท)**
-พื้นที่ความจำชั่วคราว *(มีบทเต็ม: [Pro usage](../section-3-pro-usage/3.1-context.md))*
+พื้นที่ความจำชั่วคราว *(มีบทเต็ม: [Pro usage](../section-3-pro-usage/3.1-memory-context.md))*
+
+**embedding (เอ็มเบดดิง)**
+ตัวเลขแทนความหมาย *(มีบทเต็ม: [อนาคต](../section-9-future/9.1-embeddings.md))*
 `;
 
 describe('parseGlossaryMarkdown', () => {
   const entries = parseGlossaryMarkdown(SAMPLE);
 
   it('extracts only bold-term blocks, skipping prose/callouts/headings', () => {
-    expect(entries.map(e => e.term_en)).toEqual(['model', 'LLM', 'context window']);
+    expect(entries.map(e => e.term_en)).toEqual(['model', 'LLM', 'context window', 'embedding']);
   });
 
   it('splits term_en and term_th from the parenthesized header', () => {
@@ -45,8 +48,12 @@ describe('parseGlossaryMarkdown', () => {
     expect(entries[0]!.full_chapter).toBe('/products/the-model');
   });
 
+  it('maps a deployed section-3 chapter link to its pro-usage route', () => {
+    expect(entries[2]!.full_chapter).toBe('/pro-usage/memory-context');
+  });
+
   it('omits full_chapter for not-yet-deployed chapters (no dead links)', () => {
-    expect(entries[2]!.full_chapter).toBeUndefined();
+    expect(entries[3]!.full_chapter).toBeUndefined();
   });
 
   it('records the section heading as group', () => {
