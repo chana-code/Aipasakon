@@ -7,7 +7,7 @@
 
 export const SITE = {
   /** Canonical origin, no trailing slash. */
-  url: (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.aipasakon.com').replace(/\/$/, ''),
+  url: (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://aipasakon.com').replace(/\/$/, ''),
   /** Brand name, used in titles and Organization schema. */
   name: 'AI ภาษาคน',
   /** Latin/ASCII brand name for schema fields that prefer it. */

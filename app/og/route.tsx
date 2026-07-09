@@ -109,7 +109,7 @@ export async function GET(req: Request) {
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ fontSize: 30, fontWeight: 600, color: INK }}>{SITE.name}</div>
-          <div style={{ fontSize: 26, color: '#5B6577' }}>www.aipasakon.com</div>
+          <div style={{ fontSize: 26, color: '#5B6577' }}>aipasakon.com</div>
         </div>
       </div>
     ),
