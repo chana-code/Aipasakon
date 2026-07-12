@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 29,
+  "rotationIndex": 30,
   "runs": [
     {
       "date": "2026-06-10",
@@ -301,6 +301,16 @@
       "blogUrl": "https://aipasakon.com/blog/chatgpt-work-2026",
       "postId": "122117725395259159",
       "card": "automation/runs/2026-07-12-news-1800-chatgpt-work/card.png"
+    },
+    {
+      "date": "2026-07-12",
+      "track": "knowledge",
+      "subject": "verification",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-13T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/verification",
+      "postId": "122117725443259159",
+      "card": "automation/runs/2026-07-13-knowledge-0800-verification/card.png"
     }
   ]
 }
