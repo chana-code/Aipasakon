@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 31,
+  "rotationIndex": 32,
   "runs": [
     {
       "date": "2026-06-10",
@@ -322,6 +322,17 @@
       "postId": "122117725491259159",
       "card": "automation/runs/2026-07-13-tools-1800-firecrawl/card.png",
       "angle": "firecrawl_extract — pull structured fields (name/price/phone) from many pages into one table (competitor price monitoring / lead lists); MCP run via an agent (Claude Code/Cowork/Codex), needs Firecrawl API key"
+    },
+    {
+      "date": "2026-07-12",
+      "track": "news",
+      "subject": "Meta launches Muse Spark 1.1 agentic coding model",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-14T08:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/07/09/meta-enters-the-crowded-ai-coding-battle-with-muse-spark-1-1/",
+      "blogUrl": "https://aipasakon.com/blog/muse-spark-2026",
+      "postId": "122117725695259159",
+      "card": "automation/runs/2026-07-14-news-0800-muse-spark/card.png"
     }
   ]
 }
