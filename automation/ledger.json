@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 28,
+  "rotationIndex": 29,
   "runs": [
     {
       "date": "2026-06-10",
@@ -290,6 +290,17 @@
       "postId": "122116687749259159",
       "card": "automation/runs/2026-07-02-tools-0800-llm-cli/card.png",
       "angle": "one CLI for every model (OpenAI/Claude/Gemini/local via plugins), switch with -m; pipe files in with -s; every prompt+answer auto-logged to SQLite, searchable via llm logs; dev CLI run in terminal or via an agent (Claude Code/Cowork/Codex), needs provider API key; install pip/brew"
+    },
+    {
+      "date": "2026-07-12",
+      "track": "news",
+      "subject": "OpenAI launches GPT-5.6 + ChatGPT Work agent",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-12T18:00:00+07:00",
+      "sourceUrl": "https://openai.com/index/gpt-5-6/",
+      "blogUrl": "https://aipasakon.com/blog/chatgpt-work-2026",
+      "postId": "122117725395259159",
+      "card": "automation/runs/2026-07-12-news-1800-chatgpt-work/card.png"
     }
   ]
 }
