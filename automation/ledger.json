@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 30,
+  "rotationIndex": 31,
   "runs": [
     {
       "date": "2026-06-10",
@@ -311,6 +311,17 @@
       "sourceUrl": "https://aipasakon.com/vibe-coding/verification",
       "postId": "122117725443259159",
       "card": "automation/runs/2026-07-13-knowledge-0800-verification/card.png"
+    },
+    {
+      "date": "2026-07-12",
+      "track": "tools",
+      "subject": "firecrawl-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-13T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/firecrawl-mcp",
+      "postId": "122117725491259159",
+      "card": "automation/runs/2026-07-13-tools-1800-firecrawl/card.png",
+      "angle": "firecrawl_extract — pull structured fields (name/price/phone) from many pages into one table (competitor price monitoring / lead lists); MCP run via an agent (Claude Code/Cowork/Codex), needs Firecrawl API key"
     }
   ]
 }
