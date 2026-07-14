@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 32,
+  "rotationIndex": 34,
   "runs": [
     {
       "date": "2026-06-10",
@@ -333,6 +333,24 @@
       "blogUrl": "https://aipasakon.com/blog/muse-spark-2026",
       "postId": "122117725695259159",
       "card": "automation/runs/2026-07-14-news-0800-muse-spark/card.png"
+    },
+    {
+      "date": "2026-07-14",
+      "track": "knowledge",
+      "subject": "memory-context",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/pro-usage/memory-context",
+      "card": "automation/runs/2026-07-14-knowledge-1800-memory-context/card.png"
+    },
+    {
+      "date": "2026-07-14",
+      "track": "knowledge",
+      "subject": "memory-context",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-14T11:00:00Z",
+      "sourceUrl": "https://aipasakon.com/pro-usage/memory-context",
+      "postId": "122117891721259159",
+      "card": "automation/runs/2026-07-14-knowledge-1800-memory-context/card.png"
     }
   ]
 }
