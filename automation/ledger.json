@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 35,
+  "rotationIndex": 36,
   "runs": [
     {
       "date": "2026-06-10",
@@ -362,6 +362,17 @@
       "postId": "122117891769259159",
       "card": "automation/runs/2026-07-15-tools-0800-notion-mcp/card.png",
       "angle": "connect AI to your Notion workspace — search across pages, query a database with filters/sorts, and create/update pages in Markdown (summarize meeting notes into a new page, pull unfinished tasks); MCP connected via an MCP-capable client (Claude/Cursor/ChatGPT connector), official remote MCP with OAuth, must grant per-page access"
+    },
+    {
+      "date": "2026-07-14",
+      "track": "news",
+      "subject": "PixVerse raises $439M for AI video, valuation past $2B",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-15T11:00:00Z",
+      "sourceUrl": "https://techcrunch.com/2026/07/13/video-generation-startup-pixverse-raises-439m-valuation-soars-past-2b/",
+      "blogUrl": "https://aipasakon.com/blog/pixverse-2026",
+      "postId": "122117891841259159",
+      "card": "automation/runs/2026-07-15-news-1800-pixverse/card.png"
     }
   ]
 }
