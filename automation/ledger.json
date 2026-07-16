@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 39,
+  "rotationIndex": 40,
   "runs": [
     {
       "date": "2026-06-10",
@@ -405,6 +405,17 @@
       "postId": "122118061587259159",
       "card": "automation/runs/2026-07-17-knowledge-0800-history/card.png",
       "angle": "ChatGPT ไม่ใช่การค้นพบใหม่ — วิธีคิด ข้อมูล พลังคำนวณ ต้องมาบรรจบกัน"
+    },
+    {
+      "date": "2026-07-16",
+      "track": "tools",
+      "subject": "awesome-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-17T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/awesome-mcp",
+      "postId": "122118061641259159",
+      "card": "automation/runs/2026-07-17-tools-1800-awesome-mcp/card.png",
+      "angle": "หา MCP server ให้เจอด้วยสารบัญ + อ่านป้ายกำกับ (ทางการ/ในเครื่อง/คลาวด์) ก่อนติดตั้ง"
     }
   ]
 }
