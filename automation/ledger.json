@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 38,
+  "rotationIndex": 39,
   "runs": [
     {
       "date": "2026-06-10",
@@ -394,6 +394,17 @@
       "blogUrl": "https://aipasakon.com/blog/siri-ios27-2026",
       "postId": "122118061503259159",
       "card": "automation/runs/2026-07-16-news-1800-siri-ios27/card.png"
+    },
+    {
+      "date": "2026-07-16",
+      "track": "knowledge",
+      "subject": "history",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-17T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/history",
+      "postId": "122118061587259159",
+      "card": "automation/runs/2026-07-17-knowledge-0800-history/card.png",
+      "angle": "ChatGPT ไม่ใช่การค้นพบใหม่ — วิธีคิด ข้อมูล พลังคำนวณ ต้องมาบรรจบกัน"
     }
   ]
 }
