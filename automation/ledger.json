@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 37,
+  "rotationIndex": 38,
   "runs": [
     {
       "date": "2026-06-10",
@@ -383,6 +383,17 @@
       "sourceUrl": "https://aipasakon.com/products/surfaces",
       "postId": "122117891901259159",
       "card": "automation/runs/2026-07-16-knowledge-0800-surfaces/card.png"
+    },
+    {
+      "date": "2026-07-16",
+      "track": "news",
+      "subject": "Apple opens new Siri AI to everyone with iOS 27 public beta",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-16T18:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/07/14/apple-opens-its-new-siri-ai-to-everyone-with-the-ios-27-public-beta/",
+      "blogUrl": "https://aipasakon.com/blog/siri-ios27-2026",
+      "postId": "122118061503259159",
+      "card": "automation/runs/2026-07-16-news-1800-siri-ios27/card.png"
     }
   ]
 }
