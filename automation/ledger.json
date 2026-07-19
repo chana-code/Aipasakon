@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 42,
+  "rotationIndex": 43,
   "runs": [
     {
       "date": "2026-06-10",
@@ -438,6 +438,17 @@
       "postId": "122118299859259159",
       "card": "automation/runs/2026-07-19-knowledge-1800-talking-to-ai/card.png",
       "angle": "G-C-F-E: brief งานให้ชัด ไม่ใช่จำ prompt ลับ; ตัวอย่างอีเมลลูกค้าส่งของช้า"
+    },
+    {
+      "date": "2026-07-19",
+      "track": "tools",
+      "subject": "mcp-chrome",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-20T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/mcp-chrome",
+      "postId": "122118299901259159",
+      "card": "automation/runs/2026-07-20-tools-0800-mcp-chrome/card.png",
+      "angle": "ขับ Chrome ตัวเดิมที่ล็อกอินไว้แล้ว (ต่างจาก Playwright ที่เปิดเบราว์เซอร์เปล่า) + ค้นแท็บที่เปิดอยู่ด้วยความหมาย; เป็น MCP รันผ่าน agent"
     }
   ]
 }
