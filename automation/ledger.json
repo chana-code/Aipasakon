@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 44,
+  "rotationIndex": 45,
   "runs": [
     {
       "date": "2026-06-10",
@@ -460,6 +460,17 @@
       "blogUrl": "https://aipasakon.com/blog/databricks-188b-2026",
       "postId": "122118300141259159",
       "card": "automation/runs/2026-07-20-news-1800-databricks-188b/card.png"
+    },
+    {
+      "date": "2026-07-19",
+      "track": "knowledge",
+      "subject": "hard-limits",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-21T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/hard-limits",
+      "postId": "122118300183259159",
+      "card": "automation/runs/2026-07-21-knowledge-0800-hard-limits/card.png",
+      "angle": "strawberry นับ r ผิด = ขีดจำกัดติดมากับราก (token เป็นก้อน ไม่ใช่ตัวอักษร); เดารูปแบบ != ทำตามกฎ; ทางออกคือยืมเครื่องมือ"
     }
   ]
 }
