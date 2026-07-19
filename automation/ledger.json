@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 43,
+  "rotationIndex": 44,
   "runs": [
     {
       "date": "2026-06-10",
@@ -449,6 +449,17 @@
       "postId": "122118299901259159",
       "card": "automation/runs/2026-07-20-tools-0800-mcp-chrome/card.png",
       "angle": "ขับ Chrome ตัวเดิมที่ล็อกอินไว้แล้ว (ต่างจาก Playwright ที่เปิดเบราว์เซอร์เปล่า) + ค้นแท็บที่เปิดอยู่ด้วยความหมาย; เป็น MCP รันผ่าน agent"
+    },
+    {
+      "date": "2026-07-19",
+      "track": "news",
+      "subject": "Databricks reaches $188B valuation",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-20T18:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/07/17/databricks-hits-188b-valuation-extending-its-run-as-ais-favorite-second-act/",
+      "blogUrl": "https://aipasakon.com/blog/databricks-188b-2026",
+      "postId": "122118300141259159",
+      "card": "automation/runs/2026-07-20-news-1800-databricks-188b/card.png"
     }
   ]
 }
