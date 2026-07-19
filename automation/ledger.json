@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 41,
+  "rotationIndex": 42,
   "runs": [
     {
       "date": "2026-06-10",
@@ -427,6 +427,17 @@
       "blogUrl": "https://aipasakon.com/blog/inkling-2026",
       "postId": "122118061713259159",
       "card": "automation/runs/2026-07-18-news-0800-inkling/card.png"
+    },
+    {
+      "date": "2026-07-19",
+      "track": "knowledge",
+      "subject": "talking-to-ai",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-19T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/pro-usage/talking-to-ai",
+      "postId": "122118299859259159",
+      "card": "automation/runs/2026-07-19-knowledge-1800-talking-to-ai/card.png",
+      "angle": "G-C-F-E: brief งานให้ชัด ไม่ใช่จำ prompt ลับ; ตัวอย่างอีเมลลูกค้าส่งของช้า"
     }
   ]
 }
