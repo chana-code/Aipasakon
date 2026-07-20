@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 46,
+  "rotationIndex": 47,
   "runs": [
     {
       "date": "2026-06-10",
@@ -482,6 +482,17 @@
       "postId": "122118397701259159",
       "card": "automation/runs/2026-07-21-tools-1800-notebooklm/card.png",
       "angle": "ดึงของออกมาเป็นไฟล์ในรูปแบบที่หน้าเว็บ NotebookLM ไม่มีให้ (ควิซ/แฟลชการ์ด JSON-MD-HTML, ตาราง CSV, สไลด์ PPTX) + ป้อน/ดาวน์โหลดยกกอง; CLI รันผ่าน agent, unofficial API อาจพัง; NotebookLM เปลี่ยนชื่อเป็น Gemini Notebook ก.ค. 2026"
+    },
+    {
+      "date": "2026-07-20",
+      "track": "news",
+      "subject": "Current AI นำ 400 ล้านดอลลาร์สร้าง AI สาธารณะ",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-22T01:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/07/19/nonprofit-current-ai-is-racing-to-build-the-world-wide-web-of-ai-free-for-all/",
+      "blogUrl": "https://aipasakon.com/blog/current-ai-2026",
+      "postId": "122118397743259159",
+      "card": "automation/runs/2026-07-22-news-0800-current-ai/card.png"
     }
   ]
 }
