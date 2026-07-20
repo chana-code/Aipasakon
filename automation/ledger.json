@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 45,
+  "rotationIndex": 46,
   "runs": [
     {
       "date": "2026-06-10",
@@ -471,6 +471,17 @@
       "postId": "122118300183259159",
       "card": "automation/runs/2026-07-21-knowledge-0800-hard-limits/card.png",
       "angle": "strawberry นับ r ผิด = ขีดจำกัดติดมากับราก (token เป็นก้อน ไม่ใช่ตัวอักษร); เดารูปแบบ != ทำตามกฎ; ทางออกคือยืมเครื่องมือ"
+    },
+    {
+      "date": "2026-07-20",
+      "track": "tools",
+      "subject": "notebooklm",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-21T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/notebooklm",
+      "postId": "122118397701259159",
+      "card": "automation/runs/2026-07-21-tools-1800-notebooklm/card.png",
+      "angle": "ดึงของออกมาเป็นไฟล์ในรูปแบบที่หน้าเว็บ NotebookLM ไม่มีให้ (ควิซ/แฟลชการ์ด JSON-MD-HTML, ตาราง CSV, สไลด์ PPTX) + ป้อน/ดาวน์โหลดยกกอง; CLI รันผ่าน agent, unofficial API อาจพัง; NotebookLM เปลี่ยนชื่อเป็น Gemini Notebook ก.ค. 2026"
     }
   ]
 }
