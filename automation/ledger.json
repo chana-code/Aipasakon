@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 48,
+  "rotationIndex": 49,
   "runs": [
     {
       "date": "2026-06-10",
@@ -504,6 +504,17 @@
       "postId": "122118467319259159",
       "card": "automation/runs/2026-07-22-knowledge-1800-how-it-trains/card.png",
       "angle": "base model รู้เยอะแต่ตอบคำถามไม่เป็น ได้แต่ต่อข้อความ (กรุงเทพอยู่ประเทศอะไร -> ต่อด้วยบริบทข้อสอบ); post-training ไม่ได้ยัดความรู้ใหม่ แค่ขัดเกลานิสัยการตอบ; InstructGPT 1.3B คนชอบกว่า GPT-3 175B ที่ยังไม่ขัดเกลา = ขัดเกลาสำคัญพอ ๆ กับความรู้เยอะ; เทียบ AI อย่าดูแค่ขนาด"
+    },
+    {
+      "date": "2026-07-21",
+      "track": "tools",
+      "subject": "youtube-clipper",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-23T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/youtube-clipper",
+      "postId": "122118467391259159",
+      "card": "automation/runs/2026-07-23-tools-0800-youtube-clipper/card.png",
+      "angle": "หั่นคลิป YouTube ยาวด้วย AI semantic chapters (~3 นาที ตามเรื่องที่พูด ไม่ใช่ตัดตามเวลา) + ตัด FFmpeg ตรงเฟรม + ซับสองภาษาแปลทีละ 20 บรรทัด (TARGET_LANGUAGE ตั้งเป็นไทยได้) + เผาซับลงคลิป + ร่างแคปชันโซเชียล; runtime = Claude Code skill บนเครื่อง ต้องมี Python+yt-dlp+FFmpeg (Mac ต้อง ffmpeg-full) รันในแชทเปล่าไม่ได้ ยื่น repo ให้ agent"
     }
   ]
 }
