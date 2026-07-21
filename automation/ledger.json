@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 47,
+  "rotationIndex": 48,
   "runs": [
     {
       "date": "2026-06-10",
@@ -493,6 +493,17 @@
       "blogUrl": "https://aipasakon.com/blog/current-ai-2026",
       "postId": "122118397743259159",
       "card": "automation/runs/2026-07-22-news-0800-current-ai/card.png"
+    },
+    {
+      "date": "2026-07-21",
+      "track": "knowledge",
+      "subject": "how-it-trains",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-22T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/how-it-trains",
+      "postId": "122118467319259159",
+      "card": "automation/runs/2026-07-22-knowledge-1800-how-it-trains/card.png",
+      "angle": "base model รู้เยอะแต่ตอบคำถามไม่เป็น ได้แต่ต่อข้อความ (กรุงเทพอยู่ประเทศอะไร -> ต่อด้วยบริบทข้อสอบ); post-training ไม่ได้ยัดความรู้ใหม่ แค่ขัดเกลานิสัยการตอบ; InstructGPT 1.3B คนชอบกว่า GPT-3 175B ที่ยังไม่ขัดเกลา = ขัดเกลาสำคัญพอ ๆ กับความรู้เยอะ; เทียบ AI อย่าดูแค่ขนาด"
     }
   ]
 }
