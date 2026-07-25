@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 51,
+  "rotationIndex": 52,
   "runs": [
     {
       "date": "2026-06-10",
@@ -537,6 +537,17 @@
       "postId": "122118776775259159",
       "card": "automation/runs/2026-07-26-knowledge-0800-token-optimization/card.png",
       "angle": "token นับทุกอย่างที่โมเดลต้องอ่าน ไม่ใช่แค่ข้อความล่าสุด; 'แก้ต่อจากเมื่อกี้' ส่งประวัติทั้งกองกลับเข้าไป; output แพงกว่า input ~5 เท่า (Sonnet 5 $3 vs $15); ไทยกิน token มากกว่าอังกฤษ"
+    },
+    {
+      "date": "2026-07-25",
+      "track": "tools",
+      "subject": "playwright-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-26T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/playwright-mcp",
+      "postId": "122118776925259159",
+      "card": "automation/runs/2026-07-26-tools-1800-playwright-mcp/card.png",
+      "angle": "อ่านหน้าเว็บเป็น accessibility tree (ข้อความ) ไม่ใช่ screenshot จึงเร็ว/แม่นกว่า; เปิดเบราว์เซอร์สะอาดใหม่ (ต่างจาก mcp-chrome ที่ใช้ Chrome เดิมที่ล็อกอินไว้) เหมาะงานทดสอบ/อัตโนมัติซ้ำ ๆ; เป็น MCP ทางการจาก Microsoft รันผ่าน agent"
     }
   ]
 }
