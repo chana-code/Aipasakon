@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 50,
+  "rotationIndex": 51,
   "runs": [
     {
       "date": "2026-06-10",
@@ -526,6 +526,17 @@
       "blogUrl": "https://aipasakon.com/blog/opus-5-2026",
       "postId": "122118776727259159",
       "card": "automation/runs/2026-07-25-news-1800-opus-5/card.png"
+    },
+    {
+      "date": "2026-07-25",
+      "track": "knowledge",
+      "subject": "token-optimization",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-26T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/pro-usage/token-optimization",
+      "postId": "122118776775259159",
+      "card": "automation/runs/2026-07-26-knowledge-0800-token-optimization/card.png",
+      "angle": "token นับทุกอย่างที่โมเดลต้องอ่าน ไม่ใช่แค่ข้อความล่าสุด; 'แก้ต่อจากเมื่อกี้' ส่งประวัติทั้งกองกลับเข้าไป; output แพงกว่า input ~5 เท่า (Sonnet 5 $3 vs $15); ไทยกิน token มากกว่าอังกฤษ"
     }
   ]
 }
