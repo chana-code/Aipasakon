@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 52,
+  "rotationIndex": 53,
   "runs": [
     {
       "date": "2026-06-10",
@@ -548,6 +548,17 @@
       "postId": "122118776925259159",
       "card": "automation/runs/2026-07-26-tools-1800-playwright-mcp/card.png",
       "angle": "อ่านหน้าเว็บเป็น accessibility tree (ข้อความ) ไม่ใช่ screenshot จึงเร็ว/แม่นกว่า; เปิดเบราว์เซอร์สะอาดใหม่ (ต่างจาก mcp-chrome ที่ใช้ Chrome เดิมที่ล็อกอินไว้) เหมาะงานทดสอบ/อัตโนมัติซ้ำ ๆ; เป็น MCP ทางการจาก Microsoft รันผ่าน agent"
+    },
+    {
+      "date": "2026-07-25",
+      "track": "news",
+      "subject": "Kimi K3 โมเดล open-weight จาก Moonshot",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-27T08:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/07/23/experts-say-exploiting-anthropics-fable-isnt-how-kimi-k3-got-so-good/",
+      "blogUrl": "https://aipasakon.com/blog/kimi-k3-open-weight-2026",
+      "postId": "122118777129259159",
+      "card": "automation/runs/2026-07-27-news-0800-kimi-k3/card.png"
     }
   ]
 }
