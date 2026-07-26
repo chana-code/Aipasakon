@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 54,
+  "rotationIndex": 55,
   "runs": [
     {
       "date": "2026-06-10",
@@ -570,6 +570,17 @@
       "postId": "122118846423259159",
       "card": "automation/runs/2026-07-27-knowledge-1800-build-once/card.png",
       "angle": "สเปกตรัม AI-ใน-runtime vs AI-สร้างแล้วจากไป; แชทบอท (มี AI ตลอด) vs สคริปต์ดึงอัตราแลกเปลี่ยน (runtime ไม่มี AI); ตำแหน่งบนเส้น = ต้นทุน + ความเสถียร; วิธีผ่างานเป็นชิ้นแล้วถามว่าชิ้นไหนต้องเข้าใจภาษาจริง; อุปมาช่างติดตั้งเครื่องรดน้ำ"
+    },
+    {
+      "date": "2026-07-26",
+      "track": "tools",
+      "subject": "cli-anything",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-28T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/cli-anything",
+      "postId": "122118846627259159",
+      "card": "automation/runs/2026-07-28-tools-0800-cli-anything/card.png",
+      "angle": "อ่านซอร์สโค้ดของโปรแกรม map ปุ่ม GUI -> ฟังก์ชันภายใน แล้วสร้าง CLI ให้ AI เรียกตรง ๆ (ต่างจากถ่ายจอแล้วเดาปุ่ม) จึงเข้าถึงความสามารถเต็มและทำซ้ำได้เหมือนเดิม; คลังสำเร็จรูป 47 ตัว (GIMP/Blender/Audacity/Inkscape/LibreOffice/OBS/Draw.io); pip install cli-anything-hub + cli-hub search/install; ข้อจำกัดตาม README = ต้องมีซอร์สโค้ด (โอเพนซอร์ส ไม่ใช่ Photoshop) ต้อง refine หลายรอบ ต้องโมเดลระดับบน Python 3.10+; runtime = agent ที่รันโค้ดได้ ไม่ใช่แชทเปล่า; จาก HKUDS"
     }
   ]
 }
