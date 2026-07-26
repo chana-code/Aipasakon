@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 53,
+  "rotationIndex": 54,
   "runs": [
     {
       "date": "2026-06-10",
@@ -559,6 +559,17 @@
       "blogUrl": "https://aipasakon.com/blog/kimi-k3-open-weight-2026",
       "postId": "122118777129259159",
       "card": "automation/runs/2026-07-27-news-0800-kimi-k3/card.png"
+    },
+    {
+      "date": "2026-07-26",
+      "track": "knowledge",
+      "subject": "build-once",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-27T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/in-practice/build-once",
+      "postId": "122118846423259159",
+      "card": "automation/runs/2026-07-27-knowledge-1800-build-once/card.png",
+      "angle": "สเปกตรัม AI-ใน-runtime vs AI-สร้างแล้วจากไป; แชทบอท (มี AI ตลอด) vs สคริปต์ดึงอัตราแลกเปลี่ยน (runtime ไม่มี AI); ตำแหน่งบนเส้น = ต้นทุน + ความเสถียร; วิธีผ่างานเป็นชิ้นแล้วถามว่าชิ้นไหนต้องเข้าใจภาษาจริง; อุปมาช่างติดตั้งเครื่องรดน้ำ"
     }
   ]
 }
