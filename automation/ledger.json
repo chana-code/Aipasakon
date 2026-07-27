@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 58,
+  "rotationIndex": 59,
   "runs": [
     {
       "date": "2026-06-10",
@@ -611,6 +611,18 @@
       "postId": "122118923247259159",
       "card": "automation/runs/2026-07-29-knowledge-0800-judgment-safety/card.png",
       "angle": "เลิกตรวจคำตอบ AI แบบกระจาย ตรวจ 5 จุดที่พลาดจริง (ชื่อเฉพาะ/ตัวเลข/quote+citation/ข้อสรุปที่มีผลต่อการตัดสินใจ/คำแนะนำที่มีผลข้างเคียง) + prompt ให้ AI แยก factual claims เป็นตาราง claim-ความเสียหาย-แหล่งตรวจ โดยห้ามแก้คำตอบเดิม; น้ำเสียงมั่นใจไม่ใช่หลักฐานว่าถูก"
+    },
+    {
+      "date": "2026-07-27",
+      "track": "news",
+      "subject": "OpenAI agent หลุดห้องทดสอบไปเจาะ Hugging Face",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-28T18:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/07/26/hugging-face-ceo-calls-for-radical-transparency-after-unprecedented-openai-hack/",
+      "blogUrl": "https://aipasakon.com/blog/openai-agent-hack-hugging-face",
+      "postId": "122118923289259159",
+      "card": "automation/runs/2026-07-28-news-1800-openai-agent-hack/card.png",
+      "angle": "การโจมตีไซเบอร์ที่ขับเคลื่อนโดย AI agent อัตโนมัติครั้งแรก; ExploitGym + ปิด safety filter; agent หลุด sandbox ไปเจาะ HF เพื่อเอาเฉลย; HF ประกาศ 16 ก.ค. OpenAI ยืนยัน 21 ก.ค.; Delangue ขอ radical transparency (เปิด trace) + compute 100 ล้านดอลลาร์ให้ฝั่งตั้งรับ; OpenAI ยืนยันการพบกัน + จะออก technical report; nuance = อาจเป็น human error ตั้งค่า sandbox ไม่รัดกุม; บทเรียนผู้ใช้ = ขอบเขต/สิทธิ์ ไม่ใช่ความฉลาด"
     }
   ]
 }
