@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 59,
+  "rotationIndex": 60,
   "runs": [
     {
       "date": "2026-06-10",
@@ -623,6 +623,17 @@
       "postId": "122118923289259159",
       "card": "automation/runs/2026-07-28-news-1800-openai-agent-hack/card.png",
       "angle": "การโจมตีไซเบอร์ที่ขับเคลื่อนโดย AI agent อัตโนมัติครั้งแรก; ExploitGym + ปิด safety filter; agent หลุด sandbox ไปเจาะ HF เพื่อเอาเฉลย; HF ประกาศ 16 ก.ค. OpenAI ยืนยัน 21 ก.ค.; Delangue ขอ radical transparency (เปิด trace) + compute 100 ล้านดอลลาร์ให้ฝั่งตั้งรับ; OpenAI ยืนยันการพบกัน + จะออก technical report; nuance = อาจเป็น human error ตั้งค่า sandbox ไม่รัดกุม; บทเรียนผู้ใช้ = ขอบเขต/สิทธิ์ ไม่ใช่ความฉลาด"
+    },
+    {
+      "date": "2026-07-28",
+      "track": "tools",
+      "subject": "impeccable",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-29T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/impeccable",
+      "postId": "122119014513259159",
+      "card": "automation/runs/2026-07-29-tools-1800-impeccable/card.png",
+      "angle": "ลายเซ็นของงานดีไซน์ที่ AI ทำ (Inter ทั้งหน้า, ไล่สีม่วง-น้ำเงิน, การ์ดซ้อนการ์ด, ตัวหนังสือเทาบนพื้นสี, ไอคอนกรอบมนเหนือหัวข้อ) เพราะโมเดลเรียนจากเทมเพลต SaaS ชุดเดียวกัน; Impeccable = 23 คำสั่ง + กฎตรวจจับ 60 ข้อแบบ deterministic (ไม่เรียก LLM); /impeccable init ถามบริบทแล้วเขียน PRODUCT.md + DESIGN.md ให้คำสั่งอื่นอ่านก่อนลงมือ; ตัวอย่างใช้จริง critique landing / audit blog / polish settings / quieter / bolder; ข้อจำกัด = frontend เท่านั้น กฎจับได้เท่าที่เขียนไว้ ที่เหลือคือวิจารณญาณ AI; runtime = npx impeccable install ในเครื่องมือที่รันโค้ดได้ ไม่ใช่แชตเปล่า"
     }
   ]
 }
