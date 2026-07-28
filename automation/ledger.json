@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 60,
+  "rotationIndex": 61,
   "runs": [
     {
       "date": "2026-06-10",
@@ -634,6 +634,18 @@
       "postId": "122119014513259159",
       "card": "automation/runs/2026-07-29-tools-1800-impeccable/card.png",
       "angle": "ลายเซ็นของงานดีไซน์ที่ AI ทำ (Inter ทั้งหน้า, ไล่สีม่วง-น้ำเงิน, การ์ดซ้อนการ์ด, ตัวหนังสือเทาบนพื้นสี, ไอคอนกรอบมนเหนือหัวข้อ) เพราะโมเดลเรียนจากเทมเพลต SaaS ชุดเดียวกัน; Impeccable = 23 คำสั่ง + กฎตรวจจับ 60 ข้อแบบ deterministic (ไม่เรียก LLM); /impeccable init ถามบริบทแล้วเขียน PRODUCT.md + DESIGN.md ให้คำสั่งอื่นอ่านก่อนลงมือ; ตัวอย่างใช้จริง critique landing / audit blog / polish settings / quieter / bolder; ข้อจำกัด = frontend เท่านั้น กฎจับได้เท่าที่เขียนไว้ ที่เหลือคือวิจารณญาณ AI; runtime = npx impeccable install ในเครื่องมือที่รันโค้ดได้ ไม่ใช่แชตเปล่า"
+    },
+    {
+      "date": "2026-07-28",
+      "track": "news",
+      "subject": "ลิงก์แชร์บทสนทนา Claude โผล่บนหน้าค้นหา Google",
+      "status": "scheduled",
+      "scheduledFor": "2026-07-30T08:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/07/27/psa-your-claude-shared-chats-and-artifacts-may-have-ended-up-on-google/",
+      "blogUrl": "https://aipasakon.com/blog/claude-shared-chats-google",
+      "postId": "122119014669259159",
+      "card": "automation/runs/2026-07-30-news-0800-claude-shared-chats/card.png",
+      "angle": "ปุ่มแชร์ = สร้างหน้าเว็บสาธารณะที่อยู่เดายาก ไม่ใช่ส่งแบบส่วนตัว (security through obscurity); ค้นด้วย site:claude.ai/share เจอบทสนทนาคนอื่น; เนื้อหาที่หลุด = เวชระเบียน/ผลทดลองยาที่มีชื่อคนไข้/เอกสารบริษัท/รายชื่อนักเรียน+เบอร์โทร/ที่อยู่/กุญแจคริปโต; เริ่มจาก Reddit+X สุดสัปดาห์ 404 Media รายงาน 27 ก.ค.; Anthropic ชี้แจงว่าไม่ได้ส่ง sitemap ให้ search engine ลิงก์ขึ้นเมื่อถูกโพสต์ในที่สาธารณะ; TechCrunch ค้นซ้ำบ่ายวันจันทร์ไม่พบผลแล้ว; precedent = Claude ~600 รายการปีก่อน, ChatGPT ~100,000, Grok; ACTION = Settings > Privacy > Shared chats/artifacts > Manage > unshare"
     }
   ]
 }
