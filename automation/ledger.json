@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 63,
+  "rotationIndex": 64,
   "runs": [
     {
       "date": "2026-06-10",
@@ -669,6 +669,17 @@
       "postId": "122119717425259159",
       "card": "automation/runs/2026-08-06-knowledge-0800-product-comparison/card.png",
       "angle": "สูตรสามชิ้น model + harness + สิ่งที่เอื้อมถึงได้ ใช้ถอด product AI ได้ทุกตัว; การทดลองสองคำสั่งใน ChatGPT (แก้ไฟล์ในเครื่องไม่ได้ vs ร่างอีเมลได้) พิสูจน์ว่าต่างกันที่ขอบเขตไม่ใช่ความฉลาด; Chat/Cowork/Claude Code = model ตระกูลเดียวกัน harness คนละแบบ; CLAUDE.md กับ AGENTS.md = ของชนิดเดียวกันคนละชื่อ; LLM ไม่ได้วาดรูปเอง harness เรียก model ภาพ/วิดีโอแยก; เปลี่ยนคำถามจาก AI ตัวไหนดีที่สุด เป็นสามคำถามที่ตอบได้"
+    },
+    {
+      "date": "2026-08-05",
+      "track": "tools",
+      "subject": "gstack",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-06T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/gstack",
+      "postId": "122119717557259159",
+      "card": "automation/runs/2026-08-06-tools-1800-gstack/card.png",
+      "angle": "ปัญหาของ AI เขียนโค้ดไม่ใช่เขียนไม่ออก แต่ไม่มีใครตรวจ; gstack = ชุดคำสั่งโอเพนซอร์ส MIT ติดเพิ่มใน Claude Code เปลี่ยน AI ตัวเดียวเป็นทีมที่มีด่านตรวจ; ผู้สร้าง Garry Tan ประธาน+ซีอีโอ Y Combinator; 40+ คำสั่ง, 23 บทบาทผู้เชี่ยวชาญ เรียงตามลำดับงานจริง; คำสั่งที่ยกมา /office-hours /design-review (จับ AI slop) /review /qa (เปิดเบราว์เซอร์จริงไล่กด) /cso /ship; เจ้าตัวเล่าใน README ว่าปล่อยบริการจริง 3 ตัว + 40+ ฟีเจอร์ใน 60 วันแบบ part-time (ระบุว่าเป็นคำบอกเล่าผู้สร้าง ไม่ใช่ผลวัดจากคนนอก); runtime honesty = ใช้ในช่องแชต ChatGPT ไม่ได้ ต้องมี Claude Code + git + Bun 1.0+; คำสั่งติดตั้ง git clone --single-branch --depth 1 ... ~/.claude/skills/gstack && ./setup"
     }
   ]
 }
