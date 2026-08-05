@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 62,
+  "rotationIndex": 63,
   "runs": [
     {
       "date": "2026-06-10",
@@ -658,6 +658,17 @@
       "postId": "122119717383259159",
       "card": "automation/runs/2026-08-05-news-1800-eu-ai-transparency/card.png",
       "angle": "มาตรา 50 ของ EU AI Act เริ่มบังคับ 2 ส.ค. 2026; สามอย่างต้องเปิดเผย = แชตบอต/agent/avatar ต้องบอกว่าเป็น AI, deepfake ภาพ-เสียง-วิดีโอต้องติดป้าย, ข้อความ AI เรื่องสาธารณะที่ไม่มีคนตรวจต้องเปิดเผย + ต้องฝังเครื่องหมาย machine-readable; เขียนใน T&C หรือ metadata อย่างเดียวไม่นับ ต้องเป็นข้อความที่คนเห็นตอนใช้; extraterritorial ตามมาตรา 2 = ผู้ให้บริการที่นำระบบเข้าตลาด EU และผู้ใช้นอก EU ที่ผลลัพธ์ถูกใช้ใน EU เข้าข่าย; ค่าปรับสูงสุด 15 ล้านยูโร หรือ 3% รายได้ทั่วโลก แล้วแต่อันไหนสูงกว่า, 750,000 ยูโรสำหรับหน่วยงาน EU, ผ่อนตามสัดส่วนสำหรับ SME; ข้อยกเว้น = ดูออกทันทีว่าไม่จริง / งานศิลปะ-ล้อเลียนผ่อนปรน / ข้อความที่มีคนมีความรู้ตรวจจริง + มีชื่อผู้รับผิดชอบพร้อมช่องทางติดต่อสาธารณะ; ผ่อนผัน machine-readable ถึง 2 ธ.ค. 2026 สำหรับระบบที่วางขายก่อน 2 ส.ค.; 180+ องค์กรลงนาม Code of Practice; บังคับใช้โดย national market surveillance authorities + AI Office + EDPS"
+    },
+    {
+      "date": "2026-08-05",
+      "track": "knowledge",
+      "subject": "product-comparison",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-06T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/products/product-comparison",
+      "postId": "122119717425259159",
+      "card": "automation/runs/2026-08-06-knowledge-0800-product-comparison/card.png",
+      "angle": "สูตรสามชิ้น model + harness + สิ่งที่เอื้อมถึงได้ ใช้ถอด product AI ได้ทุกตัว; การทดลองสองคำสั่งใน ChatGPT (แก้ไฟล์ในเครื่องไม่ได้ vs ร่างอีเมลได้) พิสูจน์ว่าต่างกันที่ขอบเขตไม่ใช่ความฉลาด; Chat/Cowork/Claude Code = model ตระกูลเดียวกัน harness คนละแบบ; CLAUDE.md กับ AGENTS.md = ของชนิดเดียวกันคนละชื่อ; LLM ไม่ได้วาดรูปเอง harness เรียก model ภาพ/วิดีโอแยก; เปลี่ยนคำถามจาก AI ตัวไหนดีที่สุด เป็นสามคำถามที่ตอบได้"
     }
   ]
 }
