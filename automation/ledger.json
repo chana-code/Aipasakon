@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 61,
+  "rotationIndex": 62,
   "runs": [
     {
       "date": "2026-06-10",
@@ -646,6 +646,18 @@
       "postId": "122119014669259159",
       "card": "automation/runs/2026-07-30-news-0800-claude-shared-chats/card.png",
       "angle": "ปุ่มแชร์ = สร้างหน้าเว็บสาธารณะที่อยู่เดายาก ไม่ใช่ส่งแบบส่วนตัว (security through obscurity); ค้นด้วย site:claude.ai/share เจอบทสนทนาคนอื่น; เนื้อหาที่หลุด = เวชระเบียน/ผลทดลองยาที่มีชื่อคนไข้/เอกสารบริษัท/รายชื่อนักเรียน+เบอร์โทร/ที่อยู่/กุญแจคริปโต; เริ่มจาก Reddit+X สุดสัปดาห์ 404 Media รายงาน 27 ก.ค.; Anthropic ชี้แจงว่าไม่ได้ส่ง sitemap ให้ search engine ลิงก์ขึ้นเมื่อถูกโพสต์ในที่สาธารณะ; TechCrunch ค้นซ้ำบ่ายวันจันทร์ไม่พบผลแล้ว; precedent = Claude ~600 รายการปีก่อน, ChatGPT ~100,000, Grok; ACTION = Settings > Privacy > Shared chats/artifacts > Manage > unshare"
+    },
+    {
+      "date": "2026-08-05",
+      "track": "news",
+      "subject": "กฎความโปร่งใส AI ของสหภาพยุโรปเริ่มบังคับใช้",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-05T18:00:00+07:00",
+      "sourceUrl": "https://commission.europa.eu/news-and-media/news/safer-and-more-transparent-ai-2026-08-02_en",
+      "blogUrl": "https://aipasakon.com/blog/eu-ai-act-transparency-rules",
+      "postId": "122119717383259159",
+      "card": "automation/runs/2026-08-05-news-1800-eu-ai-transparency/card.png",
+      "angle": "มาตรา 50 ของ EU AI Act เริ่มบังคับ 2 ส.ค. 2026; สามอย่างต้องเปิดเผย = แชตบอต/agent/avatar ต้องบอกว่าเป็น AI, deepfake ภาพ-เสียง-วิดีโอต้องติดป้าย, ข้อความ AI เรื่องสาธารณะที่ไม่มีคนตรวจต้องเปิดเผย + ต้องฝังเครื่องหมาย machine-readable; เขียนใน T&C หรือ metadata อย่างเดียวไม่นับ ต้องเป็นข้อความที่คนเห็นตอนใช้; extraterritorial ตามมาตรา 2 = ผู้ให้บริการที่นำระบบเข้าตลาด EU และผู้ใช้นอก EU ที่ผลลัพธ์ถูกใช้ใน EU เข้าข่าย; ค่าปรับสูงสุด 15 ล้านยูโร หรือ 3% รายได้ทั่วโลก แล้วแต่อันไหนสูงกว่า, 750,000 ยูโรสำหรับหน่วยงาน EU, ผ่อนตามสัดส่วนสำหรับ SME; ข้อยกเว้น = ดูออกทันทีว่าไม่จริง / งานศิลปะ-ล้อเลียนผ่อนปรน / ข้อความที่มีคนมีความรู้ตรวจจริง + มีชื่อผู้รับผิดชอบพร้อมช่องทางติดต่อสาธารณะ; ผ่อนผัน machine-readable ถึง 2 ธ.ค. 2026 สำหรับระบบที่วางขายก่อน 2 ส.ค.; 180+ องค์กรลงนาม Code of Practice; บังคับใช้โดย national market surveillance authorities + AI Office + EDPS"
     }
   ]
 }
