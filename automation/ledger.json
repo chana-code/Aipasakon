@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 64,
+  "rotationIndex": 65,
   "runs": [
     {
       "date": "2026-06-10",
@@ -680,6 +680,18 @@
       "postId": "122119717557259159",
       "card": "automation/runs/2026-08-06-tools-1800-gstack/card.png",
       "angle": "ปัญหาของ AI เขียนโค้ดไม่ใช่เขียนไม่ออก แต่ไม่มีใครตรวจ; gstack = ชุดคำสั่งโอเพนซอร์ส MIT ติดเพิ่มใน Claude Code เปลี่ยน AI ตัวเดียวเป็นทีมที่มีด่านตรวจ; ผู้สร้าง Garry Tan ประธาน+ซีอีโอ Y Combinator; 40+ คำสั่ง, 23 บทบาทผู้เชี่ยวชาญ เรียงตามลำดับงานจริง; คำสั่งที่ยกมา /office-hours /design-review (จับ AI slop) /review /qa (เปิดเบราว์เซอร์จริงไล่กด) /cso /ship; เจ้าตัวเล่าใน README ว่าปล่อยบริการจริง 3 ตัว + 40+ ฟีเจอร์ใน 60 วันแบบ part-time (ระบุว่าเป็นคำบอกเล่าผู้สร้าง ไม่ใช่ผลวัดจากคนนอก); runtime honesty = ใช้ในช่องแชต ChatGPT ไม่ได้ ต้องมี Claude Code + git + Bun 1.0+; คำสั่งติดตั้ง git clone --single-branch --depth 1 ... ~/.claude/skills/gstack && ./setup"
+    },
+    {
+      "date": "2026-08-05",
+      "track": "news",
+      "subject": "โมเดลแบบเปิดน้ำหนักตามทันโมเดลชั้นนำ แต่ช่องว่างด้านความปลอดภัยยังอยู่",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-07T08:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/08/04/open-weight-ai-models-are-catching-up-to-the-frontier-the-safety-gap-remains/",
+      "blogUrl": "https://aipasakon.com/blog/open-weight-safety-gap",
+      "postId": "122119717887259159",
+      "card": "automation/runs/2026-08-07-news-0800-open-weight-safety-gap/card.png",
+      "angle": "SaferAI ทดสอบ GLM-5.2 ของ Z.ai ผ่าน public API ด้วย CyberGym; ผลคือความสามารถตามหลัง GPT-5.5/Claude Opus 4.7 แค่ไม่กี่เดือน แต่ไม่ปฏิเสธคำขอสักข้อ ทั้ง offensive cyber และ dual-use biology ขณะที่ Opus 4.7 ปฏิเสธจนรัน CyberGym ไม่จบ; นิยาม open-weight = ปล่อยไฟล์น้ำหนัก โหลดแล้วถอด/แก้/ฝึกทับตัวกันได้ กติกาจึงบังคับไม่ได้; Henry Papadatos (ผอ. SaferAI) 'the frontier of capability is not the frontier of risk'; balance = Far.ai พบ universal jailbreak หลายร้อยวิธีที่ใช้ได้กับ Grok 4.5 และ Gemini 3.1 Pro ด้วย (roleplay/แอบอ้างอำนาจ/ปลอมประวัติแชต) จึงไม่ใช่เรื่องจีนแย่กว่าตะวันตก; Clem Delangue มองด้านตั้งรับ; Z.ai ไม่ได้เผยแพร่ safety framework/pre-deployment testing และไม่ตอบ TechCrunch; Graham Webster (Stanford) ชี้กฎ AI จีนเน้นเนื้อหาการเมือง/ข่าวปลอม/เสถียรภาพสังคม มากกว่าความเสี่ยงหายนะ; บทเรียนผู้ใช้ = ความปลอดภัยไม่ใช่คุณสมบัติของไฟล์โมเดล แต่คือระบบรอบตัวไฟล์ที่คุณต้องสร้างเอง (ขอบเขต สิทธิ์ ปลายทางของผลลัพธ์)"
     }
   ]
 }
