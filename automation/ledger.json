@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 65,
+  "rotationIndex": 66,
   "runs": [
     {
       "date": "2026-06-10",
@@ -692,6 +692,17 @@
       "postId": "122119717887259159",
       "card": "automation/runs/2026-08-07-news-0800-open-weight-safety-gap/card.png",
       "angle": "SaferAI ทดสอบ GLM-5.2 ของ Z.ai ผ่าน public API ด้วย CyberGym; ผลคือความสามารถตามหลัง GPT-5.5/Claude Opus 4.7 แค่ไม่กี่เดือน แต่ไม่ปฏิเสธคำขอสักข้อ ทั้ง offensive cyber และ dual-use biology ขณะที่ Opus 4.7 ปฏิเสธจนรัน CyberGym ไม่จบ; นิยาม open-weight = ปล่อยไฟล์น้ำหนัก โหลดแล้วถอด/แก้/ฝึกทับตัวกันได้ กติกาจึงบังคับไม่ได้; Henry Papadatos (ผอ. SaferAI) 'the frontier of capability is not the frontier of risk'; balance = Far.ai พบ universal jailbreak หลายร้อยวิธีที่ใช้ได้กับ Grok 4.5 และ Gemini 3.1 Pro ด้วย (roleplay/แอบอ้างอำนาจ/ปลอมประวัติแชต) จึงไม่ใช่เรื่องจีนแย่กว่าตะวันตก; Clem Delangue มองด้านตั้งรับ; Z.ai ไม่ได้เผยแพร่ safety framework/pre-deployment testing และไม่ตอบ TechCrunch; Graham Webster (Stanford) ชี้กฎ AI จีนเน้นเนื้อหาการเมือง/ข่าวปลอม/เสถียรภาพสังคม มากกว่าความเสี่ยงหายนะ; บทเรียนผู้ใช้ = ความปลอดภัยไม่ใช่คุณสมบัติของไฟล์โมเดล แต่คือระบบรอบตัวไฟล์ที่คุณต้องสร้างเอง (ขอบเขต สิทธิ์ ปลายทางของผลลัพธ์)"
+    },
+    {
+      "date": "2026-08-06",
+      "track": "knowledge",
+      "subject": "connectors",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-07T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/pro-usage/connectors",
+      "postId": "122119860363259159",
+      "card": "automation/runs/2026-08-07-knowledge-1800-connectors/card.png",
+      "angle": "คำถามเดียวคือ AI ต้องแตะอะไรและแตะลึกแค่ไหน; ประโยคแยก MCP กับ API = ทิศทาง (API โปรแกรมคุณเรียก model / MCP model เรียกเครื่องมือคุณ); บันได prompt -> skill -> CLI -> MCP -> API พร้อมตัวอย่างงานจริงต่อขั้น; เส้นแบ่งที่คนพลาดบ่อยสุด = skill เก็บวิธีทำ ไม่มีมือหยิบข้อมูลสด; MCP = มาตรฐานกลางแบบหัว USB-C; ปิดท้ายด้วยกฎ reach เพิ่ม = ความเสี่ยง+ต้นทุนเพิ่ม ตั้งสิทธิ์แคบสุด (อ่านอย่างเดียว vs เขียนทับ, อ่าน issue vs merge)"
     }
   ]
 }
