@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 66,
+  "rotationIndex": 67,
   "runs": [
     {
       "date": "2026-06-10",
@@ -703,6 +703,17 @@
       "postId": "122119860363259159",
       "card": "automation/runs/2026-08-07-knowledge-1800-connectors/card.png",
       "angle": "คำถามเดียวคือ AI ต้องแตะอะไรและแตะลึกแค่ไหน; ประโยคแยก MCP กับ API = ทิศทาง (API โปรแกรมคุณเรียก model / MCP model เรียกเครื่องมือคุณ); บันได prompt -> skill -> CLI -> MCP -> API พร้อมตัวอย่างงานจริงต่อขั้น; เส้นแบ่งที่คนพลาดบ่อยสุด = skill เก็บวิธีทำ ไม่มีมือหยิบข้อมูลสด; MCP = มาตรฐานกลางแบบหัว USB-C; ปิดท้ายด้วยกฎ reach เพิ่ม = ความเสี่ยง+ต้นทุนเพิ่ม ตั้งสิทธิ์แคบสุด (อ่านอย่างเดียว vs เขียนทับ, อ่าน issue vs merge)"
+    },
+    {
+      "date": "2026-08-06",
+      "track": "tools",
+      "subject": "paperclip",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-08T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/paperclip",
+      "postId": "122119860423259159",
+      "card": "automation/runs/2026-08-08-tools-0800-paperclip/card.png",
+      "angle": "ปัญหาไม่ใช่คุณภาพงานของ AI แต่คือคนตามไม่ทันเมื่อเปิดหลายตัวพร้อมกัน (แท็บเยอะ ปิดเครื่องบริบทหาย ไม่รู้ว่าตัวไหนกินเงินเท่าไหร่); Paperclip = ชั้นบริหารครอบทับ agent ที่มีอยู่ ไม่ใช่ AI ตัวใหม่ (bring your own agent: Claude Code/Codex/Cursor/HTTP bot); สามจุดขาย = งบต่อตัวเป็นเพดานจริง ชนแล้วหยุด+ยกเลิกคิว, heartbeat ปลุกงานตามรอบ, ตั๋ว+audit log+ด่านอนุมัติ+พัก/หยุด agent ได้; runtime honesty = Node.js server ติดตั้งเองบนเครื่อง ไม่ใช่เว็บสมัครใช้ ไม่ใช่แชตเปล่า ต้องมี Node 20+ และค่าโมเดลยังเป็นบิลผู้ใช้; ข้อจำกัดที่ README ระบุเอง = มี agent ตัวเดียวยังไม่ต้องใช้ มียี่สิบตัวถึงคุ้ม; telemetry เปิดโดยดีฟอลต์ ปิดด้วย DO_NOT_TRACK=1; MIT, 75,745 ดาว (ตรวจผ่าน GitHub API 2026-08-06); คำสั่ง npx --registry https://registry.npmjs.org paperclipai onboard --yes"
     }
   ]
 }
