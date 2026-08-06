@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 67,
+  "rotationIndex": 68,
   "runs": [
     {
       "date": "2026-06-10",
@@ -714,6 +714,18 @@
       "postId": "122119860423259159",
       "card": "automation/runs/2026-08-08-tools-0800-paperclip/card.png",
       "angle": "ปัญหาไม่ใช่คุณภาพงานของ AI แต่คือคนตามไม่ทันเมื่อเปิดหลายตัวพร้อมกัน (แท็บเยอะ ปิดเครื่องบริบทหาย ไม่รู้ว่าตัวไหนกินเงินเท่าไหร่); Paperclip = ชั้นบริหารครอบทับ agent ที่มีอยู่ ไม่ใช่ AI ตัวใหม่ (bring your own agent: Claude Code/Codex/Cursor/HTTP bot); สามจุดขาย = งบต่อตัวเป็นเพดานจริง ชนแล้วหยุด+ยกเลิกคิว, heartbeat ปลุกงานตามรอบ, ตั๋ว+audit log+ด่านอนุมัติ+พัก/หยุด agent ได้; runtime honesty = Node.js server ติดตั้งเองบนเครื่อง ไม่ใช่เว็บสมัครใช้ ไม่ใช่แชตเปล่า ต้องมี Node 20+ และค่าโมเดลยังเป็นบิลผู้ใช้; ข้อจำกัดที่ README ระบุเอง = มี agent ตัวเดียวยังไม่ต้องใช้ มียี่สิบตัวถึงคุ้ม; telemetry เปิดโดยดีฟอลต์ ปิดด้วย DO_NOT_TRACK=1; MIT, 75,745 ดาว (ตรวจผ่าน GitHub API 2026-08-06); คำสั่ง npx --registry https://registry.npmjs.org paperclipai onboard --yes"
+    },
+    {
+      "date": "2026-08-06",
+      "track": "news",
+      "subject": "Google Maps เพิ่มความสามารถ agentic สั่งอาหาร จองโรงแรม หาตั๋ว",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-08T18:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/08/06/google-maps-adds-agentic-features-including-food-ordering-and-hotel-bookings/",
+      "blogUrl": "https://aipasakon.com/blog/google-maps-agentic-2026",
+      "postId": "122119860483259159",
+      "card": "automation/runs/2026-08-08-news-1800-google-maps-agentic/card.png",
+      "angle": "Ask Maps เปลี่ยนจากตอบคำถามเป็นลงมือทำ (สั่งอาหารผ่าน Square/Toast/Uber Eats หยิบใส่ตะกร้าให้ หยุดตรงจ่ายเงิน; จองโรงแรมเทียบราคา+เช็กห้องว่างแล้วส่งไปจองที่เว็บพาร์ตเนอร์; ตั๋วอีเวนต์; Personal Intelligence ดึง Gmail+Calendar ปิดไว้เป็นค่าตั้งต้น; ความจำข้ามบทสนทนา; วิดเจ็ตขนส่งเรียลไทม์); แกนของโพสต์ = ทำได้เพราะ reach ไม่ใช่เพราะโมเดลฉลาดขึ้น (ข้อมูลร้าน + ทางเชื่อมระบบสั่งซื้อ + สิทธิ์เข้าถึงข้อมูลส่วนตัว) โยงเข้า product-comparison/the-harness; ระบบหยุดตรงหน้าจ่ายเงิน = ออกแบบด่านมนุษย์ไว้ตรงจุดที่ย้อนกลับไม่ได้; ความจริงเรื่องพื้นที่ = agentic ทั้งชุดปล่อยในสหรัฐฯ ส่วน PI+วิดเจ็ตปล่อยทุกตลาดที่มี Ask Maps ซึ่งรายงานไม่ระบุว่ามีที่ไหน จึงสรุปเรื่องไทยไม่ได้; ไม่ระบุโมเดลเบื้องหลัง/แพลตฟอร์ม; ส่วน SME ไทยระบุชัดว่าเป็นการคาดการณ์ ไม่ใช่ข้อเท็จจริงจากข่าว"
     }
   ]
 }
