@@ -893,7 +893,7 @@
       "status": "scheduled",
       "scheduledFor": "2026-08-19T01:00:00.000Z",
       "sourceUrl": "https://aipasakon.com/skills/claude-code-templates",
-      "postId": "122120859819259159",
+      "postId": "122120860113259159",
       "card": "automation/runs/2026-08-19-tools-0800-claude-code-templates/card.png",
       "angle": "มุมใหม่ = คลังของพร้อมใช้ที่เลือกจาก aitmpl.com แล้วติดตั้งด้วยคำสั่งเดียว; หกกลุ่มตาม README (agents/commands/MCPs/settings/hooks/skills); คำสั่งที่ยกมา = โหมดโต้ตอบ npx claude-code-templates@latest, --agent development-tools/code-reviewer --yes, --health-check, --analytics (ทั้งหมดอยู่ใน README); runtime honesty = รันในเทอร์มินัล ไม่ใช่ช่องแชตบนเว็บ; ดาว 30,278 ตรวจผ่าน GitHub API 18 ส.ค. 2026, MIT"
     }
