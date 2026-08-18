@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 84,
+  "rotationIndex": 85,
   "runs": [
     {
       "date": "2026-06-10",
@@ -885,6 +885,17 @@
       "postId": "122120859429259159",
       "card": "automation/runs/2026-08-18-knowledge-1800-history/card.png",
       "angle": "หมัดหลัก = สูตรฝึก deep learning มีมาตั้งแต่ 1986 แต่รอเกือบ 30 ปี; กรอบสามชิ้น algorithm/data/compute อธิบายทั้งสองหน้าหนาว (1974-1980, 1987-1993) และจุดที่ครบพร้อมกันปี 2012; AlexNet 15.3% vs 26.2%, ฝึกบน GTX 580 สองใบ ใบละ ~500 ดอลลาร์ 5-6 วัน; ImageNet ปี 2009; so-what = วิธีอ่านข่าว AI ว่าไอเดียรอโครงสร้างพื้นฐาน ไม่ใช่ค้นพบสด"
+    },
+    {
+      "date": "2026-08-18",
+      "track": "tools",
+      "subject": "claude-code-templates",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-19T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/claude-code-templates",
+      "postId": "122120859819259159",
+      "card": "automation/runs/2026-08-19-tools-0800-claude-code-templates/card.png",
+      "angle": "มุมใหม่ = คลังของพร้อมใช้ที่เลือกจาก aitmpl.com แล้วติดตั้งด้วยคำสั่งเดียว; หกกลุ่มตาม README (agents/commands/MCPs/settings/hooks/skills); คำสั่งที่ยกมา = โหมดโต้ตอบ npx claude-code-templates@latest, --agent development-tools/code-reviewer --yes, --health-check, --analytics (ทั้งหมดอยู่ใน README); runtime honesty = รันในเทอร์มินัล ไม่ใช่ช่องแชตบนเว็บ; ดาว 30,278 ตรวจผ่าน GitHub API 18 ส.ค. 2026, MIT"
     }
   ]
 }
