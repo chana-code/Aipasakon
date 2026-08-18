@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 83,
+  "rotationIndex": 84,
   "runs": [
     {
       "date": "2026-06-10",
@@ -874,6 +874,17 @@
       "postId": "122120464803259159",
       "card": "automation/runs/2026-08-16-tools-0800-superpowers/card.png",
       "angle": "เปิดด้วยอาการจริงที่ทุกคนเจอ = AI ทำดีช่วงแรก แล้วหลงทาง แล้วประกาศว่าเสร็จทั้งที่ใช้ไม่ได้; Superpowers ไม่ใช่โมเดลใหม่ แต่คือชุดวิธีทำงานที่ติดทับ agent เดิม; ลำดับบังคับ 6 ช่วงตาม README = brainstorming -> git worktrees (แยกพื้นที่) -> writing plans -> subagent-driven development -> test-driven development -> code review -> ปิดงาน; ความต่างจากการพิมพ์สั่งเอง = README ระบุว่าเป็น mandatory workflows ไม่ใช่ suggestions และ agent จะเช็กว่ามีทักษะที่เกี่ยวข้องก่อนเริ่มทุกงาน; สองขั้นตอนที่คุ้มสุดสำหรับคนไม่ใช่โปรแกรมเมอร์ = วางแผนก่อนลงมือ (จับความเข้าใจผิดตอนที่ยังแก้ถูก) และ verification-before-completion (ต้องพิสูจน์ก่อนเคลมว่าเสร็จ); runtime honesty = ใช้กับ coding agent เท่านั้น พิมพ์ในแชตเว็บไม่ได้ แต่ไม่ผูกยี่ห้อ รองรับ Claude Code / Codex app+CLI / Cursor / Antigravity และเอกสารระบุว่าต้องติดตั้งแยกต่อ harness; ข้อแลกเปลี่ยนที่ระบุ = งานเล็กจะช้าลงเพราะไม่ยอมข้ามขั้น; คำสั่งติดตั้งจาก README ปัจจุบัน /plugin install superpowers@claude-plugins-official (แทนคำสั่ง superpowers-marketplace เดิมในแคตตาล็อก); MIT, 271,774 ดาว ตรวจผ่าน GitHub API 2026-08-14"
+    },
+    {
+      "date": "2026-08-18",
+      "track": "knowledge",
+      "subject": "history",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-18T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/history",
+      "postId": "122120859429259159",
+      "card": "automation/runs/2026-08-18-knowledge-1800-history/card.png",
+      "angle": "หมัดหลัก = สูตรฝึก deep learning มีมาตั้งแต่ 1986 แต่รอเกือบ 30 ปี; กรอบสามชิ้น algorithm/data/compute อธิบายทั้งสองหน้าหนาว (1974-1980, 1987-1993) และจุดที่ครบพร้อมกันปี 2012; AlexNet 15.3% vs 26.2%, ฝึกบน GTX 580 สองใบ ใบละ ~500 ดอลลาร์ 5-6 วัน; ImageNet ปี 2009; so-what = วิธีอ่านข่าว AI ว่าไอเดียรอโครงสร้างพื้นฐาน ไม่ใช่ค้นพบสด"
     }
   ]
 }
