@@ -927,20 +927,21 @@
       "status": "scheduled",
       "scheduledFor": "2026-08-20T11:00:00.000Z",
       "sourceUrl": "https://aipasakon.com/skills/playwright-cli",
-      "postId": "122120964879259159",
+      "postId": "122120965227259159",
       "card": "automation/runs/2026-08-20-tools-1800-playwright-cli/card.png",
       "angle": "snapshot คืนรหัสอ้างอิงของทุกองค์ประกอบ แล้วสั่ง click e15 แทนการโยนทั้งหน้าเว็บให้โมเดลอ่าน"
     },
     {
       "date": "2026-08-19",
-      "track": "tools",
-      "subject": "playwright-cli",
+      "track": "news",
+      "subject": "ช่องโหว่ CoSnitch ของ Microsoft Copilot คลิกลิงก์เดียวข้อมูลรั่ว",
       "status": "scheduled",
-      "scheduledFor": "2026-08-20T11:00:00.000Z",
-      "sourceUrl": "https://aipasakon.com/skills/playwright-cli",
-      "postId": "122120965227259159",
-      "card": "automation/runs/2026-08-20-tools-1800-playwright-cli/card.png",
-      "angle": "snapshot คืนรหัสอ้างอิงของทุกองค์ประกอบ แล้วสั่ง click e15 แทนการโยนทั้งหน้าเว็บให้โมเดลอ่าน"
+      "scheduledFor": "2026-08-21T01:00:00.000Z",
+      "sourceUrl": "https://www.theregister.com/research/2026/08/18/copilot-tricked-into-telling-reseachers-how-to-hack-itself/5288857",
+      "blogUrl": "https://aipasakon.com/blog/copilot-cosnitch-2026",
+      "postId": "122120965809259159",
+      "card": "automation/runs/2026-08-21-news-0800-copilot-cosnitch/card.png",
+      "angle": "นักวิจัยถาม Copilot จนมันบอกตัวแปรลับของตัวเอง และบทเรียน prompt injection"
     }
   ]
 }
