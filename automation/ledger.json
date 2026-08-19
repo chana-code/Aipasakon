@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 87,
+  "rotationIndex": 88,
   "runs": [
     {
       "date": "2026-06-10",
@@ -919,6 +919,17 @@
       "postId": "122120964561259159",
       "card": "automation/runs/2026-08-20-knowledge-0800-how-it-trains/card.png",
       "angle": "ความรู้งอกจากการเดาคำถัดไป จึงอธิบายว่าทำไมไทยอ่อนกว่าอังกฤษ และ token ไทยแพงกว่า"
+    },
+    {
+      "date": "2026-08-19",
+      "track": "tools",
+      "subject": "playwright-cli",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-20T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/playwright-cli",
+      "postId": "122120964879259159",
+      "card": "automation/runs/2026-08-20-tools-1800-playwright-cli/card.png",
+      "angle": "snapshot คืนรหัสอ้างอิงของทุกองค์ประกอบ แล้วสั่ง click e15 แทนการโยนทั้งหน้าเว็บให้โมเดลอ่าน"
     }
   ]
 }
