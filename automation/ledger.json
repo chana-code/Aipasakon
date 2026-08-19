@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 88,
+  "rotationIndex": 87,
   "runs": [
     {
       "date": "2026-06-10",
@@ -901,26 +901,6 @@
       "date": "2026-08-19",
       "track": "news",
       "subject": "Claude ฝังลายน้ำในข้อความที่ AI เขียน",
-      "status": "draft",
-      "sourceUrl": "https://www.anthropic.com/news/claude-text-watermark",
-      "blogUrl": "https://aipasakon.com/blog/claude-text-watermark-2026",
-      "card": "automation/runs/2026-08-19-news-1800-claude-watermark/card.png",
-      "angle": "กลไกลายน้ำคือการเปลี่ยนแหล่งสุ่มตอนเลือกคำ ตรวจอะไรได้และไม่ได้"
-    },
-    {
-      "date": "2026-08-19",
-      "track": "news",
-      "subject": "Claude ฝังลายน้ำในข้อความที่ AI เขียน",
-      "status": "draft",
-      "sourceUrl": "https://www.anthropic.com/news/claude-text-watermark",
-      "blogUrl": "https://aipasakon.com/blog/claude-text-watermark-2026",
-      "card": "automation/runs/2026-08-19-news-1800-claude-watermark/card.png",
-      "angle": "กลไกลายน้ำคือการเปลี่ยนแหล่งสุ่มตอนเลือกคำ ตรวจอะไรได้และไม่ได้"
-    },
-    {
-      "date": "2026-08-19",
-      "track": "news",
-      "subject": "Claude ฝังลายน้ำในข้อความที่ AI เขียน",
       "status": "scheduled",
       "scheduledFor": "2026-08-19T11:00:00.000Z",
       "sourceUrl": "https://www.anthropic.com/news/claude-text-watermark",
@@ -928,6 +908,17 @@
       "postId": "122120963931259159",
       "card": "automation/runs/2026-08-19-news-1800-claude-watermark/card.png",
       "angle": "กลไกลายน้ำคือการเปลี่ยนแหล่งสุ่มตอนเลือกคำ ตรวจอะไรได้และไม่ได้"
+    },
+    {
+      "date": "2026-08-19",
+      "track": "knowledge",
+      "subject": "how-it-trains",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-20T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/how-it-trains",
+      "postId": "122120964561259159",
+      "card": "automation/runs/2026-08-20-knowledge-0800-how-it-trains/card.png",
+      "angle": "ความรู้งอกจากการเดาคำถัดไป จึงอธิบายว่าทำไมไทยอ่อนกว่าอังกฤษ และ token ไทยแพงกว่า"
     }
   ]
 }
