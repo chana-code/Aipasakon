@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 85,
+  "rotationIndex": 88,
   "runs": [
     {
       "date": "2026-06-10",
@@ -896,6 +896,38 @@
       "postId": "122120860113259159",
       "card": "automation/runs/2026-08-19-tools-0800-claude-code-templates/card.png",
       "angle": "มุมใหม่ = คลังของพร้อมใช้ที่เลือกจาก aitmpl.com แล้วติดตั้งด้วยคำสั่งเดียว; หกกลุ่มตาม README (agents/commands/MCPs/settings/hooks/skills); คำสั่งที่ยกมา = โหมดโต้ตอบ npx claude-code-templates@latest, --agent development-tools/code-reviewer --yes, --health-check, --analytics (ทั้งหมดอยู่ใน README); runtime honesty = รันในเทอร์มินัล ไม่ใช่ช่องแชตบนเว็บ; ดาว 30,278 ตรวจผ่าน GitHub API 18 ส.ค. 2026, MIT"
+    },
+    {
+      "date": "2026-08-19",
+      "track": "news",
+      "subject": "Claude ฝังลายน้ำในข้อความที่ AI เขียน",
+      "status": "draft",
+      "sourceUrl": "https://www.anthropic.com/news/claude-text-watermark",
+      "blogUrl": "https://aipasakon.com/blog/claude-text-watermark-2026",
+      "card": "automation/runs/2026-08-19-news-1800-claude-watermark/card.png",
+      "angle": "กลไกลายน้ำคือการเปลี่ยนแหล่งสุ่มตอนเลือกคำ ตรวจอะไรได้และไม่ได้"
+    },
+    {
+      "date": "2026-08-19",
+      "track": "news",
+      "subject": "Claude ฝังลายน้ำในข้อความที่ AI เขียน",
+      "status": "draft",
+      "sourceUrl": "https://www.anthropic.com/news/claude-text-watermark",
+      "blogUrl": "https://aipasakon.com/blog/claude-text-watermark-2026",
+      "card": "automation/runs/2026-08-19-news-1800-claude-watermark/card.png",
+      "angle": "กลไกลายน้ำคือการเปลี่ยนแหล่งสุ่มตอนเลือกคำ ตรวจอะไรได้และไม่ได้"
+    },
+    {
+      "date": "2026-08-19",
+      "track": "news",
+      "subject": "Claude ฝังลายน้ำในข้อความที่ AI เขียน",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-19T11:00:00.000Z",
+      "sourceUrl": "https://www.anthropic.com/news/claude-text-watermark",
+      "blogUrl": "https://aipasakon.com/blog/claude-text-watermark-2026",
+      "postId": "122120963931259159",
+      "card": "automation/runs/2026-08-19-news-1800-claude-watermark/card.png",
+      "angle": "กลไกลายน้ำคือการเปลี่ยนแหล่งสุ่มตอนเลือกคำ ตรวจอะไรได้และไม่ได้"
     }
   ]
 }
