@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 90,
+  "rotationIndex": 91,
   "runs": [
     {
       "date": "2026-06-10",
@@ -953,6 +953,17 @@
       "postId": "122121232371259159",
       "card": "automation/runs/2026-08-22-knowledge-1800-anatomy/card.png",
       "angle": "เว็บแอปทุกตัวประกอบจากห้าส่วนเดียวกัน และข้อมูลจริงอยู่ในที่เก็บข้อมูล ไม่ใช่บนหน้าจอ ตามรอยหนึ่งการกดให้เห็นทั้งห้าส่วน"
+    },
+    {
+      "date": "2026-08-22",
+      "track": "tools",
+      "subject": "github-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-23T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/github-mcp",
+      "postId": "122121232419259159",
+      "card": "automation/runs/2026-08-23-tools-0800-github-mcp/card.png",
+      "angle": "มุมความปลอดภัยของการต่อ AI เข้ากับ GitHub จาก README ทางการ คือธง --read-only (หรือ GITHUB_READ_ONLY=1 บน Docker) ที่ตัดเครื่องมือฝั่งเขียนออกทั้งหมด, --toolsets ที่เลือกเปิดเฉพาะกลุ่มที่ต้องใช้ (repos, issues, pull_requests, actions, code_security) เพื่อลดทั้งความเสี่ยงและ context, และ Lockdown mode ที่กรองเนื้อหาจาก public repo เพื่อลดความเสี่ยง prompt injection โดย README ระบุเองว่าเป็น best-effort ไม่ใช่ authorization boundary; runtime honesty = เป็น MCP server ต้องรันผ่าน MCP host ไม่ใช่ช่องแชต ChatGPT บนเว็บ; ดาว 32,419 ตรวจผ่าน GitHub API 22 ส.ค. 2026, MIT, มีเวอร์ชัน remote ที่ GitHub โฮสต์เองที่ api.githubcopilot.com/mcp/"
     }
   ]
 }
