@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 89,
+  "rotationIndex": 90,
   "runs": [
     {
       "date": "2026-06-10",
@@ -942,6 +942,17 @@
       "postId": "122120965809259159",
       "card": "automation/runs/2026-08-21-news-0800-copilot-cosnitch/card.png",
       "angle": "นักวิจัยถาม Copilot จนมันบอกตัวแปรลับของตัวเอง และบทเรียน prompt injection"
+    },
+    {
+      "date": "2026-08-22",
+      "track": "knowledge",
+      "subject": "anatomy",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-22T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/anatomy",
+      "postId": "122121232371259159",
+      "card": "automation/runs/2026-08-22-knowledge-1800-anatomy/card.png",
+      "angle": "เว็บแอปทุกตัวประกอบจากห้าส่วนเดียวกัน และข้อมูลจริงอยู่ในที่เก็บข้อมูล ไม่ใช่บนหน้าจอ ตามรอยหนึ่งการกดให้เห็นทั้งห้าส่วน"
     }
   ]
 }
