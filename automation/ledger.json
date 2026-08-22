@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 92,
+  "rotationIndex": 93,
   "runs": [
     {
       "date": "2026-06-10",
@@ -976,6 +976,17 @@
       "postId": "122121232905259159",
       "card": "automation/runs/2026-08-23-news-1800-pew-ai-web/card.png",
       "angle": "สองตัวเลขจากข้อมูลชุดเดียวกัน 10 เปอร์เซ็นต์ของทั้งเว็บ กับเกิน 1 ใน 3 ของหน้าที่เกิดหลัง ChatGPT ร่องรอยที่ตรวจพบ และข้อจำกัดว่าตัวตรวจจับใช้ตัดสินรายชิ้นไม่ได้"
+    },
+    {
+      "date": "2026-08-22",
+      "track": "knowledge",
+      "subject": "reading-docs",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-24T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/in-practice/reading-docs",
+      "postId": "122121232953259159",
+      "card": "automation/runs/2026-08-24-knowledge-0800-reading-docs/card.png",
+      "angle": "อ่านไม่รู้เรื่องไม่ได้แปลว่ายากเกินคุณ แปลว่ามีคำที่ยังไม่ได้แปล และบล็อก name/description/tools/model ในหน้า docs คือแบบฟอร์มกรอกข้อมูล ไม่ใช่โค้ด"
     }
   ]
 }
