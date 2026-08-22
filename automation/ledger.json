@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 91,
+  "rotationIndex": 92,
   "runs": [
     {
       "date": "2026-06-10",
@@ -964,6 +964,18 @@
       "postId": "122121232419259159",
       "card": "automation/runs/2026-08-23-tools-0800-github-mcp/card.png",
       "angle": "มุมความปลอดภัยของการต่อ AI เข้ากับ GitHub จาก README ทางการ คือธง --read-only (หรือ GITHUB_READ_ONLY=1 บน Docker) ที่ตัดเครื่องมือฝั่งเขียนออกทั้งหมด, --toolsets ที่เลือกเปิดเฉพาะกลุ่มที่ต้องใช้ (repos, issues, pull_requests, actions, code_security) เพื่อลดทั้งความเสี่ยงและ context, และ Lockdown mode ที่กรองเนื้อหาจาก public repo เพื่อลดความเสี่ยง prompt injection โดย README ระบุเองว่าเป็น best-effort ไม่ใช่ authorization boundary; runtime honesty = เป็น MCP server ต้องรันผ่าน MCP host ไม่ใช่ช่องแชต ChatGPT บนเว็บ; ดาว 32,419 ตรวจผ่าน GitHub API 22 ส.ค. 2026, MIT, มีเวอร์ชัน remote ที่ GitHub โฮสต์เองที่ api.githubcopilot.com/mcp/"
+    },
+    {
+      "date": "2026-08-22",
+      "track": "news",
+      "subject": "งานวิจัย Pew พบหน้าเว็บที่เกิดหลัง ChatGPT เกิน 1 ใน 3 มีร่องรอย AI เขียน",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-23T11:00:00.000Z",
+      "sourceUrl": "https://www.pewresearch.org/data-labs/2026/08/20/how-much-of-the-internet-is-written-with-ai/",
+      "blogUrl": "https://aipasakon.com/blog/pew-ai-written-web-2026",
+      "postId": "122121232905259159",
+      "card": "automation/runs/2026-08-23-news-1800-pew-ai-web/card.png",
+      "angle": "สองตัวเลขจากข้อมูลชุดเดียวกัน 10 เปอร์เซ็นต์ของทั้งเว็บ กับเกิน 1 ใน 3 ของหน้าที่เกิดหลัง ChatGPT ร่องรอยที่ตรวจพบ และข้อจำกัดว่าตัวตรวจจับใช้ตัดสินรายชิ้นไม่ได้"
     }
   ]
 }
