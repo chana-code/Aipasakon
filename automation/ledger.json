@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 93,
+  "rotationIndex": 95,
   "runs": [
     {
       "date": "2026-06-10",
@@ -987,6 +987,26 @@
       "postId": "122121232953259159",
       "card": "automation/runs/2026-08-24-knowledge-0800-reading-docs/card.png",
       "angle": "อ่านไม่รู้เรื่องไม่ได้แปลว่ายากเกินคุณ แปลว่ามีคำที่ยังไม่ได้แปล และบล็อก name/description/tools/model ในหน้า docs คือแบบฟอร์มกรอกข้อมูล ไม่ใช่โค้ด"
+    },
+    {
+      "date": "2026-08-23",
+      "track": "tools",
+      "subject": "wshobson-agents",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/wshobson-agents",
+      "card": "automation/runs/2026-08-24-tools-1800-wshobson-agents/card.png",
+      "angle": "มุมพื้นที่บทสนทนาและต้นทุน จาก README ทางการของ wshobson/agents คือคลังมี 92 ปลั๊กอิน 202 agent 181 skill 105 command แต่การติดตั้งปลั๊กอินโหลดเฉพาะของในปลั๊กอินนั้นเข้า context ไม่ใช่ทั้งคลัง (ตัวอย่าง python-development = 3 agent + 1 command + 16 skill); คำสั่งจริงสองบรรทัด /plugin marketplace add wshobson/agents และ /plugin install python-development; ตาราง tiered model strategy = งานสถาปัตยกรรม ความปลอดภัย รีวิวโค้ดใช้ Opus ส่วนเอกสาร เทสต์ งานเร็วใช้ Sonnet/Haiku จึงคุมต้นทุน; multi-harness ต่อได้กับ Codex CLI, Cursor, OpenCode, Antigravity CLI, GitHub Copilot โดย Codex ใช้ npx codex-marketplace add wshobson/agents; runtime honesty = เป็นปลั๊กอินของโปรแกรมผู้ช่วยเขียนโค้ดบนเครื่อง ไม่ใช่ช่องแชต ChatGPT บนเว็บ; ดาว 39,031 ตรวจผ่าน GitHub API 23 ส.ค. 2026, MIT"
+    },
+    {
+      "date": "2026-08-23",
+      "track": "tools",
+      "subject": "wshobson-agents",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-24T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/wshobson-agents",
+      "postId": "122121321855259159",
+      "card": "automation/runs/2026-08-24-tools-1800-wshobson-agents/card.png",
+      "angle": "มุมพื้นที่บทสนทนาและต้นทุน จาก README ทางการของ wshobson/agents คือคลังมี 92 ปลั๊กอิน 202 agent 181 skill 105 command แต่การติดตั้งปลั๊กอินโหลดเฉพาะของในปลั๊กอินนั้นเข้า context ไม่ใช่ทั้งคลัง (ตัวอย่าง python-development = 3 agent + 1 command + 16 skill); คำสั่งจริงสองบรรทัด /plugin marketplace add wshobson/agents และ /plugin install python-development; ตาราง tiered model strategy = งานสถาปัตยกรรม ความปลอดภัย รีวิวโค้ดใช้ Opus ส่วนเอกสาร เทสต์ งานเร็วใช้ Sonnet/Haiku จึงคุมต้นทุน; multi-harness ต่อได้กับ Codex CLI, Cursor, OpenCode, Antigravity CLI, GitHub Copilot โดย Codex ใช้ npx codex-marketplace add wshobson/agents; runtime honesty = เป็นปลั๊กอินของโปรแกรมผู้ช่วยเขียนโค้ดบนเครื่อง ไม่ใช่ช่องแชต ChatGPT บนเว็บ; ดาว 39,031 ตรวจผ่าน GitHub API 23 ส.ค. 2026, MIT"
     }
   ]
 }
