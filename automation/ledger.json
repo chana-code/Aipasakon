@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 100,
+  "rotationIndex": 102,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1056,6 +1056,28 @@
       "postId": "122121406263259159",
       "card": "automation/runs/2026-08-25-tools-1800-get-shit-done/card.png",
       "angle": "มุม context rot จาก README ทางการของ open-gsd/gsd-core คือคุณภาพงานตกเมื่อ context window เต็ม และวิธีแก้ของ GSD คือยกงานหนัก (ค้นคว้า วางแผน ลงมือ) ไปทำในตัวช่วยย่อยที่เริ่มด้วยความจำสด 200k token ขณะที่แชทหลักอยู่บาง ๆ พร้อมไฟล์ STATE.md และ CONTEXT.md ที่ข้ามรอบแชทได้ และขั้น verify ที่เดินตรวจของที่สร้างก่อนประกาศว่าเสร็จ; ลูปห้าขั้น Discuss Plan Execute Verify Ship; คำสั่งจริง npx @opengsd/gsd-core@latest แล้ว /gsd-new-project หรือ /gsd-onboard; multi-runtime Claude Code, Codex, Copilot, Cursor, OpenCode, Antigravity CLI, Kimi CLI, Windsurf; runtime honesty = ต้องรันบนโปรแกรมผู้ช่วยเขียนโค้ด ไม่ใช่ช่องแชต ChatGPT บนเว็บ; ดาว 8,629 ตรวจผ่าน GitHub API 24 ส.ค. 2026, MIT"
+    },
+    {
+      "date": "2026-08-24",
+      "track": "news",
+      "subject": "Harvard Business School ใช้อวตาร AI ของอาจารย์ให้ฟีดแบ็กในบูตแคมป์ 699 ดอลลาร์",
+      "status": "draft",
+      "sourceUrl": "https://techcrunch.com/2026/08/22/harvards-699-startup-bootcamp-offers-ai-avatars-of-its-instructors/",
+      "blogUrl": "https://aipasakon.com/blog/hbs-foundry-ai-avatars",
+      "card": "automation/runs/2026-08-26-news-0800-hbs-ai-avatars/card.png",
+      "angle": "สิ่งที่ถูกโคลนไม่ใช่การสอนแต่เป็นการติชม ซึ่งเป็นคอขวดที่ผูกกับเวลาคนจริง คาบสดกับอาจารย์ตัวจริงยังอยู่ทุกสัปดาห์ และผู้เรียนบอกเองว่าไม่อยากได้แชตบอตเปล่า ๆ แต่อยากได้ฉากที่ถูกจัดไว้"
+    },
+    {
+      "date": "2026-08-24",
+      "track": "news",
+      "subject": "Harvard Business School ใช้อวตาร AI ของอาจารย์ให้ฟีดแบ็กในบูตแคมป์ 699 ดอลลาร์",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-26T08:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/08/22/harvards-699-startup-bootcamp-offers-ai-avatars-of-its-instructors/",
+      "blogUrl": "https://aipasakon.com/blog/hbs-foundry-ai-avatars",
+      "postId": "122121407217259159",
+      "card": "automation/runs/2026-08-26-news-0800-hbs-ai-avatars/card.png",
+      "angle": "สิ่งที่ถูกโคลนไม่ใช่การสอนแต่เป็นการติชม ซึ่งเป็นคอขวดที่ผูกกับเวลาคนจริง คาบสดกับอาจารย์ตัวจริงยังอยู่ทุกสัปดาห์ และผู้เรียนบอกเองว่าไม่อยากได้แชตบอตเปล่า ๆ แต่อยากได้ฉากที่ถูกจัดไว้"
     }
   ]
 }
