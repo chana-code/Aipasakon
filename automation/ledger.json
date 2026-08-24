@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 98,
+  "rotationIndex": 100,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1036,6 +1036,26 @@
       "postId": "122121404607259159",
       "card": "automation/runs/2026-08-25-knowledge-0800-thai-tokens/card.png",
       "angle": "ภาษาไทยแพงกว่าอังกฤษเพราะ tokenizer หั่นคำไทยเป็นชิ้นเยอะ (token fertility ไทย 2-5 ต่อคำ อังกฤษ 1.3) สามเหตุผล = เห็นไทยน้อย เขียนติดกัน ตัวอักษรหนักกว่า พร้อมแก้ความเข้าใจผิดว่า AI ไม่ได้แอบแปลไทยเป็นอังกฤษลับหลัง"
+    },
+    {
+      "date": "2026-08-24",
+      "track": "tools",
+      "subject": "get-shit-done",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/get-shit-done",
+      "card": "automation/runs/2026-08-25-tools-1800-get-shit-done/card.png",
+      "angle": "มุม context rot จาก README ทางการของ open-gsd/gsd-core คือคุณภาพงานตกเมื่อ context window เต็ม และวิธีแก้ของ GSD คือยกงานหนัก (ค้นคว้า วางแผน ลงมือ) ไปทำในตัวช่วยย่อยที่เริ่มด้วยความจำสด 200k token ขณะที่แชทหลักอยู่บาง ๆ พร้อมไฟล์ STATE.md และ CONTEXT.md ที่ข้ามรอบแชทได้ และขั้น verify ที่เดินตรวจของที่สร้างก่อนประกาศว่าเสร็จ; ลูปห้าขั้น Discuss Plan Execute Verify Ship; คำสั่งจริง npx @opengsd/gsd-core@latest แล้ว /gsd-new-project หรือ /gsd-onboard; multi-runtime Claude Code, Codex, Copilot, Cursor, OpenCode, Antigravity CLI, Kimi CLI, Windsurf; runtime honesty = ต้องรันบนโปรแกรมผู้ช่วยเขียนโค้ด ไม่ใช่ช่องแชต ChatGPT บนเว็บ; ดาว 8,629 ตรวจผ่าน GitHub API 24 ส.ค. 2026, MIT"
+    },
+    {
+      "date": "2026-08-24",
+      "track": "tools",
+      "subject": "get-shit-done",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-25T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/get-shit-done",
+      "postId": "122121406263259159",
+      "card": "automation/runs/2026-08-25-tools-1800-get-shit-done/card.png",
+      "angle": "มุม context rot จาก README ทางการของ open-gsd/gsd-core คือคุณภาพงานตกเมื่อ context window เต็ม และวิธีแก้ของ GSD คือยกงานหนัก (ค้นคว้า วางแผน ลงมือ) ไปทำในตัวช่วยย่อยที่เริ่มด้วยความจำสด 200k token ขณะที่แชทหลักอยู่บาง ๆ พร้อมไฟล์ STATE.md และ CONTEXT.md ที่ข้ามรอบแชทได้ และขั้น verify ที่เดินตรวจของที่สร้างก่อนประกาศว่าเสร็จ; ลูปห้าขั้น Discuss Plan Execute Verify Ship; คำสั่งจริง npx @opengsd/gsd-core@latest แล้ว /gsd-new-project หรือ /gsd-onboard; multi-runtime Claude Code, Codex, Copilot, Cursor, OpenCode, Antigravity CLI, Kimi CLI, Windsurf; runtime honesty = ต้องรันบนโปรแกรมผู้ช่วยเขียนโค้ด ไม่ใช่ช่องแชต ChatGPT บนเว็บ; ดาว 8,629 ตรวจผ่าน GitHub API 24 ส.ค. 2026, MIT"
     }
   ]
 }
