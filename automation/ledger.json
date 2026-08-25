@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 102,
+  "rotationIndex": 104,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1078,6 +1078,26 @@
       "postId": "122121407217259159",
       "card": "automation/runs/2026-08-26-news-0800-hbs-ai-avatars/card.png",
       "angle": "สิ่งที่ถูกโคลนไม่ใช่การสอนแต่เป็นการติชม ซึ่งเป็นคอขวดที่ผูกกับเวลาคนจริง คาบสดกับอาจารย์ตัวจริงยังอยู่ทุกสัปดาห์ และผู้เรียนบอกเองว่าไม่อยากได้แชตบอตเปล่า ๆ แต่อยากได้ฉากที่ถูกจัดไว้"
+    },
+    {
+      "date": "2026-08-25",
+      "track": "tools",
+      "subject": "claude-code-best-practice",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/claude-code-best-practice",
+      "card": "automation/runs/2026-08-26-tools-1800-claude-code-best-practice/card.png",
+      "angle": "มุม CLAUDE.md จาก README ทางการของ shanraisshan/claude-code-best-practice: AI ไม่มีความจำข้ามรอบแชท ไฟล์ CLAUDE.md ในโฟลเดอร์โปรเจกต์คือที่จดกฎที่ถูกอ่านทุกครั้ง; เคล็ดลับหมวด CLAUDE.md 4 ข้อที่ยกมา = ต่ำกว่า 200 บรรทัดต่อไฟล์ (เอกสารทางการ) และ ~60 บรรทัดแบบ humanlayer, การทดสอบว่าไฟล์ครบด้วยคำสั่ง run the tests ที่ต้องผ่านตั้งแต่ครั้งแรก (Dex Horthy), แตกกฎไปที่ .claude/rules/*.md พร้อม paths frontmatter เพื่อโหลดเฉพาะไฟล์ที่ตรงเงื่อนไข, ครอบกฎสำคัญด้วยแท็ก important if เพื่อไม่ให้ถูกข้ามเมื่อไฟล์ยาวขึ้น; ปิดท้ายด้วย How to Use ข้อ 6 คือชี้ AI ไปที่หน้าเคล็ดลับ 83 ข้อแล้วให้เสนอการรื้อ CLAUDE.md ของตัวเอง; runtime honesty = เป็นตำราอ้างอิงไม่ใช่โปรแกรม (คนทำบอกให้อ่านเป็นคอร์ส) และ CLAUDE.md ใช้กับ Claude Code บนเครื่อง ไม่ใช่ ChatGPT บนเว็บ; ดาว 64,970 ตรวจผ่าน GitHub API 25 ส.ค. 2026, MIT, pushed 2026-08-25"
+    },
+    {
+      "date": "2026-08-25",
+      "track": "tools",
+      "subject": "claude-code-best-practice",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-26T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/claude-code-best-practice",
+      "postId": "122121503673259159",
+      "card": "automation/runs/2026-08-26-tools-1800-claude-code-best-practice/card.png",
+      "angle": "มุม CLAUDE.md จาก README ทางการของ shanraisshan/claude-code-best-practice: AI ไม่มีความจำข้ามรอบแชท ไฟล์ CLAUDE.md ในโฟลเดอร์โปรเจกต์คือที่จดกฎที่ถูกอ่านทุกครั้ง; เคล็ดลับหมวด CLAUDE.md 4 ข้อที่ยกมา = ต่ำกว่า 200 บรรทัดต่อไฟล์ (เอกสารทางการ) และ ~60 บรรทัดแบบ humanlayer, การทดสอบว่าไฟล์ครบด้วยคำสั่ง run the tests ที่ต้องผ่านตั้งแต่ครั้งแรก (Dex Horthy), แตกกฎไปที่ .claude/rules/*.md พร้อม paths frontmatter เพื่อโหลดเฉพาะไฟล์ที่ตรงเงื่อนไข, ครอบกฎสำคัญด้วยแท็ก important if เพื่อไม่ให้ถูกข้ามเมื่อไฟล์ยาวขึ้น; ปิดท้ายด้วย How to Use ข้อ 6 คือชี้ AI ไปที่หน้าเคล็ดลับ 83 ข้อแล้วให้เสนอการรื้อ CLAUDE.md ของตัวเอง; runtime honesty = เป็นตำราอ้างอิงไม่ใช่โปรแกรม (คนทำบอกให้อ่านเป็นคอร์ส) และ CLAUDE.md ใช้กับ Claude Code บนเครื่อง ไม่ใช่ ChatGPT บนเว็บ; ดาว 64,970 ตรวจผ่าน GitHub API 25 ส.ค. 2026, MIT, pushed 2026-08-25"
     }
   ]
 }
