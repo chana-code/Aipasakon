@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 118,
+  "rotationIndex": 119,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1238,6 +1238,17 @@
       "postId": "122121755913259159",
       "card": "automation/runs/2026-08-28-knowledge-1800-deploy/card.png",
       "angle": "นักเก็ตยืนได้เอง: ระหว่างประโยคที่คุณพิมพ์กับเว็บจริงมี 5 ขั้น สามขั้นแรกคุณสั่ง สองขั้นหลังเครื่องทำเอง สอนบันไดไล่หาว่าของค้างขั้นไหนเวลาแก้แล้วเว็บไม่เปลี่ยน แล้วอธิบายกลไกว่าทำไม deploy พังถึงไม่ทำให้เว็บล่ม เพราะของใหม่ขึ้นแทนของเก่าต่อเมื่อสำเร็จครบเท่านั้น"
+    },
+    {
+      "date": "2026-08-27",
+      "track": "tools",
+      "subject": "mcp-servers",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-29T01:00:00Z",
+      "sourceUrl": "https://aipasakon.com/skills/mcp-servers",
+      "postId": "122121756069259159",
+      "card": "automation/runs/2026-08-29-tools-0800-mcp-servers/card.png",
+      "angle": "ชุด reference server ทางการ 7 ตัว (filesystem, fetch, memory, git, time, sequentialthinking, everything) พร้อมความจริงที่ทีมผู้ทำเขียนไว้เองใน README ว่ามันเป็นตัวอย่างเพื่อการเรียนรู้ ไม่ใช่ของ production และของจริงอยู่ใน MCP Registry ปิดด้วยเรื่องขอบเขต filesystem ที่จำกัดโฟลเดอร์ได้"
     }
   ]
 }
