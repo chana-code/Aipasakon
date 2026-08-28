@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 119,
+  "rotationIndex": 124,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1249,6 +1249,53 @@
       "postId": "122121756069259159",
       "card": "automation/runs/2026-08-29-tools-0800-mcp-servers/card.png",
       "angle": "ชุด reference server ทางการ 7 ตัว (filesystem, fetch, memory, git, time, sequentialthinking, everything) พร้อมความจริงที่ทีมผู้ทำเขียนไว้เองใน README ว่ามันเป็นตัวอย่างเพื่อการเรียนรู้ ไม่ใช่ของ production และของจริงอยู่ใน MCP Registry ปิดด้วยเรื่องขอบเขต filesystem ที่จำกัดโฟลเดอร์ได้"
+    },
+    {
+      "date": "2026-08-28",
+      "track": "knowledge",
+      "subject": "reversibility",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/reversibility",
+      "card": "automation/runs/2026-08-29-knowledge-1800-reversibility/card.png",
+      "angle": "นักเก็ตยืนได้เอง: ความกลัวแก้แล้วกลับไม่ได้เกิดจากทางเดียวคือแตะของโดยไม่มีจุดถอย อธิบายกลไกว่าทำไม commit ถึงเป็นความปลอดภัยไม่ใช่ความเสี่ยง เพราะมันเพิ่มเซฟพอยต์ ไม่ได้ทับของเก่า แล้วให้กฎตัดสิน commit หรือ branch พร้อมเคสจริง backup/pre-email-rewrite ของเว็บนี้เอง ปิดด้วยวิธีสั่ง AI ให้กางจุดถอยและวิธีอ่านว่ามันทำจริงหรือยัง"
+    },
+    {
+      "date": "2026-08-28",
+      "track": "tools",
+      "subject": "superclaude",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/superclaude",
+      "card": "automation/runs/2026-08-30-tools-0800-superclaude/card.png",
+      "angle": "คำสั่ง /sc:brainstorm เป็นประตูเข้า แก้ปัญหาที่ AI รีบเขียนโค้ดก่อนเข้าใจโจทย์ ต่อด้วยลำดับ /sc:workflow /sc:implement /sc:test พร้อมวิธีติดตั้งจริงตาม README (pipx install superclaude, superclaude install, restart Claude Code, /sc ดูครบ 30 คำสั่ง) และข้อจำกัดตรงไปตรงมา เป็นโครงการชุมชนไม่ใช่ของ Anthropic ต้องมี Claude Code ก่อน MCP เสริมเป็นของไม่บังคับ"
+    },
+    {
+      "date": "2026-08-28",
+      "track": "knowledge",
+      "subject": "reversibility",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/reversibility",
+      "card": "automation/runs/2026-08-29-knowledge-1800-reversibility/card.png",
+      "angle": "นักเก็ตยืนได้เอง: ความกลัวแก้แล้วกลับไม่ได้เกิดจากทางเดียวคือแตะของโดยไม่มีจุดถอย อธิบายกลไกว่าทำไม commit ถึงเป็นความปลอดภัยไม่ใช่ความเสี่ยง เพราะมันเพิ่มเซฟพอยต์ ไม่ได้ทับของเก่า แล้วให้กฎตัดสิน commit หรือ branch พร้อมเคสจริง backup/pre-email-rewrite ของเว็บนี้เอง ปิดด้วยวิธีสั่ง AI ให้กางจุดถอยและวิธีอ่านว่ามันทำจริงหรือยัง"
+    },
+    {
+      "date": "2026-08-28",
+      "track": "tools",
+      "subject": "superclaude",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/superclaude",
+      "card": "automation/runs/2026-08-30-tools-0800-superclaude/card.png",
+      "angle": "คำสั่ง /sc:brainstorm เป็นประตูเข้า แก้ปัญหาที่ AI รีบเขียนโค้ดก่อนเข้าใจโจทย์ ต่อด้วยลำดับ /sc:workflow /sc:implement /sc:test พร้อมวิธีติดตั้งจริงตาม README (pipx install superclaude, superclaude install, restart Claude Code, /sc ดูครบ 30 คำสั่ง) และข้อจำกัดตรงไปตรงมา เป็นโครงการชุมชนไม่ใช่ของ Anthropic ต้องมี Claude Code ก่อน MCP เสริมเป็นของไม่บังคับ"
+    },
+    {
+      "date": "2026-08-28",
+      "track": "knowledge",
+      "subject": "reversibility",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-29T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/reversibility",
+      "postId": "122121894039259159",
+      "card": "automation/runs/2026-08-29-knowledge-1800-reversibility/card.png",
+      "angle": "นักเก็ตยืนได้เอง: ความกลัวแก้แล้วกลับไม่ได้เกิดจากทางเดียวคือแตะของโดยไม่มีจุดถอย อธิบายกลไกว่าทำไม commit ถึงเป็นความปลอดภัยไม่ใช่ความเสี่ยง เพราะมันเพิ่มเซฟพอยต์ ไม่ได้ทับของเก่า แล้วให้กฎตัดสิน commit หรือ branch พร้อมเคสจริง backup/pre-email-rewrite ของเว็บนี้เอง ปิดด้วยวิธีสั่ง AI ให้กางจุดถอยและวิธีอ่านว่ามันทำจริงหรือยัง"
     }
   ]
 }
