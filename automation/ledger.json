@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 126,
+  "rotationIndex": 127,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1319,6 +1319,17 @@
       "postId": "122122091211259159",
       "card": "automation/runs/2026-08-30-news-1800-openai-thailand/card.png",
       "angle": "ไม่หยุดที่ข่าวว่า OpenAI มาไทย แต่แกะว่าของมีค่าจริงในโครงการเรียงลำดับคือประตูสู่โรงพยาบาลและโรงเรียน ตามด้วยที่ปรึกษา แล้วค่อยเป็นเครดิต 2000 ดอลลาร์ที่ใครก็ซื้อเองได้ ชี้สัญญาณจากรายชื่อ 10 ทีมว่าไม่มีแชตบอตทั่วไปเลย ทุกทีมเกาะงานที่มีคนจ่ายเงินอยู่แล้ว แล้วสอนกลไกที่ปิดช่องว่างต้นแบบกับของจริงคือ eval ไม่ใช่โมเดลใหม่"
+    },
+    {
+      "date": "2026-08-29",
+      "track": "tools",
+      "subject": "printing-press",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-31T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/printing-press",
+      "postId": "122122091265259159",
+      "card": "automation/runs/2026-08-31-tools-0800-printing-press/card.png",
+      "angle": "มุมแอบดูวิธีที่เว็บคุยกับเซิร์ฟเวอร์ แล้วพิมพ์ออกมาเป็นชุดคำสั่งให้ AI ใช้ ยกตัวอย่างจริงสามตัวใน README คือ ESPN ที่ไม่มี API ทางการ flight-goat ที่ต่อ Kayak กับ Google Flights และ linear-pp-cli ที่ตอบใน 50ms จากสำเนาในเครื่อง พร้อมคำสั่งจริง /printing-press Notion และแบบชี้ URL ตรง ๆ ผลลัพธ์เป็น Go CLI บวก MCP server และข้อจำกัดตรงไปตรงมาว่าต้องมี Go 1.26.6 กับ Claude Code หรือ Codex ไม่ใช่หน้าแชตธรรมดา บวกแคตตาล็อก printingpress.dev สำหรับคนไม่อยากสร้างเอง"
     }
   ]
 }
