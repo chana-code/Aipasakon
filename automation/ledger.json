@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 125,
+  "rotationIndex": 126,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1307,6 +1307,18 @@
       "postId": "122121894177259159",
       "card": "automation/runs/2026-08-30-tools-0800-superclaude/card.png",
       "angle": "คำสั่ง /sc:brainstorm เป็นประตูเข้า แก้ปัญหาที่ AI รีบเขียนโค้ดก่อนเข้าใจโจทย์ ต่อด้วยลำดับ /sc:workflow /sc:implement /sc:test พร้อมวิธีติดตั้งจริงตาม README (pipx install superclaude, superclaude install, restart Claude Code, /sc ดูครบ 30 คำสั่ง) และข้อจำกัดตรงไปตรงมา เป็นโครงการชุมชนไม่ใช่ของ Anthropic ต้องมี Claude Code ก่อน MCP เสริมเป็นของไม่บังคับ"
+    },
+    {
+      "date": "2026-08-29",
+      "track": "news",
+      "subject": "OpenAI จับมือกระทรวง อว. เปิดโครงการเร่งการเติบโต 8 สัปดาห์ ให้สตาร์ตอัปไทย 10 ราย",
+      "status": "scheduled",
+      "scheduledFor": "2026-08-30T18:00:00+07:00",
+      "sourceUrl": "https://openai.com/index/supporting-next-generation-ai-startups-thailand",
+      "blogUrl": "https://aipasakon.com/blog/openai-mhesi-thailand-accelerator-2026",
+      "postId": "122122091211259159",
+      "card": "automation/runs/2026-08-30-news-1800-openai-thailand/card.png",
+      "angle": "ไม่หยุดที่ข่าวว่า OpenAI มาไทย แต่แกะว่าของมีค่าจริงในโครงการเรียงลำดับคือประตูสู่โรงพยาบาลและโรงเรียน ตามด้วยที่ปรึกษา แล้วค่อยเป็นเครดิต 2000 ดอลลาร์ที่ใครก็ซื้อเองได้ ชี้สัญญาณจากรายชื่อ 10 ทีมว่าไม่มีแชตบอตทั่วไปเลย ทุกทีมเกาะงานที่มีคนจ่ายเงินอยู่แล้ว แล้วสอนกลไกที่ปิดช่องว่างต้นแบบกับของจริงคือ eval ไม่ใช่โมเดลใหม่"
     }
   ]
 }
