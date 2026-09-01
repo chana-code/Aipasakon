@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 130,
+  "rotationIndex": 131,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1364,6 +1364,18 @@
       "postId": "122122554297259159",
       "card": "automation/runs/2026-09-02-tools-1800-anthropic-skills/card.png",
       "angle": "มุมเขียน Skill ของตัวเอง แทนมุมเดิมที่เป็นชุดเอกสารสำเร็จรูป ชี้ว่า SKILL.md ต้องการข้อมูลกำกับแค่สองฟิลด์คือ name กับ description ตาม README ของ anthropics/skills เน้นว่า description คือบรรทัดที่ตัดสินว่า AI จะหยิบคู่มือขึ้นมาไหม บอกโฟลเดอร์ template กับ skill-creator และแจงรันทายม์ตรงไปตรงมาว่าใช้ได้ใน Claude Code ผ่าน /plugin marketplace add anthropics/skills ใน Claude.ai แพ็กเกจเสียเงิน และผ่าน API พร้อมข้อจำกัดว่าเป็นตัวอย่างเพื่อการเรียนรู้ และชุดเอกสารเป็น source-available ไม่ใช่โอเพนซอร์สเต็มตัว"
+    },
+    {
+      "date": "2026-09-01",
+      "track": "news",
+      "subject": "Instagram เปลี่ยนป้าย AI creator เป็น AI-generated profile และลดการมองเห็นบัญชีที่ไม่ติดป้าย",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-03T08:00:00+07:00",
+      "sourceUrl": "https://techcrunch.com/2026/08/31/instagram-puts-new-limits-on-undisclosed-ai-profiles/",
+      "blogUrl": "https://aipasakon.com/blog/instagram-ai-generated-profile-label-2026",
+      "postId": "122122554357259159",
+      "card": "automation/runs/2026-09-03-news-0800-instagram-ai-profile/card.png",
+      "angle": "ลากเส้นแบ่งให้ชัดว่ากติกาพูดถึงหน้าคนที่ไม่มีตัวจริง ไม่ใช่การใช้ AI แต่งภาพหรือเขียนแคปชัน ชี้ว่าบทลงโทษคือการหายจาก Reels และ Explore สำหรับคนที่ยังไม่ติดตาม ซึ่งเงียบและถูกเข้าใจผิดว่าอัลกอริทึมเปลี่ยน และย้ำว่าบัญชีที่ติดป้ายถูกต้องไม่ถูกลงโทษ จบด้วยสี่ข้อที่เจ้าของเพจไทยทำได้สัปดาห์นี้"
     }
   ]
 }
