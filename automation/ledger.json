@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 127,
+  "rotationIndex": 128,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1330,6 +1330,18 @@
       "postId": "122122091265259159",
       "card": "automation/runs/2026-08-31-tools-0800-printing-press/card.png",
       "angle": "มุมแอบดูวิธีที่เว็บคุยกับเซิร์ฟเวอร์ แล้วพิมพ์ออกมาเป็นชุดคำสั่งให้ AI ใช้ ยกตัวอย่างจริงสามตัวใน README คือ ESPN ที่ไม่มี API ทางการ flight-goat ที่ต่อ Kayak กับ Google Flights และ linear-pp-cli ที่ตอบใน 50ms จากสำเนาในเครื่อง พร้อมคำสั่งจริง /printing-press Notion และแบบชี้ URL ตรง ๆ ผลลัพธ์เป็น Go CLI บวก MCP server และข้อจำกัดตรงไปตรงมาว่าต้องมี Go 1.26.6 กับ Claude Code หรือ Codex ไม่ใช่หน้าแชตธรรมดา บวกแคตตาล็อก printingpress.dev สำหรับคนไม่อยากสร้างเอง"
+    },
+    {
+      "date": "2026-09-01",
+      "track": "news",
+      "subject": "โฆษณาใน ChatGPT แตะรายได้ 1 พันล้านดอลลาร์ต่อปี และขยายไปกว่า 40 ประเทศ",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-01T18:00:00+07:00",
+      "sourceUrl": "https://openai.com/index/expanding-access-to-ai-with-chatgpt-ads",
+      "blogUrl": "https://aipasakon.com/blog/chatgpt-ads-1-billion-2026",
+      "postId": "122122554213259159",
+      "card": "automation/runs/2026-09-01-news-1800-chatgpt-ads/card.png",
+      "angle": "ไม่หยุดที่ตัวเลข 1 พันล้าน แต่ชี้ว่าประโยคที่สำคัญกว่าคือโฆษณาแสดงในคำตอบของโมเดลกับผู้ใช้ฟรีและ ChatGPT Go แยกคำแถลงสามข้อของ OpenAI ว่าอะไรคือหลักฐานอะไรคือสัญญา ให้ประโยคถามที่ใช้ได้จริงหนึ่งประโยค และชี้ว่าโจทย์ของธุรกิจเปลี่ยนจากติดอันดับเป็นเป็นคำตอบ"
     }
   ]
 }
