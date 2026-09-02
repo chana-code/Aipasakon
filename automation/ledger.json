@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 132,
+  "rotationIndex": 133,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1387,6 +1387,17 @@
       "postId": "122122679505259159",
       "card": "automation/runs/2026-09-03-knowledge-1800-pointing-precisely/card.png",
       "angle": "อธิบายกลไกว่า AI โหลดโปรเจกต์เข้ามาดูได้ทีละส่วน ไม่ใช่ทั้งก้อน จึงต้องเดาว่าจะหยิบอะไรเมื่อคุณไม่บอกย่าน แล้วให้วินัยข้อเดียวคือเรียกชื่อย่านก่อนสั่ง พร้อมกับดักย่านหน้าจอและตัวอย่างจริงจากเว็บนี้"
+    },
+    {
+      "date": "2026-09-02",
+      "track": "tools",
+      "subject": "markitdown",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-04T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/markitdown",
+      "postId": "122122679577259159",
+      "card": "automation/runs/2026-09-04-tools-0800-markitdown/card.png",
+      "angle": "มุมใหม่ = แปลงทั้งกองแทนทีละไฟล์ ชี้ว่า README รองรับ ZIP โดยไล่แปลงไฟล์ข้างในให้ รวมถึงลิงก์ YouTube EPub และข้อความ Outlook แล้วเปิดเรื่องกับดักของจริงคือส่วนเสริมแยกตามชนิดไฟล์ (pdf/docx/pptx/audio-transcription/youtube-transcription) ที่ไม่ได้มากับตัวหลัก ยกคำสั่งจริงจาก README (pip install 'markitdown[all]', -o, cat | markitdown, --list-plugins, --use-plugins) และแจงข้อจำกัดตรง ๆ ว่าผลลัพธ์ทำมาให้เครื่องอ่าน ไม่ใช่งานแปลงคุณภาพสูงให้คนอ่าน กับคำเตือนความปลอดภัยที่ README ขึ้นไว้ว่ามันเข้าถึงไฟล์เท่าที่โปรเซสเข้าถึงได้"
     }
   ]
 }
