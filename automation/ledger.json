@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 133,
+  "rotationIndex": 134,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1398,6 +1398,18 @@
       "postId": "122122679577259159",
       "card": "automation/runs/2026-09-04-tools-0800-markitdown/card.png",
       "angle": "มุมใหม่ = แปลงทั้งกองแทนทีละไฟล์ ชี้ว่า README รองรับ ZIP โดยไล่แปลงไฟล์ข้างในให้ รวมถึงลิงก์ YouTube EPub และข้อความ Outlook แล้วเปิดเรื่องกับดักของจริงคือส่วนเสริมแยกตามชนิดไฟล์ (pdf/docx/pptx/audio-transcription/youtube-transcription) ที่ไม่ได้มากับตัวหลัก ยกคำสั่งจริงจาก README (pip install 'markitdown[all]', -o, cat | markitdown, --list-plugins, --use-plugins) และแจงข้อจำกัดตรง ๆ ว่าผลลัพธ์ทำมาให้เครื่องอ่าน ไม่ใช่งานแปลงคุณภาพสูงให้คนอ่าน กับคำเตือนความปลอดภัยที่ README ขึ้นไว้ว่ามันเข้าถึงไฟล์เท่าที่โปรเซสเข้าถึงได้"
+    },
+    {
+      "date": "2026-09-03",
+      "track": "news",
+      "subject": "Google เปิดตัว Google Pics เครื่องมือสร้างและแก้ภาพใน Workspace แก้และแปลตัวหนังสือในภาพได้",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-04T11:00:00.000Z",
+      "sourceUrl": "https://blog.google/products-and-platforms/products/workspace/google-pics/",
+      "blogUrl": "https://aipasakon.com/blog/google-pics-workspace-2026",
+      "postId": "122122816401259159",
+      "card": "automation/runs/2026-09-04-news-1800-google-pics/card.png",
+      "angle": "ไม่หยุดที่กรอบคู่แข่ง Canva แต่ชี้ว่าของใหม่ที่มีค่าจริงคือการแก้ภาพที่มีอยู่แล้ว ไม่ใช่การสร้างจากศูนย์ อธิบายกลไกว่าทำไมการแก้ตัวหนังสือในภาพเคยทำไม่ได้ เพราะไฟล์ภาพเก็บแค่จุดสีไม่มีชั้นข้อความ แล้วลากมาสู่สามงานจริงของธุรกิจไทย พร้อมข้อจำกัดตรงไปตรงมาเรื่องการทยอยเปิดใช้ ต้องเป็น AI Pro/Ultra หรือลูกค้าธุรกิจ Workspace และ Google ไม่ได้ระบุการรองรับภาษาไทย"
     }
   ]
 }
