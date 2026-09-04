@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 136,
+  "rotationIndex": 137,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1432,6 +1432,18 @@
       "postId": "122122928595259159",
       "card": "automation/runs/2026-09-05-tools-1800-firecrawl-monitor/card.png",
       "angle": "มุมใหม่ = ชุดคำสั่ง firecrawl_monitor_* ที่หน้าแคตตาล็อกของเรายังไม่ได้พูดถึง เปลี่ยนจากงานดึงข้อมูลครั้งเดียว (มุมเดิม firecrawl_extract) เป็นการเฝ้าหน้าเว็บต่อเนื่อง README ระบุว่า monitor รันสแครปตามตาราง เทียบผลกับสแนปช็อตก่อนหน้า และแจ้งผ่าน webhook หรืออีเมล จุดคมคือเขียน goal เป็นภาษาคน แล้วระบบจะตัดสินเองว่าการเปลี่ยนแปลงนั้นมีความหมายไหม (isMeaningful/judgment) ตัวตั้งค่ามาตรฐานของ MCP คือตาราง 30 นาที ยกคำสั่งจริง monitor_create/run/checks/check/delete และแจงข้อจำกัดตรง ๆ ว่า hosted endpoint แบบไม่ต้องใช้กุญแจครอบแค่ scrape/search/parse ส่วน monitor ต้องมีบัญชีและกุญแจ กับคำเตือนของ README เองว่าอย่าเอากุญแจไปวางในช่องแชตหรือใน URL"
+    },
+    {
+      "date": "2026-09-04",
+      "track": "news",
+      "subject": "Nvidia ซื้อ Hugging Face ที่ 12.93 พันล้านดอลลาร์",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-06T01:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/09/03/nvidia-confirms-it-will-buy-hugging-face-for-12-9-billion/",
+      "blogUrl": "https://aipasakon.com/blog/nvidia-hugging-face-2026",
+      "postId": "122122929327259159",
+      "card": "automation/runs/2026-09-06-news-0800-nvidia-huggingface/card.png",
+      "angle": "ไม่หยุดที่ตัวเลขมูลค่าดีล แต่เริ่มจากการอธิบายว่า Hugging Face คือที่เก็บของกลางของโมเดลแบบเปิด แล้วตอบคำถามว่าทำไมคนขายชิปถึงอยากได้ที่เก็บของกลาง (โมเดลเปิดยิ่งแพร่ ยิ่งมีคนต้องซื้อชิปมารัน + TechCrunch ชี้เรื่องขายกำลังประมวลผลเหลือใช้พ่วงบริการ HF) ยกคำสัญญาของ Huang ว่าไม่บังคับใช้ชิป Nvidia แต่บอกตรง ๆ ว่ามันยังเป็นแค่คำพูดวันประกาศดีล ปิดด้วยความหมายต่อธุรกิจไทยสองทาง (ทางเลือกโมเดลเปิดในการวางระบบ กับสัญญาณมูลค่าเชิงพาณิชย์ของฝั่งเปิด) และสามสัญญาณที่ควรเฝ้าดูต่อ"
     }
   ]
 }
