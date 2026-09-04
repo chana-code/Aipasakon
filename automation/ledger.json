@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 135,
+  "rotationIndex": 136,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1421,6 +1421,17 @@
       "postId": "122122816443259159",
       "card": "automation/runs/2026-09-05-knowledge-0800-the-danger-map/card.png",
       "angle": "เปิดด้วยความเข้าใจผิดที่อันตรายที่สุดคือคิดว่า AI จะเตือนเองเมื่องานอันตราย แล้วให้เครื่องมือวินิจฉัยคือคำถามสองข้อ ราคาพังกับจำนวนจุดที่กระทบ ตามด้วยเขตแดงห้าจุดครบ และพลิกประเด็นว่าแผนที่นี้มีไว้ให้เลิกกลัวในเขตเขียว ไม่ใช่ให้กลัวเพิ่ม"
+    },
+    {
+      "date": "2026-09-04",
+      "track": "tools",
+      "subject": "firecrawl-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-05T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/firecrawl-mcp",
+      "postId": "122122928595259159",
+      "card": "automation/runs/2026-09-05-tools-1800-firecrawl-monitor/card.png",
+      "angle": "มุมใหม่ = ชุดคำสั่ง firecrawl_monitor_* ที่หน้าแคตตาล็อกของเรายังไม่ได้พูดถึง เปลี่ยนจากงานดึงข้อมูลครั้งเดียว (มุมเดิม firecrawl_extract) เป็นการเฝ้าหน้าเว็บต่อเนื่อง README ระบุว่า monitor รันสแครปตามตาราง เทียบผลกับสแนปช็อตก่อนหน้า และแจ้งผ่าน webhook หรืออีเมล จุดคมคือเขียน goal เป็นภาษาคน แล้วระบบจะตัดสินเองว่าการเปลี่ยนแปลงนั้นมีความหมายไหม (isMeaningful/judgment) ตัวตั้งค่ามาตรฐานของ MCP คือตาราง 30 นาที ยกคำสั่งจริง monitor_create/run/checks/check/delete และแจงข้อจำกัดตรง ๆ ว่า hosted endpoint แบบไม่ต้องใช้กุญแจครอบแค่ scrape/search/parse ส่วน monitor ต้องมีบัญชีและกุญแจ กับคำเตือนของ README เองว่าอย่าเอากุญแจไปวางในช่องแชตหรือใน URL"
     }
   ]
 }
