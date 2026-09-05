@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 138,
+  "rotationIndex": 139,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1455,6 +1455,17 @@
       "postId": "122123027523259159",
       "card": "automation/runs/2026-09-06-knowledge-1800-how-it-trains/card.png",
       "angle": "อธิบายว่าทำไม AI ถึงเห็นด้วยกับคุณบ่อยและพูดด้วยน้ำเสียงมั่นใจตลอด โดยไล่กลไกการเทรนสองขั้น pretraining ได้ base model ที่รู้เยอะแต่เอาแต่ต่อข้อความ แล้ว post-training (SFT + RLHF) สอนรสนิยมไม่ใช่ข้อเท็จจริง ปิดด้วย reward hacking และวิธีถามที่ไม่เปิดช่องให้มันเออออ"
+    },
+    {
+      "date": "2026-09-05",
+      "track": "tools",
+      "subject": "llm-cli",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-07T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/llm-cli",
+      "postId": "122123027565259159",
+      "card": "automation/runs/2026-09-07-tools-0800-llm-logs/card.png",
+      "angle": "มุมใหม่ = ประวัติการคุยที่ค้นได้ ต่างจากมุมเดิมที่เป็นรีโมตคุมทุกโมเดล (-m) เอกสารทางการหน้า logging ระบุว่า llm บันทึกทุก prompt และคำตอบลง SQLite โดยอัตโนมัติ ยกคำสั่งจริง llm logs path / status / -n 10 / -n 0 / -q / -l / -c / --cid / -m / -s --usage / -x / backup และเปิดด้วย Datasette พร้อมข้อจำกัดตรง ๆ จากเอกสารว่าดัชนีค้นครอบแค่ข้อความที่คุณพิมพ์กับคำตอบ ไม่รวม system prompt fragment tool call และ reasoning trace กับเรื่องความเป็นส่วนตัวว่าทุกอย่างถูกเขียนลงเครื่อง ปิดด้วย --no-log และ llm logs off"
     }
   ]
 }
