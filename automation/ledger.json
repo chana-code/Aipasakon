@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 146,
+  "rotationIndex": 148,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1542,6 +1542,26 @@
       "postId": "122123362155259159",
       "card": "automation/runs/2026-09-10-tools-1800-notion-mcp-markdown/card.png",
       "angle": "มุมใหม่ = ช่องทาง Markdown ที่เพิ่มมาใน v2 ต่างจากมุมเดิมที่เป็นภาพรวมค้น/อ่าน/สร้างหน้า/ดึงฐานข้อมูล เปิดเรื่องจากงานก๊อปวางเข้าออกที่กินเวลาจริง แล้วอธิบายกลไกว่าหน้า Notion ถูกส่งให้ AI เป็นโครงสร้างบล็อกทีละอันจึงกินพื้นที่ความจำเกินจำเป็น ยกเครื่องมือจริงสองตัวจาก README ทางการคือ retrieve-page-markdown (พร้อมตัวเลือก include_transcript ที่ดึงถอดเสียงบันทึกประชุมเข้ามา) และ update-page-markdown (replace_content เขียนทับทั้งหน้า กับ update_content แก้เฉพาะจุด) พร้อมคำของ README เองว่าประหยัด token กว่าบล็อก JSON อย่างมีนัยสำคัญ ปิดด้วยสามข้อจำกัดจริง คือ Access tab ที่ทำให้เห็นเฉพาะหน้าที่แชร์ สิทธิ์ Read content อย่างเดียวในแท็บ Configuration และประกาศของ Notion เองว่าจะโฟกัสตัว remote แบบ OAuth และอาจเลิกดูแลตัวติดตั้งในเครื่อง พร้อมย้ำ runtime ว่า MCP ใช้ในช่องแชต ChatGPT ไม่ได้ ต้องเสียบกับ Claude Desktop/Claude Code/Cursor"
+    },
+    {
+      "date": "2026-09-09",
+      "track": "knowledge",
+      "subject": "terminal",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/terminal",
+      "card": "automation/runs/2026-09-11-knowledge-0800-terminal/card.png",
+      "angle": "หยิบทักษะเดียวของบทมาเป็นแกน คือแยกข้อความรายงานความคืบหน้าออกจาก error จริง เปิดจากสิ่งที่ผู้อ่านเห็นจริงคือหน้าต่างดำที่ตัวหนังสือไหลเป็นพรืด แล้วอธิบายกลไกว่า output คือคอมพิวเตอร์พูดกลับว่าทำถึงไหน จึงยาวเป็นปกติ วางกฎว่าอย่าตัดสินจากปริมาณ ให้ดูเนื้อหากับสี ยกคำสัญญาณจริงสองชุดจากบท (starting/compiling/building/ready/done/listening on/compiled successfully กับ error/failed/cannot/not found/exception + ก้อนแดง + stack + งานค้าง) ย้ำว่าไม่ต้องแปล error เอง พร้อมประโยคที่พูดกับ AI ได้ทันที ปิดด้วยกลไกที่คนสงสัยบ่อยคือทำไมปิดเทอร์มินอลแล้วเว็บที่เปิดดูอยู่ดับ เพราะคำสั่งค้างทำงานอยู่ในหน้าต่างนั้น เป็นนักเก็ตที่ได้ความรู้ครบโดยไม่ต้องกดลิงก์"
+    },
+    {
+      "date": "2026-09-09",
+      "track": "knowledge",
+      "subject": "terminal",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-11T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/terminal",
+      "postId": "122123362425259159",
+      "card": "automation/runs/2026-09-11-knowledge-0800-terminal/card.png",
+      "angle": "หยิบทักษะเดียวของบทมาเป็นแกน คือแยกข้อความรายงานความคืบหน้าออกจาก error จริง เปิดจากสิ่งที่ผู้อ่านเห็นจริงคือหน้าต่างดำที่ตัวหนังสือไหลเป็นพรืด แล้วอธิบายกลไกว่า output คือคอมพิวเตอร์พูดกลับว่าทำถึงไหน จึงยาวเป็นปกติ วางกฎว่าอย่าตัดสินจากปริมาณ ให้ดูเนื้อหากับสี ยกคำสัญญาณจริงสองชุดจากบท (starting/compiling/building/ready/done/listening on/compiled successfully กับ error/failed/cannot/not found/exception + ก้อนแดง + stack + งานค้าง) ย้ำว่าไม่ต้องแปล error เอง พร้อมประโยคที่พูดกับ AI ได้ทันที ปิดด้วยกลไกที่คนสงสัยบ่อยคือทำไมปิดเทอร์มินอลแล้วเว็บที่เปิดดูอยู่ดับ เพราะคำสั่งค้างทำงานอยู่ในหน้าต่างนั้น เป็นนักเก็ตที่ได้ความรู้ครบโดยไม่ต้องกดลิงก์"
     }
   ]
 }
