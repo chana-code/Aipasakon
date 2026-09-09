@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 144,
+  "rotationIndex": 146,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1522,6 +1522,26 @@
       "postId": "122123278173259159",
       "card": "automation/runs/2026-09-10-news-0800-copyright-bill/card.png",
       "angle": "ไม่หยุดที่ตัวเลข 1.5 พันล้าน แต่แปลงเป็นราคาต่อหน่วยที่ผู้อ่านรู้สึกได้ (3,000 ดอลลาร์ต่อเล่ม ราวหนึ่งแสนบาท ซึ่งมักมากกว่ารายได้ทั้งชีวิตของหนังสือเล่มนั้น) แล้วเล่าสิ่งที่เกิดตอนเงินถึงมือจริง คือการเคลมทับที่คนในวงการเองบอกว่าไม่ใช่เจตนาโกงแต่เป็นเรื่องเอกสารที่เก็บไม่ดี (April Henry 17 ปี, Victoria Strauss, Mary Rasenberger, Courtney Milan) ต่อด้วยคดีใหม่ Seattle Times/Newsday 5 ก.ย. พร้อมตรรกะงูกินหางที่อธิบายได้จริง แยกให้ชัดว่าการยอมความไม่ใช่คำพิพากษาวางหลัก และคำถามเรื่อง fair use ยังไม่มีคำตอบ ปิดด้วยสามผลกระทบต่อคนไทย โดยบทเรียนที่ทำได้ทันทีคือเก็บเอกสารสิทธิ์ในงานตัวเอง"
+    },
+    {
+      "date": "2026-09-09",
+      "track": "tools",
+      "subject": "notion-mcp",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/notion-mcp",
+      "card": "automation/runs/2026-09-10-tools-1800-notion-mcp-markdown/card.png",
+      "angle": "มุมใหม่ = ช่องทาง Markdown ที่เพิ่มมาใน v2 ต่างจากมุมเดิมที่เป็นภาพรวมค้น/อ่าน/สร้างหน้า/ดึงฐานข้อมูล เปิดเรื่องจากงานก๊อปวางเข้าออกที่กินเวลาจริง แล้วอธิบายกลไกว่าหน้า Notion ถูกส่งให้ AI เป็นโครงสร้างบล็อกทีละอันจึงกินพื้นที่ความจำเกินจำเป็น ยกเครื่องมือจริงสองตัวจาก README ทางการคือ retrieve-page-markdown (พร้อมตัวเลือก include_transcript ที่ดึงถอดเสียงบันทึกประชุมเข้ามา) และ update-page-markdown (replace_content เขียนทับทั้งหน้า กับ update_content แก้เฉพาะจุด) พร้อมคำของ README เองว่าประหยัด token กว่าบล็อก JSON อย่างมีนัยสำคัญ ปิดด้วยสามข้อจำกัดจริง คือ Access tab ที่ทำให้เห็นเฉพาะหน้าที่แชร์ สิทธิ์ Read content อย่างเดียวในแท็บ Configuration และประกาศของ Notion เองว่าจะโฟกัสตัว remote แบบ OAuth และอาจเลิกดูแลตัวติดตั้งในเครื่อง พร้อมย้ำ runtime ว่า MCP ใช้ในช่องแชต ChatGPT ไม่ได้ ต้องเสียบกับ Claude Desktop/Claude Code/Cursor"
+    },
+    {
+      "date": "2026-09-09",
+      "track": "tools",
+      "subject": "notion-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-10T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/notion-mcp",
+      "postId": "122123362155259159",
+      "card": "automation/runs/2026-09-10-tools-1800-notion-mcp-markdown/card.png",
+      "angle": "มุมใหม่ = ช่องทาง Markdown ที่เพิ่มมาใน v2 ต่างจากมุมเดิมที่เป็นภาพรวมค้น/อ่าน/สร้างหน้า/ดึงฐานข้อมูล เปิดเรื่องจากงานก๊อปวางเข้าออกที่กินเวลาจริง แล้วอธิบายกลไกว่าหน้า Notion ถูกส่งให้ AI เป็นโครงสร้างบล็อกทีละอันจึงกินพื้นที่ความจำเกินจำเป็น ยกเครื่องมือจริงสองตัวจาก README ทางการคือ retrieve-page-markdown (พร้อมตัวเลือก include_transcript ที่ดึงถอดเสียงบันทึกประชุมเข้ามา) และ update-page-markdown (replace_content เขียนทับทั้งหน้า กับ update_content แก้เฉพาะจุด) พร้อมคำของ README เองว่าประหยัด token กว่าบล็อก JSON อย่างมีนัยสำคัญ ปิดด้วยสามข้อจำกัดจริง คือ Access tab ที่ทำให้เห็นเฉพาะหน้าที่แชร์ สิทธิ์ Read content อย่างเดียวในแท็บ Configuration และประกาศของ Notion เองว่าจะโฟกัสตัว remote แบบ OAuth และอาจเลิกดูแลตัวติดตั้งในเครื่อง พร้อมย้ำ runtime ว่า MCP ใช้ในช่องแชต ChatGPT ไม่ได้ ต้องเสียบกับ Claude Desktop/Claude Code/Cursor"
     }
   ]
 }
