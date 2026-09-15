@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 158,
+  "rotationIndex": 159,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1666,6 +1666,17 @@
       "postId": "122123675829259159",
       "card": "automation/runs/2026-09-14-tools-0800-fabric-strategies/card.png",
       "angle": "มุมใหม่ = ชั้น strategy ที่แยกจาก pattern ต่างจากมุมเดิมที่เล่าแค่คลัง prompt สำเร็จรูป แกนคือเปิดไฟล์ strategy ให้ดูว่าเทคนิคชื่อขลังอย่าง Chain-of-Thought Tree-of-Thought จริง ๆ คือประโยคเดียว ยกของจริงจาก data/strategies ทั้ง 9 ไฟล์ (cot cod tot aot ltm self-consistent self-refine reflexion standard) แปลประโยคสั่งจริงสี่ตัวแบบตรงตัว รวมถึง cod ที่ระบุร่างไม่เกิน 5 คำต่อขั้น payoff ที่ใช้ได้ทันทีแม้ไม่ติดตั้งอะไร คือลอกประโยคไปต่อท้าย prompt ในช่องแชตได้เลยเพราะเป็นข้อความธรรมดา ไม่ใช่ฟีเจอร์โปรแกรม พร้อมคำสั่งจริงจาก README และ flags.go (--liststrategies, --listpatterns, --strategy cot -p analyze_code, -y --stream --pattern extract_wisdom, -u -p analyze_claims, --updatepatterns) ข้อเท็จจริงที่นับเองจาก repo คือ pattern 256 ชุด ดาวราว 44,000 อัปเดตเดือนนี้ ปิดด้วย runtime ตรงไปตรงมาว่าเป็นโปรแกรมเทอร์มินอล ต้องมีกุญแจ API หรือ Ollama ใช้ในช่องแชต ChatGPT ไม่ได้ ให้ยื่นลิงก์โปรเจกต์ให้ agent ที่รันโค้ดได้"
+    },
+    {
+      "date": "2026-09-15",
+      "track": "knowledge",
+      "subject": "skills-commands-hooks",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-15T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/pro-usage/skills-commands-hooks",
+      "postId": "122123912379259159",
+      "card": "automation/runs/2026-09-15-knowledge-1800-who-pulls-the-trigger/card.png",
+      "angle": "แยกสี่ส่วนเสริมของ harness (skill, slash command, hook, plugin) ด้วยคำถามเดียวว่าใครเป็นคนสั่ง เปิดจากปัญหาจริงที่คำขอในแชตหล่นหายเมื่อบทสนทนายาว สอนกลไกว่า skill โหลดเต็มเมื่อคำอธิบายตรงงาน, command คนกดเอง, hook คือกฎในไฟล์ตั้งค่าที่ระบบรันเสมอและ hook ก่อนการกระทำปัดตกได้ อุปมาโน้ตข้างประตูกับประตูล็อกเองพร้อมบอกจุดที่ใช้ไม่ได้ ผลที่ใช้ได้สามข้อรวม disable-model-invocation: true คำเตือนเปิดอ่าน skill ของคนอื่นก่อน และแบบฝึกเติมประโยคออกแบบ hook ในหัว ทุกข้อเท็จจริงมาจากบทบนเว็บ"
     }
   ]
 }
