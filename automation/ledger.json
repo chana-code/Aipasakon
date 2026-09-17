@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 160,
+  "rotationIndex": 161,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1688,6 +1688,18 @@
       "postId": "122124080145259159",
       "card": "automation/runs/2026-09-17-tools-1800-context7-rule/card.png",
       "angle": "มุมใหม่ = เลิกพิมพ์ use context7 ทุกครั้ง ด้วยการตั้งกฎถาวร ต่างจากมุมเดิม (2026-06-22) ที่สอนให้พิมพ์ use context7 ต่อท้าย prompt แกนคือกลไกของไฟล์กฎ (CLAUDE.md ใน Claude Code / Rules ใน Cursor) ว่า agent อ่านไฟล์นี้ทุกครั้งที่เริ่มงาน จึงเป็นคำสั่งถาวรที่ไม่ต้องพิมพ์ซ้ำ ยกประโยคกฎตัวอย่างจาก README แบบแปลตรงตัว บอกว่า npx ctx7 setup ติดตั้ง skill ให้อัตโนมัติจึงทำงานเองเมื่อถามเรื่องไลบรารี มีสองโหมดคือ CLI + Skills (ไม่ต้องใช้ MCP) กับ MCP คำสั่ง ctx7 library / ctx7 docs เคล็ดใส่รหัสไลบรารีเช่น /supabase/supabase เพื่อข้ามขั้นจับคู่ ข้อเท็จจริงจาก README และ GitHub API: ดาวราว 62,000 อัปเดตสัปดาห์นี้ กุญแจ API ฟรีเพิ่มโควตา ต้อง Node.js 18 ขึ้นไป คู่มือบางส่วนชุมชนใส่ ไม่รับประกันร้อยเปอร์เซ็นต์ runtime ตรงไปตรงมาว่าใช้ในแชต ChatGPT ธรรมดาไม่ได้"
+    },
+    {
+      "date": "2026-09-17",
+      "track": "news",
+      "subject": "Anthropic รวมแชตกับ Cowork เป็น Claude ตัวเดียว และเปิดตัว Claude Docs กับ Claude Slides",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-18T08:00:00+07:00",
+      "sourceUrl": "https://claude.com/blog/cowork-is-now-claude",
+      "blogUrl": "https://aipasakon.com/blog/claude-one-claude-docs-slides-2026",
+      "postId": "122124080709259159",
+      "card": "automation/runs/2026-09-18-news-0800-one-claude-docs-slides/card.png",
+      "angle": "เล่าจากปัญหาที่ผู้ใช้เจอจริงคือต้องเลือกว่างานไปอยู่แชตหรือ Cowork สอนกลไกว่า model ตัวเดียวกัน ต่างกันที่ตัวห่อ (surface) และจุดสำคัญคือบริบทอยู่ในบทสนทนาเดียว ชิ้นงานจึงสอดคล้องกัน ข้อเท็จจริงจากบล็อก Anthropic 16 ก.ย. 2026 (Docs/Slides beta แพ็กเกจเสียเงิน, ดาวน์โหลด PowerPoint/PDF, ลิงก์เดียวเปิดบนมือถือ, ค่าเริ่มต้นถามก่อนลงมือ, Pro/Max ก่อนภายในไม่กี่สัปดาห์, Team/Free ตามมา, Enterprise แจ้งล่วงหน้า 30 วัน) เสริมด้วย TechCrunch (เลือกแท็บไม่ถูก, ความจำ Cowork) และ The Verge (แชร์แก้พร้อมกัน คอมเมนต์, เทียบ Gemini ใน Google Docs) ปิดด้วยวิธีใช้ต่างจากเดิมสี่ข้อ"
     }
   ]
 }
