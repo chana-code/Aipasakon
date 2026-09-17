@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 162,
+  "rotationIndex": 163,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1711,6 +1711,17 @@
       "postId": "122124080907259159",
       "card": "automation/runs/2026-09-18-knowledge-1800-localhost/card.png",
       "angle": "เปิดจากความผิดพลาดที่คนหัดสร้างแอปกับ AI ทำจริง คือก๊อปลิงก์ localhost:3000 ไปส่งให้หัวหน้าหรือเพื่อนดู แล้วอีกฝั่งเปิดไม่ได้ ใช้เป็นประตูสอนกลไกทั้งบท: localhost แปลว่าเครื่องนี้เอง จึงชี้ไปคนละเครื่องสำหรับแต่ละคน การรันแอปคือมีโปรแกรมทำงานค้างเสิร์ฟหน้าเว็บ ไม่ใช่ภาพนิ่ง 3000 คือหมายเลขช่อง คำสั่ง npm run dev ปิดเครื่องแอปก็หยุด สามสนาม local / preview / production ของไหลทางเดียว แก้บน local ไม่หลุดขึ้นเว็บจริง ถ้าอยากให้คนอื่นดูต้องใช้ preview (เช่น Netlify ปั้นที่อยู่ลับให้) ผลที่ใช้ได้: กล้าลองพังบนเครื่อง และกับดักว่าผ่านบนเครื่องฉันยังไม่เท่ากับผ่านสำหรับทุกคน ทุกข้อมาจากบท vibe-coding/localhost"
+    },
+    {
+      "date": "2026-09-17",
+      "track": "tools",
+      "subject": "browser-use",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-19T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/browser-use",
+      "postId": "122124081177259159",
+      "card": "automation/runs/2026-09-19-tools-0800-browser-use-three-paths/card.png",
+      "angle": "มุมใหม่ = แยกสมองกับมือ: เลือกว่าใครรัน agent และใช้เบราว์เซอร์ไหน ต่างจากมุมเดิม (2026-06-10) ที่เทียบ goal-level automation กับ Playwright ยึดหน้า Which Browser Use do I need ของ README/docs สามทาง: (1) Cloud ที่ Browser Use รันทั้ง agent และเบราว์เซอร์ ทำงานต่อหลังปิดโน้ตบุ๊ก (2) CLI ให้ agent ที่มีอยู่แล้วอย่าง Claude Code / Codex ใช้ คุม Chrome ตัวจริงที่มีแท็บ คุกกี้ และบัญชีที่ล็อกอินไว้ (3) Python library รัน agent โอเพนซอร์สในโค้ดตัวเอง สอนผลของการเลือก: Chrome ตัวจริงแปลว่า AI ทำในนามบัญชีคุณ, cloud browser คิดเงินจนกว่าจะหยุด ($0.02 ต่อชั่วโมงเบราว์เซอร์ เครดิต $15 สำหรับคนสมัครใหม่ผ่าน Google/GitHub/Microsoft), docs เตือนว่าผลสำเร็จเป็นสิ่งที่ agent รายงานเอง ต้องตรวจการกระทำสำคัญแยกเอง คำสั่งจริงจาก docs: uv tool install browser-use, browser-use skill install, browser-use --doctor, browser-use auth login ดาวราว 114,000 อัปเดตสัปดาห์นี้ runtime: ใช้ในแชต ChatGPT ธรรมดาไม่ได้"
     }
   ]
 }
