@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 163,
+  "rotationIndex": 166,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1722,6 +1722,38 @@
       "postId": "122124081177259159",
       "card": "automation/runs/2026-09-19-tools-0800-browser-use-three-paths/card.png",
       "angle": "มุมใหม่ = แยกสมองกับมือ: เลือกว่าใครรัน agent และใช้เบราว์เซอร์ไหน ต่างจากมุมเดิม (2026-06-10) ที่เทียบ goal-level automation กับ Playwright ยึดหน้า Which Browser Use do I need ของ README/docs สามทาง: (1) Cloud ที่ Browser Use รันทั้ง agent และเบราว์เซอร์ ทำงานต่อหลังปิดโน้ตบุ๊ก (2) CLI ให้ agent ที่มีอยู่แล้วอย่าง Claude Code / Codex ใช้ คุม Chrome ตัวจริงที่มีแท็บ คุกกี้ และบัญชีที่ล็อกอินไว้ (3) Python library รัน agent โอเพนซอร์สในโค้ดตัวเอง สอนผลของการเลือก: Chrome ตัวจริงแปลว่า AI ทำในนามบัญชีคุณ, cloud browser คิดเงินจนกว่าจะหยุด ($0.02 ต่อชั่วโมงเบราว์เซอร์ เครดิต $15 สำหรับคนสมัครใหม่ผ่าน Google/GitHub/Microsoft), docs เตือนว่าผลสำเร็จเป็นสิ่งที่ agent รายงานเอง ต้องตรวจการกระทำสำคัญแยกเอง คำสั่งจริงจาก docs: uv tool install browser-use, browser-use skill install, browser-use --doctor, browser-use auth login ดาวราว 114,000 อัปเดตสัปดาห์นี้ runtime: ใช้ในแชต ChatGPT ธรรมดาไม่ได้"
+    },
+    {
+      "date": "2026-09-18",
+      "track": "news",
+      "subject": "UN กับ Google เปิด UN System Data Commons ให้ AI agent ดึงสถิติได้โดยตรง หลัง benchmark ของ UNICEF พบ LLM ตอบตัวเลขพัฒนาถูกเฉลี่ย 21.2%",
+      "status": "draft",
+      "sourceUrl": "https://blog.google/innovation-and-ai/technology/ai/google-un-data-commons-platform/",
+      "blogUrl": "https://aipasakon.com/blog/un-data-commons-ai-agents-2026",
+      "card": "automation/runs/2026-09-19-news-1800-un-data-commons/card.png",
+      "angle": "เปิดจากพฤติกรรมจริงของผู้อ่านคือถาม AI เอาตัวเลขสถิติไปใส่สไลด์ ใช้ผลทดสอบของ UNICEF เป็นหมัดแรก (LLM 6 ตัว กว่า 133,000 คำตอบ แม่นเฉลี่ย 21.2% ราว 3 ใน 5 ไม่ให้ตัวเลขใช้ได้ ถามซ้ำหลังสองวันได้เลขเดิมราวครึ่งเดียว) แล้วสอนกลไกว่าทำไม คือ model ไม่ได้เก็บตารางสถิติ มันเดาคำต่อไป ตัวเลขจึงถูกรูปแบบแต่ไม่มีต้นทาง จุดนั้นอธิบายความไม่คงที่ จากนั้นเข้าข่าว UN System Data Commons 17 ก.ย. 2026 แทน UNData เดิม ถามเป็นภาษาพูดได้ และรองรับ MCP จึงให้ agent ต่อตรงเข้าคลังและไล่ย้อนต้นทางได้ พร้อมตัวเลขโครงการ (26 หน่วยงานตอบรับ เกือบ 20 ใช้ได้แล้ว เป้า 80% ภายในปี 2027 Google ให้ทุน 2 ล้านดอลลาร์ผ่าน UN Foundation) ปิดด้วยข้อจำกัดจากปาก Prem Ramaswami ว่าต้องให้คนตรวจก่อนอ้างอิง แยกให้เห็นว่าต่อแหล่งข้อมูลแก้เรื่องต้นทาง ไม่ได้แก้เรื่องอ่านโจทย์ผิด แล้วจบด้วยวิธีใช้จริงห้าข้อ เน้นขอลิงก์ต้นทางทุกครั้ง"
+    },
+    {
+      "date": "2026-09-18",
+      "track": "news",
+      "subject": "UN กับ Google เปิด UN System Data Commons ให้ AI agent ดึงสถิติได้โดยตรง หลัง benchmark ของ UNICEF พบ LLM ตอบตัวเลขพัฒนาถูกเฉลี่ย 21.2%",
+      "status": "draft",
+      "sourceUrl": "https://blog.google/innovation-and-ai/technology/ai/google-un-data-commons-platform/",
+      "blogUrl": "https://aipasakon.com/blog/un-data-commons-ai-agents-2026",
+      "card": "automation/runs/2026-09-19-news-1800-un-data-commons/card.png",
+      "angle": "เปิดจากพฤติกรรมจริงของผู้อ่านคือถาม AI เอาตัวเลขสถิติไปใส่สไลด์ ใช้ผลทดสอบของ UNICEF เป็นหมัดแรก (LLM 6 ตัว กว่า 133,000 คำตอบ แม่นเฉลี่ย 21.2% ราว 3 ใน 5 ไม่ให้ตัวเลขใช้ได้ ถามซ้ำหลังสองวันได้เลขเดิมราวครึ่งเดียว) แล้วสอนกลไกว่าทำไม คือ model ไม่ได้เก็บตารางสถิติ มันเดาคำต่อไป ตัวเลขจึงถูกรูปแบบแต่ไม่มีต้นทาง จุดนั้นอธิบายความไม่คงที่ จากนั้นเข้าข่าว UN System Data Commons 17 ก.ย. 2026 แทน UNData เดิม ถามเป็นภาษาพูดได้ และรองรับ MCP จึงให้ agent ต่อตรงเข้าคลังและไล่ย้อนต้นทางได้ พร้อมตัวเลขโครงการ (26 หน่วยงานตอบรับ เกือบ 20 ใช้ได้แล้ว เป้า 80% ภายในปี 2027 Google ให้ทุน 2 ล้านดอลลาร์ผ่าน UN Foundation) ปิดด้วยข้อจำกัดจากปาก Prem Ramaswami ว่าต้องให้คนตรวจก่อนอ้างอิง แยกให้เห็นว่าต่อแหล่งข้อมูลแก้เรื่องต้นทาง ไม่ได้แก้เรื่องอ่านโจทย์ผิด แล้วจบด้วยวิธีใช้จริงห้าข้อ เน้นขอลิงก์ต้นทางทุกครั้ง"
+    },
+    {
+      "date": "2026-09-18",
+      "track": "news",
+      "subject": "UN กับ Google เปิด UN System Data Commons ให้ AI agent ดึงสถิติได้โดยตรง หลัง benchmark ของ UNICEF พบ LLM ตอบตัวเลขพัฒนาถูกเฉลี่ย 21.2%",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-19T11:00:00.000Z",
+      "sourceUrl": "https://blog.google/innovation-and-ai/technology/ai/google-un-data-commons-platform/",
+      "blogUrl": "https://aipasakon.com/blog/un-data-commons-ai-agents-2026",
+      "postId": "122124167019259159",
+      "card": "automation/runs/2026-09-19-news-1800-un-data-commons/card.png",
+      "angle": "เปิดจากพฤติกรรมจริงของผู้อ่านคือถาม AI เอาตัวเลขสถิติไปใส่สไลด์ ใช้ผลทดสอบของ UNICEF เป็นหมัดแรก (LLM 6 ตัว กว่า 133,000 คำตอบ แม่นเฉลี่ย 21.2% ราว 3 ใน 5 ไม่ให้ตัวเลขใช้ได้ ถามซ้ำหลังสองวันได้เลขเดิมราวครึ่งเดียว) แล้วสอนกลไกว่าทำไม คือ model ไม่ได้เก็บตารางสถิติ มันเดาคำต่อไป ตัวเลขจึงถูกรูปแบบแต่ไม่มีต้นทาง จุดนั้นอธิบายความไม่คงที่ จากนั้นเข้าข่าว UN System Data Commons 17 ก.ย. 2026 แทน UNData เดิม ถามเป็นภาษาพูดได้ และรองรับ MCP จึงให้ agent ต่อตรงเข้าคลังและไล่ย้อนต้นทางได้ พร้อมตัวเลขโครงการ (26 หน่วยงานตอบรับ เกือบ 20 ใช้ได้แล้ว เป้า 80% ภายในปี 2027 Google ให้ทุน 2 ล้านดอลลาร์ผ่าน UN Foundation) ปิดด้วยข้อจำกัดจากปาก Prem Ramaswami ว่าต้องให้คนตรวจก่อนอ้างอิง แยกให้เห็นว่าต่อแหล่งข้อมูลแก้เรื่องต้นทาง ไม่ได้แก้เรื่องอ่านโจทย์ผิด แล้วจบด้วยวิธีใช้จริงห้าข้อ เน้นขอลิงก์ต้นทางทุกครั้ง"
     }
   ]
 }
