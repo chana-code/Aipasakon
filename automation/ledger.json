@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 168,
+  "rotationIndex": 171,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1774,6 +1774,35 @@
       "postId": "122124172521259159",
       "card": "automation/runs/2026-09-20-knowledge-0800-git-undo/card.png",
       "angle": "หยิบความเข้าใจผิดที่ชัดที่สุดของบทมาเป็นแกน คือ undo กับ commit อยู่คนละชั้นกัน เปิดจากฉากที่คนสร้างแอปกับ AI เจอจริง คือเช้าของยังดี บ่ายสั่งแก้หลายรอบแล้วพัง ย้อนไม่เป็น สอนกลไกครบในตัวโพสต์ คือ undo เป็นความจำชั่วคราวของโปรแกรมที่เปิดอยู่ ปิดแล้วหาย ถอยได้ทีละขั้นตามลำดับ ส่วน commit คือถ่ายรูปไฟล์ทุกไฟล์ แช่แข็ง ติดรหัสและข้อความ เก็บลงประวัติถาวร กระโดดกลับได้ตรงจุด ต่อด้วยกฎที่ทำให้ปลอดภัยคือ commit ไม่ถูกแก้ไม่ถูกทับ ประวัติมีแต่ยาวขึ้น แล้วเสริม branch เป็นเส้นคู่ขนานสำหรับของเสี่ยง จุดที่ทำให้โพสต์คมคือข้อโต้แย้งจากบทว่า สำหรับคนอ่านโค้ดไม่ออก git สำคัญกว่าสำหรับโปรแกรมเมอร์อาชีพ เพราะโปรแกรมเมอร์ไล่แก้กลับเองได้ แต่คุณทำไม่ได้ ปิดด้วยของที่ทำได้ทันที คือไม่ต้องพิมพ์คำสั่งเอง AI พิมพ์ให้ พร้อมประโยคสั่งจริงสามประโยคจากบท และแบบฝึกหนึ่งบรรทัดก่อนสั่งแก้ครั้งต่อไป ทุกข้อเท็จจริงมาจากบท vibe-coding/git"
+    },
+    {
+      "date": "2026-09-19",
+      "track": "tools",
+      "subject": "mcp-chrome",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/mcp-chrome",
+      "card": "automation/runs/2026-09-20-tools-1800-chrome-mcp-local/card.png",
+      "angle": "มุมใหม่ = fully local + กลุ่มเครื่องมือจัดการข้อมูลของตัวเอง (history/bookmarks) ต่างจากมุมเดิมที่เทียบกับ Playwright และชูค้นแท็บด้วยความหมาย ยึด README จริง: 'Fully Local: Pure local MCP server ensuring user privacy', เชื่อมที่ http://127.0.0.1:12306/mcp, vector database ในตัวรันบนเครื่อง, 20+ tools. ยกกลุ่ม Data Management ที่คนมองข้าม: chrome_history (กรองช่วงเวลา), chrome_bookmark_search, chrome_bookmark_add (เลือกโฟลเดอร์ได้) + ตัวอย่างใน README 'Analyze my browsing history from the past month' + chrome_get_web_content + search_tabs_content. ความซื่อสัตย์ที่เพิ่มเข้ามา = local หมายถึงไม่มีบริการที่สามกลางทาง แต่เนื้อหาที่ AI อ่านยังส่งไปหาโมเดลที่ต่ออยู่ (Claude ฯลฯ) ถ้าอยากไม่ออกจากเครื่องจริงต้องใช้โมเดลบนเครื่อง. ข้อจำกัดจาก README เอง = 'project is still in its early stages and is under intensive development', ต้อง Node >= 20, npm install -g mcp-chrome-bridge + โหลด extension จากหน้า releases เอง, runtime ต้องเป็น agent ที่รองรับ MCP ไม่ใช่แชต ChatGPT เปล่า, และ AI กดในนามบัญชีที่ล็อกอินไว้. สถิติตรวจผ่าน GitHub API 2026-09-19: 12,434 ดาว, MIT, TypeScript"
+    },
+    {
+      "date": "2026-09-19",
+      "track": "tools",
+      "subject": "mcp-chrome",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/mcp-chrome",
+      "card": "automation/runs/2026-09-20-tools-1800-chrome-mcp-local/card.png",
+      "angle": "มุมใหม่ = fully local + กลุ่มเครื่องมือจัดการข้อมูลของตัวเอง (history/bookmarks) ต่างจากมุมเดิมที่เทียบกับ Playwright และชูค้นแท็บด้วยความหมาย ยึด README จริง: 'Fully Local: Pure local MCP server ensuring user privacy', เชื่อมที่ http://127.0.0.1:12306/mcp, vector database ในตัวรันบนเครื่อง, 20+ tools. ยกกลุ่ม Data Management ที่คนมองข้าม: chrome_history (กรองช่วงเวลา), chrome_bookmark_search, chrome_bookmark_add (เลือกโฟลเดอร์ได้) + ตัวอย่างใน README 'Analyze my browsing history from the past month' + chrome_get_web_content + search_tabs_content. ความซื่อสัตย์ที่เพิ่มเข้ามา = local หมายถึงไม่มีบริการที่สามกลางทาง แต่เนื้อหาที่ AI อ่านยังส่งไปหาโมเดลที่ต่ออยู่ (Claude ฯลฯ) ถ้าอยากไม่ออกจากเครื่องจริงต้องใช้โมเดลบนเครื่อง. ข้อจำกัดจาก README เอง = 'project is still in its early stages and is under intensive development', ต้อง Node >= 20, npm install -g mcp-chrome-bridge + โหลด extension จากหน้า releases เอง, runtime ต้องเป็น agent ที่รองรับ MCP ไม่ใช่แชต ChatGPT เปล่า, และ AI กดในนามบัญชีที่ล็อกอินไว้. สถิติตรวจผ่าน GitHub API 2026-09-19: 12,434 ดาว, MIT, TypeScript"
+    },
+    {
+      "date": "2026-09-19",
+      "track": "tools",
+      "subject": "mcp-chrome",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-20T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/mcp-chrome",
+      "postId": "122124283227259159",
+      "card": "automation/runs/2026-09-20-tools-1800-chrome-mcp-local/card.png",
+      "angle": "มุมใหม่ = fully local + กลุ่มเครื่องมือจัดการข้อมูลของตัวเอง (history/bookmarks) ต่างจากมุมเดิมที่เทียบกับ Playwright และชูค้นแท็บด้วยความหมาย ยึด README จริง: 'Fully Local: Pure local MCP server ensuring user privacy', เชื่อมที่ http://127.0.0.1:12306/mcp, vector database ในตัวรันบนเครื่อง, 20+ tools. ยกกลุ่ม Data Management ที่คนมองข้าม: chrome_history (กรองช่วงเวลา), chrome_bookmark_search, chrome_bookmark_add (เลือกโฟลเดอร์ได้) + ตัวอย่างใน README 'Analyze my browsing history from the past month' + chrome_get_web_content + search_tabs_content. ความซื่อสัตย์ที่เพิ่มเข้ามา = local หมายถึงไม่มีบริการที่สามกลางทาง แต่เนื้อหาที่ AI อ่านยังส่งไปหาโมเดลที่ต่ออยู่ (Claude ฯลฯ) ถ้าอยากไม่ออกจากเครื่องจริงต้องใช้โมเดลบนเครื่อง. ข้อจำกัดจาก README เอง = 'project is still in its early stages and is under intensive development', ต้อง Node >= 20, npm install -g mcp-chrome-bridge + โหลด extension จากหน้า releases เอง, runtime ต้องเป็น agent ที่รองรับ MCP ไม่ใช่แชต ChatGPT เปล่า, และ AI กดในนามบัญชีที่ล็อกอินไว้. สถิติตรวจผ่าน GitHub API 2026-09-19: 12,434 ดาว, MIT, TypeScript"
     }
   ]
 }
