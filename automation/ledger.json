@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 172,
+  "rotationIndex": 173,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1815,6 +1815,17 @@
       "postId": "122124283281259159",
       "card": "automation/runs/2026-09-21-news-0800-muse-mac/card.png",
       "angle": "Muse บน Mac (18 ก.ย. 2026) = agent ย้ายจากช่องแชตมาลงมือในแอปจริง. เจาะลึกสถาปัตยกรรมความปลอดภัยจากประกาศ Meta Newsroom: Muse Secure VM (เครื่องเสมือนแยกต่อคน บนคลาวด์ ไม่ใช่รันบน Mac), Sentinel agent แยกระดับระบบ ไม่อนุมัติ=ไม่ออกเน็ต, credential isolation (ใช้ได้แต่ไม่เห็น) + Stripe Link บัตรใช้ครั้งเดียว, approval ก่อน sensitive action + audit trail, สิทธิ์ราย granular (อ่าน vs ส่ง) + opt-out training + ไม่เข้าระบบโฆษณา, Muse Confidential VM ประกาศไว้ปลายปี (ยังไม่ปล่อย). Takeaway ที่ใช้ได้จริงกับคนไทย = เช็กลิสต์ 4 ข้อประเมิน AI agent ตัวไหนก็ได้ (สิทธิ์ granular / หยุดถามก่อนงานที่ย้อนไม่ได้ / เห็นรหัสผ่านไหม / audit trail). Honesty: Muse เปิดเฉพาะสหรัฐฯ ยังไม่มีไทย. บริบทแข่งขัน: Instinct ระดมทุนที่มูลค่า 1 หมื่นล้านดอลลาร์, ทั้งคู่ปล่อย voice calling สัปดาห์เดียวกัน"
+    },
+    {
+      "date": "2026-09-19",
+      "track": "knowledge",
+      "subject": "memory-context",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-21T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/pro-usage/memory-context",
+      "postId": "122124283881259159",
+      "card": "automation/runs/2026-09-21-knowledge-1800-memory-context/card.png",
+      "angle": "nugget ยืนได้เอง: context = โต๊ะทำงานชั่วคราว ไม่ใช่ความจำถาวร + จุดที่คนเข้าใจผิดที่สุดคือคิดว่าเหมือนกล่อง ไม่เต็มแปลว่าไม่มีปัญหา แต่คุณภาพตกก่อนเต็ม อ้าง Lost in the Middle (ข้อมูลต้น/ท้ายกองใช้ได้ดีกว่ากลางกอง แม้โมเดล long-context) ตามที่บทความอ้างไว้ + สิ่งที่กิน context โดยไม่รู้ตัว (คำตอบเก่าของ AI, ไฟล์ที่เปิด, output จากคำสั่ง, paste) + 3 ข้อปฏิบัติ: ย้ำข้อจำกัดในข้อความล่าสุด (ท้ายกอง), เปิดแชทใหม่เมื่อเปลี่ยนเรื่อง (fresh-start), ตัดเฉพาะส่วนที่เกี่ยวแทน paste ทั้งไฟล์ ไม่มีบล็อกใหม่ ลิงก์หน้าเดิม"
     }
   ]
 }
