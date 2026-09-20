@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 173,
+  "rotationIndex": 174,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1826,6 +1826,17 @@
       "postId": "122124283881259159",
       "card": "automation/runs/2026-09-21-knowledge-1800-memory-context/card.png",
       "angle": "nugget ยืนได้เอง: context = โต๊ะทำงานชั่วคราว ไม่ใช่ความจำถาวร + จุดที่คนเข้าใจผิดที่สุดคือคิดว่าเหมือนกล่อง ไม่เต็มแปลว่าไม่มีปัญหา แต่คุณภาพตกก่อนเต็ม อ้าง Lost in the Middle (ข้อมูลต้น/ท้ายกองใช้ได้ดีกว่ากลางกอง แม้โมเดล long-context) ตามที่บทความอ้างไว้ + สิ่งที่กิน context โดยไม่รู้ตัว (คำตอบเก่าของ AI, ไฟล์ที่เปิด, output จากคำสั่ง, paste) + 3 ข้อปฏิบัติ: ย้ำข้อจำกัดในข้อความล่าสุด (ท้ายกอง), เปิดแชทใหม่เมื่อเปลี่ยนเรื่อง (fresh-start), ตัดเฉพาะส่วนที่เกี่ยวแทน paste ทั้งไฟล์ ไม่มีบล็อกใหม่ ลิงก์หน้าเดิม"
+    },
+    {
+      "date": "2026-09-20",
+      "track": "tools",
+      "subject": "cli-anything",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-22T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/cli-anything",
+      "postId": "122124333717259159",
+      "card": "automation/runs/2026-09-22-tools-0800-cli-hub/card.png",
+      "angle": "มุมใหม่ = ฝั่งทะเบียน CLI-Hub (ของสำเร็จรูปที่หยิบใช้ได้เลย + meta-skill ให้ agent เลือกและติดตั้งเอง) ต่างจากมุมเดิมที่เป็นการสร้าง harness เองด้วยการอ่านซอร์สโค้ดโปรแกรม. กราวด์จาก README ทางการ HKUDS/CLI-Anything + registry.json + public_registry.json (ตรวจ 2026-09-20): registry.json meta.updated = 2026-06-19, clis = 79 รายการ; public_registry.json = 24 รายการ (Shopify, Sentry, ElevenLabs, Feishu ฯลฯ); หมวดใหญ่สุด ai 8, devops 6, web 6, video 6, graphics 6, office 4. คำสั่งยกจากตาราง Quick Start จริง: pip install cli-anything-hub, cli-hub list/search/info/install/launch. meta-skill ยกจาก README: npx skills add HKUDS/CLI-Anything --skill cli-hub-meta-skill -g -y + prompt 'Find appropriate CLI software in CLI-Hub and complete the task: ...'. คำอธิบายรายการยกจากฟิลด์ description ในทะเบียน (LibreOffice=ODF + export PDF/DOCX/XLSX/PPTX headless, GIMP=gimp -i -b batch, Shotcut=melt/ffmpeg, Audacity=sox, Draw.io=export, Calibre=calibredb/ebook-convert). ข้อจำกัดยกจากฟิลด์ requires + หมายเหตุใน README ('If a selected CLI needs GIMP, Blender, LibreOffice, or another upstream tool, install that upstream application too') + apt-centric install_cmd + runtime ต้องเป็น agent ที่รันโค้ดได้. สถิติ GitHub API 2026-09-20: 49,603 ดาว, Apache-2.0, Python"
     }
   ]
 }
