@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 177,
+  "rotationIndex": 179,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1869,6 +1869,26 @@
       "postId": "122124435369259159",
       "card": "automation/runs/2026-09-22-news-1800-gemini-breakout/card.png",
       "angle": "ประตูที่ AI ใช้คือประตูเก่า (รหัสเดาได้ + credential หลุดใน public repo) แต่ AI ทำให้ต้นทุนการหาช่องต่ำลง -> เช็กลิสต์ปิดสองประตู + บทเรียน containment/least-privilege สำหรับ AI agent; ไม่ซ้ำโพสต์ OpenAI/Hugging Face (ก.ค.) ซึ่งเน้นตัวเหตุการณ์"
+    },
+    {
+      "date": "2026-09-21",
+      "track": "knowledge",
+      "subject": "when-it-breaks",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/when-it-breaks",
+      "card": "automation/runs/2026-09-23-knowledge-0800-when-it-breaks/card.png",
+      "angle": "เปิดจากสัญชาตญาณตอนพังคือรีบสั่ง AI แก้ทับ -> กลไกปริศนาซ้อนปริศนา (ของที่ไม่เข้าใจวางทับของที่ไม่เข้าใจ) -> สคริปต์สี่ขั้น หยุด/ถอยไปเวอร์ชันที่ดี/ถามว่าอะไรเปลี่ยน+แบ่งครึ่ง/พังซ้ำสองครั้งให้ช้าลงหรือหาคนช่วย + อุปมาขับรถหลง; ต่างจากโพสต์ git (20 ก.ย.) ที่เน้น undo vs commit ทุกข้อมาจากบท vibe-coding/when-it-breaks"
+    },
+    {
+      "date": "2026-09-21",
+      "track": "knowledge",
+      "subject": "when-it-breaks",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-23T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/when-it-breaks",
+      "postId": "122124435783259159",
+      "card": "automation/runs/2026-09-23-knowledge-0800-when-it-breaks/card.png",
+      "angle": "เปิดจากสัญชาตญาณตอนพังคือรีบสั่ง AI แก้ทับ -> กลไกปริศนาซ้อนปริศนา (ของที่ไม่เข้าใจวางทับของที่ไม่เข้าใจ) -> สคริปต์สี่ขั้น หยุด/ถอยไปเวอร์ชันที่ดี/ถามว่าอะไรเปลี่ยน+แบ่งครึ่ง/พังซ้ำสองครั้งให้ช้าลงหรือหาคนช่วย + อุปมาขับรถหลง; ต่างจากโพสต์ git (20 ก.ย.) ที่เน้น undo vs commit ทุกข้อมาจากบท vibe-coding/when-it-breaks"
     }
   ]
 }
