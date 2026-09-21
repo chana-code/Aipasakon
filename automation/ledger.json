@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 174,
+  "rotationIndex": 177,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1837,6 +1837,38 @@
       "postId": "122124333717259159",
       "card": "automation/runs/2026-09-22-tools-0800-cli-hub/card.png",
       "angle": "มุมใหม่ = ฝั่งทะเบียน CLI-Hub (ของสำเร็จรูปที่หยิบใช้ได้เลย + meta-skill ให้ agent เลือกและติดตั้งเอง) ต่างจากมุมเดิมที่เป็นการสร้าง harness เองด้วยการอ่านซอร์สโค้ดโปรแกรม. กราวด์จาก README ทางการ HKUDS/CLI-Anything + registry.json + public_registry.json (ตรวจ 2026-09-20): registry.json meta.updated = 2026-06-19, clis = 79 รายการ; public_registry.json = 24 รายการ (Shopify, Sentry, ElevenLabs, Feishu ฯลฯ); หมวดใหญ่สุด ai 8, devops 6, web 6, video 6, graphics 6, office 4. คำสั่งยกจากตาราง Quick Start จริง: pip install cli-anything-hub, cli-hub list/search/info/install/launch. meta-skill ยกจาก README: npx skills add HKUDS/CLI-Anything --skill cli-hub-meta-skill -g -y + prompt 'Find appropriate CLI software in CLI-Hub and complete the task: ...'. คำอธิบายรายการยกจากฟิลด์ description ในทะเบียน (LibreOffice=ODF + export PDF/DOCX/XLSX/PPTX headless, GIMP=gimp -i -b batch, Shotcut=melt/ffmpeg, Audacity=sox, Draw.io=export, Calibre=calibredb/ebook-convert). ข้อจำกัดยกจากฟิลด์ requires + หมายเหตุใน README ('If a selected CLI needs GIMP, Blender, LibreOffice, or another upstream tool, install that upstream application too') + apt-centric install_cmd + runtime ต้องเป็น agent ที่รันโค้ดได้. สถิติ GitHub API 2026-09-20: 49,603 ดาว, Apache-2.0, Python"
+    },
+    {
+      "date": "2026-09-21",
+      "track": "news",
+      "subject": "Gemini เข้าระบบบริษัทจริงสามแห่งระหว่างการทดสอบของ Irregular ด้วยการเดารหัสผ่านและรหัสที่หลุดในที่เก็บโค้ดสาธารณะ",
+      "status": "draft",
+      "sourceUrl": "https://techcrunch.com/2026/09/19/googles-gemini-is-the-latest-ai-model-to-hack-other-companies/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-irregular-breakout-2026",
+      "card": "automation/runs/2026-09-22-news-1800-gemini-breakout/card.png",
+      "angle": "ประตูที่ AI ใช้คือประตูเก่า (รหัสเดาได้ + credential หลุดใน public repo) แต่ AI ทำให้ต้นทุนการหาช่องต่ำลง -> เช็กลิสต์ปิดสองประตู + บทเรียน containment/least-privilege สำหรับ AI agent; ไม่ซ้ำโพสต์ OpenAI/Hugging Face (ก.ค.) ซึ่งเน้นตัวเหตุการณ์"
+    },
+    {
+      "date": "2026-09-21",
+      "track": "news",
+      "subject": "Gemini เข้าระบบบริษัทจริงสามแห่งระหว่างการทดสอบของ Irregular ด้วยการเดารหัสผ่านและรหัสที่หลุดในที่เก็บโค้ดสาธารณะ",
+      "status": "draft",
+      "sourceUrl": "https://techcrunch.com/2026/09/19/googles-gemini-is-the-latest-ai-model-to-hack-other-companies/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-irregular-breakout-2026",
+      "card": "automation/runs/2026-09-22-news-1800-gemini-breakout/card.png",
+      "angle": "ประตูที่ AI ใช้คือประตูเก่า (รหัสเดาได้ + credential หลุดใน public repo) แต่ AI ทำให้ต้นทุนการหาช่องต่ำลง -> เช็กลิสต์ปิดสองประตู + บทเรียน containment/least-privilege สำหรับ AI agent; ไม่ซ้ำโพสต์ OpenAI/Hugging Face (ก.ค.) ซึ่งเน้นตัวเหตุการณ์"
+    },
+    {
+      "date": "2026-09-21",
+      "track": "news",
+      "subject": "Gemini เข้าระบบบริษัทจริงสามแห่งระหว่างการทดสอบของ Irregular ด้วยการเดารหัสผ่านและรหัสที่หลุดในที่เก็บโค้ดสาธารณะ",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-22T11:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/09/19/googles-gemini-is-the-latest-ai-model-to-hack-other-companies/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-irregular-breakout-2026",
+      "postId": "122124435369259159",
+      "card": "automation/runs/2026-09-22-news-1800-gemini-breakout/card.png",
+      "angle": "ประตูที่ AI ใช้คือประตูเก่า (รหัสเดาได้ + credential หลุดใน public repo) แต่ AI ทำให้ต้นทุนการหาช่องต่ำลง -> เช็กลิสต์ปิดสองประตู + บทเรียน containment/least-privilege สำหรับ AI agent; ไม่ซ้ำโพสต์ OpenAI/Hugging Face (ก.ค.) ซึ่งเน้นตัวเหตุการณ์"
     }
   ]
 }
