@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 181,
+  "rotationIndex": 183,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1909,6 +1909,28 @@
       "postId": "122124533127259159",
       "card": "automation/runs/2026-09-23-knowledge-1800-three-worlds/card.png",
       "angle": "nugget ยืนได้เอง: ภาพผิดในหัวว่าเว็บมีก้อนเดียว -> สามโลก local/preview(staging)/production + ของไหลซ้ายไปขวาทางเดียว + promote เป็นการสั่งโดยตั้งใจ + ทำไมต้องแวะ preview (local ข้อมูลทดสอบ/ตั้งค่าต่าง) + กฎเปิด production ดูซ้ำหลัง promote เพราะ preview ใกล้แต่ไม่เหมือน + อุปมาซ้อมใหญ่บนเวทีจริงและจุดที่อุปมาใช้ไม่ได้ + 'ขอลองบนเว็บจริงแป๊บเดียว'. ทุกข้อจากบท vibe-coding/preview-before-production (อ้าง Netlify deploy previews docs) ต่อเนื่องจากโพสต์ when-it-breaks (23 ก.ย. 08:00) แต่คนละเรื่อง: อันนั้นหลังพัง อันนี้กันไม่ให้พังต่อหน้าคน"
+    },
+    {
+      "date": "2026-09-22",
+      "track": "news",
+      "subject": "Amazon บล็อก Muse AI agent ของ Meta ไม่ให้ซื้อของแทนผู้ใช้ ด้วยเหตุผลว่าไม่ระบุตัวตนและไม่ได้แจ้งก่อน",
+      "status": "draft",
+      "sourceUrl": "https://techcrunch.com/2026/09/21/metas-ai-agent-has-been-blocked-from-using-amazon-com/",
+      "blogUrl": "https://aipasakon.com/blog/amazon-blocks-meta-muse-2026",
+      "card": "automation/runs/2026-09-24-news-0800-amazon-blocks-muse/card.png",
+      "angle": "ยุค agent ช้อปแทนคนชนกำแพง: ประเด็นหลักคือความเปิดเผย (agent ไม่บอกตัวตน/ไม่แจ้งก่อน/credential) + ใครรับผิดเมื่อ agent สั่งผิด (TechCrunch) + ต่อเนื่องจากคดี Perplexity Comet และอีเมลยืนยันที่ตัดข้อมูล (The Verge) -> บทเรียนร้านค้า (เจ้าของร้านถือกุญแจ) และผู้ใช้ (agent ใช้ได้วันนี้อาจโดนปิดพรุ่งนี้, รู้ว่ามันเห็นอะไร). ต่างจากโพสต์ Muse ลง Mac (21 ก.ย.) ที่เน้นสถาปัตยกรรมความปลอดภัย. ทุก fact จาก TC+Verge 21 ก.ย. 2026 (อ้าง GeekWire)"
+    },
+    {
+      "date": "2026-09-22",
+      "track": "news",
+      "subject": "Amazon บล็อก Muse AI agent ของ Meta ไม่ให้ซื้อของแทนผู้ใช้ ด้วยเหตุผลว่าไม่ระบุตัวตนและไม่ได้แจ้งก่อน",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-24T01:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/09/21/metas-ai-agent-has-been-blocked-from-using-amazon-com/",
+      "blogUrl": "https://aipasakon.com/blog/amazon-blocks-meta-muse-2026",
+      "postId": "122124533631259159",
+      "card": "automation/runs/2026-09-24-news-0800-amazon-blocks-muse/card.png",
+      "angle": "ยุค agent ช้อปแทนคนชนกำแพง: ประเด็นหลักคือความเปิดเผย (agent ไม่บอกตัวตน/ไม่แจ้งก่อน/credential) + ใครรับผิดเมื่อ agent สั่งผิด (TechCrunch) + ต่อเนื่องจากคดี Perplexity Comet และอีเมลยืนยันที่ตัดข้อมูล (The Verge) -> บทเรียนร้านค้า (เจ้าของร้านถือกุญแจ) และผู้ใช้ (agent ใช้ได้วันนี้อาจโดนปิดพรุ่งนี้, รู้ว่ามันเห็นอะไร). ต่างจากโพสต์ Muse ลง Mac (21 ก.ย.) ที่เน้นสถาปัตยกรรมความปลอดภัย. ทุก fact จาก TC+Verge 21 ก.ย. 2026 (อ้าง GeekWire)"
     }
   ]
 }
