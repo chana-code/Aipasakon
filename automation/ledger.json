@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 183,
+  "rotationIndex": 184,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1931,6 +1931,17 @@
       "postId": "122124533631259159",
       "card": "automation/runs/2026-09-24-news-0800-amazon-blocks-muse/card.png",
       "angle": "ยุค agent ช้อปแทนคนชนกำแพง: ประเด็นหลักคือความเปิดเผย (agent ไม่บอกตัวตน/ไม่แจ้งก่อน/credential) + ใครรับผิดเมื่อ agent สั่งผิด (TechCrunch) + ต่อเนื่องจากคดี Perplexity Comet และอีเมลยืนยันที่ตัดข้อมูล (The Verge) -> บทเรียนร้านค้า (เจ้าของร้านถือกุญแจ) และผู้ใช้ (agent ใช้ได้วันนี้อาจโดนปิดพรุ่งนี้, รู้ว่ามันเห็นอะไร). ต่างจากโพสต์ Muse ลง Mac (21 ก.ย.) ที่เน้นสถาปัตยกรรมความปลอดภัย. ทุก fact จาก TC+Verge 21 ก.ย. 2026 (อ้าง GeekWire)"
+    },
+    {
+      "date": "2026-09-25",
+      "track": "tools",
+      "subject": "crawl4ai",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-25T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/crawl4ai",
+      "postId": "122124882579259159",
+      "card": "automation/runs/2026-09-25-tools-1800-no-llm-schema/card.png",
+      "angle": "มุมใหม่ = ดึง JSON โดยไม่ใช้ LLM (schema CSS/XPath) + generate_schema ใช้ AI ครั้งเดียวสร้างแผนที่แล้วใช้ซ้ำไม่จำกัด ต่างจากมุมเดิม (-o markdown / -q ถาม AI / deep-crawl). กราวด์จาก docs/md_v2/extraction/no-llm-strategies.md (Faster & Cheaper, Precise & Repeatable, generate_schema validates + refines selectors, 'One-Time Cost... reused for unlimited extractions without further LLM calls', 'Review Generated Schemas' best practice, RegexExtractionStrategy built-ins Email/PhoneIntl/Url/Currency/Date) + docs/md_v2/core/cli.md (crwl <url> -e extract_css.yml -s css_schema.json -o json; 'Use CSS extraction for structured content / LLM extraction for unstructured'). ตัวอย่าง 500 หน้าเป็นการอธิบายเชิงตรรกะ ไม่ใช่ตัวเลขจากแหล่ง. GitHub API 2026-09-25: 84,223 ดาว, Apache-2.0"
     }
   ]
 }
