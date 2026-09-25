@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 184,
+  "rotationIndex": 185,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1942,6 +1942,18 @@
       "postId": "122124882579259159",
       "card": "automation/runs/2026-09-25-tools-1800-no-llm-schema/card.png",
       "angle": "มุมใหม่ = ดึง JSON โดยไม่ใช้ LLM (schema CSS/XPath) + generate_schema ใช้ AI ครั้งเดียวสร้างแผนที่แล้วใช้ซ้ำไม่จำกัด ต่างจากมุมเดิม (-o markdown / -q ถาม AI / deep-crawl). กราวด์จาก docs/md_v2/extraction/no-llm-strategies.md (Faster & Cheaper, Precise & Repeatable, generate_schema validates + refines selectors, 'One-Time Cost... reused for unlimited extractions without further LLM calls', 'Review Generated Schemas' best practice, RegexExtractionStrategy built-ins Email/PhoneIntl/Url/Currency/Date) + docs/md_v2/core/cli.md (crwl <url> -e extract_css.yml -s css_schema.json -o json; 'Use CSS extraction for structured content / LLM extraction for unstructured'). ตัวอย่าง 500 หน้าเป็นการอธิบายเชิงตรรกะ ไม่ใช่ตัวเลขจากแหล่ง. GitHub API 2026-09-25: 84,223 ดาว, Apache-2.0"
+    },
+    {
+      "date": "2026-09-25",
+      "track": "news",
+      "subject": "Google เปิดทดลอง Call for Me ให้ Gemini โทรหาร้านค้าแทนผู้ใช้ทั้งสาย รอสายและคุยกับพนักงานเอง ผู้ใช้ดูข้อความสดและแย่งสายคืนได้",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-26T01:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/09/24/google-tests-letting-gemini-make-phone-calls-initially-for-us-pixel-owners/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-call-for-me-2026",
+      "postId": "122124890481259159",
+      "card": "automation/runs/2026-09-26-news-0800-gemini-call-for-me/card.png",
+      "angle": "agent ออกจากเว็บมาโทรศัพท์หาคนจริง: ของใหม่ = แชร์ข้อมูลส่วนตัวที่อนุญาต + ข้อความสดและแย่งสายได้ + โทรจากเบอร์ผู้ใช้; จำกัด Pixel 11/US/paid/Phone beta; บริบท Meta Muse ทำฟีเจอร์โทรคล้ายกัน (อาจมีคนเบื้องหลัง ตาม The Verge). มุมคนอ่าน = ร้านค้าที่รับจองทางโทรศัพท์ควรเตรียม + ผู้ใช้ควรจำกัดข้อมูล/ดูข้อความสด. กราวด์จาก TechCrunch (Sarah Perez) + The Verge 24 ก.ย. 2026; ชื่อฟีเจอร์ปีที่แล้วสองแหล่งเขียนต่างกัน (Ask for Me vs Call for me) จึงไม่ระบุชื่อ"
     }
   ]
 }
