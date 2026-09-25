@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 185,
+  "rotationIndex": 186,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1954,6 +1954,17 @@
       "postId": "122124890481259159",
       "card": "automation/runs/2026-09-26-news-0800-gemini-call-for-me/card.png",
       "angle": "agent ออกจากเว็บมาโทรศัพท์หาคนจริง: ของใหม่ = แชร์ข้อมูลส่วนตัวที่อนุญาต + ข้อความสดและแย่งสายได้ + โทรจากเบอร์ผู้ใช้; จำกัด Pixel 11/US/paid/Phone beta; บริบท Meta Muse ทำฟีเจอร์โทรคล้ายกัน (อาจมีคนเบื้องหลัง ตาม The Verge). มุมคนอ่าน = ร้านค้าที่รับจองทางโทรศัพท์ควรเตรียม + ผู้ใช้ควรจำกัดข้อมูล/ดูข้อความสด. กราวด์จาก TechCrunch (Sarah Perez) + The Verge 24 ก.ย. 2026; ชื่อฟีเจอร์ปีที่แล้วสองแหล่งเขียนต่างกัน (Ask for Me vs Call for me) จึงไม่ระบุชื่อ"
+    },
+    {
+      "date": "2026-09-25",
+      "track": "knowledge",
+      "subject": "know-your-ceiling",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-26T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/know-your-ceiling",
+      "postId": "122124891561259159",
+      "card": "automation/runs/2026-09-26-knowledge-1800-rent-the-ceiling/card.png",
+      "angle": "nugget ยืนได้เอง: คำถามเดียวแยกของที่ควรเรียนกับควรเช่า (ของเฉพาะแอปคุณ vs ปัญหาที่ทุกแอปเจอ) + 4 ของหนักที่ควรเช่า (scaling/ความปลอดภัย/backup/uptime) + 4 สัญญาณชนเพดาน (เงินจริง/ข้อมูลอ่อนไหว/คนเยอะ/คนพึ่ง) + ตัวอย่างจริงเว็บนี้เช่า Supabase/Netlify. ทุกข้อยกจากบท know-your-ceiling.mdx; หน้านี้ยังไม่เคยโพสต์"
     }
   ]
 }
