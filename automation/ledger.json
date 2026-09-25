@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 186,
+  "rotationIndex": 187,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1965,6 +1965,17 @@
       "postId": "122124891561259159",
       "card": "automation/runs/2026-09-26-knowledge-1800-rent-the-ceiling/card.png",
       "angle": "nugget ยืนได้เอง: คำถามเดียวแยกของที่ควรเรียนกับควรเช่า (ของเฉพาะแอปคุณ vs ปัญหาที่ทุกแอปเจอ) + 4 ของหนักที่ควรเช่า (scaling/ความปลอดภัย/backup/uptime) + 4 สัญญาณชนเพดาน (เงินจริง/ข้อมูลอ่อนไหว/คนเยอะ/คนพึ่ง) + ตัวอย่างจริงเว็บนี้เช่า Supabase/Netlify. ทุกข้อยกจากบท know-your-ceiling.mdx; หน้านี้ยังไม่เคยโพสต์"
+    },
+    {
+      "date": "2026-09-25",
+      "track": "tools",
+      "subject": "impeccable",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-27T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/impeccable",
+      "postId": "122124896403259159",
+      "card": "automation/runs/2026-09-27-tools-0800-impeccable-detect/card.png",
+      "angle": "มุมใหม่ = ตัวตรวจเดี่ยว npx impeccable detect (61 กฎตายตัว ไม่ใช้ LLM ไม่ต้อง API key) สแกนโฟลเดอร์/ไฟล์/URL + --json + hook ตรวจอัตโนมัติหลัง AI แก้ไฟล์ ต่างจากมุมเดิม (ลายเซ็นดีไซน์ AI + คำสั่งแก้). กราวด์จาก README pbakaus/impeccable (ตรวจ 2026-09-25): '61 deterministic detector rules... no LLM and no API key', คำสั่ง detect src/ / index.html / https://... (uses installed Chrome, Chromium, or Edge) / --json, ตัวอย่างกฎ (side-tab borders, purple gradients, bounce easing, dark glows, line length, cramped padding, small touch targets, skipped headings), hook บน Claude Code/Copilot/Codex/Cursor/Grok ผ่าน npx impeccable install (ถาม default yes), 'A clean detector run is evidence, not proof', ข้อจำกัด cross-origin CSS. GitHub API: 70,839 ดาว Apache-2.0"
     }
   ]
 }
