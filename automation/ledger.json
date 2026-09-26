@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 187,
+  "rotationIndex": 189,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1976,6 +1976,28 @@
       "postId": "122124896403259159",
       "card": "automation/runs/2026-09-27-tools-0800-impeccable-detect/card.png",
       "angle": "มุมใหม่ = ตัวตรวจเดี่ยว npx impeccable detect (61 กฎตายตัว ไม่ใช้ LLM ไม่ต้อง API key) สแกนโฟลเดอร์/ไฟล์/URL + --json + hook ตรวจอัตโนมัติหลัง AI แก้ไฟล์ ต่างจากมุมเดิม (ลายเซ็นดีไซน์ AI + คำสั่งแก้). กราวด์จาก README pbakaus/impeccable (ตรวจ 2026-09-25): '61 deterministic detector rules... no LLM and no API key', คำสั่ง detect src/ / index.html / https://... (uses installed Chrome, Chromium, or Edge) / --json, ตัวอย่างกฎ (side-tab borders, purple gradients, bounce easing, dark glows, line length, cramped padding, small touch targets, skipped headings), hook บน Claude Code/Copilot/Codex/Cursor/Grok ผ่าน npx impeccable install (ถาม default yes), 'A clean detector run is evidence, not proof', ข้อจำกัด cross-origin CSS. GitHub API: 70,839 ดาว Apache-2.0"
+    },
+    {
+      "date": "2026-09-26",
+      "track": "news",
+      "subject": "UpGuard พบ 16,326 ฐานข้อมูลบน Supabase เปิดให้อ่านได้จากอินเทอร์เน็ต ส่วนใหญ่เพราะไม่เปิด RLS และแอปที่ AI สร้างเสี่ยงเป็นพิเศษ",
+      "status": "draft",
+      "sourceUrl": "https://techcrunch.com/2026/09/25/some-supabase-customers-are-publicly-exposing-reams-of-peoples-data-to-the-web/",
+      "blogUrl": "https://aipasakon.com/blog/supabase-exposed-databases-2026",
+      "card": "automation/runs/2026-09-27-news-1800-supabase-rls/card.png",
+      "angle": "ข้อมูลหลุดไม่ใช่เพราะโดนแฮก แต่ไม่ได้ล็อก: anon key เปิดเผยได้โดยออกแบบ ปลอดภัยเฉพาะเมื่อเปิด RLS; ตารางที่ AI สร้างผ่าน API ไม่เปิด RLS อัตโนมัติ (UpGuard). มุมคนอ่าน = คนทำแอปกับ AI บน Supabase เช็ก Security Advisor + เปิด RLS + เขียนกฎ + ทดสอบแบบคนนอก. กราวด์จาก UpGuard report + TechCrunch (Zack Whittaker) 25 ก.ย. 2026 + Supabase docs (RLS, database advisors lint 0013)"
+    },
+    {
+      "date": "2026-09-26",
+      "track": "news",
+      "subject": "UpGuard พบ 16,326 ฐานข้อมูลบน Supabase เปิดให้อ่านได้จากอินเทอร์เน็ต ส่วนใหญ่เพราะไม่เปิด RLS และแอปที่ AI สร้างเสี่ยงเป็นพิเศษ",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-27T11:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/09/25/some-supabase-customers-are-publicly-exposing-reams-of-peoples-data-to-the-web/",
+      "blogUrl": "https://aipasakon.com/blog/supabase-exposed-databases-2026",
+      "postId": "122124991635259159",
+      "card": "automation/runs/2026-09-27-news-1800-supabase-rls/card.png",
+      "angle": "ข้อมูลหลุดไม่ใช่เพราะโดนแฮก แต่ไม่ได้ล็อก: anon key เปิดเผยได้โดยออกแบบ ปลอดภัยเฉพาะเมื่อเปิด RLS; ตารางที่ AI สร้างผ่าน API ไม่เปิด RLS อัตโนมัติ (UpGuard). มุมคนอ่าน = คนทำแอปกับ AI บน Supabase เช็ก Security Advisor + เปิด RLS + เขียนกฎ + ทดสอบแบบคนนอก. กราวด์จาก UpGuard report + TechCrunch (Zack Whittaker) 25 ก.ย. 2026 + Supabase docs (RLS, database advisors lint 0013)"
     }
   ]
 }
