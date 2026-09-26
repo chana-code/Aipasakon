@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 189,
+  "rotationIndex": 192,
   "runs": [
     {
       "date": "2026-06-10",
@@ -1998,6 +1998,35 @@
       "postId": "122124991635259159",
       "card": "automation/runs/2026-09-27-news-1800-supabase-rls/card.png",
       "angle": "ข้อมูลหลุดไม่ใช่เพราะโดนแฮก แต่ไม่ได้ล็อก: anon key เปิดเผยได้โดยออกแบบ ปลอดภัยเฉพาะเมื่อเปิด RLS; ตารางที่ AI สร้างผ่าน API ไม่เปิด RLS อัตโนมัติ (UpGuard). มุมคนอ่าน = คนทำแอปกับ AI บน Supabase เช็ก Security Advisor + เปิด RLS + เขียนกฎ + ทดสอบแบบคนนอก. กราวด์จาก UpGuard report + TechCrunch (Zack Whittaker) 25 ก.ย. 2026 + Supabase docs (RLS, database advisors lint 0013)"
+    },
+    {
+      "date": "2026-09-26",
+      "track": "knowledge",
+      "subject": "onramp",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/in-practice/onramp",
+      "card": "automation/runs/2026-09-28-knowledge-0800-four-doors/card.png",
+      "angle": "nugget ยืนได้เอง: กำแพงคือภาพจอดำ -> Claude Code มี 4 ประตู (CLI/Desktop/เว็บ claude.ai/code/ส่วนเสริม IDE) เครื่องยนต์ harness ตัวเดียวกัน -> บัญชี: ฟรีใช้ไม่ได้, subscription Pro/Max vs API key จ่ายตามใช้ -> คำสั่งแรกแบบอ่านอย่างเดียว + มันขออนุญาตก่อนแก้ไฟล์. กราวด์จากบท onramp (reviewed 2026-07-09)"
+    },
+    {
+      "date": "2026-09-26",
+      "track": "knowledge",
+      "subject": "onramp",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/in-practice/onramp",
+      "card": "automation/runs/2026-09-28-knowledge-0800-four-doors/card.png",
+      "angle": "nugget ยืนได้เอง: กำแพงคือภาพจอดำ -> Claude Code มี 4 ประตู (CLI/Desktop/เว็บ claude.ai/code/ส่วนเสริม IDE) เครื่องยนต์ harness ตัวเดียวกัน -> บัญชี: ฟรีใช้ไม่ได้, subscription Pro/Max vs API key จ่ายตามใช้ -> คำสั่งแรกแบบอ่านอย่างเดียว + มันขออนุญาตก่อนแก้ไฟล์. กราวด์จากบท onramp (reviewed 2026-07-09)"
+    },
+    {
+      "date": "2026-09-26",
+      "track": "knowledge",
+      "subject": "onramp",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-28T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/in-practice/onramp",
+      "postId": "122124994269259159",
+      "card": "automation/runs/2026-09-28-knowledge-0800-four-doors/card.png",
+      "angle": "nugget ยืนได้เอง: กำแพงคือภาพจอดำ -> Claude Code มี 4 ประตู (CLI/Desktop/เว็บ claude.ai/code/ส่วนเสริม IDE) เครื่องยนต์ harness ตัวเดียวกัน -> บัญชี: ฟรีใช้ไม่ได้, subscription Pro/Max vs API key จ่ายตามใช้ -> คำสั่งแรกแบบอ่านอย่างเดียว + มันขออนุญาตก่อนแก้ไฟล์. กราวด์จากบท onramp (reviewed 2026-07-09)"
     }
   ]
 }
