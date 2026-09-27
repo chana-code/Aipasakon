@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 192,
+  "rotationIndex": 194,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2027,6 +2027,26 @@
       "postId": "122124994269259159",
       "card": "automation/runs/2026-09-28-knowledge-0800-four-doors/card.png",
       "angle": "nugget ยืนได้เอง: กำแพงคือภาพจอดำ -> Claude Code มี 4 ประตู (CLI/Desktop/เว็บ claude.ai/code/ส่วนเสริม IDE) เครื่องยนต์ harness ตัวเดียวกัน -> บัญชี: ฟรีใช้ไม่ได้, subscription Pro/Max vs API key จ่ายตามใช้ -> คำสั่งแรกแบบอ่านอย่างเดียว + มันขออนุญาตก่อนแก้ไฟล์. กราวด์จากบท onramp (reviewed 2026-07-09)"
+    },
+    {
+      "date": "2026-09-27",
+      "track": "tools",
+      "subject": "gstack",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/gstack",
+      "card": "automation/runs/2026-09-28-tools-1800-gstack-guard/card.png",
+      "angle": "มุมใหม่ = เบรกความปลอดภัย /careful /freeze /guard /unfreeze (power tools) ต่างจากมุมเดิม (2026-08-05 ทีมงาน AI มีด่านตรวจ /review /qa). กราวด์จาก README garrytan/gstack + careful/SKILL.md + freeze/SKILL.md + guard/SKILL.md (ตรวจ 2026-09-27): /careful = PreToolUse hook บน Bash เตือน rm -rf, DROP TABLE, TRUNCATE, git push --force, git reset --hard, git checkout ., kubectl delete, docker prune; ยกเว้น rm -rf node_modules/.next/dist/...; HIGH tier hard-deny = rm -r ของ / ~ $HOME และ force-push ไป default branch; trigger 'be careful'; session-scoped. /freeze = hook บน Edit/Write deny นอกโฟลเดอร์; Notes: 'not a security boundary — Bash commands like sed can still modify files'; /unfreeze ปลด. /guard = ทั้งสอง 'Maximum safety for prod work'. Requirements: Claude Code, Git, Bun. GitHub API: 134,277 ดาว MIT. Garry Tan = President & CEO YC (มุมเดิม)"
+    },
+    {
+      "date": "2026-09-27",
+      "track": "tools",
+      "subject": "gstack",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-28T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/gstack",
+      "postId": "122125176141259159",
+      "card": "automation/runs/2026-09-28-tools-1800-gstack-guard/card.png",
+      "angle": "มุมใหม่ = เบรกความปลอดภัย /careful /freeze /guard /unfreeze (power tools) ต่างจากมุมเดิม (2026-08-05 ทีมงาน AI มีด่านตรวจ /review /qa). กราวด์จาก README garrytan/gstack + careful/SKILL.md + freeze/SKILL.md + guard/SKILL.md (ตรวจ 2026-09-27): /careful = PreToolUse hook บน Bash เตือน rm -rf, DROP TABLE, TRUNCATE, git push --force, git reset --hard, git checkout ., kubectl delete, docker prune; ยกเว้น rm -rf node_modules/.next/dist/...; HIGH tier hard-deny = rm -r ของ / ~ $HOME และ force-push ไป default branch; trigger 'be careful'; session-scoped. /freeze = hook บน Edit/Write deny นอกโฟลเดอร์; Notes: 'not a security boundary — Bash commands like sed can still modify files'; /unfreeze ปลด. /guard = ทั้งสอง 'Maximum safety for prod work'. Requirements: Claude Code, Git, Bun. GitHub API: 134,277 ดาว MIT. Garry Tan = President & CEO YC (มุมเดิม)"
     }
   ]
 }
