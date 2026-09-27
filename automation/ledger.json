@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 194,
+  "rotationIndex": 196,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2047,6 +2047,26 @@
       "postId": "122125176141259159",
       "card": "automation/runs/2026-09-28-tools-1800-gstack-guard/card.png",
       "angle": "มุมใหม่ = เบรกความปลอดภัย /careful /freeze /guard /unfreeze (power tools) ต่างจากมุมเดิม (2026-08-05 ทีมงาน AI มีด่านตรวจ /review /qa). กราวด์จาก README garrytan/gstack + careful/SKILL.md + freeze/SKILL.md + guard/SKILL.md (ตรวจ 2026-09-27): /careful = PreToolUse hook บน Bash เตือน rm -rf, DROP TABLE, TRUNCATE, git push --force, git reset --hard, git checkout ., kubectl delete, docker prune; ยกเว้น rm -rf node_modules/.next/dist/...; HIGH tier hard-deny = rm -r ของ / ~ $HOME และ force-push ไป default branch; trigger 'be careful'; session-scoped. /freeze = hook บน Edit/Write deny นอกโฟลเดอร์; Notes: 'not a security boundary — Bash commands like sed can still modify files'; /unfreeze ปลด. /guard = ทั้งสอง 'Maximum safety for prod work'. Requirements: Claude Code, Git, Bun. GitHub API: 134,277 ดาว MIT. Garry Tan = President & CEO YC (มุมเดิม)"
+    },
+    {
+      "date": "2026-09-27",
+      "track": "knowledge",
+      "subject": "reading-your-data",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/reading-your-data",
+      "card": "automation/runs/2026-09-29-knowledge-0800-data-shape/card.png",
+      "angle": "nugget ยืนได้เอง: แอปดูยุ่งเพราะมองจากหน้าจอ -> โครงร่างข้อมูล 4 ส่วน (table/row/column/relationship) -> ฟีเจอร์ส่วนใหญ่ = การกระทำไม่กี่แบบบนรูปร่างข้อมูล (list/add/delete/edit/ของฉัน) -> เส้นเชื่อมตอบว่าลบแล้วอะไรหายตาม -> แบบฝึกวาดบนกระดาษ + ให้ AI สรุปตารางแบบอ่านอย่างเดียว -> ใช้แผนที่คุยกับ AI. กราวด์จากบท vibe-coding/reading-your-data (reviewed). โพสต์แรกของบทนี้"
+    },
+    {
+      "date": "2026-09-27",
+      "track": "knowledge",
+      "subject": "reading-your-data",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-29T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/reading-your-data",
+      "postId": "122125176441259159",
+      "card": "automation/runs/2026-09-29-knowledge-0800-data-shape/card.png",
+      "angle": "nugget ยืนได้เอง: แอปดูยุ่งเพราะมองจากหน้าจอ -> โครงร่างข้อมูล 4 ส่วน (table/row/column/relationship) -> ฟีเจอร์ส่วนใหญ่ = การกระทำไม่กี่แบบบนรูปร่างข้อมูล (list/add/delete/edit/ของฉัน) -> เส้นเชื่อมตอบว่าลบแล้วอะไรหายตาม -> แบบฝึกวาดบนกระดาษ + ให้ AI สรุปตารางแบบอ่านอย่างเดียว -> ใช้แผนที่คุยกับ AI. กราวด์จากบท vibe-coding/reading-your-data (reviewed). โพสต์แรกของบทนี้"
     }
   ]
 }
