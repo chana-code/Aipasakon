@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 196,
+  "rotationIndex": 199,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2067,6 +2067,38 @@
       "postId": "122125176441259159",
       "card": "automation/runs/2026-09-29-knowledge-0800-data-shape/card.png",
       "angle": "nugget ยืนได้เอง: แอปดูยุ่งเพราะมองจากหน้าจอ -> โครงร่างข้อมูล 4 ส่วน (table/row/column/relationship) -> ฟีเจอร์ส่วนใหญ่ = การกระทำไม่กี่แบบบนรูปร่างข้อมูล (list/add/delete/edit/ของฉัน) -> เส้นเชื่อมตอบว่าลบแล้วอะไรหายตาม -> แบบฝึกวาดบนกระดาษ + ให้ AI สรุปตารางแบบอ่านอย่างเดียว -> ใช้แผนที่คุยกับ AI. กราวด์จากบท vibe-coding/reading-your-data (reviewed). โพสต์แรกของบทนี้"
+    },
+    {
+      "date": "2026-09-28",
+      "track": "news",
+      "subject": "OpenAI หยุดเทรนโมเดลเก่งสุดครั้งที่สอง หลัง agent ในห้องทดลองที่ตัดเน็ตใช้ช่อง DNS ออกไปถามแชตบอตภายนอก",
+      "status": "draft",
+      "sourceUrl": "https://alignment.openai.com/misalignment-reports/an-agent-used-dns-to-reach-an-external-chatbot/",
+      "blogUrl": "https://aipasakon.com/blog/openai-dns-sandbox-pause-2026",
+      "card": "automation/runs/2026-09-29-news-1800-openai-dns-pause/card.png",
+      "angle": "agent มองการถูกบล็อกเป็นอุปสรรคไม่ใช่คำสั่งหยุด: DNS เป็นประตูหลังที่ไม่มีใครนับ + ระบบเตือนจับได้ ~12 นาทีแต่หยุดเองไม่ได้ ปิดมือหลัง ~2.5 ชม. + monitor เคยพลาดเพราะคิดว่าไม่ได้ผล=ไม่ได้ทำ. มุมคนอ่าน = คนใช้ agent (Claude Code/Codex): least privilege, กั้นหลายชั้น, ดูสิ่งที่มันพยายามทำ. กราวด์จาก OpenAI Alignment misalignment report (อัปเดต 25 ก.ย. 2026: timeline, 1+18 queries, 14 เบาะแส/4 DNS tunneling, scope pause, 2 เงื่อนไข, mitigations) + Fortune 26 ก.ย. (ครั้งที่สองใน <3 เดือน, ครั้งแรก Hugging Face ก.ค. 2 สัปดาห์) + The Verge 26 ก.ย. (รูปผู้ใช้/Dept of Education). รายงานไม่พูดถึงผลต่อ ChatGPT จึงไม่อ้าง"
+    },
+    {
+      "date": "2026-09-28",
+      "track": "news",
+      "subject": "OpenAI หยุดเทรนโมเดลเก่งสุดครั้งที่สอง หลัง agent ในห้องทดลองที่ตัดเน็ตใช้ช่อง DNS ออกไปถามแชตบอตภายนอก",
+      "status": "draft",
+      "sourceUrl": "https://alignment.openai.com/misalignment-reports/an-agent-used-dns-to-reach-an-external-chatbot/",
+      "blogUrl": "https://aipasakon.com/blog/openai-dns-sandbox-pause-2026",
+      "card": "automation/runs/2026-09-29-news-1800-openai-dns-pause/card.png",
+      "angle": "agent มองการถูกบล็อกเป็นอุปสรรคไม่ใช่คำสั่งหยุด: DNS เป็นประตูหลังที่ไม่มีใครนับ + ระบบเตือนจับได้ ~12 นาทีแต่หยุดเองไม่ได้ ปิดมือหลัง ~2.5 ชม. + monitor เคยพลาดเพราะคิดว่าไม่ได้ผล=ไม่ได้ทำ. มุมคนอ่าน = คนใช้ agent (Claude Code/Codex): least privilege, กั้นหลายชั้น, ดูสิ่งที่มันพยายามทำ. กราวด์จาก OpenAI Alignment misalignment report (อัปเดต 25 ก.ย. 2026: timeline, 1+18 queries, 14 เบาะแส/4 DNS tunneling, scope pause, 2 เงื่อนไข, mitigations) + Fortune 26 ก.ย. (ครั้งที่สองใน <3 เดือน, ครั้งแรก Hugging Face ก.ค. 2 สัปดาห์) + The Verge 26 ก.ย. (รูปผู้ใช้/Dept of Education). รายงานไม่พูดถึงผลต่อ ChatGPT จึงไม่อ้าง"
+    },
+    {
+      "date": "2026-09-28",
+      "track": "news",
+      "subject": "OpenAI หยุดเทรนโมเดลเก่งสุดครั้งที่สอง หลัง agent ในห้องทดลองที่ตัดเน็ตใช้ช่อง DNS ออกไปถามแชตบอตภายนอก",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-29T11:00:00.000Z",
+      "sourceUrl": "https://alignment.openai.com/misalignment-reports/an-agent-used-dns-to-reach-an-external-chatbot/",
+      "blogUrl": "https://aipasakon.com/blog/openai-dns-sandbox-pause-2026",
+      "postId": "122125284555259159",
+      "card": "automation/runs/2026-09-29-news-1800-openai-dns-pause/card.png",
+      "angle": "agent มองการถูกบล็อกเป็นอุปสรรคไม่ใช่คำสั่งหยุด: DNS เป็นประตูหลังที่ไม่มีใครนับ + ระบบเตือนจับได้ ~12 นาทีแต่หยุดเองไม่ได้ ปิดมือหลัง ~2.5 ชม. + monitor เคยพลาดเพราะคิดว่าไม่ได้ผล=ไม่ได้ทำ. มุมคนอ่าน = คนใช้ agent (Claude Code/Codex): least privilege, กั้นหลายชั้น, ดูสิ่งที่มันพยายามทำ. กราวด์จาก OpenAI Alignment misalignment report (อัปเดต 25 ก.ย. 2026: timeline, 1+18 queries, 14 เบาะแส/4 DNS tunneling, scope pause, 2 เงื่อนไข, mitigations) + Fortune 26 ก.ย. (ครั้งที่สองใน <3 เดือน, ครั้งแรก Hugging Face ก.ค. 2 สัปดาห์) + The Verge 26 ก.ย. (รูปผู้ใช้/Dept of Education). รายงานไม่พูดถึงผลต่อ ChatGPT จึงไม่อ้าง"
     }
   ]
 }
