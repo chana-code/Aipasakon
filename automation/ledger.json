@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 201,
+  "rotationIndex": 202,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2122,6 +2122,17 @@
       "postId": "122125379307259159",
       "card": "automation/runs/2026-09-30-tools-1800-prompts-selfhost/card.png",
       "angle": "มุมใหม่ = self-host คลัง prompt ส่วนตัวของทีม/องค์กร (ต่างจากมุมเดิม = ก็อปจากคลังสาธารณะไปวาง). กราวด์จาก README f/prompts.chat (Self-Hosting: npx prompts.chat new my-prompt-library, setup wizard: branding/theme/auth GitHub/Google/Azure AD, PostgreSQL) + SELF-HOSTING.md (private prompts, white-label for team/org, auth credentials/github/google/azure/apple, features categories/tags/comments/MCP, .env DATABASE_URL + AUTH_*). ดาว GitHub API 2026-09-29 = 171,512. runtime ตรง ๆ: ต้องตั้งเว็บจริง + Postgres + OAuth ไม่ใช่ในแชต ChatGPT -> ส่งให้ Claude Code/Cowork/Codex"
+    },
+    {
+      "date": "2026-09-29",
+      "track": "knowledge",
+      "subject": "build-loop",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-01T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/build-loop",
+      "postId": "122125379349259159",
+      "card": "automation/runs/2026-10-01-knowledge-0800-small-loop/card.png",
+      "angle": "nugget ยืนได้เอง: คำสั่งยาวทีเดียว vs ลูปเล็ก 5 ขั้น (บอกเป้าเล็ก -> AI แก้ไฟล์จริง -> รัน/พรีวิว -> ตรวจด้วยตา -> เก็บ/ทิ้ง วนใหม่) + ทำไมเป้าต้องเล็ก (ตรวจง่าย รู้ว่าพังจากไหน) + เส้นแบ่ง AI พิมพ์ คุณตัดสินใจ/ตัดสิน/จำ + ลงมือ: เขียนรายการแล้วสั่งทีละข้อ. กราวด์จากบท vibe-coding/build-loop (ลูปห้าขั้น, ซอฟต์แวร์คือไฟล์ในเครื่อง, ใครทำอะไร, ความเข้าใจผิด). บทนี้ยังไม่เคยโพสต์"
     }
   ]
 }
