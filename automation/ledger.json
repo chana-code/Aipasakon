@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 200,
+  "rotationIndex": 201,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2111,6 +2111,17 @@
       "postId": "122125379265259159",
       "card": "automation/runs/2026-09-30-news-0800-sonnet-5-5/card.png",
       "angle": "รุ่นกลางไล่ทันรุ่นท็อปในงานประจำ: ราคาต่อ token เท่าเดิมแต่ใช้ token น้อยลง = บิลถูกลง (อุปมาช่างค่าแรงเท่าเดิมแต่เสร็จเร็ว). มุมคนอ่าน = เลิกเลือก Opus ทุกครั้ง ลองงานจริงของตัวเอง + effort default Medium ในแอป. กราวด์จาก Anthropic claude-sonnet-5-5 (28 ก.ย. 2026: 30%+ faster, up to 30% less, $2/$10 per M, benchmarks TB4 70.6/10.3/66.4, GDPval-AA 1844/1449/1846, OSWorld 80.1/57.0/81.8, HLE 64.5/54.9/67.7, FrontierCode 46.2/42.4/54.4, AA-Briefcase medium > S5 best at ~1/9 cost, Pokemon Red, cyber safeguards fall back to Sonnet 5, effort Medium apps/High platform, Haiku 5.5 coming weeks, quotes Zendesk 20% / Box 2.4x 12%) + TechCrunch 28 ก.ย. (Sonnet 5 ~3 เดือนก่อน, agentic coding > Opus อาจเพราะแตก agent ย่อยได้ถูก). ไม่อ้างว่าแพลนไหนได้ใช้เพราะหน้าประกาศไม่ระบุ"
+    },
+    {
+      "date": "2026-09-29",
+      "track": "tools",
+      "subject": "prompts-chat",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-30T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/prompts-chat",
+      "postId": "122125379307259159",
+      "card": "automation/runs/2026-09-30-tools-1800-prompts-selfhost/card.png",
+      "angle": "มุมใหม่ = self-host คลัง prompt ส่วนตัวของทีม/องค์กร (ต่างจากมุมเดิม = ก็อปจากคลังสาธารณะไปวาง). กราวด์จาก README f/prompts.chat (Self-Hosting: npx prompts.chat new my-prompt-library, setup wizard: branding/theme/auth GitHub/Google/Azure AD, PostgreSQL) + SELF-HOSTING.md (private prompts, white-label for team/org, auth credentials/github/google/azure/apple, features categories/tags/comments/MCP, .env DATABASE_URL + AUTH_*). ดาว GitHub API 2026-09-29 = 171,512. runtime ตรง ๆ: ต้องตั้งเว็บจริง + Postgres + OAuth ไม่ใช่ในแชต ChatGPT -> ส่งให้ Claude Code/Cowork/Codex"
     }
   ]
 }
