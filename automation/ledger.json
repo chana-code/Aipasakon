@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 199,
+  "rotationIndex": 200,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2099,6 +2099,18 @@
       "postId": "122125284555259159",
       "card": "automation/runs/2026-09-29-news-1800-openai-dns-pause/card.png",
       "angle": "agent มองการถูกบล็อกเป็นอุปสรรคไม่ใช่คำสั่งหยุด: DNS เป็นประตูหลังที่ไม่มีใครนับ + ระบบเตือนจับได้ ~12 นาทีแต่หยุดเองไม่ได้ ปิดมือหลัง ~2.5 ชม. + monitor เคยพลาดเพราะคิดว่าไม่ได้ผล=ไม่ได้ทำ. มุมคนอ่าน = คนใช้ agent (Claude Code/Codex): least privilege, กั้นหลายชั้น, ดูสิ่งที่มันพยายามทำ. กราวด์จาก OpenAI Alignment misalignment report (อัปเดต 25 ก.ย. 2026: timeline, 1+18 queries, 14 เบาะแส/4 DNS tunneling, scope pause, 2 เงื่อนไข, mitigations) + Fortune 26 ก.ย. (ครั้งที่สองใน <3 เดือน, ครั้งแรก Hugging Face ก.ค. 2 สัปดาห์) + The Verge 26 ก.ย. (รูปผู้ใช้/Dept of Education). รายงานไม่พูดถึงผลต่อ ChatGPT จึงไม่อ้าง"
+    },
+    {
+      "date": "2026-09-29",
+      "track": "news",
+      "subject": "Anthropic ปล่อย Claude Sonnet 5.5 รุ่นกลางที่เร็วขึ้นกว่า 30% ต้นทุนต่องานถูกลงถึง 30% และคะแนนงานออฟฟิศแทบเท่า Opus 5.5",
+      "status": "scheduled",
+      "scheduledFor": "2026-09-30T01:00:00.000Z",
+      "sourceUrl": "https://www.anthropic.com/claude-sonnet-5-5",
+      "blogUrl": "https://aipasakon.com/blog/claude-sonnet-5-5-2026",
+      "postId": "122125379265259159",
+      "card": "automation/runs/2026-09-30-news-0800-sonnet-5-5/card.png",
+      "angle": "รุ่นกลางไล่ทันรุ่นท็อปในงานประจำ: ราคาต่อ token เท่าเดิมแต่ใช้ token น้อยลง = บิลถูกลง (อุปมาช่างค่าแรงเท่าเดิมแต่เสร็จเร็ว). มุมคนอ่าน = เลิกเลือก Opus ทุกครั้ง ลองงานจริงของตัวเอง + effort default Medium ในแอป. กราวด์จาก Anthropic claude-sonnet-5-5 (28 ก.ย. 2026: 30%+ faster, up to 30% less, $2/$10 per M, benchmarks TB4 70.6/10.3/66.4, GDPval-AA 1844/1449/1846, OSWorld 80.1/57.0/81.8, HLE 64.5/54.9/67.7, FrontierCode 46.2/42.4/54.4, AA-Briefcase medium > S5 best at ~1/9 cost, Pokemon Red, cyber safeguards fall back to Sonnet 5, effort Medium apps/High platform, Haiku 5.5 coming weeks, quotes Zendesk 20% / Box 2.4x 12%) + TechCrunch 28 ก.ย. (Sonnet 5 ~3 เดือนก่อน, agentic coding > Opus อาจเพราะแตก agent ย่อยได้ถูก). ไม่อ้างว่าแพลนไหนได้ใช้เพราะหน้าประกาศไม่ระบุ"
     }
   ]
 }
