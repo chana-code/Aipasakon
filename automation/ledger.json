@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 202,
+  "rotationIndex": 203,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2133,6 +2133,18 @@
       "postId": "122125379349259159",
       "card": "automation/runs/2026-10-01-knowledge-0800-small-loop/card.png",
       "angle": "nugget ยืนได้เอง: คำสั่งยาวทีเดียว vs ลูปเล็ก 5 ขั้น (บอกเป้าเล็ก -> AI แก้ไฟล์จริง -> รัน/พรีวิว -> ตรวจด้วยตา -> เก็บ/ทิ้ง วนใหม่) + ทำไมเป้าต้องเล็ก (ตรวจง่าย รู้ว่าพังจากไหน) + เส้นแบ่ง AI พิมพ์ คุณตัดสินใจ/ตัดสิน/จำ + ลงมือ: เขียนรายการแล้วสั่งทีละข้อ. กราวด์จากบท vibe-coding/build-loop (ลูปห้าขั้น, ซอฟต์แวร์คือไฟล์ในเครื่อง, ใครทำอะไร, ความเข้าใจผิด). บทนี้ยังไม่เคยโพสต์"
+    },
+    {
+      "date": "2026-09-30",
+      "track": "news",
+      "subject": "OpenAI เปิดตัว ChatGPT Space, Pages และสไลด์ร่วมกัน ให้คนในทีมกับ AI แก้เอกสารชิ้นเดียวกันได้ (DevDay 2026)",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-01T11:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/09/29/openai-takes-on-microsoft-with-the-launch-of-what-feels-a-whole-lot-like-chatgpts-own-office-suite/",
+      "blogUrl": "https://aipasakon.com/blog/chatgpt-space-pages-2026",
+      "postId": "122125487259259159",
+      "card": "automation/runs/2026-10-01-news-1800-chatgpt-space/card.png",
+      "angle": "AI ย้ายจากหน้าแชต (ถามแล้วก็อปวาง) เข้าไปอยู่ในเอกสาร + เอกสารที่มีคำสั่งประจำ (Altman: สั่งหน้าให้เช็ก team channel แล้วอัปเดต). มุมคนอ่าน = เริ่มจากเอกสารอัปเดตรายสัปดาห์ มีคนตรวจ + เช็กสิทธิ์เข้าถึงข้อมูล; แพ็กเกจส่วนตัวยังไม่ได้. กราวด์: TechCrunch 29 ก.ย. (Space/Pages/collab slides, slides coming weeks, Altman quote), The Verge DevDay roundup (Dots: GPT-6 Astra, cloud computer, 4,000+ apps, Teams/Slack, Pro/Business Premium/Enterprise only; 1.2B weekly users; Altman IPO safety; CFO to CNBC). Space availability: chatgpt.com/business (Space via Business) + secondary reports Pro/Business/Enterprise web+desktop, hedged as รายงาน. openai.com recap returned 403 so not cited."
     }
   ]
 }
