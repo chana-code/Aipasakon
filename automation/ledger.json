@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 206,
+  "rotationIndex": 207,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2175,6 +2175,17 @@
       "postId": "122125716135259159",
       "card": "automation/runs/2026-10-02-news-1800-gemini-4-argon/card.png",
       "angle": "โมเดลเรือธงที่ถูกกั้นเพราะเก่งเรื่องหาช่องโหว่ (dual-use) -> ปล่อยเป็นขั้นผ่าน Fairwind ให้ฝั่งป้องกันก่อน (ไม่มี cyber guardrails สำหรับกลุ่มนี้+ทีม Google) -> ถัดไป paid API + AI Ultra ไม่มีวันที่. มุมคนอ่าน: ยังไม่ต้องรอ, อัปเดตระบบตามรอบ, อ่านคะแนนอย่างมีวิจารณญาณ. กราวด์: blog.google ประกาศทางการ (output limit 64K->1M, ราคา $2/$10 -> $4/$20, cached -95%, DeepSWE 77.9, AutomationBench 51.3 #1, LVBench 91.7, CWE-bench 68 tied, US gov voluntary pre-release) + TechCrunch 30 ก.ย. (Lucas Ropek: พนักงาน Google ใช้ debug/migration, อ้างเหนือ GPT-6 Astra/Fable/Opus, Vals AI index). The Verge/Ars fetch ถูกบล็อก ไม่อ้าง"
+    },
+    {
+      "date": "2026-10-02",
+      "track": "knowledge",
+      "subject": "talking-to-ai",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-03T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/pro-usage/talking-to-ai",
+      "postId": "122125716177259159",
+      "card": "automation/runs/2026-10-03-knowledge-0800-show-dont-describe/card.png",
+      "angle": "มุมใหม่ (ต่างจาก ก.ค. = G-C-F-E brief/อีเมลส่งของช้า): คำกว้าง 'เขียนให้ดี' + รายการ 'อย่า' ไม่บอกทาง -> สองวิธีที่ได้ผล (1) บอกทางที่ต้องการแทนคำห้าม (OpenAI guidance ตามบท) (2) ยื่นตัวอย่าง input/output จริง (Anthropic: ตัวอย่างคุมรูปแบบ น้ำเสียง โครงสร้างได้เชื่อถือได้มาก) + ลงมือ: เก็บผลงานที่ชอบ 3-5 ชิ้นแนบทุกครั้ง. กราวด์จากบท pro-usage/talking-to-ai หัวข้อ 'ตัวอย่างคือวิธีสอนรสนิยมที่เร็วที่สุด' และ 'อย่าสั่งแค่ว่าห้าม'"
     }
   ]
 }
