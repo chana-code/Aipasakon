@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 203,
+  "rotationIndex": 206,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2145,6 +2145,36 @@
       "postId": "122125487259259159",
       "card": "automation/runs/2026-10-01-news-1800-chatgpt-space/card.png",
       "angle": "AI ย้ายจากหน้าแชต (ถามแล้วก็อปวาง) เข้าไปอยู่ในเอกสาร + เอกสารที่มีคำสั่งประจำ (Altman: สั่งหน้าให้เช็ก team channel แล้วอัปเดต). มุมคนอ่าน = เริ่มจากเอกสารอัปเดตรายสัปดาห์ มีคนตรวจ + เช็กสิทธิ์เข้าถึงข้อมูล; แพ็กเกจส่วนตัวยังไม่ได้. กราวด์: TechCrunch 29 ก.ย. (Space/Pages/collab slides, slides coming weeks, Altman quote), The Verge DevDay roundup (Dots: GPT-6 Astra, cloud computer, 4,000+ apps, Teams/Slack, Pro/Business Premium/Enterprise only; 1.2B weekly users; Altman IPO safety; CFO to CNBC). Space availability: chatgpt.com/business (Space via Business) + secondary reports Pro/Business/Enterprise web+desktop, hedged as รายงาน. openai.com recap returned 403 so not cited."
+    },
+    {
+      "date": "2026-10-01",
+      "track": "knowledge",
+      "subject": "talking-to-ai",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/pro-usage/talking-to-ai",
+      "card": "automation/runs/2026-10-02-knowledge-0800-show-dont-describe/card.png",
+      "angle": "มุมใหม่ (ต่างจาก ก.ค. = G-C-F-E brief/อีเมลส่งของช้า): คำกว้าง 'เขียนให้ดี' + รายการ 'อย่า' ไม่บอกทาง -> สองวิธีที่ได้ผล (1) บอกทางที่ต้องการแทนคำห้าม (OpenAI guidance ตามบท) (2) ยื่นตัวอย่าง input/output จริง (Anthropic: ตัวอย่างคุมรูปแบบ น้ำเสียง โครงสร้างได้เชื่อถือได้มาก) + ลงมือ: เก็บผลงานที่ชอบ 3-5 ชิ้นแนบทุกครั้ง. กราวด์จากบท pro-usage/talking-to-ai หัวข้อ 'ตัวอย่างคือวิธีสอนรสนิยมที่เร็วที่สุด' และ 'อย่าสั่งแค่ว่าห้าม'"
+    },
+    {
+      "date": "2026-10-01",
+      "track": "knowledge",
+      "subject": "talking-to-ai",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/pro-usage/talking-to-ai",
+      "card": "automation/runs/2026-10-02-knowledge-0800-show-dont-describe/card.png",
+      "angle": "มุมใหม่ (ต่างจาก ก.ค. = G-C-F-E brief/อีเมลส่งของช้า): คำกว้าง 'เขียนให้ดี' + รายการ 'อย่า' ไม่บอกทาง -> สองวิธีที่ได้ผล (1) บอกทางที่ต้องการแทนคำห้าม (OpenAI guidance ตามบท) (2) ยื่นตัวอย่าง input/output จริง (Anthropic: ตัวอย่างคุมรูปแบบ น้ำเสียง โครงสร้างได้เชื่อถือได้มาก) + ลงมือ: เก็บผลงานที่ชอบ 3-5 ชิ้นแนบทุกครั้ง. กราวด์จากบท pro-usage/talking-to-ai หัวข้อ 'ตัวอย่างคือวิธีสอนรสนิยมที่เร็วที่สุด' และ 'อย่าสั่งแค่ว่าห้าม'"
+    },
+    {
+      "date": "2026-10-02",
+      "track": "news",
+      "subject": "Google เปิดตัว Gemini 4 Argon โมเดลที่เก่งที่สุดของบริษัท แต่ให้ทีมป้องกันภัยไซเบอร์ใช้ก่อน เพราะหาและแก้ช่องโหว่ซอฟต์แวร์ได้เอง",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-02T18:00:00+07:00",
+      "sourceUrl": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-4-argon-2026",
+      "postId": "122125716135259159",
+      "card": "automation/runs/2026-10-02-news-1800-gemini-4-argon/card.png",
+      "angle": "โมเดลเรือธงที่ถูกกั้นเพราะเก่งเรื่องหาช่องโหว่ (dual-use) -> ปล่อยเป็นขั้นผ่าน Fairwind ให้ฝั่งป้องกันก่อน (ไม่มี cyber guardrails สำหรับกลุ่มนี้+ทีม Google) -> ถัดไป paid API + AI Ultra ไม่มีวันที่. มุมคนอ่าน: ยังไม่ต้องรอ, อัปเดตระบบตามรอบ, อ่านคะแนนอย่างมีวิจารณญาณ. กราวด์: blog.google ประกาศทางการ (output limit 64K->1M, ราคา $2/$10 -> $4/$20, cached -95%, DeepSWE 77.9, AutomationBench 51.3 #1, LVBench 91.7, CWE-bench 68 tied, US gov voluntary pre-release) + TechCrunch 30 ก.ย. (Lucas Ropek: พนักงาน Google ใช้ debug/migration, อ้างเหนือ GPT-6 Astra/Fable/Opus, Vals AI index). The Verge/Ars fetch ถูกบล็อก ไม่อ้าง"
     }
   ]
 }
