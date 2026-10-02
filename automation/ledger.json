@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 207,
+  "rotationIndex": 208,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2186,6 +2186,17 @@
       "postId": "122125716177259159",
       "card": "automation/runs/2026-10-03-knowledge-0800-show-dont-describe/card.png",
       "angle": "มุมใหม่ (ต่างจาก ก.ค. = G-C-F-E brief/อีเมลส่งของช้า): คำกว้าง 'เขียนให้ดี' + รายการ 'อย่า' ไม่บอกทาง -> สองวิธีที่ได้ผล (1) บอกทางที่ต้องการแทนคำห้าม (OpenAI guidance ตามบท) (2) ยื่นตัวอย่าง input/output จริง (Anthropic: ตัวอย่างคุมรูปแบบ น้ำเสียง โครงสร้างได้เชื่อถือได้มาก) + ลงมือ: เก็บผลงานที่ชอบ 3-5 ชิ้นแนบทุกครั้ง. กราวด์จากบท pro-usage/talking-to-ai หัวข้อ 'ตัวอย่างคือวิธีสอนรสนิยมที่เร็วที่สุด' และ 'อย่าสั่งแค่ว่าห้าม'"
+    },
+    {
+      "date": "2026-10-02",
+      "track": "tools",
+      "subject": "github-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-03T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/github-mcp",
+      "postId": "122125716219259159",
+      "card": "automation/runs/2026-10-03-tools-1800-github-mcp-toolsets/card.png",
+      "angle": "มุมใหม่ = เลือกเปิด toolset เพื่อให้ AI เลือกเครื่องมือแม่นขึ้นและลด context (ต่างจากมุม ส.ค. = ความปลอดภัย read-only/lockdown). กราวด์จาก README github/github-mcp-server (ตรวจ 2026-10-02): 22 toolsets ในตาราง Available Toolsets; ประโยค 'Enabling only the toolsets that you need can help the LLM with tool choice and reduce the context size'; default = context, repos, issues, pull_requests, users; default,stargazers pattern; --toolsets repos,issues. docs/remote-server.md: แต่ละ toolset มี URL แยก api.githubcopilot.com/mcp/x/<toolset> + เติม /readonly. runtime: MCP host (Claude Code/Cowork/Codex) ไม่ใช่แชตเว็บ; ผู้ใช้สร้าง token เอง"
     }
   ]
 }
