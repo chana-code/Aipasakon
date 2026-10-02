@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 208,
+  "rotationIndex": 209,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2197,6 +2197,18 @@
       "postId": "122125716219259159",
       "card": "automation/runs/2026-10-03-tools-1800-github-mcp-toolsets/card.png",
       "angle": "มุมใหม่ = เลือกเปิด toolset เพื่อให้ AI เลือกเครื่องมือแม่นขึ้นและลด context (ต่างจากมุม ส.ค. = ความปลอดภัย read-only/lockdown). กราวด์จาก README github/github-mcp-server (ตรวจ 2026-10-02): 22 toolsets ในตาราง Available Toolsets; ประโยค 'Enabling only the toolsets that you need can help the LLM with tool choice and reduce the context size'; default = context, repos, issues, pull_requests, users; default,stargazers pattern; --toolsets repos,issues. docs/remote-server.md: แต่ละ toolset มี URL แยก api.githubcopilot.com/mcp/x/<toolset> + เติม /readonly. runtime: MCP host (Claude Code/Cowork/Codex) ไม่ใช่แชตเว็บ; ผู้ใช้สร้าง token เอง"
+    },
+    {
+      "date": "2026-10-02",
+      "track": "news",
+      "subject": "Shopify เปิดตัว Canvas ให้ร้านค้าออกแบบหน้าร้านออนไลน์ด้วยการพิมพ์คุยกับ AI แล้วเห็นผลทันที",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-04T08:00:00+07:00",
+      "sourceUrl": "https://changelog.shopify.com/posts/design-a-fully-bespoke-store-with-canvas",
+      "blogUrl": "https://aipasakon.com/blog/shopify-canvas-2026",
+      "postId": "122125716345259159",
+      "card": "automation/runs/2026-10-04-news-0800-shopify-canvas/card.png",
+      "angle": "การแต่งหน้าร้านเปลี่ยนจากไล่ปรับแผงตั้งค่า -> บอกด้วยคำพูดแล้วตรวจผล; มุม SME: ทำสำเนาธีมก่อนลองเพราะธีมที่แก้ใน Canvas ไม่ได้รับอัปเดตธีม, เช็กข้อจำกัด (3P themes, Markets, translations, rollouts, app blocks/embeds), desktop-only. กราวด์: Shopify changelog 1 ต.ค. (limitations + rollout existing stores coming days + Online Store > Themes), community.shopify.dev (alongside existing editor, 3P compat ยังไม่ครบ), TechCrunch Sarah Perez 1 ต.ค. (Sidekick แก้โค้ดจริง+screenshot, desktop only, Wix/Squarespace/Webflow/Framer), Unite.ai (Ben Sehl 20 นาที vs 2 สัปดาห์ Kotn 12 ปีก่อน)"
     }
   ]
 }
