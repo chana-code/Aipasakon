@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 210,
+  "rotationIndex": 211,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2220,6 +2220,17 @@
       "postId": "122125802925259159",
       "card": "automation/runs/2026-10-04-knowledge-1800-file-extensions/card.png",
       "angle": "บทนี้ยังไม่เคยโพสต์. nugget: ซอฟต์แวร์คือโฟลเดอร์ไฟล์บนเครื่อง AI แก้ = เปิด/หาบรรทัด/เขียนทับ/เซฟ เหมือน Word -> อ่านนามสกุลไฟล์ที่ AI รายงานเพื่อรู้ว่าแตะส่วนไหน (.tsx/.jsx หน้า, .css หน้าตา, .json ข้อมูล/ตั้งค่า, .md ข้อความ, package.json รายชื่อเครื่องมือ) + ลงมือ: สั่งเปลี่ยนสีปุ่มแล้วเห็น package.json ถูกแก้ = ถามกลับก่อนเก็บงาน. กราวด์จากบท vibe-coding/project-files-repo หัวข้อ file/project/repo และ 'ตอน AI แก้ของ จริง ๆ แล้วมันทำอะไร' + ตัวอย่างปุ่มบันทึกฟ้า->เขียว"
+    },
+    {
+      "date": "2026-10-03",
+      "track": "tools",
+      "subject": "playwright-mcp",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-05T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/skills/playwright-mcp",
+      "postId": "122125802967259159",
+      "card": "automation/runs/2026-10-05-tools-0800-playwright-mcp-profiles/card.png",
+      "angle": "มุมใหม่ = เลือกโหมดโปรไฟล์เบราว์เซอร์ให้ตรงงาน (ต่างจาก ก.ค. = accessibility tree vs screenshot). กราวด์จาก README microsoft/playwright-mcp (ตรวจ 2026-10-03) หัวข้อ User profile: persistent profile เป็นค่าเริ่มต้น เก็บการล็อกอิน แยกตาม workspace-hash ต่อโปรเจกต์อัตโนมัติ ใช้ได้ทีละ browser instance (ชนกันถ้าหลาย client ใน workspace เดียว); --isolated เก็บในหน่วยความจำ ปิดแล้วหาย + --storage-state ป้อนสถานะเริ่ม; Browser Extension ต่อแท็บที่เปิดอยู่+session ที่ล็อกอินไว้ (Edge/Chrome, --extension). Security: 'not a security boundary'. หมายเหตุ: แก้ความคลาดเคลื่อนโพสต์ ก.ค. ที่ว่า 'มักเปิดเบราว์เซอร์สะอาด' — ค่าเริ่มต้นจริงคือ persistent. runtime: MCP host (Claude Code/Cowork/Codex) ไม่ใช่แชตเว็บ"
     }
   ]
 }
