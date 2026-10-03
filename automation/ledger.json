@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 209,
+  "rotationIndex": 210,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2209,6 +2209,17 @@
       "postId": "122125716345259159",
       "card": "automation/runs/2026-10-04-news-0800-shopify-canvas/card.png",
       "angle": "การแต่งหน้าร้านเปลี่ยนจากไล่ปรับแผงตั้งค่า -> บอกด้วยคำพูดแล้วตรวจผล; มุม SME: ทำสำเนาธีมก่อนลองเพราะธีมที่แก้ใน Canvas ไม่ได้รับอัปเดตธีม, เช็กข้อจำกัด (3P themes, Markets, translations, rollouts, app blocks/embeds), desktop-only. กราวด์: Shopify changelog 1 ต.ค. (limitations + rollout existing stores coming days + Online Store > Themes), community.shopify.dev (alongside existing editor, 3P compat ยังไม่ครบ), TechCrunch Sarah Perez 1 ต.ค. (Sidekick แก้โค้ดจริง+screenshot, desktop only, Wix/Squarespace/Webflow/Framer), Unite.ai (Ben Sehl 20 นาที vs 2 สัปดาห์ Kotn 12 ปีก่อน)"
+    },
+    {
+      "date": "2026-10-03",
+      "track": "knowledge",
+      "subject": "project-files-repo",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-04T18:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/project-files-repo",
+      "postId": "122125802925259159",
+      "card": "automation/runs/2026-10-04-knowledge-1800-file-extensions/card.png",
+      "angle": "บทนี้ยังไม่เคยโพสต์. nugget: ซอฟต์แวร์คือโฟลเดอร์ไฟล์บนเครื่อง AI แก้ = เปิด/หาบรรทัด/เขียนทับ/เซฟ เหมือน Word -> อ่านนามสกุลไฟล์ที่ AI รายงานเพื่อรู้ว่าแตะส่วนไหน (.tsx/.jsx หน้า, .css หน้าตา, .json ข้อมูล/ตั้งค่า, .md ข้อความ, package.json รายชื่อเครื่องมือ) + ลงมือ: สั่งเปลี่ยนสีปุ่มแล้วเห็น package.json ถูกแก้ = ถามกลับก่อนเก็บงาน. กราวด์จากบท vibe-coding/project-files-repo หัวข้อ file/project/repo และ 'ตอน AI แก้ของ จริง ๆ แล้วมันทำอะไร' + ตัวอย่างปุ่มบันทึกฟ้า->เขียว"
     }
   ]
 }
