@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 211,
+  "rotationIndex": 212,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2231,6 +2231,18 @@
       "postId": "122125802967259159",
       "card": "automation/runs/2026-10-05-tools-0800-playwright-mcp-profiles/card.png",
       "angle": "มุมใหม่ = เลือกโหมดโปรไฟล์เบราว์เซอร์ให้ตรงงาน (ต่างจาก ก.ค. = accessibility tree vs screenshot). กราวด์จาก README microsoft/playwright-mcp (ตรวจ 2026-10-03) หัวข้อ User profile: persistent profile เป็นค่าเริ่มต้น เก็บการล็อกอิน แยกตาม workspace-hash ต่อโปรเจกต์อัตโนมัติ ใช้ได้ทีละ browser instance (ชนกันถ้าหลาย client ใน workspace เดียว); --isolated เก็บในหน่วยความจำ ปิดแล้วหาย + --storage-state ป้อนสถานะเริ่ม; Browser Extension ต่อแท็บที่เปิดอยู่+session ที่ล็อกอินไว้ (Edge/Chrome, --extension). Security: 'not a security boundary'. หมายเหตุ: แก้ความคลาดเคลื่อนโพสต์ ก.ค. ที่ว่า 'มักเปิดเบราว์เซอร์สะอาด' — ค่าเริ่มต้นจริงคือ persistent. runtime: MCP host (Claude Code/Cowork/Codex) ไม่ใช่แชตเว็บ"
+    },
+    {
+      "date": "2026-10-04",
+      "track": "news",
+      "subject": "Apple เตรียมคุมเข้มสิทธิ์ Full Disk Access บน Mac เพราะ AI agent ทำให้สิทธิ์อ่านทุกอย่างในเครื่องเสี่ยงขึ้นมาก",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-05T18:00:00+07:00",
+      "sourceUrl": "https://developer.apple.com/news/?id=p6zjojqw",
+      "blogUrl": "https://aipasakon.com/blog/apple-full-disk-access-ai-agents-2026",
+      "postId": "122125898385259159",
+      "card": "automation/runs/2026-10-05-news-1800-apple-full-disk-access/card.png",
+      "angle": "สิทธิ์กว้าง + AI agent ที่ตัดสินใจเอง = เสี่ยงโต; ให้ผู้อ่านเช็ก System Settings > Privacy & Security > Full Disk Access วันนี้ + หลักให้สิทธิ์เท่าที่งานต้องใช้. กราวด์: Apple dev news 2 ต.ค. (ไม่ระบุวันเริ่ม), TechCrunch (Muse/Inc, Wired ChatGPT Mac flaw, correction=informed consent ไม่ใช่ limit ใหม่), The Verge (Meta Andy Stone opt-in FDA+Messages connector), Apple Support path"
     }
   ]
 }
