@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 212,
+  "rotationIndex": 213,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2243,6 +2243,17 @@
       "postId": "122125898385259159",
       "card": "automation/runs/2026-10-05-news-1800-apple-full-disk-access/card.png",
       "angle": "สิทธิ์กว้าง + AI agent ที่ตัดสินใจเอง = เสี่ยงโต; ให้ผู้อ่านเช็ก System Settings > Privacy & Security > Full Disk Access วันนี้ + หลักให้สิทธิ์เท่าที่งานต้องใช้. กราวด์: Apple dev news 2 ต.ค. (ไม่ระบุวันเริ่ม), TechCrunch (Muse/Inc, Wired ChatGPT Mac flaw, correction=informed consent ไม่ใช่ limit ใหม่), The Verge (Meta Andy Stone opt-in FDA+Messages connector), Apple Support path"
+    },
+    {
+      "date": "2026-10-04",
+      "track": "knowledge",
+      "subject": "the-reframe",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-06T08:00:00+07:00",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/the-reframe",
+      "postId": "122125898433259159",
+      "card": "automation/runs/2026-10-06-knowledge-0800-invisible-90/card.png",
+      "angle": "บทนี้ยังไม่เคยโพสต์. nugget: 90% ที่มองไม่เห็น = สามช่องว่าง (คนเดียว vs คนเยอะ, happy path vs ทางที่คนจริงเดิน, คุณวันนี้ vs อีกหกเดือน) รากเดียว = ไม่มีใครถือทั้งระบบในหัว -> engineering คือการจัดการความซับซ้อน ไม่ใช่พิมพ์โค้ด + ลงมือ: ทดสอบแบบคนไม่ทำตามทาง + จดไฟล์ความจำ. กราวด์จากบท vibe-coding/the-reframe หัวข้อ 'ทำไมของที่ทำงานได้ถึงพัง' และ 'ช่องว่างที่แท้จริง'"
     }
   ]
 }
