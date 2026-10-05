@@ -2262,7 +2262,7 @@
       "status": "scheduled",
       "scheduledFor": "2026-10-06T11:00:00.000Z",
       "sourceUrl": "https://aipasakon.com/skills/awesome-mcp",
-      "postId": "122125997427259159",
+      "postId": "122125998945259159",
       "card": "automation/runs/2026-10-06-tools-1800-awesome-mcp-remote/card.png",
       "angle": "มุมใหม่ = MCP server สองแบบ (ติดตั้งรันเอง vs remote ต่อผ่าน URL) + รายชื่อพี่น้อง awesome-remote-mcp-servers (ต่างจาก ก.ค. = อ่านสารบัญ+ป้ายกำกับ). กราวด์ README punkpeye/awesome-mcp-servers (ตรวจ 2026-10-05): ส่วน Remote Servers 'This list is for servers with a GitHub repo you install and run yourself', note Local vs Cloud, web directory glama.ai/mcp/servers synced. README punkpeye/awesome-remote-mcp-servers: ตาราง local vs remote (npm/PyPI/Docker vs URL; stdio vs Streamable HTTP; runs on your machine vs provider; env vars vs OAuth/API key; you upgrade vs provider ships), 'Entries are only listed after the endpoint answers an MCP initialize handshake', Claude.ai/ChatGPT add URL under Settings → Connectors, คำสั่ง claude mcp add --transport http linear https://mcp.linear.app/mcp. ดาว 95,837 (GitHub API 2026-10-05). runtime honesty: แบบติดตั้งต้องใช้ agent ที่รันโค้ด; แบบ remote ใส่ในหน้า Connectors ได้"
     }
