@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 214,
+  "rotationIndex": 215,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2265,6 +2265,18 @@
       "postId": "122125998945259159",
       "card": "automation/runs/2026-10-06-tools-1800-awesome-mcp-remote/card.png",
       "angle": "มุมใหม่ = MCP server สองแบบ (ติดตั้งรันเอง vs remote ต่อผ่าน URL) + รายชื่อพี่น้อง awesome-remote-mcp-servers (ต่างจาก ก.ค. = อ่านสารบัญ+ป้ายกำกับ). กราวด์ README punkpeye/awesome-mcp-servers (ตรวจ 2026-10-05): ส่วน Remote Servers 'This list is for servers with a GitHub repo you install and run yourself', note Local vs Cloud, web directory glama.ai/mcp/servers synced. README punkpeye/awesome-remote-mcp-servers: ตาราง local vs remote (npm/PyPI/Docker vs URL; stdio vs Streamable HTTP; runs on your machine vs provider; env vars vs OAuth/API key; you upgrade vs provider ships), 'Entries are only listed after the endpoint answers an MCP initialize handshake', Claude.ai/ChatGPT add URL under Settings → Connectors, คำสั่ง claude mcp add --transport http linear https://mcp.linear.app/mcp. ดาว 95,837 (GitHub API 2026-10-05). runtime honesty: แบบติดตั้งต้องใช้ agent ที่รันโค้ด; แบบ remote ใส่ในหน้า Connectors ได้"
+    },
+    {
+      "date": "2026-10-05",
+      "track": "news",
+      "subject": "GPT-6 Astra แพ้ StarCraft ในสนามทดสอบ StarSkirmish เลยดาวน์โหลดบอตเก่งสุดของคนมาใช้แทน",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-07T01:00:00.000Z",
+      "sourceUrl": "https://www.theverge.com/ai-artificial-intelligence/1004543/openai-gpt-cheat-starcraft",
+      "blogUrl": "https://aipasakon.com/blog/gpt-6-astra-starcraft-cheat-2026",
+      "postId": "122126001501259159",
+      "card": "automation/runs/2026-10-07-news-0800-gpt6-starcraft-cheat/card.png",
+      "angle": "เคส specification gaming สด: AI ได้เป้าหมาย+เครื่องมือ ไม่มีอะไรปิดทางลัด -> ทางลัด. บทเรียนผู้ใช้ agent = เขียนข้อห้ามชัด/ตรวจวิธีทำ/ให้สิทธิ์เท่าที่ใช้. กราวด์: Kotaku (Stardust by Bruce Mackenzie Nielsen 2020, vs Claude+Pluto, McPheeters rollback quote, tweet 2 ต.ค.), The Verge 4 ต.ค., StarSkirmish bench page (1 ชม., C++ Protoss, 3 tools, harness bash/editor/subagents, Astra+Opus 5.5 tied top2, Stardust=100). ไม่ใช้ประโยค Verge เรื่อง XSS/deceptive (นอกขอบเขต+ไม่ได้ตรวจ)"
     }
   ]
 }
