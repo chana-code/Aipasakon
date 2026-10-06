@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 216,
+  "rotationIndex": 217,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2288,6 +2288,17 @@
       "postId": "122126118579259159",
       "card": "automation/runs/2026-10-07-knowledge-1800-worktree/card.png",
       "angle": "บทนี้ยังไม่เคยโพสต์. nugget: worktree = แตกพื้นที่ทำงานหลายอันจาก repo เดียว (ไฟล์+branch ของตัวเอง แชร์ประวัติ git เดียว) เพื่อให้ AI ลองหลายทางขนานโดยไม่เขียนทับกัน; ตัวอย่างหน้า pricing 3 แบบ + analogy ครัวกลาง/เคาน์เตอร์ทดลอง พร้อมจุดที่เปรียบไม่ได้ (จากบท pro-usage/builder-track หัวข้อ worktree). คำสั่ง/พฤติกรรมตรวจกับ code.claude.com/docs/en/worktrees 2026-10-06: claude --worktree <name> (หรือ -w), สร้างที่ .claude/worktrees/<name>/ บน branch worktree-<name>, desktop เลือกตัวเลือก worktree ตอนเริ่ม session, สั่ง 'work in a worktree' กลางแชตได้, เป็น fresh checkout ไฟล์ gitignored เช่น .env ไม่ตามมา (.worktreeinclude), ออกแล้ว clean = ลบอัตโนมัติ / มีงาน = ถามเก็บหรือลบ"
+    },
+    {
+      "date": "2026-10-06",
+      "track": "tools",
+      "subject": "claude-code-templates",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-08T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/claude-code-templates",
+      "postId": "122126118705259159",
+      "card": "automation/runs/2026-10-08-tools-0800-cct-chats-monitor/card.png",
+      "angle": "มุมใหม่ (ต่างจาก ส.ค. ที่เป็นคลัง+--agent/--health-check/--analytics) = Conversation Monitor: npx claude-code-templates@latest --chats และ --chats --tunnel (README หัวข้อ Conversation Monitor 'Mobile-optimized interface to view Claude responses in real-time'). กลไกตรวจจากซอร์ส cli-tool/src/chats-mobile.js 2026-10-06: เปิดเว็บที่ localhost:9876, อ่านข้อมูลจาก ~/.claude, --tunnel สั่ง cloudflared (ต้องติดตั้งเอง) ได้ลิงก์ *.trycloudflare.com, ไม่พบด่านล็อกอินบน API -> คำเตือนเรื่องลิงก์ = กุญแจ, ปิดคำสั่งแล้ว process cloudflared ถูก kill. ดาว 32,408 MIT (GitHub API 2026-10-06). runtime honesty: รันในเทอร์มินัลบนเครื่องที่ใช้ Claude Code, ต้องมี Node.js, ไม่ใช่ในหน้าแชตเว็บ"
     }
   ]
 }
