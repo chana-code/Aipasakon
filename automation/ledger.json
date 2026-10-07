@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 221,
+  "rotationIndex": 223,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2341,6 +2341,26 @@
       "postId": "122126208507259159",
       "card": "automation/runs/2026-10-08-news-1800-gemini-free-flash-lite/card.png",
       "angle": "ข่าวที่กระทบผู้ใช้ทั่วไปโดยตรง (โพสต์ 18:00 วันที่ 8 = วันก่อนมีผล). กราวด์: support.google.com/gemini/answer/17004136 (ตาราง model x plan, 9 ต.ค. ผู้ใช้ไม่มีแพ็กเกจ, AI Plus ได้อีเมล, effort ต่ำ/กลาง/สูงกินโควตา, Deep Think = Ultra, โควตา compute-based ตั้งแต่ 17 พ.ค. เติมทุก 5 ชม.+เพดานรายสัปดาห์, Plus 2x Pro 4x Ultra 5x/20x ของ Pro) + The Verge 6 ต.ค. (ราคาสหรัฐฯ 4.99/19.99/99.99). ใช้ตาม support page เรื่อง Deep Think (Verge เขียนกำกวม). ไม่อ้างราคาไทย. so-what = แยกงานเบา/หนัก, ทดสอบด้วยงานจริงก่อนจ่าย, effort เป็นคันโยกที่เหลือ"
+    },
+    {
+      "date": "2026-10-07",
+      "track": "knowledge",
+      "subject": "capstone",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/capstone",
+      "card": "automation/runs/2026-10-09-knowledge-0800-one-button-trace/card.png",
+      "angle": "บทเดียวใน knowledge ที่ยังไม่เคยโพสต์. nugget: ตามรอยปุ่มบันทึกปุ่มเดียวผ่านเจ็ดจุด (vibe code -> ไฟล์/repo -> commit -> เทอร์มินัล -> localhost -> หน้าบ้าน/หลังบ้าน/ล็อกอิน/ที่เก็บข้อมูล -> push+deploy) จากบท vibe-coding/capstone หัวข้อ 'ตามรอยปุ่มบันทึกปุ่มเดียว'. so-what = ใช้เส้นนี้วินิจฉัยว่าปุ่มติดอยู่จุดไหน (localhost แต่ไม่ขึ้นเว็บ = ยังไม่ deploy; พังย้อนไม่ได้ = ไม่ได้ commit) ซึ่งตามจากเนื้อบทโดยตรง. เลี่ยงมุม 10%/90% เพราะชน the-reframe ที่โพสต์ 6 ต.ค."
+    },
+    {
+      "date": "2026-10-07",
+      "track": "knowledge",
+      "subject": "capstone",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-09T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/capstone",
+      "postId": "122126208729259159",
+      "card": "automation/runs/2026-10-09-knowledge-0800-one-button-trace/card.png",
+      "angle": "บทเดียวใน knowledge ที่ยังไม่เคยโพสต์. nugget: ตามรอยปุ่มบันทึกปุ่มเดียวผ่านเจ็ดจุด (vibe code -> ไฟล์/repo -> commit -> เทอร์มินัล -> localhost -> หน้าบ้าน/หลังบ้าน/ล็อกอิน/ที่เก็บข้อมูล -> push+deploy) จากบท vibe-coding/capstone หัวข้อ 'ตามรอยปุ่มบันทึกปุ่มเดียว'. so-what = ใช้เส้นนี้วินิจฉัยว่าปุ่มติดอยู่จุดไหน (localhost แต่ไม่ขึ้นเว็บ = ยังไม่ deploy; พังย้อนไม่ได้ = ไม่ได้ commit) ซึ่งตามจากเนื้อบทโดยตรง. เลี่ยงมุม 10%/90% เพราะชน the-reframe ที่โพสต์ 6 ต.ค."
     }
   ]
 }
