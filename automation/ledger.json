@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 217,
+  "rotationIndex": 221,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2299,6 +2299,48 @@
       "postId": "122126118705259159",
       "card": "automation/runs/2026-10-08-tools-0800-cct-chats-monitor/card.png",
       "angle": "มุมใหม่ (ต่างจาก ส.ค. ที่เป็นคลัง+--agent/--health-check/--analytics) = Conversation Monitor: npx claude-code-templates@latest --chats และ --chats --tunnel (README หัวข้อ Conversation Monitor 'Mobile-optimized interface to view Claude responses in real-time'). กลไกตรวจจากซอร์ส cli-tool/src/chats-mobile.js 2026-10-06: เปิดเว็บที่ localhost:9876, อ่านข้อมูลจาก ~/.claude, --tunnel สั่ง cloudflared (ต้องติดตั้งเอง) ได้ลิงก์ *.trycloudflare.com, ไม่พบด่านล็อกอินบน API -> คำเตือนเรื่องลิงก์ = กุญแจ, ปิดคำสั่งแล้ว process cloudflared ถูก kill. ดาว 32,408 MIT (GitHub API 2026-10-06). runtime honesty: รันในเทอร์มินัลบนเครื่องที่ใช้ Claude Code, ต้องมี Node.js, ไม่ใช่ในหน้าแชตเว็บ"
+    },
+    {
+      "date": "2026-10-07",
+      "track": "news",
+      "subject": "Google จำกัด Gemini ฟรีเหลือแค่ Flash-Lite ตั้งแต่ 9 ต.ค. และ AI Plus เสีย Pro",
+      "status": "draft",
+      "sourceUrl": "https://www.theverge.com/ai-artificial-intelligence/1005451/google-gemini-free-flash-lite-only",
+      "blogUrl": "https://aipasakon.com/blog/gemini-free-flash-lite-2026",
+      "card": "automation/runs/2026-10-08-news-1800-gemini-free-flash-lite/card.png",
+      "angle": "ข่าวที่กระทบผู้ใช้ทั่วไปโดยตรง (โพสต์ 18:00 วันที่ 8 = วันก่อนมีผล). กราวด์: support.google.com/gemini/answer/17004136 (ตาราง model x plan, 9 ต.ค. ผู้ใช้ไม่มีแพ็กเกจ, AI Plus ได้อีเมล, effort ต่ำ/กลาง/สูงกินโควตา, Deep Think = Ultra, โควตา compute-based ตั้งแต่ 17 พ.ค. เติมทุก 5 ชม.+เพดานรายสัปดาห์, Plus 2x Pro 4x Ultra 5x/20x ของ Pro) + The Verge 6 ต.ค. (ราคาสหรัฐฯ 4.99/19.99/99.99). ใช้ตาม support page เรื่อง Deep Think (Verge เขียนกำกวม). ไม่อ้างราคาไทย. so-what = แยกงานเบา/หนัก, ทดสอบด้วยงานจริงก่อนจ่าย, effort เป็นคันโยกที่เหลือ"
+    },
+    {
+      "date": "2026-10-07",
+      "track": "news",
+      "subject": "Google จำกัด Gemini ฟรีเหลือแค่ Flash-Lite ตั้งแต่ 9 ต.ค. และ AI Plus เสีย Pro",
+      "status": "draft",
+      "sourceUrl": "https://www.theverge.com/ai-artificial-intelligence/1005451/google-gemini-free-flash-lite-only",
+      "blogUrl": "https://aipasakon.com/blog/gemini-free-flash-lite-2026",
+      "card": "automation/runs/2026-10-08-news-1800-gemini-free-flash-lite/card.png",
+      "angle": "ข่าวที่กระทบผู้ใช้ทั่วไปโดยตรง (โพสต์ 18:00 วันที่ 8 = วันก่อนมีผล). กราวด์: support.google.com/gemini/answer/17004136 (ตาราง model x plan, 9 ต.ค. ผู้ใช้ไม่มีแพ็กเกจ, AI Plus ได้อีเมล, effort ต่ำ/กลาง/สูงกินโควตา, Deep Think = Ultra, โควตา compute-based ตั้งแต่ 17 พ.ค. เติมทุก 5 ชม.+เพดานรายสัปดาห์, Plus 2x Pro 4x Ultra 5x/20x ของ Pro) + The Verge 6 ต.ค. (ราคาสหรัฐฯ 4.99/19.99/99.99). ใช้ตาม support page เรื่อง Deep Think (Verge เขียนกำกวม). ไม่อ้างราคาไทย. so-what = แยกงานเบา/หนัก, ทดสอบด้วยงานจริงก่อนจ่าย, effort เป็นคันโยกที่เหลือ"
+    },
+    {
+      "date": "2026-10-07",
+      "track": "news",
+      "subject": "Google จำกัด Gemini ฟรีเหลือแค่ Flash-Lite ตั้งแต่ 9 ต.ค. และ AI Plus เสีย Pro",
+      "status": "draft",
+      "sourceUrl": "https://www.theverge.com/ai-artificial-intelligence/1005451/google-gemini-free-flash-lite-only",
+      "blogUrl": "https://aipasakon.com/blog/gemini-free-flash-lite-2026",
+      "card": "automation/runs/2026-10-08-news-1800-gemini-free-flash-lite/card.png",
+      "angle": "ข่าวที่กระทบผู้ใช้ทั่วไปโดยตรง (โพสต์ 18:00 วันที่ 8 = วันก่อนมีผล). กราวด์: support.google.com/gemini/answer/17004136 (ตาราง model x plan, 9 ต.ค. ผู้ใช้ไม่มีแพ็กเกจ, AI Plus ได้อีเมล, effort ต่ำ/กลาง/สูงกินโควตา, Deep Think = Ultra, โควตา compute-based ตั้งแต่ 17 พ.ค. เติมทุก 5 ชม.+เพดานรายสัปดาห์, Plus 2x Pro 4x Ultra 5x/20x ของ Pro) + The Verge 6 ต.ค. (ราคาสหรัฐฯ 4.99/19.99/99.99). ใช้ตาม support page เรื่อง Deep Think (Verge เขียนกำกวม). ไม่อ้างราคาไทย. so-what = แยกงานเบา/หนัก, ทดสอบด้วยงานจริงก่อนจ่าย, effort เป็นคันโยกที่เหลือ"
+    },
+    {
+      "date": "2026-10-07",
+      "track": "news",
+      "subject": "Google จำกัด Gemini ฟรีเหลือแค่ Flash-Lite ตั้งแต่ 9 ต.ค. และ AI Plus เสีย Pro",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-08T11:00:00.000Z",
+      "sourceUrl": "https://www.theverge.com/ai-artificial-intelligence/1005451/google-gemini-free-flash-lite-only",
+      "blogUrl": "https://aipasakon.com/blog/gemini-free-flash-lite-2026",
+      "postId": "122126208507259159",
+      "card": "automation/runs/2026-10-08-news-1800-gemini-free-flash-lite/card.png",
+      "angle": "ข่าวที่กระทบผู้ใช้ทั่วไปโดยตรง (โพสต์ 18:00 วันที่ 8 = วันก่อนมีผล). กราวด์: support.google.com/gemini/answer/17004136 (ตาราง model x plan, 9 ต.ค. ผู้ใช้ไม่มีแพ็กเกจ, AI Plus ได้อีเมล, effort ต่ำ/กลาง/สูงกินโควตา, Deep Think = Ultra, โควตา compute-based ตั้งแต่ 17 พ.ค. เติมทุก 5 ชม.+เพดานรายสัปดาห์, Plus 2x Pro 4x Ultra 5x/20x ของ Pro) + The Verge 6 ต.ค. (ราคาสหรัฐฯ 4.99/19.99/99.99). ใช้ตาม support page เรื่อง Deep Think (Verge เขียนกำกวม). ไม่อ้างราคาไทย. so-what = แยกงานเบา/หนัก, ทดสอบด้วยงานจริงก่อนจ่าย, effort เป็นคันโยกที่เหลือ"
     }
   ]
 }
