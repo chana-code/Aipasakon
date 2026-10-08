@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 223,
+  "rotationIndex": 225,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2361,6 +2361,28 @@
       "postId": "122126208729259159",
       "card": "automation/runs/2026-10-09-knowledge-0800-one-button-trace/card.png",
       "angle": "บทเดียวใน knowledge ที่ยังไม่เคยโพสต์. nugget: ตามรอยปุ่มบันทึกปุ่มเดียวผ่านเจ็ดจุด (vibe code -> ไฟล์/repo -> commit -> เทอร์มินัล -> localhost -> หน้าบ้าน/หลังบ้าน/ล็อกอิน/ที่เก็บข้อมูล -> push+deploy) จากบท vibe-coding/capstone หัวข้อ 'ตามรอยปุ่มบันทึกปุ่มเดียว'. so-what = ใช้เส้นนี้วินิจฉัยว่าปุ่มติดอยู่จุดไหน (localhost แต่ไม่ขึ้นเว็บ = ยังไม่ deploy; พังย้อนไม่ได้ = ไม่ได้ commit) ซึ่งตามจากเนื้อบทโดยตรง. เลี่ยงมุม 10%/90% เพราะชน the-reframe ที่โพสต์ 6 ต.ค."
+    },
+    {
+      "date": "2026-10-08",
+      "track": "news",
+      "subject": "ChatGPT เปิด GPT-6 พร้อม Intelligent UI ตอบด้วยแผนภาพ กราฟ และปุ่มที่กดได้ ผู้ใช้ฟรีได้รุ่น Luna",
+      "status": "draft",
+      "sourceUrl": "https://openai.com/index/gpt-6-for-everyone",
+      "blogUrl": "https://aipasakon.com/blog/chatgpt-gpt-6-intelligent-ui-2026",
+      "card": "automation/runs/2026-10-09-news-1800-gpt6-intelligent-ui/card.png",
+      "angle": "ข่าวใหญ่ที่ผู้ใช้ฟรีได้ด้วย (เปิดฟรี/Go วันพฤหัส 8 ต.ค.). กราวด์: OpenAI RSS (title+desc), The Verge 1007276 (Sol=Plus/Pro/Business/Enterprise, Luna=Free/Go 'more efficient', ตัวอย่างจักรยาน 7 เกียร์+ไพ่นกกระจอก+retirement calculator/retro game/bill splitter, ค้นเว็บดีขึ้น, partial answers, ต้าน bypass safety), TechCrunch (airplane wing demo, Aarush Selvan quote, ปรับลดภาพได้, recipe/hiking map). หน้า openai.com 403 จึงอ้างผ่าน RSS+สื่อ. so-what = เรียนเรื่องยาก + สั่งทำเครื่องคิดเลขเฉพาะงาน + เตือนตรวจสูตรด้วยกรณีที่รู้คำตอบ (คำแนะนำของเรา ไม่ใช่ข้ออ้างของ OpenAI). ไม่ระบุเมนูตั้งค่า (ไม่มีในแหล่ง)"
+    },
+    {
+      "date": "2026-10-08",
+      "track": "news",
+      "subject": "ChatGPT เปิด GPT-6 พร้อม Intelligent UI ตอบด้วยแผนภาพ กราฟ และปุ่มที่กดได้ ผู้ใช้ฟรีได้รุ่น Luna",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-09T11:00:00.000Z",
+      "sourceUrl": "https://openai.com/index/gpt-6-for-everyone",
+      "blogUrl": "https://aipasakon.com/blog/chatgpt-gpt-6-intelligent-ui-2026",
+      "postId": "122126304519259159",
+      "card": "automation/runs/2026-10-09-news-1800-gpt6-intelligent-ui/card.png",
+      "angle": "ข่าวใหญ่ที่ผู้ใช้ฟรีได้ด้วย (เปิดฟรี/Go วันพฤหัส 8 ต.ค.). กราวด์: OpenAI RSS (title+desc), The Verge 1007276 (Sol=Plus/Pro/Business/Enterprise, Luna=Free/Go 'more efficient', ตัวอย่างจักรยาน 7 เกียร์+ไพ่นกกระจอก+retirement calculator/retro game/bill splitter, ค้นเว็บดีขึ้น, partial answers, ต้าน bypass safety), TechCrunch (airplane wing demo, Aarush Selvan quote, ปรับลดภาพได้, recipe/hiking map). หน้า openai.com 403 จึงอ้างผ่าน RSS+สื่อ. so-what = เรียนเรื่องยาก + สั่งทำเครื่องคิดเลขเฉพาะงาน + เตือนตรวจสูตรด้วยกรณีที่รู้คำตอบ (คำแนะนำของเรา ไม่ใช่ข้ออ้างของ OpenAI). ไม่ระบุเมนูตั้งค่า (ไม่มีในแหล่ง)"
     }
   ]
 }
