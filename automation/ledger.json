@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 225,
+  "rotationIndex": 228,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2383,6 +2383,35 @@
       "postId": "122126304519259159",
       "card": "automation/runs/2026-10-09-news-1800-gpt6-intelligent-ui/card.png",
       "angle": "ข่าวใหญ่ที่ผู้ใช้ฟรีได้ด้วย (เปิดฟรี/Go วันพฤหัส 8 ต.ค.). กราวด์: OpenAI RSS (title+desc), The Verge 1007276 (Sol=Plus/Pro/Business/Enterprise, Luna=Free/Go 'more efficient', ตัวอย่างจักรยาน 7 เกียร์+ไพ่นกกระจอก+retirement calculator/retro game/bill splitter, ค้นเว็บดีขึ้น, partial answers, ต้าน bypass safety), TechCrunch (airplane wing demo, Aarush Selvan quote, ปรับลดภาพได้, recipe/hiking map). หน้า openai.com 403 จึงอ้างผ่าน RSS+สื่อ. so-what = เรียนเรื่องยาก + สั่งทำเครื่องคิดเลขเฉพาะงาน + เตือนตรวจสูตรด้วยกรณีที่รู้คำตอบ (คำแนะนำของเรา ไม่ใช่ข้ออ้างของ OpenAI). ไม่ระบุเมนูตั้งค่า (ไม่มีในแหล่ง)"
+    },
+    {
+      "date": "2026-10-08",
+      "track": "tools",
+      "subject": "notebooklm",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/notebooklm",
+      "card": "automation/runs/2026-10-10-tools-0800-notebooklm-offload/card.png",
+      "angle": "มุมใหม่ (ต่างจากครั้งก่อนที่เป็น export ควิซ/แฟลชการ์ด/CSV/PPTX) = ให้ NotebookLM/Gemini เป็นชั้นอ่านเอกสารแทน agent เพื่อประหยัดโทเค็น (README หัวข้อ 'Spend fewer tokens' -> 'Zero-token research offload': agent orchestrates create -> source add -> ask; reasoning server-side). คำสั่งตรวจจาก docs/cli-reference.md 2026-10-08: create, use <notebook_id>, source add, ask --json (answer with source references), source add-research --mode deep --import-all (deep = web only), usage (five-hour + weekly compute meter). ไม่อ้าง 'zero-token' ตรง ๆ เพราะ agent ยังใช้โทเค็นสั่งงาน/อ่านคำตอบ; เตือนว่า NotebookLM มีโควตาเอง. ดาว 19,647 MIT (GitHub API 2026-10-08). runtime honesty: unofficial undocumented Google APIs อาจพัง, ติดตั้งผ่าน agent (uv tool install), login Google ผ่านเบราว์เซอร์, ไม่ใช่หน้าแชตเว็บ; เตือนเอกสารถูกอัปโหลดไป Google. rename Gemini Notebook ก.ค. 2026 ตาม README"
+    },
+    {
+      "date": "2026-10-08",
+      "track": "tools",
+      "subject": "notebooklm",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/notebooklm",
+      "card": "automation/runs/2026-10-10-tools-0800-notebooklm-offload/card.png",
+      "angle": "มุมใหม่ (ต่างจากครั้งก่อนที่เป็น export ควิซ/แฟลชการ์ด/CSV/PPTX) = ให้ NotebookLM/Gemini เป็นชั้นอ่านเอกสารแทน agent เพื่อประหยัดโทเค็น (README หัวข้อ 'Spend fewer tokens' -> 'Zero-token research offload': agent orchestrates create -> source add -> ask; reasoning server-side). คำสั่งตรวจจาก docs/cli-reference.md 2026-10-08: create, use <notebook_id>, source add, ask --json (answer with source references), source add-research --mode deep --import-all (deep = web only), usage (five-hour + weekly compute meter). ไม่อ้าง 'zero-token' ตรง ๆ เพราะ agent ยังใช้โทเค็นสั่งงาน/อ่านคำตอบ; เตือนว่า NotebookLM มีโควตาเอง. ดาว 19,647 MIT (GitHub API 2026-10-08). runtime honesty: unofficial undocumented Google APIs อาจพัง, ติดตั้งผ่าน agent (uv tool install), login Google ผ่านเบราว์เซอร์, ไม่ใช่หน้าแชตเว็บ; เตือนเอกสารถูกอัปโหลดไป Google. rename Gemini Notebook ก.ค. 2026 ตาม README"
+    },
+    {
+      "date": "2026-10-08",
+      "track": "tools",
+      "subject": "notebooklm",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-10T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/notebooklm",
+      "postId": "122126304801259159",
+      "card": "automation/runs/2026-10-10-tools-0800-notebooklm-offload/card.png",
+      "angle": "มุมใหม่ (ต่างจากครั้งก่อนที่เป็น export ควิซ/แฟลชการ์ด/CSV/PPTX) = ให้ NotebookLM/Gemini เป็นชั้นอ่านเอกสารแทน agent เพื่อประหยัดโทเค็น (README หัวข้อ 'Spend fewer tokens' -> 'Zero-token research offload': agent orchestrates create -> source add -> ask; reasoning server-side). คำสั่งตรวจจาก docs/cli-reference.md 2026-10-08: create, use <notebook_id>, source add, ask --json (answer with source references), source add-research --mode deep --import-all (deep = web only), usage (five-hour + weekly compute meter). ไม่อ้าง 'zero-token' ตรง ๆ เพราะ agent ยังใช้โทเค็นสั่งงาน/อ่านคำตอบ; เตือนว่า NotebookLM มีโควตาเอง. ดาว 19,647 MIT (GitHub API 2026-10-08). runtime honesty: unofficial undocumented Google APIs อาจพัง, ติดตั้งผ่าน agent (uv tool install), login Google ผ่านเบราว์เซอร์, ไม่ใช่หน้าแชตเว็บ; เตือนเอกสารถูกอัปโหลดไป Google. rename Gemini Notebook ก.ค. 2026 ตาม README"
     }
   ]
 }
