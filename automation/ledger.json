@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 230,
+  "rotationIndex": 232,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2432,6 +2432,28 @@
       "postId": "122126417937259159",
       "card": "automation/runs/2026-10-10-knowledge-1800-three-memory-files/card.png",
       "angle": "มุมใหม่ (ต่างจาก 1 ก.ค. ที่เป็นเรื่อง context window เต็มแล้วลืมตอนต้น): สามไฟล์ความจำภายนอก (แผนที่ระบบ/บันทึกการตัดสินใจ/สถานะ) + พิธีกรรมสองจังหวะ (อ่านตอนเริ่ม/อัปเดตตอนจบ) + CLAUDE.md อ่านอัตโนมัติ + โน้ตเก่าค้างอันตรายกว่าไม่มีโน้ต. ทุกข้อมาจากบท vibe-coding/external-memory หัวข้อ 'สามไฟล์ที่ควรมี' และ 'พิธีกรรมที่ทำให้ไฟล์ยังมีชีวิต'. nextTrack บอก tools แต่ rotationIndex เพี้ยนจาก draft entries; tools เพิ่งลง 10-10 08:00 จึงเลือก knowledge ตามลำดับจริง"
+    },
+    {
+      "date": "2026-10-09",
+      "track": "news",
+      "subject": "Google ปล่อย AI Edge Foresight แอปจดประชุมบน Mac ที่ถอดเสียงและสรุปได้โดยไม่ต้องต่อเน็ต",
+      "status": "draft",
+      "sourceUrl": "https://techcrunch.com/2026/10/08/google-releases-a-new-local-first-granola-competitor/",
+      "blogUrl": "https://aipasakon.com/blog/google-ai-edge-foresight-offline-notes-2026",
+      "card": "automation/runs/2026-10-11-news-0800-google-foresight-offline-notes/card.png",
+      "angle": "ข่าวเครื่องมือที่ใช้ได้จริงสำหรับคนทำงาน: ประมวลผลบนเครื่อง = เปิดทางให้คนที่บริษัทห้ามอัปโหลดข้อมูลขึ้นคลาวด์. กราวด์: TechCrunch (Mac, offline, EmbeddingGemma 2 740M, Gemma 4 assistant, split-screen, รองรับ PDF/Docs/Office/txt/md/bookmarks, optimized Apple Silicon, แอปทดลองเดิมไม่ mainstream, คู่แข่ง Wispr/Calendly/Superhuman-Fathom), The Verge (ฟรี, ทดลอง, macOS, shorthand -> polished notes, ไฟล์/เสียง/โน้ต never leave computer), ithinkdiff (system audio + mic). ในโพสต์ไม่ระบุชื่อโมเดล (สองแหล่งเล่าต่างกันเล็กน้อย) ส่วนบล็อกอ้างตาม TechCrunch. คำแนะนำทดสอบภาษาไทย/เทียบบทถอดเสียง/ขอความยินยอม = คำแนะนำของเรา ไม่ใช่ของ Google. ไม่ให้ลิงก์ดาวน์โหลด (ไม่มีในแหล่ง)"
+    },
+    {
+      "date": "2026-10-09",
+      "track": "news",
+      "subject": "Google ปล่อย AI Edge Foresight แอปจดประชุมบน Mac ที่ถอดเสียงและสรุปได้โดยไม่ต้องต่อเน็ต",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-11T01:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/10/08/google-releases-a-new-local-first-granola-competitor/",
+      "blogUrl": "https://aipasakon.com/blog/google-ai-edge-foresight-offline-notes-2026",
+      "postId": "122126418165259159",
+      "card": "automation/runs/2026-10-11-news-0800-google-foresight-offline-notes/card.png",
+      "angle": "ข่าวเครื่องมือที่ใช้ได้จริงสำหรับคนทำงาน: ประมวลผลบนเครื่อง = เปิดทางให้คนที่บริษัทห้ามอัปโหลดข้อมูลขึ้นคลาวด์. กราวด์: TechCrunch (Mac, offline, EmbeddingGemma 2 740M, Gemma 4 assistant, split-screen, รองรับ PDF/Docs/Office/txt/md/bookmarks, optimized Apple Silicon, แอปทดลองเดิมไม่ mainstream, คู่แข่ง Wispr/Calendly/Superhuman-Fathom), The Verge (ฟรี, ทดลอง, macOS, shorthand -> polished notes, ไฟล์/เสียง/โน้ต never leave computer), ithinkdiff (system audio + mic). ในโพสต์ไม่ระบุชื่อโมเดล (สองแหล่งเล่าต่างกันเล็กน้อย) ส่วนบล็อกอ้างตาม TechCrunch. คำแนะนำทดสอบภาษาไทย/เทียบบทถอดเสียง/ขอความยินยอม = คำแนะนำของเรา ไม่ใช่ของ Google. ไม่ให้ลิงก์ดาวน์โหลด (ไม่มีในแหล่ง)"
     }
   ]
 }
