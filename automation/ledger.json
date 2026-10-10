@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 232,
+  "rotationIndex": 235,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2454,6 +2454,35 @@
       "postId": "122126418165259159",
       "card": "automation/runs/2026-10-11-news-0800-google-foresight-offline-notes/card.png",
       "angle": "ข่าวเครื่องมือที่ใช้ได้จริงสำหรับคนทำงาน: ประมวลผลบนเครื่อง = เปิดทางให้คนที่บริษัทห้ามอัปโหลดข้อมูลขึ้นคลาวด์. กราวด์: TechCrunch (Mac, offline, EmbeddingGemma 2 740M, Gemma 4 assistant, split-screen, รองรับ PDF/Docs/Office/txt/md/bookmarks, optimized Apple Silicon, แอปทดลองเดิมไม่ mainstream, คู่แข่ง Wispr/Calendly/Superhuman-Fathom), The Verge (ฟรี, ทดลอง, macOS, shorthand -> polished notes, ไฟล์/เสียง/โน้ต never leave computer), ithinkdiff (system audio + mic). ในโพสต์ไม่ระบุชื่อโมเดล (สองแหล่งเล่าต่างกันเล็กน้อย) ส่วนบล็อกอ้างตาม TechCrunch. คำแนะนำทดสอบภาษาไทย/เทียบบทถอดเสียง/ขอความยินยอม = คำแนะนำของเรา ไม่ใช่ของ Google. ไม่ให้ลิงก์ดาวน์โหลด (ไม่มีในแหล่ง)"
+    },
+    {
+      "date": "2026-10-10",
+      "track": "tools",
+      "subject": "paperclip",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/skills/paperclip",
+      "card": "automation/runs/2026-10-11-tools-1800-paperclip-review-gates/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 8 ส.ค. ที่เป็นงบ/heartbeat/audit log) = execution policy: AI กดเสร็จแล้วระบบดักเป็น in_review ส่งผู้ตรวจ -> ผู้อนุมัติ, ขอแก้แล้วเด้งกลับคนทำเดิมและกลับมาผู้ตรวจคนเดิม, ทุกรอบต้องคอมเมนต์ (ปิดไม่ได้), AI ขอแก้ติดกันครบ 3 รอบ (ค่าเริ่มต้น) ส่งให้คนที่รับผิดชอบ, คนขอแก้เองตัวนับรีเซ็ต. กราวด์: docs.paperclip.ing/guides/power/execution-policy (2026-10-10) + README (Node 24.11+, telemetry default on DO_NOT_TRACK=1, MIT, ให้ agent อ่านคู่มือติดตั้ง) + docs/reference/cli/test-drive (บริษัท+CEO agent ชั่วคราว, โฟลเดอร์ temp ต้องลบเอง, ANTHROPIC_API_KEY ค่าเริ่มต้น, --harness codex). ดาว 99,241 (GitHub API 2026-10-10) เขียนว่าเกือบ 100,000. ตัวอย่างร่างโพสต์->เช็กข้อเท็จจริง->คุณอนุมัติ = ตัวอย่างของเรา (README บอกว่าใช้ได้กับงาน content ไม่ใช่แค่โค้ด). เลือก tools แทน nextTrack=news เพราะ rotationIndex เพี้ยนจาก draft entries และ 6 สล็อตล่าสุดมี news 3 ครั้ง tools 1 ครั้ง"
+    },
+    {
+      "date": "2026-10-10",
+      "track": "knowledge",
+      "subject": "the-model",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/products/the-model",
+      "card": "automation/runs/2026-10-12-knowledge-0800-model-size-fit/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 19 มิ.ย. ที่เป็นไฟล์แช่แข็ง/เครื่องยนต์กับทั้งคัน) = เลือกขนาด model ให้พอดีงาน: Opus/Sonnet/Haiku และใหญ่/mini/nano คือไฟล์คนละขนาดรุ่นเดียวกัน แลกเก่ง-เร็ว-ถูก, ตัวใหญ่แพงกว่าหลายเท่า (ราคา API ไม่ใช่ค่าสมาชิก), ภาษาไทยกิน token มากกว่าหลายเท่า, การทดลองสองโจทย์ (แก้ประโยคให้สุภาพ vs ทริปสามวันงบสองหมื่น). ทุกข้อจากบท products/the-model หัวข้อ 'แล้วชื่ออย่าง Opus, Sonnet, Haiku คืออะไร' + 'ลองทำดู' + 'ทำไมเรื่องนี้สำคัญเป็นพิเศษกับคนไทย'. ไม่ใส่ตัวเลขราคาเป๊ะ (บทไม่ได้ให้). เลือกบทนี้เพราะโพสต์ knowledge นานที่สุด และพักจากบท vibe-coding ที่ลงติดกันหลายครั้ง"
+    },
+    {
+      "date": "2026-10-10",
+      "track": "tools",
+      "subject": "paperclip",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-11T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/paperclip",
+      "postId": "122126523051259159",
+      "card": "automation/runs/2026-10-11-tools-1800-paperclip-review-gates/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 8 ส.ค. ที่เป็นงบ/heartbeat/audit log) = execution policy: AI กดเสร็จแล้วระบบดักเป็น in_review ส่งผู้ตรวจ -> ผู้อนุมัติ, ขอแก้แล้วเด้งกลับคนทำเดิมและกลับมาผู้ตรวจคนเดิม, ทุกรอบต้องคอมเมนต์ (ปิดไม่ได้), AI ขอแก้ติดกันครบ 3 รอบ (ค่าเริ่มต้น) ส่งให้คนที่รับผิดชอบ, คนขอแก้เองตัวนับรีเซ็ต. กราวด์: docs.paperclip.ing/guides/power/execution-policy (2026-10-10) + README (Node 24.11+, telemetry default on DO_NOT_TRACK=1, MIT, ให้ agent อ่านคู่มือติดตั้ง) + docs/reference/cli/test-drive (บริษัท+CEO agent ชั่วคราว, โฟลเดอร์ temp ต้องลบเอง, ANTHROPIC_API_KEY ค่าเริ่มต้น, --harness codex). ดาว 99,241 (GitHub API 2026-10-10) เขียนว่าเกือบ 100,000. ตัวอย่างร่างโพสต์->เช็กข้อเท็จจริง->คุณอนุมัติ = ตัวอย่างของเรา (README บอกว่าใช้ได้กับงาน content ไม่ใช่แค่โค้ด). เลือก tools แทน nextTrack=news เพราะ rotationIndex เพี้ยนจาก draft entries และ 6 สล็อตล่าสุดมี news 3 ครั้ง tools 1 ครั้ง"
     }
   ]
 }
