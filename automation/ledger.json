@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 236,
+  "rotationIndex": 237,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2494,6 +2494,18 @@
       "postId": "122126523093259159",
       "card": "automation/runs/2026-10-12-knowledge-0800-model-size-fit/card.png",
       "angle": "มุมใหม่ (ต่างจาก 19 มิ.ย. ที่เป็นไฟล์แช่แข็ง/เครื่องยนต์กับทั้งคัน) = เลือกขนาด model ให้พอดีงาน: Opus/Sonnet/Haiku และใหญ่/mini/nano คือไฟล์คนละขนาดรุ่นเดียวกัน แลกเก่ง-เร็ว-ถูก, ตัวใหญ่แพงกว่าหลายเท่า (ราคา API ไม่ใช่ค่าสมาชิก), ภาษาไทยกิน token มากกว่าหลายเท่า, การทดลองสองโจทย์ (แก้ประโยคให้สุภาพ vs ทริปสามวันงบสองหมื่น). ทุกข้อจากบท products/the-model หัวข้อ 'แล้วชื่ออย่าง Opus, Sonnet, Haiku คืออะไร' + 'ลองทำดู' + 'ทำไมเรื่องนี้สำคัญเป็นพิเศษกับคนไทย'. ไม่ใส่ตัวเลขราคาเป๊ะ (บทไม่ได้ให้). เลือกบทนี้เพราะโพสต์ knowledge นานที่สุด และพักจากบท vibe-coding ที่ลงติดกันหลายครั้ง"
+    },
+    {
+      "date": "2026-10-14",
+      "track": "news",
+      "subject": "Google Play เปิดให้ติดตั้งแอปส่วนตัวที่สร้างด้วย AI Studio ได้ตรงจาก Play Store ไม่ต้องต่อสายเข้าคอม",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-15T01:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/10/13/google-play-now-supports-private-vibe-coded-apps-built-just-for-you/",
+      "blogUrl": "https://aipasakon.com/blog/google-play-private-vibe-coded-apps-2026",
+      "postId": "122126971599259159",
+      "card": "automation/runs/2026-10-15-news-0800-google-play-private-apps/card.png",
+      "angle": "ข่าว vibe coding ใกล้ตัว: ด่านสุดท้าย (ต่อสายเข้าคอมเพื่อลงแอป) หายไป แอปส่วนตัวสำหรับร้าน/ทีม. กราวด์: TechCrunch (US only 18+, บัญชี Google ธรรมดา, ไม่ขึ้นในค้นหา/listing, ไม่แชร์ใคร, แชร์กลุ่มที่ไว้ใจได้ 'in the months ahead', ต้องทำตาม Play policy + review ปกติ, graduate สู่ public หลัง Trust & Safety) + The Verge (เดิมต้องต่อมือถือกับคอม, เปิดสร้างแอปส่วนตัวตั้งแต่พ.ค., secure/private/separate from catalog, quote Sam Bright). ตัวอย่างแอปเช็กลิสต์ร้าน/จดยอดขาย + คำแนะนำความปลอดภัย = ของเรา"
     }
   ]
 }
