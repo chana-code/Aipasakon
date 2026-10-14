@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 239,
+  "rotationIndex": 240,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2528,6 +2528,18 @@
       "postId": "122126971869259159",
       "card": "automation/runs/2026-10-16-knowledge-0800-harness-order-slip/card.png",
       "angle": "มุมใหม่ (ต่างจาก 23 มิ.ย. ที่เน้น harness อธิบายการค้นเว็บ/ความจำ/model เดียวกันต่าง product) = tool use คือใบสั่ง: 4 จังหวะของการค้นราคาทอง (แนบรายการ tools -> model เดาใบสั่ง -> harness ค้นจริงแล้วแปะผล -> model ตอบ/วนซ้ำ = agentic loop), อุปมาแม่ครัว/เด็กส่งของ + จุดที่ใช้ไม่ได้, ผลใช้งานจริง: การค้นเป็นการเดาจึงสั่งให้ค้นเองได้, ไม่มี tool ในรายการ = ทำไม่ได้. ทุกข้อจากบท products/the-harness หัวข้อ 'หัวใจของ harness', 'tools - model ไม่เคยลงมือเอง', 'ลองทำดู จับตอนมันเดาพลาด', 'ทำไม product สองตัว'. เปลี่ยนตัวอย่างคำถามกำกวมจากหุ้นในบทเป็นโปรมือถือ เลี่ยงกรอบการเงิน. เลือกบทนี้เพราะใช้ครั้งเดียวและนานที่สุด (pickKnowledge คืน history ที่ใช้ไปแล้ว 4 ครั้ง)"
+    },
+    {
+      "date": "2026-10-14",
+      "track": "news",
+      "subject": "Facebook เปิด Your algorithm ให้พิมพ์บอกเป็นคำพูดว่าอยากเห็นอะไรใน Feed และ Reels โดยใช้ LLM ในระบบจัดลำดับ",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-16T11:00:00.000Z",
+      "sourceUrl": "https://about.fb.com/news/2026/10/introducing-your-algorithm-facebook/",
+      "blogUrl": "https://aipasakon.com/blog/facebook-your-algorithm-ai-feed-2026",
+      "postId": "122126971911259159",
+      "card": "automation/runs/2026-10-16-news-1800-facebook-your-algorithm/card.png",
+      "angle": "ข่าว AI บนแพลตฟอร์มที่คนไทยใช้ทุกวัน: ฟีดที่ฟังคำพูดคุณ + มุมเจ้าของเพจ. กราวด์: Meta Newsroom (Your algorithm ใน three-dot menu, Feed+Reels, Interested/Not interested + follow-up พิมพ์ in your own words, update real time, ranking เดิมเดาจาก like/comment/watch + thousands of signals, LLM เข้าใจ interests/context/intent, adapt within same session, rolling out) + The Verge (เปิดบน Instagram ก่อนในปีนี้, Threads Dear Algo, ปุ่มอาจอยู่ใต้โพสต์) + TechCrunch (IG เริ่ม Reels ธ.ค. 2025 แล้วขยาย Feed/Explore, Threads ก.พ. 2026). ไม่มีประเทศ/วันที่ในแหล่ง จึงเขียนว่าทยอยเปิด. ผลต่อยอดเข้าถึงเพจ = ข้อสังเกตของเรา ระบุว่ายังเร็วเกินจะบอก"
     }
   ]
 }
