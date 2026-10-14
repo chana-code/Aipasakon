@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 238,
+  "rotationIndex": 239,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2517,6 +2517,17 @@
       "postId": "122126971641259159",
       "card": "automation/runs/2026-10-15-tools-1800-playwright-cli-show/card.png",
       "angle": "มุมใหม่ (ต่างจาก 19 ส.ค. ที่เป็น snapshot ref แล้ว click e15) = playwright-cli show แดชบอร์ดดูทุก session สด: session grid (จัดกลุ่มตาม workspace, screencast สด, ชื่อ session, URL, title, ปิด session/ลบข้อมูลตัวที่ไม่ใช้) + session detail (แท็บ, back/forward/reload, address bar, คลิกเข้า viewport = ยึดเมาส์คีย์บอร์ด, Escape คืนการควบคุม) + named session -s= และ --persistent (ไม่ใส่ = profile อยู่ใน memory หายเมื่อปิด), headless ปิดเองเมื่อว่าง 1 ชม. กราวด์: README microsoft/playwright-cli (ตรวจ 2026-10-14) หัวข้อ Monitoring, Sessions, Requirements (Node 18+), Installation (npm install -g @playwright/cli@latest, install --skills). ดาว 14,158 (GitHub API 2026-10-14) เขียนว่าราว 14,000; license Apache-2.0. ตัวอย่างหน้ารหัสยืนยันแล้วพิมพ์เอง = ตัวอย่างของเรา (README: step in to help). เลือกจาก pickTool (playwright-cli มี 1 angle)"
+    },
+    {
+      "date": "2026-10-14",
+      "track": "knowledge",
+      "subject": "the-harness",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-16T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/products/the-harness",
+      "postId": "122126971869259159",
+      "card": "automation/runs/2026-10-16-knowledge-0800-harness-order-slip/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 23 มิ.ย. ที่เน้น harness อธิบายการค้นเว็บ/ความจำ/model เดียวกันต่าง product) = tool use คือใบสั่ง: 4 จังหวะของการค้นราคาทอง (แนบรายการ tools -> model เดาใบสั่ง -> harness ค้นจริงแล้วแปะผล -> model ตอบ/วนซ้ำ = agentic loop), อุปมาแม่ครัว/เด็กส่งของ + จุดที่ใช้ไม่ได้, ผลใช้งานจริง: การค้นเป็นการเดาจึงสั่งให้ค้นเองได้, ไม่มี tool ในรายการ = ทำไม่ได้. ทุกข้อจากบท products/the-harness หัวข้อ 'หัวใจของ harness', 'tools - model ไม่เคยลงมือเอง', 'ลองทำดู จับตอนมันเดาพลาด', 'ทำไม product สองตัว'. เปลี่ยนตัวอย่างคำถามกำกวมจากหุ้นในบทเป็นโปรมือถือ เลี่ยงกรอบการเงิน. เลือกบทนี้เพราะใช้ครั้งเดียวและนานที่สุด (pickKnowledge คืน history ที่ใช้ไปแล้ว 4 ครั้ง)"
     }
   ]
 }
