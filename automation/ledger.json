@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 237,
+  "rotationIndex": 238,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2506,6 +2506,17 @@
       "postId": "122126971599259159",
       "card": "automation/runs/2026-10-15-news-0800-google-play-private-apps/card.png",
       "angle": "ข่าว vibe coding ใกล้ตัว: ด่านสุดท้าย (ต่อสายเข้าคอมเพื่อลงแอป) หายไป แอปส่วนตัวสำหรับร้าน/ทีม. กราวด์: TechCrunch (US only 18+, บัญชี Google ธรรมดา, ไม่ขึ้นในค้นหา/listing, ไม่แชร์ใคร, แชร์กลุ่มที่ไว้ใจได้ 'in the months ahead', ต้องทำตาม Play policy + review ปกติ, graduate สู่ public หลัง Trust & Safety) + The Verge (เดิมต้องต่อมือถือกับคอม, เปิดสร้างแอปส่วนตัวตั้งแต่พ.ค., secure/private/separate from catalog, quote Sam Bright). ตัวอย่างแอปเช็กลิสต์ร้าน/จดยอดขาย + คำแนะนำความปลอดภัย = ของเรา"
+    },
+    {
+      "date": "2026-10-14",
+      "track": "tools",
+      "subject": "playwright-cli",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-15T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/playwright-cli",
+      "postId": "122126971641259159",
+      "card": "automation/runs/2026-10-15-tools-1800-playwright-cli-show/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 19 ส.ค. ที่เป็น snapshot ref แล้ว click e15) = playwright-cli show แดชบอร์ดดูทุก session สด: session grid (จัดกลุ่มตาม workspace, screencast สด, ชื่อ session, URL, title, ปิด session/ลบข้อมูลตัวที่ไม่ใช้) + session detail (แท็บ, back/forward/reload, address bar, คลิกเข้า viewport = ยึดเมาส์คีย์บอร์ด, Escape คืนการควบคุม) + named session -s= และ --persistent (ไม่ใส่ = profile อยู่ใน memory หายเมื่อปิด), headless ปิดเองเมื่อว่าง 1 ชม. กราวด์: README microsoft/playwright-cli (ตรวจ 2026-10-14) หัวข้อ Monitoring, Sessions, Requirements (Node 18+), Installation (npm install -g @playwright/cli@latest, install --skills). ดาว 14,158 (GitHub API 2026-10-14) เขียนว่าราว 14,000; license Apache-2.0. ตัวอย่างหน้ารหัสยืนยันแล้วพิมพ์เอง = ตัวอย่างของเรา (README: step in to help). เลือกจาก pickTool (playwright-cli มี 1 angle)"
     }
   ]
 }
