@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 240,
+  "rotationIndex": 241,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2540,6 +2540,17 @@
       "postId": "122126971911259159",
       "card": "automation/runs/2026-10-16-news-1800-facebook-your-algorithm/card.png",
       "angle": "ข่าว AI บนแพลตฟอร์มที่คนไทยใช้ทุกวัน: ฟีดที่ฟังคำพูดคุณ + มุมเจ้าของเพจ. กราวด์: Meta Newsroom (Your algorithm ใน three-dot menu, Feed+Reels, Interested/Not interested + follow-up พิมพ์ in your own words, update real time, ranking เดิมเดาจาก like/comment/watch + thousands of signals, LLM เข้าใจ interests/context/intent, adapt within same session, rolling out) + The Verge (เปิดบน Instagram ก่อนในปีนี้, Threads Dear Algo, ปุ่มอาจอยู่ใต้โพสต์) + TechCrunch (IG เริ่ม Reels ธ.ค. 2025 แล้วขยาย Feed/Explore, Threads ก.พ. 2026). ไม่มีประเทศ/วันที่ในแหล่ง จึงเขียนว่าทยอยเปิด. ผลต่อยอดเข้าถึงเพจ = ข้อสังเกตของเรา ระบุว่ายังเร็วเกินจะบอก"
+    },
+    {
+      "date": "2026-10-18",
+      "track": "tools",
+      "subject": "printing-press",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-19T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/printing-press",
+      "postId": "122127292521259159",
+      "card": "automation/runs/2026-10-19-tools-0800-printing-press-verify/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 29 ส.ค. ที่เป็นการแอบดูเว็บแล้วพิมพ์ CLI + ตัวอย่าง ESPN/flight-goat/linear) = Verified, not vibes: สี่ด่านก่อนส่งมอบ (scorecard 100 คะแนน infra 50 + domain correctness 50, Grade A 85+; dogfood จับ flag/ฟังก์ชันตาย; proof of behavior path/flag/pipeline/auth, hallucinated paths + auth mismatch = hard FAIL; live smoke test เฉพาะเมื่อมี API key: GET only, --limit 1, timeout 10s, หยุดที่ 401, ไม่สร้าง/โพสต์/ลบ) + ship loop แก้ 3 ปัญหาหลักวนสูงสุด 3 รอบ + ข้อจำกัดที่ทีมเขียนเอง (scoring is structural not end-user QA; technical capability is not legal permission). กราวด์: README mvanhorn/cli-printing-press (ตรวจ 2026-10-18) หัวข้อ Why these CLIs win, Verification & quality, Limitations, Install (Go 1.26.9+, Claude Code tested, Codex --agent codex, Node/npm). ดาว 4,828 (GitHub API 2026-10-18) เขียนว่าราว 4,800; MIT. ข้อคิด 'อย่ารับงานจากคำว่าเสร็จแล้ว' = ข้อสังเกตของเรา. เลือกจาก pickTool (printing-press มี 1 angle)"
     }
   ]
 }
