@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 242,
+  "rotationIndex": 243,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2563,6 +2563,17 @@
       "postId": "122127292857259159",
       "card": "automation/runs/2026-10-19-news-1800-ai-agents-blocked/card.png",
       "angle": "ข่าว agent ที่กระทบทั้งคนใช้และเจ้าของร้าน: เว็บใหญ่บล็อก AI agent ด้วยเหตุผล 4 แบบ (ความปลอดภัย/รายได้โฆษณา/ข้อมูลคือสินค้า/ระบบกันบอทเดิม). กราวด์: The Verge 16 ต.ค. 2026 (Emma Roth) - Muse/Grok/Dots/Instinct โดนบล็อก, Yelp ให้เฉพาะ agent ที่จ่ายค่าข้อมูล (ผ่าน TechCrunch), Delta ไม่ให้จองตั๋ว, JPMorgan Chase+Charles Schwab บล็อกเพราะความปลอดภัย, Cars.com/Amtrak, Amazon vs Perplexity (ศาลอุทธรณ์กลับคำสั่ง ส.ค., Amazon ยื่นคำฟ้องแก้ไข), Amazon ว่า Muse ละเมิดนโยบาย, Meta quote + พันธมิตร Walmart/Gap/Sephora/Best Buy, Shopify เปิดให้ agent, Chris Canal EquiStamp, Reddit Google บล็อกบัญชี Muse, Cloudflare. คำแนะนำสำหรับคนใช้/เจ้าของเว็บ = ข้อสังเกตของเรา ระบุชัดในบล็อก"
+    },
+    {
+      "date": "2026-10-18",
+      "track": "knowledge",
+      "subject": "press-enter",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-20T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/products/press-enter",
+      "postId": "122127293097259159",
+      "card": "automation/runs/2026-10-20-knowledge-0800-press-enter-hidden-stack/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 23 มิ.ย. ที่เน้น model ไม่จำ ส่งทั้งกองใหม่ทุกรอบ แชทยาวช้า/แพง/พลาด เปิดแชทใหม่) = เปิดก้อนซ่อนบนสุด: 3 ก้อนที่ถูกมัดส่ง (ก้อนซ่อน + บทสนทนาเก่า + ประโยคใหม่), ในก้อนซ่อนมี system prompt / นิยาม tools / ไฟล์แนบและไฟล์ตั้งค่าอย่าง CLAUDE.md / โน้ต Memory / คำสั่งความปลอดภัย, ตัวอย่างตัวเลขในบท (system prompt ~4,200, memory ~680, project config ~1,800, รวม ~7,800 เทียบประโยค 6 คำสิบกว่า token) ระบุว่าเป็นตัวเลขตัวอย่าง, ผลใช้งาน: ของในก้อนซ่อนเดินทางไปทุกรอบ + AI ที่ดูรู้จักคุณคืออ่านโน้ตที่แปะมาใหม่. ทุกข้อจากบท products/press-enter หัวข้อ 'ความจริงข้อสาม' และ 'ตัวอย่างจริงแบบเห็น ๆ'. คำแนะนำเปิดดูหน้า Memory = ข้อสังเกตของเรา. เลือกบทนี้เพราะใช้ครั้งเดียวและนานที่สุดในกลุ่มที่ใช้น้อย (pickKnowledge คืน history ที่ใช้ไปแล้ว 4 ครั้ง)"
     }
   ]
 }
