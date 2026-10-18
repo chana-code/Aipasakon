@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 241,
+  "rotationIndex": 242,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2551,6 +2551,18 @@
       "postId": "122127292521259159",
       "card": "automation/runs/2026-10-19-tools-0800-printing-press-verify/card.png",
       "angle": "มุมใหม่ (ต่างจาก 29 ส.ค. ที่เป็นการแอบดูเว็บแล้วพิมพ์ CLI + ตัวอย่าง ESPN/flight-goat/linear) = Verified, not vibes: สี่ด่านก่อนส่งมอบ (scorecard 100 คะแนน infra 50 + domain correctness 50, Grade A 85+; dogfood จับ flag/ฟังก์ชันตาย; proof of behavior path/flag/pipeline/auth, hallucinated paths + auth mismatch = hard FAIL; live smoke test เฉพาะเมื่อมี API key: GET only, --limit 1, timeout 10s, หยุดที่ 401, ไม่สร้าง/โพสต์/ลบ) + ship loop แก้ 3 ปัญหาหลักวนสูงสุด 3 รอบ + ข้อจำกัดที่ทีมเขียนเอง (scoring is structural not end-user QA; technical capability is not legal permission). กราวด์: README mvanhorn/cli-printing-press (ตรวจ 2026-10-18) หัวข้อ Why these CLIs win, Verification & quality, Limitations, Install (Go 1.26.9+, Claude Code tested, Codex --agent codex, Node/npm). ดาว 4,828 (GitHub API 2026-10-18) เขียนว่าราว 4,800; MIT. ข้อคิด 'อย่ารับงานจากคำว่าเสร็จแล้ว' = ข้อสังเกตของเรา. เลือกจาก pickTool (printing-press มี 1 angle)"
+    },
+    {
+      "date": "2026-10-18",
+      "track": "news",
+      "subject": "เว็บดังเริ่มปิดประตูใส่ AI agent: Amazon, Delta, Yelp, JPMorgan Chase บล็อก agent ของ Meta, OpenAI, xAI",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-19T11:00:00.000Z",
+      "sourceUrl": "https://www.theverge.com/ai-artificial-intelligence/1013195/ai-agents-blocked-web",
+      "blogUrl": "https://aipasakon.com/blog/websites-block-ai-agents-2026",
+      "postId": "122127292857259159",
+      "card": "automation/runs/2026-10-19-news-1800-ai-agents-blocked/card.png",
+      "angle": "ข่าว agent ที่กระทบทั้งคนใช้และเจ้าของร้าน: เว็บใหญ่บล็อก AI agent ด้วยเหตุผล 4 แบบ (ความปลอดภัย/รายได้โฆษณา/ข้อมูลคือสินค้า/ระบบกันบอทเดิม). กราวด์: The Verge 16 ต.ค. 2026 (Emma Roth) - Muse/Grok/Dots/Instinct โดนบล็อก, Yelp ให้เฉพาะ agent ที่จ่ายค่าข้อมูล (ผ่าน TechCrunch), Delta ไม่ให้จองตั๋ว, JPMorgan Chase+Charles Schwab บล็อกเพราะความปลอดภัย, Cars.com/Amtrak, Amazon vs Perplexity (ศาลอุทธรณ์กลับคำสั่ง ส.ค., Amazon ยื่นคำฟ้องแก้ไข), Amazon ว่า Muse ละเมิดนโยบาย, Meta quote + พันธมิตร Walmart/Gap/Sephora/Best Buy, Shopify เปิดให้ agent, Chris Canal EquiStamp, Reddit Google บล็อกบัญชี Muse, Cloudflare. คำแนะนำสำหรับคนใช้/เจ้าของเว็บ = ข้อสังเกตของเรา ระบุชัดในบล็อก"
     }
   ]
 }
