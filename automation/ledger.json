@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 243,
+  "rotationIndex": 244,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2574,6 +2574,17 @@
       "postId": "122127293097259159",
       "card": "automation/runs/2026-10-20-knowledge-0800-press-enter-hidden-stack/card.png",
       "angle": "มุมใหม่ (ต่างจาก 23 มิ.ย. ที่เน้น model ไม่จำ ส่งทั้งกองใหม่ทุกรอบ แชทยาวช้า/แพง/พลาด เปิดแชทใหม่) = เปิดก้อนซ่อนบนสุด: 3 ก้อนที่ถูกมัดส่ง (ก้อนซ่อน + บทสนทนาเก่า + ประโยคใหม่), ในก้อนซ่อนมี system prompt / นิยาม tools / ไฟล์แนบและไฟล์ตั้งค่าอย่าง CLAUDE.md / โน้ต Memory / คำสั่งความปลอดภัย, ตัวอย่างตัวเลขในบท (system prompt ~4,200, memory ~680, project config ~1,800, รวม ~7,800 เทียบประโยค 6 คำสิบกว่า token) ระบุว่าเป็นตัวเลขตัวอย่าง, ผลใช้งาน: ของในก้อนซ่อนเดินทางไปทุกรอบ + AI ที่ดูรู้จักคุณคืออ่านโน้ตที่แปะมาใหม่. ทุกข้อจากบท products/press-enter หัวข้อ 'ความจริงข้อสาม' และ 'ตัวอย่างจริงแบบเห็น ๆ'. คำแนะนำเปิดดูหน้า Memory = ข้อสังเกตของเรา. เลือกบทนี้เพราะใช้ครั้งเดียวและนานที่สุดในกลุ่มที่ใช้น้อย (pickKnowledge คืน history ที่ใช้ไปแล้ว 4 ครั้ง)"
+    },
+    {
+      "date": "2026-10-18",
+      "track": "tools",
+      "subject": "youtube-clipper",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-20T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/youtube-clipper",
+      "postId": "122127293439259159",
+      "card": "automation/runs/2026-10-20-tools-1800-youtube-clipper-study/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 21 ก.ค. ที่เป็นหั่นคลิปลงโซเชียล + ซับสองภาษา + ร่างแคปชัน) = ใช้เป็นเครื่องมือเรียน: workflow 6 ขั้นตาม README (ตรวจ dependency, โหลดสูงสุด 1080p + ซับอังกฤษ, Claude แบ่งบท 2-5 นาทีจากซับ, ผู้ใช้เลือกบท/ตัวเลือก, ตัด/แปล/เผาซับ, ไฟล์ใน ./youtube-clips/<timestamp>/), สารบัญพร้อมช่วงเวลาก่อนดู, 4 ไฟล์ต่อบท (_clip.mp4, _with_subtitles.mp4, _bilingual.srt, _summary.md), .env (TARGET_LANGUAGE ค่าเริ่มต้นจีน, TARGET_CHAPTER_DURATION 180, MAX_VIDEO_HEIGHT 720-2160). ข้อจำกัดตรง ๆ: summary ออกแบบสำหรับ Xiaohongshu/Douyin/WeChat, ffmpeg-full บน Mac, repo อัปเดตล่าสุด ม.ค. 2026 (GitHub API pushed_at 2026-01-22). ดาว 2,244 (GitHub API 2026-10-18) เขียนว่าราว 2,200; MIT. ข้อเตือนเรื่องขออนุญาตก่อนโพสต์คลิปคนอื่น = ข้อสังเกตของเรา. เลือกจาก pickTool (youtube-clipper มี 1 angle)"
     }
   ]
 }
