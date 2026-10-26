@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 246,
+  "rotationIndex": 247,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2608,6 +2608,17 @@
       "postId": "122127933417259159",
       "card": "automation/runs/2026-10-26-knowledge-1800-verification-blind-spot/card.png",
       "angle": "มุมใหม่ (ต่างจาก 13 ก.ค. ที่เป็นสามชั้น เลือกเส้นสำคัญ/เดินแบบคนแปลกหน้า/ให้ AI เขียน test + checklist นักบิน) = หน้าจอขึ้นปกติเพราะบังเอิญกดชิ้นที่ไม่พัง: ตัวอย่างจริงในบท (test ของ lab registry เช็กรหัสไม่ซ้ำ + ไฟล์มีจริง, AI ตั้งรหัสซ้ำแล้ว test ไม่ผ่าน งานหยุด), ความเข้าใจผิด 'หน้าจอขึ้นถูก = ใช้ได้' (แสดงผลได้ไม่ใช่ทำงานได้), แบ่งงาน คุณเลือกว่าอะไรห้ามพัง AI เขียน test, ข้อจำกัด test จับได้แค่สิ่งที่นึกออก ลดไม่ลบความเสี่ยง. ทุกข้อจากบท vibe-coding/verification หัวข้อ 'คนสร้างเว็บนี้ไม่ได้เขียน test เอง', 'ความเข้าใจผิดที่ต้องแก้', 'พิธีกรรมก่อนบิน'. ประโยคสั่ง AI ตัวอย่าง + 'เจอบั๊กใหม่ให้เขียน test ดักเพิ่ม' = ข้อแนะนำของเรา. ไม่ใส่ตัวเลข 72 ชุด (เป็นตัวเลข ณ วันเขียนบท อาจเปลี่ยน). เลือกบทนี้เพราะ knowledge ที่ใช้ครั้งเดียวและนานที่สุด (13 ก.ค.)"
+    },
+    {
+      "date": "2026-10-26",
+      "track": "tools",
+      "subject": "claude-plugins",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-27T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/skills/claude-plugins",
+      "postId": "122127933627259159",
+      "card": "automation/runs/2026-10-27-tools-0800-claude-plugins-security-guidance/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 14 ส.ค. ที่เป็นภาพรวมร้าน/ความไว้ใจ/explanatory+session-report+คำสั่ง /plugin) = เจาะปลั๊กอิน security-guidance ตัวเดียว: 3 ชั้น (pattern warnings ~25 รูปแบบบน Edit/Write ไม่ต้องใช้ credential; LLM diff review ตอนจบ turn ส่งผล high-severity กลับให้ Claude แก้ก่อนผู้ใช้เห็น; agentic commit review ตอน git commit อ่านไฟล์ข้ามโปรเจกต์ จับ IDOR/auth bypass), กฎเฉพาะทีมใน .claude/claude-security-guidance.md แนบเข้า diff review (ชั้น 3 ยังไม่อ่าน จึงเขียนว่าชั้นสอง), ข้อจำกัด: ชั้น 2-3 ใช้ credential ของผู้ใช้/กินโควตา, ไม่มี credential เหลือชั้นแรก, ห้ามใส่ secret ในไฟล์กฎ. กราวด์: README plugins/security-guidance ใน anthropics/claude-plugins-official (ตรวจ 2026-10-26): Claude Code >= 2.1.144, Python 3.8+, /plugin install security-guidance@claude-plugins-official. ดาว 44,602 (GitHub API 2026-10-26) เขียนว่าราว 44,000; Apache-2.0. ตัวอย่าง IDOR แบบเปลี่ยนเลขในลิงก์ + คำแนะนำให้คนตรวจก่อนเปิดระบบเงิน/ข้อมูลส่วนตัว = คำอธิบาย/ข้อสังเกตของเรา. เลือก claude-plugins เพราะ pickTool กลุ่ม 1 angle และนานที่สุด (14 ส.ค.)"
     }
   ]
 }
