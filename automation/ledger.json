@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 245,
+  "rotationIndex": 246,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2597,6 +2597,17 @@
       "postId": "122127435855259159",
       "card": "automation/runs/2026-10-21-news-0800-opencode-key-breach/card.png",
       "angle": "API key = บัตรจ่ายเงินที่ไม่ถามชื่อ; หลุดแล้วบิลวิ่ง. กราวด์: TechCrunch 19 ต.ค. 2026 (Aditya Mehta) - 1.4% Console users, distillation attack, Console ไม่ใช่แอป (Dax Raad), spend alerts OpenAI/Anthropic/Google, หลายร้อย-เกิน $1,000, Anthropic+Google บล็อก key, OpenAI คืนเครดิต, OpenCode คืนเงิน+ให้ revoke, AI ปฏิเสธช่วยวิเคราะห์ (asymmetry, Hugging Face ก.ค., Daybreak Blue, David Sacks), GLM-5.3-Flash ฟรีคืนเดียวกัน, CrowdStrike/อินเดีย. เช็กลิสต์ = คำแนะนำของเรา ระบุชัดในบล็อก"
+    },
+    {
+      "date": "2026-10-26",
+      "track": "knowledge",
+      "subject": "verification",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-26T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/verification",
+      "postId": "122127933417259159",
+      "card": "automation/runs/2026-10-26-knowledge-1800-verification-blind-spot/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 13 ก.ค. ที่เป็นสามชั้น เลือกเส้นสำคัญ/เดินแบบคนแปลกหน้า/ให้ AI เขียน test + checklist นักบิน) = หน้าจอขึ้นปกติเพราะบังเอิญกดชิ้นที่ไม่พัง: ตัวอย่างจริงในบท (test ของ lab registry เช็กรหัสไม่ซ้ำ + ไฟล์มีจริง, AI ตั้งรหัสซ้ำแล้ว test ไม่ผ่าน งานหยุด), ความเข้าใจผิด 'หน้าจอขึ้นถูก = ใช้ได้' (แสดงผลได้ไม่ใช่ทำงานได้), แบ่งงาน คุณเลือกว่าอะไรห้ามพัง AI เขียน test, ข้อจำกัด test จับได้แค่สิ่งที่นึกออก ลดไม่ลบความเสี่ยง. ทุกข้อจากบท vibe-coding/verification หัวข้อ 'คนสร้างเว็บนี้ไม่ได้เขียน test เอง', 'ความเข้าใจผิดที่ต้องแก้', 'พิธีกรรมก่อนบิน'. ประโยคสั่ง AI ตัวอย่าง + 'เจอบั๊กใหม่ให้เขียน test ดักเพิ่ม' = ข้อแนะนำของเรา. ไม่ใส่ตัวเลข 72 ชุด (เป็นตัวเลข ณ วันเขียนบท อาจเปลี่ยน). เลือกบทนี้เพราะ knowledge ที่ใช้ครั้งเดียวและนานที่สุด (13 ก.ค.)"
     }
   ]
 }
