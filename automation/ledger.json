@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 247,
+  "rotationIndex": 248,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2619,6 +2619,18 @@
       "postId": "122127933627259159",
       "card": "automation/runs/2026-10-27-tools-0800-claude-plugins-security-guidance/card.png",
       "angle": "มุมใหม่ (ต่างจาก 14 ส.ค. ที่เป็นภาพรวมร้าน/ความไว้ใจ/explanatory+session-report+คำสั่ง /plugin) = เจาะปลั๊กอิน security-guidance ตัวเดียว: 3 ชั้น (pattern warnings ~25 รูปแบบบน Edit/Write ไม่ต้องใช้ credential; LLM diff review ตอนจบ turn ส่งผล high-severity กลับให้ Claude แก้ก่อนผู้ใช้เห็น; agentic commit review ตอน git commit อ่านไฟล์ข้ามโปรเจกต์ จับ IDOR/auth bypass), กฎเฉพาะทีมใน .claude/claude-security-guidance.md แนบเข้า diff review (ชั้น 3 ยังไม่อ่าน จึงเขียนว่าชั้นสอง), ข้อจำกัด: ชั้น 2-3 ใช้ credential ของผู้ใช้/กินโควตา, ไม่มี credential เหลือชั้นแรก, ห้ามใส่ secret ในไฟล์กฎ. กราวด์: README plugins/security-guidance ใน anthropics/claude-plugins-official (ตรวจ 2026-10-26): Claude Code >= 2.1.144, Python 3.8+, /plugin install security-guidance@claude-plugins-official. ดาว 44,602 (GitHub API 2026-10-26) เขียนว่าราว 44,000; Apache-2.0. ตัวอย่าง IDOR แบบเปลี่ยนเลขในลิงก์ + คำแนะนำให้คนตรวจก่อนเปิดระบบเงิน/ข้อมูลส่วนตัว = คำอธิบาย/ข้อสังเกตของเรา. เลือก claude-plugins เพราะ pickTool กลุ่ม 1 angle และนานที่สุด (14 ส.ค.)"
+    },
+    {
+      "date": "2026-10-26",
+      "track": "news",
+      "subject": "Block เปิดตัว Dessa model เสียงแบบเสียงเข้าเสียงออก ไม่แปลงเสียงเป็นตัวหนังสือ ฟัง-พูดพร้อมกัน รันบน MacBook ได้",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-27T11:00:00.000Z",
+      "sourceUrl": "https://techcrunch.com/2026/10/24/blocks-new-voice-model-sounds-eerily-human/",
+      "blogUrl": "https://aipasakon.com/blog/block-dessa-voice-model-2026",
+      "postId": "122127934335259159",
+      "card": "automation/runs/2026-10-27-news-1800-block-dessa-voice/card.png",
+      "angle": "อธิบายกลไก: ผู้ช่วยเสียงแบบทอด (ถอดเสียง->LLM->อ่านออกเสียง) ทิ้งน้ำเสียง vs speech-to-speech full-duplex. กราวด์: TechCrunch 24 ต.ค. 2026 (Ivan Mehta) - รันในเครื่อง, หัวเราะ/หยุด/ร้องไห้, เทรนบนเสียงคน + NVIDIA GPU rack เดียว, full-duplex เหมือน GPT-Live, ความรู้มาจากข้อมูลบทสนทนา, ElevenLabs v4/Fish Audio Drama 3 ใช้ voice tags, ไม่ชัดว่ามี tag หรือไม่, quote Block throws away information, MacBook M4 Max+, ไม่เปิดสาธารณะ เรียกนักวิจัย safety (TC ประเมินว่าทดสอบการหลอกคน), Square ใช้ voice AI รับออร์เดอร์ + on-device ต้นทุนต่ำ, GPT3 moment = คำอ้างทีม + The Verge 23 ต.ค. (Jay Peters) - trained from scratch on human conversation, Ronaldo, Nolan->Superman tangent, ปารีส teary gratitude, ฟังธรรมชาติกว่า GPT-Live-1, MacBook Pro M4 Max or better, 3 เหตุผล, ทารกหัดพูด, ตัวอย่างความเจ็บปวด, small group of AI safety researchers. อุปมาคนกลางสามคน + ข้อสังเกตธุรกิจไทย + ข้อสังเกตเรื่องความรู้ = ของเรา ระบุชัดในบล็อก. เลือกเพราะสดใน 48 ชม. มีสองแหล่ง สอนกลไกได้; ตัด Apollo zero payoff (แหล่งบาง ความเห็นคนเดียว)"
     }
   ]
 }
