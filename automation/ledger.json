@@ -2650,7 +2650,7 @@
       "status": "scheduled",
       "scheduledFor": "2026-10-28T11:00:00.000Z",
       "sourceUrl": "https://aipasakon.com/skills/wshobson-agents",
-      "postId": "122128015659259159",
+      "postId": "122128015905259159",
       "card": "automation/runs/2026-10-28-tools-1800-wshobson-skill-only/card.png",
       "angle": "มุมใหม่ (ต่างจาก 23 ส.ค. ที่เป็นพื้นที่ context/ต้นทุน tiered model/multi-harness) = สามชนิดของในคลัง (agent = subagent เฉพาะทางรับงานที่ส่งต่อ, skill = คู่มือ/ข้อมูลอ้างอิงที่โหลดเมื่อเกี่ยวข้อง, command = workflow ที่ผู้ใช้สั่งเองด้วยชื่อ) + ติดตั้ง skill เดี่ยวผ่าน gh skill install wshobson/agents python-testing-patterns / npx skills add wshobson/agents --skill python-testing-patterns (ไม่ clone ไม่ติด agent/command/hook, gh CLI >= 2.90, npx ต้อง Node.js). ตัวเลขจาก README ปัจจุบัน (ตรวจ 2026-10-27): ปลั๊กอิน 94 (local 92 + external 2), agent 202, skill 185, command 105, python-development = 3 agent 16 skill 1 scaffolding command, คำสั่งติดตั้งปัจจุบัน /plugin install python-development@claude-code-workflows (README เปลี่ยนจากเดิม). ดาว 41,823 (GitHub API 2026-10-27) เขียนว่าราว 41,000; MIT. คำแนะนำ 'เริ่มชิ้นเดียวแล้วค่อยเพิ่ม' = ข้อสังเกตของเรา. เลือกตัวนี้เพราะกลุ่ม 2 angle และโพสต์ล่าสุดเก่าที่สุดรองจาก superpowers(3 angle)"
     }
