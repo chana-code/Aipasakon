@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 252,
+  "rotationIndex": 253,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2676,6 +2676,17 @@
       "postId": "122128098735259159",
       "card": "automation/runs/2026-10-29-knowledge-1800-prompt-caching-prefix/card.png",
       "angle": "มุมใหม่ (ต่างจาก 25 ก.ค. ที่เป็น token นับทุกอย่าง/output แพงกว่า/ไทยกิน token) = prompt caching: ส่งซ้ำทั้งกองแต่ส่วนต้นที่เหมือนเดิมคิดถูกลง; cache read ~0.1x (รุ่นใหม่บางรุ่น 0.05x/0.025x), write 1.25x (5 นาที) / 2x (1 ชม.), TTL ค่าเริ่มต้น 5 นาที refresh เมื่อใช้; เทียบตรงทุกตัวอักษร ลำดับ tools > system > messages แก้ชั้นไหน ชั้นถัดลงมาหายหมด, แก้ tool definitions = cache หายทั้งกอง; cache ไม่ใช่ความจำ. แหล่ง: บท pro-usage/token-optimization หัวข้อ Prompt caching + platform.claude.com/docs/en/build-with-claude/prompt-caching (ตรวจ 2026-10-28). คำแนะนำ วางของคงที่ไว้บน ของเปลี่ยนไว้ท้าย อย่าใส่วันที่บนสุด = ข้อสรุปของเราจากกฎ prefix"
+    },
+    {
+      "date": "2026-10-28",
+      "track": "tools",
+      "subject": "markitdown",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-30T01:00:00.000Z",
+      "sourceUrl": "https://github.com/microsoft/markitdown/tree/main/packages/markitdown-mcp",
+      "postId": "122128098969259159",
+      "card": "automation/runs/2026-10-30-tools-0800-markitdown-mcp/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 16 มิ.ย. แปลงไฟล์ทีละไฟล์ด้วย CLI และ 2 ก.ย. แปลงทั้งกอง ZIP/ปลั๊กอินแยกชนิดไฟล์) = markitdown-mcp: ให้ AI เรียกแปลงไฟล์เองผ่าน MCP; เครื่องมือเดียว convert_to_markdown(uri) รับ http/https/file/data URI; pip install markitdown-mcp แล้วรัน markitdown-mcp (STDIO ค่าเริ่มต้น); README แนะนำ Docker สำหรับ Claude Desktop + claude_desktop_config.json, mount โฟลเดอร์เดียวได้; ความปลอดภัยจาก README: ไม่มี authentication, รันด้วยสิทธิ์ผู้ใช้ อ่านได้ทุกไฟล์ที่ผู้ใช้เข้าถึง, HTTP/SSE bind localhost. ทุกข้อจาก packages/markitdown-mcp/README.md (ตรวจ 2026-10-28). runtime honesty: ใช้ไม่ได้ในแชท ChatGPT เว็บ ต้องโปรแกรมที่ต่อ MCP ได้. ตัวอย่างคำสั่งงานรายงาน+Excel = ตัวอย่างของเรา"
     }
   ]
 }
