@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 251,
+  "rotationIndex": 252,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2665,6 +2665,17 @@
       "postId": "122128016295259159",
       "card": "automation/runs/2026-10-29-news-0800-openai-dots-always-on/card.png",
       "angle": "อธิบายกลไกผู้ช่วย always-on vs แชทรอคำสั่ง: proactive research (ทบทวนสิ่งที่รู้/บทสนทนา/สิทธิ์ที่ให้ แล้วค้นต่อและเสนอ) + บทสนทนาเดียว + มาจาก Codex. กราวด์: TechCrunch 26 ต.ค. 2026 (Tim Fernholz, feed 27 ต.ค. 02:00Z) จาก Disrupt: Embiricos หัวหน้าทีมผลิตภัณฑ์องค์กร, เปิดตัว DevDay ปลาย ก.ย., ChatGPT desktop+mobile, Pro ขึ้นไป เริ่ม $100/เดือน, ต่อปฏิทิน/อีเมล/คอม, ทำได้ด้วย Codex แต่ประคองเยอะ, ChatGPT Work แยกจาก coding tools, ชื่อจาก negative space โลโก้, token usage มากขึ้น, TC ทดลอง: เตือนนัดชน/เส้นตายแต่ไม่ทันเวลาเสมอ, เตือนล่วงหน้า 3 นาที, ตัวอย่างโดรนระบบล่ม, Muse สร้างโปรไฟล์ครอบครัว/เพื่อน, Hark ไม่เก็บข้อมูลเพื่อโฆษณา, privacy เหมือน ChatGPT (ปิดเทรน, คุมการเข้าถึง) แต่หยาบ, ไม่รับ read-only cloud drive, ค่าเริ่มต้นระมัดระวังจนโดนติ, ผู้ช่วยคนจริงของ Embiricos, คุยกับ payment processors. ส่วน ถ้าคุณจะใช้ + เครื่องมือโค้ด=ห้องทดลอง agent + อุปมาเลขา = ของเรา ระบุชัด. เลือกเพราะสดใน 48 ชม. สอนกลไกได้ เกี่ยวกับคนทำงานโดยตรง; dots เคยถูกกล่าวถึงแค่ผ่าน ๆ (DevDay 30 ก.ย., เว็บบล็อก agent 18 ต.ค.); ตัด Anthropic IPO (เสี่ยงกรอบการลงทุน) และ Cohere-Qwen (แหล่งเดียว ข้อกล่าวหาฝ่ายเดียว)"
+    },
+    {
+      "date": "2026-10-28",
+      "track": "knowledge",
+      "subject": "token-optimization",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-29T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/pro-usage/token-optimization",
+      "postId": "122128098735259159",
+      "card": "automation/runs/2026-10-29-knowledge-1800-prompt-caching-prefix/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 25 ก.ค. ที่เป็น token นับทุกอย่าง/output แพงกว่า/ไทยกิน token) = prompt caching: ส่งซ้ำทั้งกองแต่ส่วนต้นที่เหมือนเดิมคิดถูกลง; cache read ~0.1x (รุ่นใหม่บางรุ่น 0.05x/0.025x), write 1.25x (5 นาที) / 2x (1 ชม.), TTL ค่าเริ่มต้น 5 นาที refresh เมื่อใช้; เทียบตรงทุกตัวอักษร ลำดับ tools > system > messages แก้ชั้นไหน ชั้นถัดลงมาหายหมด, แก้ tool definitions = cache หายทั้งกอง; cache ไม่ใช่ความจำ. แหล่ง: บท pro-usage/token-optimization หัวข้อ Prompt caching + platform.claude.com/docs/en/build-with-claude/prompt-caching (ตรวจ 2026-10-28). คำแนะนำ วางของคงที่ไว้บน ของเปลี่ยนไว้ท้าย อย่าใส่วันที่บนสุด = ข้อสรุปของเราจากกฎ prefix"
     }
   ]
 }
