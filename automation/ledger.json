@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 253,
+  "rotationIndex": 254,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2687,6 +2687,18 @@
       "postId": "122128098969259159",
       "card": "automation/runs/2026-10-30-tools-0800-markitdown-mcp/card.png",
       "angle": "มุมใหม่ (ต่างจาก 16 มิ.ย. แปลงไฟล์ทีละไฟล์ด้วย CLI และ 2 ก.ย. แปลงทั้งกอง ZIP/ปลั๊กอินแยกชนิดไฟล์) = markitdown-mcp: ให้ AI เรียกแปลงไฟล์เองผ่าน MCP; เครื่องมือเดียว convert_to_markdown(uri) รับ http/https/file/data URI; pip install markitdown-mcp แล้วรัน markitdown-mcp (STDIO ค่าเริ่มต้น); README แนะนำ Docker สำหรับ Claude Desktop + claude_desktop_config.json, mount โฟลเดอร์เดียวได้; ความปลอดภัยจาก README: ไม่มี authentication, รันด้วยสิทธิ์ผู้ใช้ อ่านได้ทุกไฟล์ที่ผู้ใช้เข้าถึง, HTTP/SSE bind localhost. ทุกข้อจาก packages/markitdown-mcp/README.md (ตรวจ 2026-10-28). runtime honesty: ใช้ไม่ได้ในแชท ChatGPT เว็บ ต้องโปรแกรมที่ต่อ MCP ได้. ตัวอย่างคำสั่งงานรายงาน+Excel = ตัวอย่างของเรา"
+    },
+    {
+      "date": "2026-10-29",
+      "track": "news",
+      "subject": "Nvidia ปล่อย Nemotron 3.5 Transcribe model ถอดเสียงแบบเปิด 40 ภาษา ภาษาไทยรองรับครบทั้งแยกผู้พูดและพูดไทยปนอังกฤษ",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-30T11:00:00.000Z",
+      "sourceUrl": "https://huggingface.co/blog/nvidia/nemotron-transcribe-granary",
+      "blogUrl": "https://aipasakon.com/blog/nvidia-nemotron-transcribe-thai-2026",
+      "postId": "122128185081259159",
+      "card": "automation/runs/2026-10-30-news-1800-nvidia-transcribe-thai/card.png",
+      "angle": "ประชุมไทยพูดไทยปนอังกฤษ -> model ถอดเสียงแบบเปิดที่ระบุ Thai code-switching + multispeaker (Production-ready). กราวด์: HF blog NVIDIA 28 ต.ค. 2026, model card (ตารางภาษา Thai ครบ 4 ช่อง Production-ready, FLEURS CER 7.34, 1×H100 80GB, offline only, audio QA English only, OpenMDW-1.1 commercial ok, demo space, hosted Baseten/DeepInfra/Simplismart), TechCrunch 28 ต.ค. (recorded not livestream). เลือกเพราะสด <48 ชม. มีมุมไทยโดยตรง สอนกลไก SALM/prompt/MoE ได้; ตัด Chrome autofill (US only), Gemini 4 Carbon (ใช้ไม่ได้ + เพิ่งโพสต์ Argon), Microsoft earnings/Anthropic IPO (กรอบการเงิน)"
     }
   ]
 }
