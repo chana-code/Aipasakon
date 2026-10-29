@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 254,
+  "rotationIndex": 255,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2699,6 +2699,17 @@
       "postId": "122128185081259159",
       "card": "automation/runs/2026-10-30-news-1800-nvidia-transcribe-thai/card.png",
       "angle": "ประชุมไทยพูดไทยปนอังกฤษ -> model ถอดเสียงแบบเปิดที่ระบุ Thai code-switching + multispeaker (Production-ready). กราวด์: HF blog NVIDIA 28 ต.ค. 2026, model card (ตารางภาษา Thai ครบ 4 ช่อง Production-ready, FLEURS CER 7.34, 1×H100 80GB, offline only, audio QA English only, OpenMDW-1.1 commercial ok, demo space, hosted Baseten/DeepInfra/Simplismart), TechCrunch 28 ต.ค. (recorded not livestream). เลือกเพราะสด <48 ชม. มีมุมไทยโดยตรง สอนกลไก SALM/prompt/MoE ได้; ตัด Chrome autofill (US only), Gemini 4 Carbon (ใช้ไม่ได้ + เพิ่งโพสต์ Argon), Microsoft earnings/Anthropic IPO (กรอบการเงิน)"
+    },
+    {
+      "date": "2026-10-29",
+      "track": "knowledge",
+      "subject": "history",
+      "status": "scheduled",
+      "scheduledFor": "2026-10-31T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/history",
+      "postId": "122128185387259159",
+      "card": "automation/runs/2026-10-31-knowledge-0800-history-eliza-effect/card.png",
+      "angle": "ELIZA effect (มุมใหม่ ไม่ซ้ำ 1986/data/compute ที่ใช้ไป 3 รอบ): ELIZA 1966 ของ Weizenbaum จับคำสำคัญแล้วถามกลับ แต่คนรู้สึกว่าเข้าใจ ถึงขั้นขอให้เขาออกจากห้อง -> รู้สึกว่าเข้าใจ != เข้าใจจริง; ประยุกต์: แยกคำถาม 'ฟังดูเข้าใจไหม' กับ 'ข้อเท็จจริงตรวจแล้วหรือยัง'. กราวด์จากหน้า history ส่วนยุคแรก"
     }
   ]
 }
