@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 257,
+  "rotationIndex": 258,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2733,6 +2733,17 @@
       "postId": "122128682643259159",
       "card": "automation/runs/2026-11-02-news-1800-karpathy-hackertube/card.png",
       "angle": "vibe coding ระดับจริงจาก Karpathy: ลำดับงาน 4 ขั้น (Opus ดาวน์โหลด/กรอง HN dataset บน HF -> Sonnet ผ่าน Claude Code Workflow คัดเหลือ ~40K คอมเมนต์ -> UI แบบ YouTube -> deploy VPS + secure/harden/optimize) + สามงานที่คนต้องทำเอง (Google Cloud API key, เปิด VPS, ซื้อโดเมน = ตัวตน/เงิน) + บทเรียน: งานย้ายจากเขียนโค้ดไปเป็นกำหนดโจทย์/แบ่งขั้น/สั่งตรวจ. กราวด์: บล็อก Karpathy 31 ต.ค. 2026 (6,454 คลิป 150 หัวข้อ 2007-2026, ~2 ชม., Opus 5.5 Medium effort). เหตุผลสอง model = การตีความของเรา ระบุชัดในบล็อก. เลือกเพราะสด (<48 ชม. ตอนเขียน) ตรงกลุ่มผู้อ่าน vibe coding; ตัด OpenAI ChatGPT+Codex shared allowance (หน้า help ทางการ 403 อ่านไม่ได้ แหล่งรองขัดกันเอง), Apple-Qwen China (ไกลผู้อ่านไทย), OpenAI funding (กรอบการเงิน)"
+    },
+    {
+      "date": "2026-11-02",
+      "track": "knowledge",
+      "subject": "judgment-safety",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-03T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/pro-usage/judgment-safety",
+      "postId": "122128682685259159",
+      "card": "automation/runs/2026-11-03-knowledge-0800-judgment-safety-redzone/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 29 ก.ค. ที่เป็นตรวจ 5 จุด + prompt แยก claim) = โซนแดงห้าม paste: คำถามทดสอบ 'ถ้าหลุดไปอยู่ในอีเมลบริษัทข้างนอก บริษัทโอเคไหม', กฎไม่มีสิทธิ์ส่ง vendor = ไม่มีสิทธิ์ paste, รายการโซนแดง, anonymize (ลูกค้า A/[ยอดเงิน]/ส่งเฉพาะที่จำเป็น), กับดักข้อมูลรายละเอียดแคบระบุตัวได้แม้ไม่มีชื่อ, PDPA นิยามรวมข้อมูลประกอบ. กราวด์ทั้งหมดจากบท judgment-safety (ส่วน อะไรที่ห้าม paste ลง AI + PDPA); ตัวอย่างผู้จัดการบัญชีคนเดียว = ตัวอย่างของเราตามหลักในบท"
     }
   ]
 }
