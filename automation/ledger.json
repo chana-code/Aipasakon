@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 258,
+  "rotationIndex": 259,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2744,6 +2744,17 @@
       "postId": "122128682685259159",
       "card": "automation/runs/2026-11-03-knowledge-0800-judgment-safety-redzone/card.png",
       "angle": "มุมใหม่ (ต่างจาก 29 ก.ค. ที่เป็นตรวจ 5 จุด + prompt แยก claim) = โซนแดงห้าม paste: คำถามทดสอบ 'ถ้าหลุดไปอยู่ในอีเมลบริษัทข้างนอก บริษัทโอเคไหม', กฎไม่มีสิทธิ์ส่ง vendor = ไม่มีสิทธิ์ paste, รายการโซนแดง, anonymize (ลูกค้า A/[ยอดเงิน]/ส่งเฉพาะที่จำเป็น), กับดักข้อมูลรายละเอียดแคบระบุตัวได้แม้ไม่มีชื่อ, PDPA นิยามรวมข้อมูลประกอบ. กราวด์ทั้งหมดจากบท judgment-safety (ส่วน อะไรที่ห้าม paste ลง AI + PDPA); ตัวอย่างผู้จัดการบัญชีคนเดียว = ตัวอย่างของเราตามหลักในบท"
+    },
+    {
+      "date": "2026-11-02",
+      "track": "tools",
+      "subject": "get-shit-done",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-03T11:00:00.000Z",
+      "sourceUrl": "https://github.com/open-gsd/gsd-core/blob/main/docs/tutorials/onboarding-an-existing-codebase.md",
+      "postId": "122128682727259159",
+      "card": "automation/runs/2026-11-03-tools-1800-gsd-onboard-map/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 25 ส.ค. ที่เป็น context rot + ลูปห้าขั้น + โปรเจกต์ใหม่) = brownfield: /gsd-onboard -> /gsd-map-codebase แตก 4 mapper agents (tech/architecture/quality/concerns, 1-5 นาที) -> 7 ไฟล์ใน .planning/codebase/ (STACK, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, INTEGRATIONS, CONCERNS) -> /clear + /gsd-onboard -> /gsd-new-project ถามเฉพาะสิ่งที่จะเพิ่ม, แผนอิงโครงจริง. กราวด์จาก README + docs/tutorials/onboarding-an-existing-codebase.md (ตรวจ 2026-11-02). runtime honesty: ต้องรันใน coding agent ไม่ใช่แชทเว็บ; เตือน --dangerously-skip-permissions ตามคู่มือ"
     }
   ]
 }
