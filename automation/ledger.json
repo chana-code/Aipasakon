@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 256,
+  "rotationIndex": 257,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2721,6 +2721,18 @@
       "postId": "122128416765259159",
       "card": "automation/runs/2026-10-31-tools-1800-llm-schema/card.png",
       "angle": "มุมใหม่ (ต่างจาก 30 มิ.ย. รีโมตคุมทุกโมเดล -m และ 5 ก.ย. ประวัติการคุยที่ค้นได้ llm logs) = schemas: ดึงข้อมูลเป็นโครงสร้างจากข้อความรก ๆ. กราวด์จาก docs/schemas.md (ตรวจ 2026-10-31): --schema 'name, age int, ...' ได้ JSON ตามโครง, --schema-multi ได้หลายรายการใน items, ชนิด int/float/str/bool, คำอธิบายหลัง : เป็นคำสั่งให้โมเดล, รองรับโมเดล OpenAI/Anthropic/Gemini (+ปลั๊กอิน), llm models --schemas, --save เก็บเป็น template แล้วเรียก -t, llm logs --schema t:<ชื่อ> --data-key items --data-array ดึงผลเป็น JSON array. ตัวอย่างอีเมลคำสั่งซื้อ = ตัวอย่างของเรา. runtime honesty: ต้องรันใน terminal หรือผ่าน agent ที่รันคำสั่งได้ + ต้องมี API key"
+    },
+    {
+      "date": "2026-11-02",
+      "track": "news",
+      "subject": "Karpathy สร้าง HackerTube เว็บดูคลิปที่คน Hacker News แนะนำ ใน 2 ชั่วโมงด้วย Claude Code โดยไม่เขียนโค้ดเอง",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-02T11:00:00.000Z",
+      "sourceUrl": "https://karpathy.bearblog.dev/hacker-tube/",
+      "blogUrl": "https://aipasakon.com/blog/karpathy-hackertube-claude-code-2026",
+      "postId": "122128682643259159",
+      "card": "automation/runs/2026-11-02-news-1800-karpathy-hackertube/card.png",
+      "angle": "vibe coding ระดับจริงจาก Karpathy: ลำดับงาน 4 ขั้น (Opus ดาวน์โหลด/กรอง HN dataset บน HF -> Sonnet ผ่าน Claude Code Workflow คัดเหลือ ~40K คอมเมนต์ -> UI แบบ YouTube -> deploy VPS + secure/harden/optimize) + สามงานที่คนต้องทำเอง (Google Cloud API key, เปิด VPS, ซื้อโดเมน = ตัวตน/เงิน) + บทเรียน: งานย้ายจากเขียนโค้ดไปเป็นกำหนดโจทย์/แบ่งขั้น/สั่งตรวจ. กราวด์: บล็อก Karpathy 31 ต.ค. 2026 (6,454 คลิป 150 หัวข้อ 2007-2026, ~2 ชม., Opus 5.5 Medium effort). เหตุผลสอง model = การตีความของเรา ระบุชัดในบล็อก. เลือกเพราะสด (<48 ชม. ตอนเขียน) ตรงกลุ่มผู้อ่าน vibe coding; ตัด OpenAI ChatGPT+Codex shared allowance (หน้า help ทางการ 403 อ่านไม่ได้ แหล่งรองขัดกันเอง), Apple-Qwen China (ไกลผู้อ่านไทย), OpenAI funding (กรอบการเงิน)"
     }
   ]
 }
