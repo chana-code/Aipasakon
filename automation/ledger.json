@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 261,
+  "rotationIndex": 262,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2778,6 +2778,17 @@
       "postId": "122128772493259159",
       "card": "automation/runs/2026-11-04-knowledge-1800-connectors-brief/card.png",
       "angle": "มุมใหม่ (ต่างจาก 7 ส.ค. ที่เป็น MCP vs API ทิศทาง + บันได prompt->API + skill เก็บวิธีทำ) = connector brief 6 บรรทัดจากบท (ส่วน ลองทำดู เขียน connector brief) + reach เพิ่ม = ความเสี่ยง/ต้นทุนเพิ่ม + สิทธิ์ read-only vs write (database, GitHub อ่าน issue vs merge) ให้ scope แคบสุด + tool schemas กิน context + งานส่วนใหญ่ prompt/skill ก็พอ. กราวด์ทั้งหมดจากบท connectors; ประโยค 'สิทธิ์คือเพดานความเสียหาย' = การสรุปของเราตามหลักในบท. pickKnowledge คืน how-it-trains (ใช้ไปแล้ว 4 ครั้ง) จึงเลือกหน้าที่ใช้ครั้งเดียวแทน"
+    },
+    {
+      "date": "2026-11-03",
+      "track": "tools",
+      "subject": "superpowers",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-05T01:00:00.000Z",
+      "sourceUrl": "https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md",
+      "postId": "122128772739259159",
+      "card": "automation/runs/2026-11-05-tools-0800-superpowers-debugging/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 16 ส.ค. ที่เป็นลำดับบังคับ 6 ช่วง brainstorm->plan->subagent) = ทักษะ systematic-debugging: Iron Law 'NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST', 4 phases (root cause / pattern analysis / single hypothesis + minimal test / failing test -> single fix -> verify), กฎหยุดที่ 3 fixes -> question architecture + discuss with human partner. ทริกเกอร์เองตาม description. ติดตั้งตาม README: /plugin install superpowers@claude-plugins-official. กราวด์จาก README + SKILL.md (ตรวจ 2026-11-03). runtime honesty: coding agent เท่านั้น ไม่ใช่แชทเว็บ"
     }
   ]
 }
