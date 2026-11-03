@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 260,
+  "rotationIndex": 261,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2767,6 +2767,17 @@
       "postId": "122128772235259159",
       "card": "automation/runs/2026-11-04-news-0800-anthropic-s1-rsi/card.png",
       "angle": "กราวด์จากตัว S-1/A (ยื่น SEC 2 พ.ย. 2026) อ่านเองตรงย่อหน้า: may imminently meet RSP 'dramatically accelerated progress attributable to AI' (จาก internal estimates/future models ไม่ใช่รุ่นปัจจุบัน), ยังไม่ designate model ใด, lagging indicators -> เคยไม่เห็นการเร่งจนเกิดแล้ว, internal Claude usage value >250x ม.ค.-ก.ย. 2026 + เม.ย. แซงค่าใช้จ่ายพนักงาน (ex SBC), ~5,300 พนักงาน, ไม่ให้ Claude สร้าง frontier model แบบ fully autonomous, พิจารณาแก้ RSP, Mythos/Project Glasswing เป็นตัวอย่างการจำกัดการปล่อย. มุมเป็นกลางจาก TechCrunch (Julie Bort 2 พ.ย.) ว่า S-1 มีมุมการตลาด. ไม่มีมุมแนะนำการลงทุน. เลือกเพราะสด (<48h) เป็นข่าวบริษัท AI ใหญ่ มี primary source; ตัด ChatGPT Chat+Work merge (แหล่งบาง เป็นแค่อีเมล ยังไม่ปล่อยวงกว้าง)"
+    },
+    {
+      "date": "2026-11-03",
+      "track": "knowledge",
+      "subject": "connectors",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-04T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/pro-usage/connectors",
+      "postId": "122128772493259159",
+      "card": "automation/runs/2026-11-04-knowledge-1800-connectors-brief/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 7 ส.ค. ที่เป็น MCP vs API ทิศทาง + บันได prompt->API + skill เก็บวิธีทำ) = connector brief 6 บรรทัดจากบท (ส่วน ลองทำดู เขียน connector brief) + reach เพิ่ม = ความเสี่ยง/ต้นทุนเพิ่ม + สิทธิ์ read-only vs write (database, GitHub อ่าน issue vs merge) ให้ scope แคบสุด + tool schemas กิน context + งานส่วนใหญ่ prompt/skill ก็พอ. กราวด์ทั้งหมดจากบท connectors; ประโยค 'สิทธิ์คือเพดานความเสียหาย' = การสรุปของเราตามหลักในบท. pickKnowledge คืน how-it-trains (ใช้ไปแล้ว 4 ครั้ง) จึงเลือกหน้าที่ใช้ครั้งเดียวแทน"
     }
   ]
 }
