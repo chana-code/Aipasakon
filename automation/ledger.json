@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 259,
+  "rotationIndex": 260,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2755,6 +2755,18 @@
       "postId": "122128682727259159",
       "card": "automation/runs/2026-11-03-tools-1800-gsd-onboard-map/card.png",
       "angle": "มุมใหม่ (ต่างจาก 25 ส.ค. ที่เป็น context rot + ลูปห้าขั้น + โปรเจกต์ใหม่) = brownfield: /gsd-onboard -> /gsd-map-codebase แตก 4 mapper agents (tech/architecture/quality/concerns, 1-5 นาที) -> 7 ไฟล์ใน .planning/codebase/ (STACK, ARCHITECTURE, STRUCTURE, CONVENTIONS, TESTING, INTEGRATIONS, CONCERNS) -> /clear + /gsd-onboard -> /gsd-new-project ถามเฉพาะสิ่งที่จะเพิ่ม, แผนอิงโครงจริง. กราวด์จาก README + docs/tutorials/onboarding-an-existing-codebase.md (ตรวจ 2026-11-02). runtime honesty: ต้องรันใน coding agent ไม่ใช่แชทเว็บ; เตือน --dangerously-skip-permissions ตามคู่มือ"
+    },
+    {
+      "date": "2026-11-03",
+      "track": "news",
+      "subject": "Anthropic ยอมรับใน S-1/A ว่าอาจใกล้ถึงจุดที่ AI เร่งการพัฒนา AI รุ่นต่อไป (recursive self-improvement)",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-04T01:00:00.000Z",
+      "sourceUrl": "https://www.sec.gov/Archives/edgar/data/2130357/000162828026068676/anthropicpbc-sx1ax1.htm",
+      "blogUrl": "https://aipasakon.com/blog/anthropic-s1-recursive-self-improvement-2026",
+      "postId": "122128772235259159",
+      "card": "automation/runs/2026-11-04-news-0800-anthropic-s1-rsi/card.png",
+      "angle": "กราวด์จากตัว S-1/A (ยื่น SEC 2 พ.ย. 2026) อ่านเองตรงย่อหน้า: may imminently meet RSP 'dramatically accelerated progress attributable to AI' (จาก internal estimates/future models ไม่ใช่รุ่นปัจจุบัน), ยังไม่ designate model ใด, lagging indicators -> เคยไม่เห็นการเร่งจนเกิดแล้ว, internal Claude usage value >250x ม.ค.-ก.ย. 2026 + เม.ย. แซงค่าใช้จ่ายพนักงาน (ex SBC), ~5,300 พนักงาน, ไม่ให้ Claude สร้าง frontier model แบบ fully autonomous, พิจารณาแก้ RSP, Mythos/Project Glasswing เป็นตัวอย่างการจำกัดการปล่อย. มุมเป็นกลางจาก TechCrunch (Julie Bort 2 พ.ย.) ว่า S-1 มีมุมการตลาด. ไม่มีมุมแนะนำการลงทุน. เลือกเพราะสด (<48h) เป็นข่าวบริษัท AI ใหญ่ มี primary source; ตัด ChatGPT Chat+Work merge (แหล่งบาง เป็นแค่อีเมล ยังไม่ปล่อยวงกว้าง)"
     }
   ]
 }
