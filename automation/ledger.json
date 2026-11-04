@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 263,
+  "rotationIndex": 264,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2801,6 +2801,17 @@
       "postId": "122128877481259159",
       "card": "automation/runs/2026-11-05-news-1800-siri-ai-third-party-apps/card.png",
       "angle": "primary source = Apple Developer News 3 พ.ย. 2026 (ข้อมูล: Developer Preview ใน beta 27.3, App Intents, personal context/onscreen awareness/natural language, skills, Spotlight semantic index, แอป Apple, ส่งถึงผู้ใช้ในไม่กี่เดือน + App Store ฤดูใบไม้ผลิ, ภาษา EN/FR/JA/KO/PT/ES + zh-Hant/NO/TR/VI coming = ไม่มีไทย, ไม่เปิด EU, <13, daily limits + paid option อนาคต) + The Verge (Emma Roth) ตัวอย่าง ride-share. มุม: กลไกเดียวกับ AI agent tool use + บอกตรงว่ายังไม่มีภาษาไทย. ตัด Anthropic compute (เพิ่งลง Anthropic 2 โพสต์), Google schools, ChatGPT search (ตัวเลขแหล่งเดียว)"
+    },
+    {
+      "date": "2026-11-04",
+      "track": "knowledge",
+      "subject": "how-it-trains",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-06T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/what-is-ai/how-it-trains",
+      "postId": "122128878321259159",
+      "card": "automation/runs/2026-11-06-knowledge-0800-frequency-freeze/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 12 มิ.ย. ไทยvsอังกฤษ, 21 ก.ค. base model/post-training, 19 ส.ค. ความรู้งอกจากเดาคำ+token ไทยแพง, 5 ก.ย. sycophancy/RLHF) = ความมั่นใจของ AI ขึ้นกับความถี่ในข้อมูลฝึก + ข้อมูลหยุด ณ จุดหนึ่ง -> แม่นเรื่องที่ถูกพูดซ้ำ หลวมเรื่องหายาก/เรื่องที่เพิ่งเปลี่ยน; ใช้แบบฝึก 'ลองทำดู: ดูว่า AI เดาได้แน่นแค่ไหน' จากบท (สี่แผ่นดิน vs ราคา iPhone) + ตัวเลข Llama 3 15T token ~100 ล้านเล่ม จากบท; กฎสองคำถามก่อนเชื่อ + แปะข้อมูลล่าสุด = การสรุปเชิงปฏิบัติของเรา. pickKnowledge คืน how-it-trains; ไม่มีหน้าที่ยังไม่เคยใช้"
     }
   ]
 }
