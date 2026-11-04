@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 262,
+  "rotationIndex": 263,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2789,6 +2789,18 @@
       "postId": "122128772739259159",
       "card": "automation/runs/2026-11-05-tools-0800-superpowers-debugging/card.png",
       "angle": "มุมใหม่ (ต่างจาก 16 ส.ค. ที่เป็นลำดับบังคับ 6 ช่วง brainstorm->plan->subagent) = ทักษะ systematic-debugging: Iron Law 'NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST', 4 phases (root cause / pattern analysis / single hypothesis + minimal test / failing test -> single fix -> verify), กฎหยุดที่ 3 fixes -> question architecture + discuss with human partner. ทริกเกอร์เองตาม description. ติดตั้งตาม README: /plugin install superpowers@claude-plugins-official. กราวด์จาก README + SKILL.md (ตรวจ 2026-11-03). runtime honesty: coding agent เท่านั้น ไม่ใช่แชทเว็บ"
+    },
+    {
+      "date": "2026-11-04",
+      "track": "news",
+      "subject": "Apple เปิด Siri AI ให้นักพัฒนาทุกแอป (App Intents + skills) ใน iOS 27.3 Developer Preview",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-05T11:00:00.000Z",
+      "sourceUrl": "https://developer.apple.com/news/?id=gdk2umrf",
+      "blogUrl": "https://aipasakon.com/blog/apple-siri-ai-third-party-apps-2026",
+      "postId": "122128877481259159",
+      "card": "automation/runs/2026-11-05-news-1800-siri-ai-third-party-apps/card.png",
+      "angle": "primary source = Apple Developer News 3 พ.ย. 2026 (ข้อมูล: Developer Preview ใน beta 27.3, App Intents, personal context/onscreen awareness/natural language, skills, Spotlight semantic index, แอป Apple, ส่งถึงผู้ใช้ในไม่กี่เดือน + App Store ฤดูใบไม้ผลิ, ภาษา EN/FR/JA/KO/PT/ES + zh-Hant/NO/TR/VI coming = ไม่มีไทย, ไม่เปิด EU, <13, daily limits + paid option อนาคต) + The Verge (Emma Roth) ตัวอย่าง ride-share. มุม: กลไกเดียวกับ AI agent tool use + บอกตรงว่ายังไม่มีภาษาไทย. ตัด Anthropic compute (เพิ่งลง Anthropic 2 โพสต์), Google schools, ChatGPT search (ตัวเลขแหล่งเดียว)"
     }
   ]
 }
