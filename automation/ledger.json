@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 265,
+  "rotationIndex": 266,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2823,6 +2823,18 @@
       "postId": "122128968099259159",
       "card": "automation/runs/2026-11-06-tools-1800-xlsx-formulas/card.png",
       "angle": "มุมใหม่ (ต่างจากเดิม: ชุดเอกสารสำเร็จรูป / เขียน Skill เอง) = ทักษะ xlsx: 'Use formulas, never hardcoded results' (=SUM(B2:B9)), assumption ในช่องของตัวเอง (=B5*(1+$B$6) ไม่ใช่ =B5*1.05), 'A green recalc proves your formulas evaluate, not that they are right' -> เขียน 2-3 สูตรแรกแล้วเช็ก. README: skills เอกสารขับความสามารถสร้างไฟล์ของ Claude, source-available, มีใน Claude.ai paid plans, Claude Code /plugin install document-skills@anthropic-agent-skills, disclaimer พฤติกรรมอาจต่าง. ประโยคสั่งงาน + 'คลิกช่องยอดรวมดูเอง' = คำแนะนำเชิงปฏิบัติของเรา. กราวด์ตรวจ 2026-11-05"
+    },
+    {
+      "date": "2026-11-05",
+      "track": "news",
+      "subject": "Uber: AI agent เรียกรถได้แค่ 4 เที่ยวจาก ~320 ล้านเที่ยวในสัปดาห์ฮาโลวีน (Q3 2026 earnings call)",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-07T01:00:00.000Z",
+      "sourceUrl": "https://www.fool.com/earnings/call-transcripts/2026/11/04/uber-uber-q3-2026-earnings-call-transcript/",
+      "blogUrl": "https://aipasakon.com/blog/uber-ai-agents-4-trips-2026",
+      "postId": "122128968537259159",
+      "card": "automation/runs/2026-11-07-news-0800-uber-agents-4-trips/card.png",
+      "angle": "primary source = transcript Q3 2026 earnings call 4 พ.ย. (CFO Balaji Krishnamurthy: ~320M trips Uber+Eats สัปดาห์ฮาโลวีน 'one of our largest weeks', Eats agents ~500 orders, Rides 'a grand total of 4 trips'; CEO Khosrowshahi: mean ride booking 50s, median reorder 90s, 'very, very early', 8 assistants -> >10, 'every single AI system company is talking to us... negotiating the terms of trade', ไม่อยากพึ่งผู้เล่นรายเดียว/เคยพึ่ง Google ในธุรกิจท่องเที่ยว, สร้าง AI ในแอปเอง) + TechCrunch (Sarah Perez) อ้าง DoorDash 'a few hundred orders'. มุม: agent คุ้มเฉพาะงานยาว/หลายขั้น (ตีความของเรา ระบุชัด). ไม่ได้ใช้ The Verge (fetch ไม่ได้), ตัด cart-assistant 2x (คำใน transcript ไม่ชัด). ตัด Images 2.6 / Meta-Conductor"
     }
   ]
 }
