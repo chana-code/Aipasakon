@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 267,
+  "rotationIndex": 268,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2846,6 +2846,17 @@
       "postId": "122129064597259159",
       "card": "automation/runs/2026-11-07-knowledge-1800-api-buffet/card.png",
       "angle": "มุมใหม่ (ต่างจาก 7 ส.ค. = stateless/ต้องแนบบทสนทนาเอง) = วิธีคิดเงิน: ค่าสมาชิก=บุฟเฟต์ vs API=ตามจาน/token; คนละบริการไม่ใช่จ่ายซ้ำ; เมื่อไหร่ API ถูกกว่า (เรียกวันละครั้ง, batch) / ทางเดียว (ฝังระบบ, อัตโนมัติ); มุมคนไทย (ภาษาไทยกิน token มาก, บัตรต่างประเทศ, ค่าแปลงสกุล 2-3%) — ทั้งหมดจากบท api-vs-app ส่วน 'ทำไม API รู้สึกแพง' 'คนไทย' 'เมื่อไหร่ถูกกว่า'; ไม่ใส่ราคาต่อ token (บทเลี่ยงไว้). pickKnowledge คืน what-it-really-is (ใช้แล้ว 7 ครั้ง) จึงเลือกหน้าที่ใช้น้อย"
+    },
+    {
+      "date": "2026-11-06",
+      "track": "tools",
+      "subject": "claude-code-best-practice",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-08T01:00:00.000Z",
+      "sourceUrl": "https://github.com/shanraisshan/claude-code-best-practice",
+      "postId": "122129071479259159",
+      "card": "automation/runs/2026-11-08-tools-0800-ccbp-rewind/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 26 ส.ค. = CLAUDE.md) = หมวด Context (5) + Session Management (6) ใน README: 'rewind > correct' (double-Esc หรือ /rewind), /compact พร้อม hint ดีกว่ารอ autocompact, /compact vs /clear (lossy-momentum vs คุมเอง; new task = new session), /context ดูการใช้ context; 'dumb zone ~40%' / ใต้ 40% / 60% คิดปิดงาน = คำพูดผู้ใช้ (Dex, MLOps community video) ระบุชัดว่าไม่ใช่สเปกทางการ. กลไก stateless = ความรู้ของเรา (สอดคล้องบท press-enter). runtime: ตำราอ่าน ใช้กับ Claude Code ไม่ใช่ ChatGPT; หลักการถ่ายทอดไปแชททั่วไป. ดาว 68,618 + pushed 2026-11-06 ตรวจผ่าน GitHub API 6 พ.ย. 2026"
     }
   ]
 }
