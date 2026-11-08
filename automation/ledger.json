@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 270,
+  "rotationIndex": 272,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2879,6 +2879,26 @@
       "postId": "122129244033259159",
       "card": "automation/runs/2026-11-08-news-1800-ramp-ai-spend/card.png",
       "angle": "primary = Ramp AI Index (data thru Sep 2026; token sample week ending Oct 23 vs Sep 25: volume +37.1%, spend +8.9%, blended $/M OpenAI+Anthropic 0.76->0.56 -26.8%, share Anthropic 60.5% from 51.3, OpenAI 35.1 from 44.2; 55.9% businesses pay for AI; median $15.70/emp/mo, top1% $9,567.53) + Ramp 'Cracks in the AI Thesis pt3' 14 Oct (Aug-Sep virtually no growth, +1.5% above Aug peak) + TechCrunch Rebecca Bellan 6 Nov (Kharazian quotes 'use more AI, but use it for less', 'venture-backed high-growth'). ตัดตัวเลข TechCrunch ที่ไม่ตรง Ramp (42% July, ช่วง $12-15, $600M). มุม: ใช้มากขึ้นแต่ราคาลด -> คำนวณต้นทุนใหม่ (ตีความของเรา ระบุชัด). caveats: US, token sample subset, underestimate."
+    },
+    {
+      "date": "2026-11-08",
+      "track": "knowledge",
+      "subject": "build-once",
+      "status": "draft",
+      "sourceUrl": "https://aipasakon.com/in-practice/build-once",
+      "card": "automation/runs/2026-11-09-knowledge-0800-build-once-where-it-runs/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 26 ก.ค. = สเปกตรัม AI-ใน-runtime vs สร้างแล้วจากไป) = ส่วน 'เครื่องยนต์ที่ทำให้สร้างครั้งเดียวแล้วรันเอง': คำถามเดียว 'รันบนเครื่องของใคร' ตัดสินว่าปิดคอมแล้วยังรันไหม; Routines (คลาวด์ Anthropic, 3 triggers เวลา/API/GitHub, แตะไฟล์ในเครื่องไม่ได้) vs Desktop scheduled tasks (เครื่องตัวเอง, ต้องแอปเปิด+เครื่องตื่น, catch-up รอบล่าสุดรอบเดียว) vs /loop (เฉพาะแชทเปิด, ตัวอย่าง /loop 5m จากบท); ไม่มีจังหวะอนุมัติ -> คำสั่งชัด สิทธิ์แคบ (จากบท). ตัดรายละเอียดที่อาจล้าสมัย (research preview, plan, interval ขั้นต่ำ) ใส่ hedge ให้ดูเอกสารล่าสุด. pickKnowledge คืน what-it-really-is (ใช้แล้ว 7) จึงเลือกหน้าที่ใช้ครั้งเดียว"
+    },
+    {
+      "date": "2026-11-08",
+      "track": "knowledge",
+      "subject": "build-once",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-09T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/in-practice/build-once",
+      "postId": "122129244381259159",
+      "card": "automation/runs/2026-11-09-knowledge-0800-build-once-where-it-runs/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 26 ก.ค. = สเปกตรัม AI-ใน-runtime vs สร้างแล้วจากไป) = ส่วน 'เครื่องยนต์ที่ทำให้สร้างครั้งเดียวแล้วรันเอง': คำถามเดียว 'รันบนเครื่องของใคร' ตัดสินว่าปิดคอมแล้วยังรันไหม; Routines (คลาวด์ Anthropic, 3 triggers เวลา/API/GitHub, แตะไฟล์ในเครื่องไม่ได้) vs Desktop scheduled tasks (เครื่องตัวเอง, ต้องแอปเปิด+เครื่องตื่น, catch-up รอบล่าสุดรอบเดียว) vs /loop (เฉพาะแชทเปิด, ตัวอย่าง /loop 5m จากบท); ไม่มีจังหวะอนุมัติ -> คำสั่งชัด สิทธิ์แคบ (จากบท). ตัดรายละเอียดที่อาจล้าสมัย (research preview, plan, interval ขั้นต่ำ) ใส่ hedge ให้ดูเอกสารล่าสุด. pickKnowledge คืน what-it-really-is (ใช้แล้ว 7) จึงเลือกหน้าที่ใช้ครั้งเดียว"
     }
   ]
 }
