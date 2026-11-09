@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 275,
+  "rotationIndex": 276,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2928,6 +2928,17 @@
       "postId": "122129244579259159",
       "card": "automation/runs/2026-11-09-tools-1800-repomix-token-tree/card.png",
       "angle": "มุมใหม่ (ต่างจาก 9 มิ.ย. = มัดทั้งโปรเจกต์ npx repomix/--remote/--compress/--copy และ 8 ก.ย. = สแกนข้อมูลลับ) = Token Count Optimization ใน README: --token-count-tree (ผัง token รายโฟลเดอร์), --token-count-tree 1000 (threshold), --include/--ignore (ตัวอย่าง README 'src/**/*.ts' + '**/*.test.ts'), --token-budget <n> (exit code ไม่เป็นศูนย์เมื่อเกิน ไฟล์ยังถูกสร้าง). token counting ใช้ encoding o200k_base (OpenAI) เป็นค่าเริ่มต้น -> ระบุว่าเป็นค่าประมาณ. เว็บ repomix.com มี instant token count estimation. ดาว 29,181 + pushed 2026-11-08 + MIT ตรวจผ่าน GitHub API 8 พ.ย. 2026. runtime: CLI ต้องรันเทอร์มินอล/agent ไม่ใช่แชท ChatGPT. ตัวเลข 50000 ใน --token-budget = ค่าตัวอย่างของเรา"
+    },
+    {
+      "date": "2026-11-09",
+      "track": "knowledge",
+      "subject": "anatomy",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-10T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/vibe-coding/anatomy",
+      "postId": "122129315481259159",
+      "card": "automation/runs/2026-11-10-knowledge-0800-anatomy-rent-not-build/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 22 ส.ค. = ห้าส่วน + ข้อมูลอยู่ในที่เก็บไม่ใช่บนจอ + ตามรอยหนึ่งการกด) = 'เช่าแทนสร้าง': เว็บ = หลายบริการมาต่อกัน; BaaS (Supabase/Firebase) ให้หลังบ้าน+DB+auth ที่เดียว; host Netlify/Vercel ต่อ GitHub ขึ้นเว็บอัตโนมัติ มีแพ็กเกจฟรี; hosting ≠ domain (registrar Namecheap/GoDaddy ชี้มาที่ host); ตัวอย่างเว็บเราเอง Netlify+Supabase+aipasakon.com (จากบท); ประโยชน์สองข้อ ชี้สั่งตรง + ดูออกว่าเสี่ยง (auth พลาด = เห็นข้อมูลคนอื่น จากบท); แบบฝึกห้าบรรทัด = ของเรา. ทุกข้อเท็จจริงมาจากบท anatomy. pickKnowledge ข้าม: เลือกหน้าที่ใช้ครั้งเดียวและเก่าสุดกลุ่มหนึ่ง"
     }
   ]
 }
