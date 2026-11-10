@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 277,
+  "rotationIndex": 278,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2950,6 +2950,18 @@
       "postId": "122129412351259159",
       "card": "automation/runs/2026-11-10-tools-1800-mcp-memory-file/card.png",
       "angle": "มุมใหม่ (ต่างจาก 27 ส.ค. = ภาพรวม 7 reference servers) = เจาะ memory server: ความจำเป็น knowledge graph ในไฟล์ memory.jsonl ในเครื่อง; entity/relation/observation (observation ควร atomic); delete_observations แก้ทีละข้อ, search_nodes ดึงเฉพาะที่เกี่ยว; คำเตือนใน README: ค่าเริ่มต้นไฟล์อยู่ใต้ node_modules อัปเดต/ล้างแคช npx ลบได้ -> ตั้ง MEMORY_FILE_PATH (ตัวอย่าง ~/memory.jsonl จาก README), โฟลเดอร์ต้องมีอยู่ก่อน; Node.js 24+; ตัวอย่าง system prompt สำหรับ Claude Project ใน README. ดาว 91,895 + pushed 2026-11-05 ตรวจผ่าน GitHub API 10 พ.ย. 2026. 'ใครเข้าถึงไฟล์ได้ก็อ่านได้' = อนุมานจากรูปแบบ JSONL ข้อความธรรมดา"
+    },
+    {
+      "date": "2026-11-10",
+      "track": "news",
+      "subject": "claude-fable-5-2-mythos-5-2",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-11T01:00:00.000Z",
+      "sourceUrl": "https://www.anthropic.com/claude-fable-and-mythos-5-2",
+      "blogUrl": "https://aipasakon.com/blog/claude-fable-5-2-mythos-5-2",
+      "postId": "122129412759259159",
+      "card": "automation/runs/2026-11-11-news-0800-claude-fable-5-2/card.png",
+      "angle": "ข่าว 9 พ.ย. 2026 (<48h ตอนเตรียม): Fable 5.2 + Mythos 5.2 = โมเดลเดียวกัน ต่างที่ safeguards; มุมหลัก = Anthropic แนะนำเองให้เริ่มที่ Opus 5.5; เร็วขึ้นถึง 30%, $8/$40 ต่อ MTok, fast mode 2.5x; Fermat formalize 1,000 agents 30 ชม.; caveat: benchmark วัดเอง, external testers ไม่ได้ review, eval awareness. ตั้งใจไม่ใส่ตาราง benchmark (column mapping จาก extraction ไม่แน่นอน). เลือกแทนข่าว Apiiro secrets (งานวิจัย 5 พ.ย. เก่ากว่า 48h + ตัวเลขต้นฉบับเข้าถึงไม่ได้)"
     }
   ]
 }
