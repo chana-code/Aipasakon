@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 278,
+  "rotationIndex": 279,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2962,6 +2962,17 @@
       "postId": "122129412759259159",
       "card": "automation/runs/2026-11-11-news-0800-claude-fable-5-2/card.png",
       "angle": "ข่าว 9 พ.ย. 2026 (<48h ตอนเตรียม): Fable 5.2 + Mythos 5.2 = โมเดลเดียวกัน ต่างที่ safeguards; มุมหลัก = Anthropic แนะนำเองให้เริ่มที่ Opus 5.5; เร็วขึ้นถึง 30%, $8/$40 ต่อ MTok, fast mode 2.5x; Fermat formalize 1,000 agents 30 ชม.; caveat: benchmark วัดเอง, external testers ไม่ได้ review, eval awareness. ตั้งใจไม่ใส่ตาราง benchmark (column mapping จาก extraction ไม่แน่นอน). เลือกแทนข่าว Apiiro secrets (งานวิจัย 5 พ.ย. เก่ากว่า 48h + ตัวเลขต้นฉบับเข้าถึงไม่ได้)"
+    },
+    {
+      "date": "2026-11-10",
+      "track": "knowledge",
+      "subject": "troubleshooting",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-11T11:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/in-practice/troubleshooting",
+      "postId": "122129413041259159",
+      "card": "automation/runs/2026-11-11-knowledge-1800-troubleshooting-literal-answer/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 14 ส.ค. = สามอาการจากกองบทสนทนาเดียว + เปิดแชทใหม่) = หัวข้อ 6 'ผลลัพธ์ถูกตามตัวอักษรแต่ไม่ใช่สิ่งที่ต้องการ': AI ทำตามสิ่งที่อ่านเจอในคำสั่ง ไม่ใช่สิ่งในหัว; ทางแก้ 4 ข้อจากบท (เจาะจง + ตัวอย่างอีเมลส่งช้า 2 วันจากบท, ให้ตัวอย่าง, แก้เฉพาะจุด, แยกงานเป็นขั้น). ประโยคเช็ก 'ส่งให้เพื่อนร่วมงานที่ไม่รู้เรื่อง' = ของเรา. เลือกหน้าที่ใช้ครั้งเดียวและเก่าสุดลำดับต้น (product-comparison ข้ามเพราะทับข่าว Fable 5.2 ช่องก่อนหน้า)"
     }
   ]
 }
