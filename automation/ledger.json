@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 280,
+  "rotationIndex": 281,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2984,6 +2984,18 @@
       "postId": "122129413269259159",
       "card": "automation/runs/2026-11-12-tools-0800-superclaude-research-depth/card.png",
       "angle": "มุมใหม่ (ต่างจาก 28 ส.ค. = /sc:brainstorm -> workflow -> implement -> test) = /sc:research: syntax จาก docs/user-guide/commands.md + commands/research.md ('[query] --depth quick|standard|deep|exhaustive'); ตาราง Research Depth Levels ใน README (แหล่ง/ทอด); CRITICAL BOUNDARIES หยุดที่รายงาน ไม่เขียนโค้ด; บันทึก claudedocs/research_*.md มี executive summary, confidence, citations; Tavily = ตัวค้นหลัก ติดตั้งเสริม (superclaude mcp --servers tavily). ตัดเวลา ~2-10 นาทีออกเพราะเป็นเป้าหมาย. ตัวอย่างร้านออนไลน์ = ของเรา. ดาว 23,930 + MIT + pushed 2026-09-27 + v4.3.0 ตรวจ 10 พ.ย. 2026"
+    },
+    {
+      "date": "2026-11-11",
+      "track": "news",
+      "subject": "claude-sheets-whiteboards-data",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-12T11:00:00.000Z",
+      "sourceUrl": "https://claude.com/resources/articles/sheets-whiteboards-data",
+      "blogUrl": "https://aipasakon.com/blog/claude-sheets-whiteboards-data",
+      "postId": "122129498517259159",
+      "card": "automation/runs/2026-11-12-news-1800-claude-sheets-whiteboards/card.png",
+      "angle": "ข่าว 10 พ.ย. 2026 (<48h ตอนเตรียม 11 พ.ย.): Claude Sheets + Whiteboards (beta) + Claude Data (GA, เดิม Dashboards), ทุกแพ็กเกจเสียเงิน, web/desktop/mobile; มุมหลัก = ไฟล์อยู่ที่เดียวกับ AI ทีมแก้ต่อได้ ไม่ต้องก๊อปออกจากแชท; caveat จากต้นฉบับ: Sheets ฟังก์ชันพื้นฐาน -> export .xlsx/CSV; Meetings = Anthropic บอก coming soon (TechCrunch รายงาน beta Team/Enterprise + Google Meet แต่หน้า Anthropic ไม่ยืนยัน จึงไม่ถือเป็นของที่ใช้ได้วันนี้); Team เปิดค่าเริ่มต้น, Enterprise Data เปิด 19 พ.ย.; ไม่มีราคาแยก ไม่พูดถึงภาษาไทย. เลือกแทน ChatGPT Businesses (หน้า OpenAI 403 ตรวจรายละเอียด/ประเทศไม่ได้) ตรวจต้นฉบับ claude.com ด้วย curl 11 พ.ย."
     }
   ]
 }
