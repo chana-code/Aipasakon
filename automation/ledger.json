@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 281,
+  "rotationIndex": 282,
   "runs": [
     {
       "date": "2026-06-10",
@@ -2996,6 +2996,17 @@
       "postId": "122129498517259159",
       "card": "automation/runs/2026-11-12-news-1800-claude-sheets-whiteboards/card.png",
       "angle": "ข่าว 10 พ.ย. 2026 (<48h ตอนเตรียม 11 พ.ย.): Claude Sheets + Whiteboards (beta) + Claude Data (GA, เดิม Dashboards), ทุกแพ็กเกจเสียเงิน, web/desktop/mobile; มุมหลัก = ไฟล์อยู่ที่เดียวกับ AI ทีมแก้ต่อได้ ไม่ต้องก๊อปออกจากแชท; caveat จากต้นฉบับ: Sheets ฟังก์ชันพื้นฐาน -> export .xlsx/CSV; Meetings = Anthropic บอก coming soon (TechCrunch รายงาน beta Team/Enterprise + Google Meet แต่หน้า Anthropic ไม่ยืนยัน จึงไม่ถือเป็นของที่ใช้ได้วันนี้); Team เปิดค่าเริ่มต้น, Enterprise Data เปิด 19 พ.ย.; ไม่มีราคาแยก ไม่พูดถึงภาษาไทย. เลือกแทน ChatGPT Businesses (หน้า OpenAI 403 ตรวจรายละเอียด/ประเทศไม่ได้) ตรวจต้นฉบับ claude.com ด้วย curl 11 พ.ย."
+    },
+    {
+      "date": "2026-11-11",
+      "track": "knowledge",
+      "subject": "reading-docs",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-13T01:00:00.000Z",
+      "sourceUrl": "https://aipasakon.com/in-practice/reading-docs",
+      "postId": "122129498841259159",
+      "card": "automation/runs/2026-11-13-knowledge-0800-reading-docs-check-ai/card.png",
+      "angle": "มุมใหม่ (ต่างจาก 22 ส.ค. = อ่านไม่รู้เรื่องไม่ใช่ยากเกิน + บล็อก config = แบบฟอร์ม) = หัวข้อ 4.2.2 คนไม่สายเทคอ่าน docs: hook = AI อธิบายฟีเจอร์ของตัวเองผิดได้ (จากบท) -> docs เป็นเครื่องตรวจ; สามวิธี (อ่านย่อหน้าบนสุด / ให้ AI อ่านแทน / ค้นคำที่ AI พูดในหน้า docs); prompt subagent ตรงจากบท; เคล็ดลับ docs อังกฤษ -> ให้สรุปไทย. เหตุผลกลไก (เดาคำ, ฟีเจอร์ใหม่อาจไม่อยู่ในข้อมูลที่เห็น) + 'ตอบจากหน้าที่ให้ไม่ใช่ความจำ' = คำอธิบายของเรา สอดคล้องบท what-it-really-is. pickKnowledge เลือก history (ใช้ 5 ครั้ง) จึงข้าม เลือกหน้าที่ใช้ครั้งเดียวเก่าสุดที่ไม่ทับข่าวช่องก่อน (product-comparison ทับข่าว Claude Sheets)"
     }
   ]
 }
