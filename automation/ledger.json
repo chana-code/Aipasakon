@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 282,
+  "rotationIndex": 283,
   "runs": [
     {
       "date": "2026-06-10",
@@ -3007,6 +3007,17 @@
       "postId": "122129498841259159",
       "card": "automation/runs/2026-11-13-knowledge-0800-reading-docs-check-ai/card.png",
       "angle": "มุมใหม่ (ต่างจาก 22 ส.ค. = อ่านไม่รู้เรื่องไม่ใช่ยากเกิน + บล็อก config = แบบฟอร์ม) = หัวข้อ 4.2.2 คนไม่สายเทคอ่าน docs: hook = AI อธิบายฟีเจอร์ของตัวเองผิดได้ (จากบท) -> docs เป็นเครื่องตรวจ; สามวิธี (อ่านย่อหน้าบนสุด / ให้ AI อ่านแทน / ค้นคำที่ AI พูดในหน้า docs); prompt subagent ตรงจากบท; เคล็ดลับ docs อังกฤษ -> ให้สรุปไทย. เหตุผลกลไก (เดาคำ, ฟีเจอร์ใหม่อาจไม่อยู่ในข้อมูลที่เห็น) + 'ตอบจากหน้าที่ให้ไม่ใช่ความจำ' = คำอธิบายของเรา สอดคล้องบท what-it-really-is. pickKnowledge เลือก history (ใช้ 5 ครั้ง) จึงข้าม เลือกหน้าที่ใช้ครั้งเดียวเก่าสุดที่ไม่ทับข่าวช่องก่อน (product-comparison ทับข่าว Claude Sheets)"
+    },
+    {
+      "date": "2026-11-12",
+      "track": "tools",
+      "subject": "awesome-claude-code",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-13T11:00:00.000Z",
+      "sourceUrl": "https://github.com/hesreallyhim/awesome-claude-code",
+      "postId": "122129588517259159",
+      "card": "automation/runs/2026-11-13-tools-1800-acc-status-lines/card.png",
+      "angle": "มุมใหม่ (ต่างจากภาพรวมรายชื่อ และหมวด Usage & Cost/ccusage) = หมวด Status Lines (นับได้ 9 ชิ้นใน README 12 พ.ย. 2026). กลไกจากเอกสารทางการ code.claude.com/docs/en/statusline: Claude Code ส่ง JSON ทาง stdin ให้คำสั่งที่ตั้งไว้ แสดง stdout; รันในเครื่อง ไม่กิน token; ฟิลด์ context_window.used_percentage, cost.total_cost_usd (ประมาณจากราคาตั้ง อาจไม่ตรงบิล), rate_limits five_hour/seven_day (เฉพาะ Pro/Max/Ultra); คำสั่ง /statusline รับภาษาธรรมดา (ตัวอย่างจากเอกสาร). ตัวอย่างสำเร็จรูป ccstatusline: npx -y ccstatusline@latest เปิด TUI เขียน statusLine ลง settings; MIT; ดาว 13,584 ตรวจ 12 พ.ย. 2026. ไม่อ้างความสามารถอื่นของแต่ละชิ้น"
     }
   ]
 }
