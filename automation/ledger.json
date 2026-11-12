@@ -1,5 +1,5 @@
 {
-  "rotationIndex": 283,
+  "rotationIndex": 284,
   "runs": [
     {
       "date": "2026-06-10",
@@ -3018,6 +3018,18 @@
       "postId": "122129588517259159",
       "card": "automation/runs/2026-11-13-tools-1800-acc-status-lines/card.png",
       "angle": "มุมใหม่ (ต่างจากภาพรวมรายชื่อ และหมวด Usage & Cost/ccusage) = หมวด Status Lines (นับได้ 9 ชิ้นใน README 12 พ.ย. 2026). กลไกจากเอกสารทางการ code.claude.com/docs/en/statusline: Claude Code ส่ง JSON ทาง stdin ให้คำสั่งที่ตั้งไว้ แสดง stdout; รันในเครื่อง ไม่กิน token; ฟิลด์ context_window.used_percentage, cost.total_cost_usd (ประมาณจากราคาตั้ง อาจไม่ตรงบิล), rate_limits five_hour/seven_day (เฉพาะ Pro/Max/Ultra); คำสั่ง /statusline รับภาษาธรรมดา (ตัวอย่างจากเอกสาร). ตัวอย่างสำเร็จรูป ccstatusline: npx -y ccstatusline@latest เปิด TUI เขียน statusLine ลง settings; MIT; ดาว 13,584 ตรวจ 12 พ.ย. 2026. ไม่อ้างความสามารถอื่นของแต่ละชิ้น"
+    },
+    {
+      "date": "2026-11-12",
+      "track": "news",
+      "subject": "Google Gemini Intelligence: Create My Widget สร้าง widget มือถือจากคำพูด ดึงข้อมูล Gmail/Calendar/Search + Device Assistance (Android 17)",
+      "status": "scheduled",
+      "scheduledFor": "2026-11-14T01:00:00.000Z",
+      "sourceUrl": "https://blog.google/products-and-platforms/platforms/android/gemini-intelligence-november-features-devices/",
+      "blogUrl": "https://aipasakon.com/blog/gemini-intelligence-create-my-widget",
+      "postId": "122129588787259159",
+      "card": "automation/runs/2026-11-14-news-0800-gemini-create-my-widget/card.png",
+      "angle": "ข่าว 10 พ.ย. 2026 19:00Z (~33h ตอนเตรียม 12 พ.ย.). มุม: Create My Widget = โปรแกรมเล็กเฉพาะคน จากคำพูด แลกกับสิทธิ์อ่าน Gmail/Calendar. ข้อเท็จจริงจาก blog.google (curl 12 พ.ย.) + footnotes: select countries/languages, 18+, อาจต้อง subscription, Device Assistance = Android 17+; task automation ขยาย UK/India/Japan; ไม่ระบุไทย. Tabletop (Google Labs 11 พ.ย., US waitlist) เป็นบริบทในบล็อกเท่านั้น. เลือกแทน Grok Build leak (Ars บล็อกการดึง ตรวจต้นฉบับไม่ได้) และ ChatGPT Businesses (openai.com 403)."
     }
   ]
 }
